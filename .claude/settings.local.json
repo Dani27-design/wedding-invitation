@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -sL \"https://www.transparenttextures.com/patterns/p6.png\" -o /Users/dev/Documents/own_project/wedding-invitation/public/textures/p6.png)",
+      "Bash(curl -sL \"https://www.transparenttextures.com/patterns/stardust.png\" -o /Users/dev/Documents/own_project/wedding-invitation/public/textures/stardust.png)",
+      "Bash(ls:*)",
+      "Bash(python3 -c \"from PIL import Image; print\\(''PIL available''\\)\")",
+      "Bash(npx --yes sharp-cli --version)",
+      "Bash(npx:*)"
+    ]
+  }
+}

@@ -5,7 +5,7 @@
 
 ---
 
-## Issue #1 — Floating Controller "Info Acara" Link Broken
+## Issue #1 — Floating Controller "Info Acara" Link Broken [FIXED]
 
 **Problem:**
 Tapping "Info Acara" from the floating controller does nothing. The page doesn't scroll to the Event section.
@@ -21,7 +21,7 @@ Add `id="event-section"` to the Event section element.
 
 ---
 
-## Issue #2 — Missing Image Asset (ivory_texture.jpg)
+## Issue #2 — Missing Image Asset (ivory_texture.jpg) [FIXED]
 
 **Problem:**
 CinematicStory slide 5 (year "2026") shows a broken/missing image background.
@@ -37,7 +37,7 @@ Either add the missing `ivory_texture.jpg` to `/public`, or replace the referenc
 
 ---
 
-## Issue #3 — RSVP Form Reads Nonexistent `count` Field
+## Issue #3 — RSVP Form Reads Nonexistent `count` Field [FIXED]
 
 **Problem:**
 The RSVP submit handler tries to read a `count` field that doesn't exist in the form.
@@ -53,7 +53,7 @@ Either remove `count` from the `GuestWishes` interface and the submit handler, o
 
 ---
 
-## Issue #4 — Wrong Page Title
+## Issue #4 — Wrong Page Title [FIXED]
 
 **Problem:**
 The browser tab shows "My Google AI Studio App" instead of anything wedding-related.
@@ -69,7 +69,7 @@ Change the title to something like "Dani & Marini — Wedding Invitation" and ad
 
 ---
 
-## Issue #5 — Placeholder Google Maps Link
+## Issue #5 — Placeholder Google Maps Link [FIXED]
 
 **Problem:**
 The "Lihat Peta" (View Map) button opens a non-functional URL.
@@ -85,7 +85,7 @@ Generate a real Google Maps short link for "Gedung Wanita Candra Kencana, Jl. Ka
 
 ---
 
-## Issue #6 — Unused `exportCanvasRef`
+## Issue #6 — Unused `exportCanvasRef` [FIXED]
 
 **Problem:**
 A canvas ref is declared but never attached to any element or used in any logic.
@@ -101,7 +101,7 @@ Remove the unused ref declaration.
 
 ---
 
-## Issue #7 — Unused `TimelineEvent` Interface
+## Issue #7 — Unused `TimelineEvent` Interface [FIXED]
 
 **Problem:**
 An exported TypeScript interface exists that nothing imports or uses.
@@ -117,7 +117,7 @@ Either remove `TimelineEvent` from `types.ts`, or refactor `CinematicStory` to u
 
 ---
 
-## Issue #8 — Unused Scroll Progress Computation
+## Issue #8 — Unused Scroll Progress Computation [FIXED]
 
 **Problem:**
 Scroll-linked values are computed every frame but never used in the render output.
@@ -133,7 +133,7 @@ Remove both lines and the unused imports (`useScroll`, `useTransform`, `useSprin
 
 ---
 
-## Issue #9 — CountdownTimer Stale Closure on `targetDate`
+## Issue #9 — CountdownTimer Stale Closure on `targetDate` [FIXED]
 
 **Problem:**
 If the `targetDate` prop were to change, the countdown timer would continue counting toward the original date.
@@ -149,7 +149,7 @@ Add `targetDate` to the dependency array: `}, [targetDate]);`
 
 ---
 
-## Issue #10 — Unstable `useEffect` Dependency in AmbientSocialLayer
+## Issue #10 — Unstable `useEffect` Dependency in AmbientSocialLayer [FIXED]
 
 **Problem:**
 The ambient social element spawning interval is torn down and recreated more often than necessary.
@@ -165,7 +165,7 @@ Use a stable dependency like `pool.length` or memoize the pool array. The interv
 
 ---
 
-## Issue #11 — Twibbon Preview vs Export Mismatch
+## Issue #11 — Twibbon Preview vs Export Mismatch [FIXED]
 
 **Problem:**
 The downloaded twibbon PNG has a different floral arrangement than what the user sees in the preview.

@@ -1,32 +1,22 @@
-// Build Update: 2026-04-29
-import { useState, useEffect, useRef, FormEvent, useCallback, ChangeEvent, MouseEvent, TouchEvent } from 'react';
-import { motion, AnimatePresence, useScroll, useTransform, useSpring } from 'motion/react';
+import { useState, useEffect, useRef, useMemo, FormEvent, useCallback, ChangeEvent, MouseEvent, TouchEvent } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   Heart,
   Calendar,
   MapPin,
-  Music,
-  Copy,
   Check,
   Sparkles,
   ArrowRight,
-  Send,
   MessageSquare,
   MessageCircle,
   Gift,
-  ChevronDown,
   Camera,
-  Download,
-  Upload,
-  Plus,
-  Minus,
   RefreshCw,
   Image as ImageIcon,
   Palette,
   Code,
   Instagram,
-  Twitter,
-  Facebook,
+  Linkedin,
   X,
   Play,
   Pause
@@ -126,11 +116,11 @@ const FloatingPetals = () => (
 const BackgroundLayers = () => (
   <>
     {/* Global Film Grain */}
-    <div className="fixed inset-0 pointer-events-none z-[9999] opacity-[0.025] animate-grain bg-repeat bg-[url('https://www.transparenttextures.com/patterns/p6.png')]" />
+    <div className="fixed inset-0 pointer-events-none z-[9999] opacity-[0.025] animate-grain bg-repeat bg-[url('/textures/p6.png')]" />
 
     {/* Living Ornament: Floral Shadows */}
     <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden mix-blend-multiply opacity-30">
-      <div className="absolute top-0 -left-20 w-[600px] h-[600px] bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] blur-[80px] rounded-full animate-shadow-drift" />
+      <div className="absolute top-0 -left-20 w-[600px] h-[600px] bg-[url('/textures/stardust.png')] blur-[80px] rounded-full animate-shadow-drift" />
       <div className="absolute bottom-0 -right-20 w-[500px] h-[500px] bg-gold/10 blur-[100px] rounded-full animate-shadow-drift [animation-delay:5s]" />
     </div>
 
@@ -139,6 +129,35 @@ const BackgroundLayers = () => (
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gold/5 to-transparent w-[200%] -translate-x-full animate-light-sweep" />
     </div>
   </>
+);
+
+const TimeBox = ({ value, label }: { value: number; label: string }) => (
+  <motion.div
+    animate={{ y: [0, -4, 0] }}
+    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+    className="flex flex-col items-center flex-1 min-w-0"
+  >
+    <div className="relative group">
+      {/* Animated Background Aura */}
+      <div className="absolute inset-0 bg-gold/10 blur-xl rounded-full scale-150 animate-pulse opacity-50 -z-10" />
+
+      <AnimatePresence mode="wait">
+        <motion.span
+          key={value}
+          initial={{ opacity: 0, y: 10, scale: 0.9 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -10, scale: 1.1 }}
+          transition={{ duration: 0.4, ease: "backOut" }}
+          className="font-serif text-3xl md:text-5xl text-ink/90 block font-light leading-none tracking-tighter"
+        >
+          {value.toString().padStart(2, '0')}
+        </motion.span>
+      </AnimatePresence>
+    </div>
+    <span className="font-sans text-[7px] md:text-[9px] tracking-[0.2em] md:tracking-[0.3em] uppercase text-gold/80 font-bold mt-2">
+      {label}
+    </span>
+  </motion.div>
 );
 
 const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
@@ -174,37 +193,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
     updateTimer();
     const timer = setInterval(updateTimer, 1000);
     return () => clearInterval(timer);
-  }, []);
-
-  // Standard simplified TimeBox for reliability
-  const TimeBox = ({ value, label }: { value: number; label: string }) => (
-    <motion.div
-      animate={{ y: [0, -4, 0] }}
-      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-      className="flex flex-col items-center flex-1 min-w-0"
-    >
-      <div className="relative group">
-        {/* Animated Background Aura */}
-        <div className="absolute inset-0 bg-gold/10 blur-xl rounded-full scale-150 animate-pulse opacity-50 -z-10" />
-
-        <AnimatePresence mode="wait">
-          <motion.span
-            key={value}
-            initial={{ opacity: 0, y: 10, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 1.1 }}
-            transition={{ duration: 0.4, ease: "backOut" }}
-            className="font-serif text-3xl md:text-5xl text-ink/90 block font-light leading-none tracking-tighter"
-          >
-            {value.toString().padStart(2, '0')}
-          </motion.span>
-        </AnimatePresence>
-      </div>
-      <span className="font-sans text-[7px] md:text-[9px] tracking-[0.2em] md:tracking-[0.3em] uppercase text-gold/80 font-bold mt-2">
-        {label}
-      </span>
-    </motion.div>
-  );
+  }, [targetDate]);
 
   return (
     <div className="w-full max-w-xl mx-auto px-4">
@@ -224,19 +213,18 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
 };
 
 
-type AspRatio = '4:5' | '9:16' | '16:9';
-
 function TwibbonCreator() {
   const [image, setImage] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
-  
+
   // High-performance refs for gesture state (avoids React re-renders during motion)
   const transformRef = useRef({ x: 0, y: 0, zoom: 1 });
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const imgElementRef = useRef<HTMLImageElement>(null);
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null);
-  const exportCanvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const hasDrawn = useRef(false);
   
   const isDragging = useRef(false);
   const lastPos = useRef({ x: 0, y: 0 });
@@ -257,8 +245,8 @@ function TwibbonCreator() {
     imgElementRef.current.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${zoom})`;
   }, []);
 
-  const drawOverlay = useCallback((ctx: CanvasRenderingContext2D, w: number, h: number, skipClear = false) => {
-    if (!skipClear) ctx.clearRect(0, 0, w, h);
+  const drawOverlay = useCallback((ctx: CanvasRenderingContext2D, w: number, h: number) => {
+    ctx.clearRect(0, 0, w, h);
     
     // 1. Layout Geometry (Signature Arch)
     const margin = FRAME_MARGIN;
@@ -481,10 +469,10 @@ function TwibbonCreator() {
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     
-    // Line 1: attendance the wedding of
+    // Line 1: turut merayakan pernikahan
     ctx.font = "italic 32px 'Playfair Display', serif";
     ctx.fillStyle = "rgba(26, 26, 26, 0.45)";
-    ctx.fillText("attendance the wedding of", w / 2, h - 255);
+    ctx.fillText("turut merayakan pernikahan", w / 2, h - 255);
 
     // Line 2: Dani & Marini (Balanced with smaller ampersand)
     const fontMain = "110px 'Dayland', cursive";
@@ -529,14 +517,29 @@ function TwibbonCreator() {
   }, []);
 
   useEffect(() => {
-    const canvas = overlayCanvasRef.current;
-    if (canvas) {
-      canvas.width = CANVAS_W;
-      canvas.height = CANVAS_H;
-      const ctx = canvas.getContext('2d');
-      if (ctx) drawOverlay(ctx, CANVAS_W, CANVAS_H);
-    }
-    setIsReady(true);
+    const el = wrapperRef.current;
+    if (!el || hasDrawn.current) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasDrawn.current) {
+          hasDrawn.current = true;
+          const canvas = overlayCanvasRef.current;
+          if (canvas) {
+            canvas.width = CANVAS_W;
+            canvas.height = CANVAS_H;
+            const ctx = canvas.getContext('2d');
+            if (ctx) drawOverlay(ctx, CANVAS_W, CANVAS_H);
+          }
+          setIsReady(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '200px' }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
   }, [drawOverlay]);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -654,15 +657,8 @@ function TwibbonCreator() {
       ctx.drawImage(img, centerX, centerY, dw, dh);
       ctx.restore();
 
-      // 3. Draw Overlay logic ON TOP using a temp canvas to preserve transparency
-      const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = CANVAS_W;
-      tempCanvas.height = CANVAS_H;
-      const tempCtx = tempCanvas.getContext('2d');
-      if (tempCtx) {
-        drawOverlay(tempCtx, CANVAS_W, CANVAS_H);
-        ctx.drawImage(tempCanvas, 0, 0);
-      }
+      // 3. Copy the existing preview overlay directly (preserves exact floral arrangement)
+      ctx.drawImage(overlayCanvasRef.current!, 0, 0);
 
       const link = document.createElement('a');
       link.download = `Memori-Dani-Marini.png`;
@@ -673,7 +669,7 @@ function TwibbonCreator() {
   };
 
   return (
-    <div className="flex flex-col h-fit w-full py-4 items-center justify-center">
+    <div ref={wrapperRef} className="flex flex-col h-fit w-full py-4 items-center justify-center">
       {/* HEADER (COMPACT) */}
       <div className="text-center mb-6 shrink-0 px-4">
         <h3 className="font-serif text-xl italic text-ink mb-1">Rayakan Momen Ini</h3>
@@ -773,6 +769,14 @@ function TwibbonCreator() {
 };
 
 
+const DEFAULT_COMMENTS = [
+  "Tamu: MasyaAllah",
+  "Tamu: So sweet",
+  "Tamu: Akhirnya",
+  "Tamu: Bahagia selalu",
+  "Tamu: Lancar ya"
+];
+
 {/* --- AMBIENT SOCIAL & DECORATIVE HELPERS --- */}
 const AmbientSocialLayer = ({ 
   customComments = [], 
@@ -785,15 +789,7 @@ const AmbientSocialLayer = ({
 }) => {
   const [elements, setElements] = useState<{ id: number; type: 'heart' | 'comment'; text?: string; x: number; delay: number; isBurst?: boolean; isInstant?: boolean }[]>([]);
   
-  // Ensure default comments have a name for consistency
-  const defaultComments = [
-    "Tamu: MasyaAllah", 
-    "Tamu: So sweet", 
-    "Tamu: Akhirnya", 
-    "Tamu: Bahagia selalu", 
-    "Tamu: Lancar ya"
-  ];
-  const pool = [...defaultComments, ...customComments.map(c => `${c.name}: ${c.text}`)];
+  const pool = [...DEFAULT_COMMENTS, ...customComments.map(c => `${c.name}: ${c.text}`)];
 
   // Handle manual heart burst
   useEffect(() => {
@@ -841,7 +837,7 @@ const AmbientSocialLayer = ({
       });
     }, 4000);
     return () => clearInterval(interval);
-  }, [JSON.stringify(pool)]);
+  }, [pool.length]);
 
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden z-20">
@@ -942,7 +938,7 @@ const CinematicStory = () => {
     {
       year: "2026",
       text: "Setelah semua perjalanan ini,\nkita memutuskan untuk melangkah lebih jauh—\nbersama, selamanya.",
-      bg: "/ivory_texture.jpg"
+      bg: "/bride_and_groom_full_body_potrait.jpeg"
     },
     {
       year: "Ikrar",
@@ -957,6 +953,15 @@ const CinematicStory = () => {
   const [commentInput, setCommentInput] = useState<{ index: number; name: string; text: string } | null>(null);
   const [heartTrigger, setHeartTrigger] = useState(0);
   const [commentTrigger, setCommentTrigger] = useState<{ name: string; text: string; id: number } | null>(null);
+  const [activeSlide, setActiveSlide] = useState(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleStoryScroll = useCallback(() => {
+    const el = scrollContainerRef.current;
+    if (!el || !el.clientWidth) return;
+    const index = Math.round(el.scrollLeft / el.clientWidth);
+    setActiveSlide(index);
+  }, []);
 
   const handleLike = (idx: number) => {
     setHeartTrigger(Date.now());
@@ -979,12 +984,13 @@ const CinematicStory = () => {
 
   return (
     <section id="story-section" className="relative h-screen w-full bg-ink overflow-hidden scroll-snap-container">
-      <div className="h-full w-full flex overflow-x-auto snap-x snap-mandatory no-scrollbar scroll-smooth">
+      <div ref={scrollContainerRef} onScroll={handleStoryScroll} className="h-full w-full flex overflow-x-auto snap-x snap-mandatory no-scrollbar scroll-smooth">
         {slides.map((slide, idx) => (
           <div key={idx} className="relative h-full w-full min-w-full snap-center flex items-center justify-center overflow-hidden">
             <div className="absolute inset-0">
-              <img 
-                src={slide.bg} 
+              <img
+                src={slide.bg}
+                loading="lazy"
                 className="w-full h-full object-cover opacity-40 md:opacity-50 grayscale hover:grayscale-0 transition-all duration-[3000ms]"
                 alt="Memory"
                 referrerPolicy="no-referrer"
@@ -992,17 +998,23 @@ const CinematicStory = () => {
               <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/20 to-ink/60" />
             </div>
 
-            <AmbientSocialLayer 
-              customComments={storyStats[idx].comments} 
-              triggerHeartTap={heartTrigger} 
-              triggerCommentTap={commentTrigger}
-            />
-            <PetalEffect />
+            {idx === activeSlide && (
+              <>
+                <AmbientSocialLayer
+                  customComments={storyStats[idx].comments}
+                  triggerHeartTap={heartTrigger}
+                  triggerCommentTap={commentTrigger}
+                />
+                <PetalEffect />
+              </>
+            )}
 
             {/* Interaction UI Overlay */}
+            {commentInput?.index !== idx && (
             <div className="absolute bottom-32 right-6 flex flex-col gap-5 z-[60]">
               <motion.button
                 whileTap={{ scale: 0.8 }}
+                aria-label="Suka"
                 onClick={() => handleLike(idx)}
                 className="relative flex flex-col items-center gap-1 group"
               >
@@ -1014,6 +1026,7 @@ const CinematicStory = () => {
 
               <motion.button
                 whileTap={{ scale: 0.8 }}
+                aria-label="Komentar"
                 onClick={() => setCommentInput({ index: idx, name: "", text: "" })}
                 className="flex flex-col items-center gap-1 group"
               >
@@ -1023,6 +1036,7 @@ const CinematicStory = () => {
                 <span className="text-[9px] font-sans text-white/60 tracking-widest">{storyStats[idx].comments.length}</span>
               </motion.button>
             </div>
+            )}
 
             {/* Comment Input Overlay */}
             <AnimatePresence>
@@ -1041,6 +1055,7 @@ const CinematicStory = () => {
                     
                     <input
                       type="text"
+                      maxLength={30}
                       value={commentInput.name}
                       onChange={(e) => setCommentInput({ ...commentInput, name: e.target.value })}
                       placeholder="Nama Anda"
@@ -1049,6 +1064,7 @@ const CinematicStory = () => {
 
                     <textarea
                       autoFocus
+                      maxLength={100}
                       value={commentInput.text}
                       onChange={(e) => setCommentInput({ ...commentInput, text: e.target.value })}
                       placeholder="Tulis pesan..."
@@ -1114,14 +1130,26 @@ const CinematicStory = () => {
             </div>
             
             {idx === 0 && (
-              <motion.div 
-                animate={{ x: [0, 8, 0], opacity: [0.2, 0.5, 0.2] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute right-8 top-1/2 -translate-y-1/2 flex flex-col items-center gap-3 z-30 invisible md:visible"
-              >
-                <div className="w-[1px] h-16 bg-gradient-to-b from-transparent via-gold to-transparent" />
-                <span className="text-[7px] tracking-[0.6em] uppercase text-gold rotate-90 origin-right translate-x-3 whitespace-nowrap mt-4">Scroll to reveal</span>
-              </motion.div>
+              <>
+                <motion.div
+                  animate={{ x: [0, 8, 0], opacity: [0.2, 0.5, 0.2] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                  className="absolute right-8 top-1/2 -translate-y-1/2 flex flex-col items-center gap-3 z-30 invisible md:visible"
+                >
+                  <div className="w-[1px] h-16 bg-gradient-to-b from-transparent via-gold to-transparent" />
+                  <span className="text-[7px] tracking-[0.6em] uppercase text-gold rotate-90 origin-right translate-x-3 whitespace-nowrap mt-4">Geser untuk melihat</span>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, x: 0 }}
+                  animate={{ opacity: [0, 0.8, 0.8, 0], x: [0, 10, 10, 0] }}
+                  transition={{ duration: 3, delay: 1.5 }}
+                  className="absolute bottom-24 left-1/2 -translate-x-1/2 flex items-center gap-2 z-30 md:hidden"
+                >
+                  <span className="text-[8px] tracking-[0.3em] uppercase text-gold font-bold">Geser</span>
+                  <ArrowRight className="w-3 h-3 text-gold" />
+                </motion.div>
+              </>
             )}
           </div>
         ))}
@@ -1129,6 +1157,9 @@ const CinematicStory = () => {
     </section>
   );
 };
+
+const dateFormatter = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+const formatDate = (timestamp: number) => dateFormatter.format(timestamp);
 
 export default function App() {
   const [isOpen, setIsOpen] = useState(false);
@@ -1163,7 +1194,7 @@ export default function App() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Dynamic Pagination Logic based on Refined Estimated Height
-  const wishPages = (() => {
+  const wishPages = useMemo(() => {
     // 82vh on a standard mobile is ~615px.
     // Pagination (50px) + Padding/Margins (~30px) = ~80px.
     // We can safely use 530px as available height.
@@ -1190,13 +1221,11 @@ export default function App() {
 
     if (currentPageWishes.length > 0) pages.push(currentPageWishes);
     return pages;
-  })();
+  }, [wishes]);
 
   const currentWishes = wishPages[currentPage - 1] || [];
   const totalPages = wishPages.length;
 
-  const { scrollYProgress } = useScroll();
-  const smoothProgress = useSpring(scrollYProgress, { stiffness: 100, damping: 30 });
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -1221,9 +1250,21 @@ export default function App() {
   };
 
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [isSubmitSuccess, setIsSubmitSuccess] = useState(false);
 
-  const handleCopy = (text: string, index: number) => {
-    navigator.clipboard.writeText(text);
+  const handleCopy = async (text: string, index: number) => {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    }
     setCopiedIndex(index);
     setTimeout(() => setCopiedIndex(null), 2000);
   };
@@ -1236,28 +1277,23 @@ export default function App() {
       name: formData.get('name') as string,
       message: formData.get('message') as string,
       attendance: formData.get('attendance') as 'yes' | 'no',
-      count: Number(formData.get('count')) || 1,
       createdAt: Date.now()
     };
     setWishes([newWish, ...wishes]);
     setCurrentPage(1); // Reset to first page on new wish
-    setIsRSVPModalOpen(false); // Close modal on success
+    setIsSubmitSuccess(true);
     e.currentTarget.reset();
-  };
-
-  const formatDate = (timestamp: number) => {
-    return new Intl.DateTimeFormat('id-ID', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
-    }).format(timestamp);
+    setTimeout(() => {
+      setIsRSVPModalOpen(false);
+      setIsSubmitSuccess(false);
+    }, 1500);
   };
 
   return (
     <div className="min-h-screen bg-ivory text-ink selection:bg-gold/20 font-sans overflow-x-hidden">
       <BackgroundLayers />
 
-      <audio ref={audioRef} loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" />
+      <audio ref={audioRef} loop src="/musics/adele-make-you-feel-my-love.mp3" />
 
       {/* --- CINEMATIC OPENING --- */}
       <AnimatePresence mode="wait">
@@ -1374,7 +1410,7 @@ export default function App() {
                 >
                   <div className="space-y-2">
                     <p className="font-sans text-[9px] tracking-[0.3rem] uppercase text-gold/60 font-medium">Turut Mengundang</p>
-                    <h2 className="font-display italic text-3xl md:text-4xl text-ivory/90 font-light">
+                    <h2 className="font-display italic text-3xl md:text-4xl text-ivory/90 font-light max-w-[85vw] break-words">
                       {guestName}
                     </h2>
                   </div>
@@ -1478,6 +1514,7 @@ export default function App() {
 
               <motion.button
                 whileTap={{ scale: 0.9 }}
+                aria-label={isToolsOpen ? 'Tutup menu' : 'Buka menu'}
                 onClick={() => setIsToolsOpen(!isToolsOpen)}
                 className={`relative w-14 h-14 flex items-center justify-center backdrop-blur-xl border border-rose-pastel/40 rounded-full transition-all duration-700 shadow-2xl group overflow-hidden ${isToolsOpen ? 'bg-ink border-rose-pastel' : 'bg-ivory/20'}`}
               >
@@ -1556,7 +1593,7 @@ export default function App() {
               >
                 <div className="w-12 h-px bg-gold/30 mx-auto" />
                 <div className="space-y-3">
-                  <p className="font-display italic text-3xl md:text-5xl text-ink/80">Sabtu, 29 Agustus 2026</p>
+                  <p className="font-display italic text-2xl sm:text-3xl md:text-5xl text-ink/80">Sabtu, 29 Agustus 2026</p>
                   <p className="font-sans text-[8px] tracking-[0.6rem] uppercase text-gold font-medium">Surabaya . Indonesia</p>
                 </div>
               </motion.div>
@@ -1599,6 +1636,7 @@ export default function App() {
                     >
                       <img
                         src="/groom_face_potrait.jpeg"
+                        loading="lazy"
                         className="w-full h-full object-cover filter saturate-[1.05] contrast-[1.02] hover:scale-105 transition-all duration-1000"
                         alt="Dani"
                       />
@@ -1642,6 +1680,7 @@ export default function App() {
                     >
                       <img
                         src="/bride_face_potrait.jpeg"
+                        loading="lazy"
                         className="w-full h-full object-cover filter saturate-[1.05] contrast-[1.02] scale-110 hover:scale-115 transition-all duration-1000"
                         alt="Marini"
                       />
@@ -1665,7 +1704,7 @@ export default function App() {
                 >
                   <motion.div variants={fadeUp}>
                     <p className="text-[9px] uppercase tracking-[0.5em] text-gold mb-1 font-black">Mempelai Pria</p>
-                    <h3 className="font-serif text-3xl md:text-5xl leading-none mb-1 tracking-tighter">M. Daniansyah Chusyaidin, S.Kom</h3>
+                    <h3 className="font-serif text-2xl sm:text-3xl md:text-5xl leading-none mb-1 tracking-tighter">M. Daniansyah Chusyaidin, S.Kom</h3>
                     <p className="text-[10px] tracking-widest text-ink/40">Putra Bapak M. Safiudin Sukri & Ibu Indiarti</p>
                   </motion.div>
 
@@ -1677,7 +1716,7 @@ export default function App() {
 
                   <motion.div variants={fadeUp}>
                     <p className="text-[9px] uppercase tracking-[0.5em] text-gold mb-1 font-black">Mempelai Wanita</p>
-                    <h3 className="font-serif text-3xl md:text-5xl leading-none mb-1 tracking-tighter">Siti Nur Marini, A.Md.M</h3>
+                    <h3 className="font-serif text-2xl sm:text-3xl md:text-5xl leading-none mb-1 tracking-tighter">Siti Nur Marini, A.Md.M</h3>
                     <p className="text-[10px] tracking-widest text-ink/40">Putri Bapak Margono & Ibu (Almh) Sulami</p>
                   </motion.div>
                 </motion.div>
@@ -1691,7 +1730,7 @@ export default function App() {
           <CinematicStory />
 
           {/* --- [3] THE EVENT (REFINED & EFFICIENT) --- */}
-          <section className="relative py-6 bg-ivory overflow-hidden">
+          <section id="event-section" className="relative py-6 bg-ivory overflow-hidden">
             <div className="container mx-auto px-6 max-w-lg relative z-10">
               
               {/* Reading Flow: Vertical stack of information */}
@@ -1770,8 +1809,9 @@ export default function App() {
                   <motion.a
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    href="https://maps.app.goo.gl/YourMapLink"
+                    href="https://www.google.com/maps/dir//GEDUNG+WANITA+Candra+Kencana,+Pucang+Sewu,+Jl.+Kalibokor+Selatan+No.2,+Baratajaya,+Kec.+Gubeng,+Surabaya,+Jawa+Timur+60284/@-7.3571367,112.7509655,15z/data=!4m8!4m7!1m0!1m5!1m1!1s0x2dd7fbb53b29cbb7:0xee33be91a97dbb70!2m2!1d112.7618051!2d-7.2878229?entry=ttu&g_ep=EgoyMDI2MDQyOC4wIKXMDSoASAFQAw%3D%3D"
                     target="_blank"
+                    rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 py-2.5 px-6 bg-ink text-gold rounded-full text-[9px] uppercase tracking-[0.3em] font-black transition-all shadow-md"
                   >
                     <MapPin className="w-3 h-3" />
@@ -1853,6 +1893,7 @@ export default function App() {
                       onClick={() => setIsRSVPModalOpen(true)}
                       className="w-14 h-14 bg-gradient-to-br from-gold via-gold/80 to-gold text-white rounded-full transition-all duration-500 flex items-center justify-center shadow-[0_10px_40px_rgba(212,175,55,0.3)] group border border-white/20"
                       title="Kirim Doa"
+                      aria-label="Kirim Doa"
                     >
                       <MessageSquare className="w-6 h-6 transition-transform duration-500 group-hover:scale-110" />
                     </motion.button>
@@ -1882,7 +1923,7 @@ export default function App() {
                                   {/* Ultra Compact Identity Bar */}
                                   <div className="flex justify-between items-center mb-1">
                                     <div className="flex items-center gap-1.5 overflow-hidden">
-                                      <p className="text-ink font-bold uppercase text-[8px] tracking-tight truncate max-w-[90px]">{wish.name}</p>
+                                      <p className="text-ink font-bold uppercase text-[8px] tracking-tight truncate max-w-[130px] sm:max-w-[160px]">{wish.name}</p>
                                       <span className={`text-[5.5px] px-1 py-0 rounded-full border border-gold/5 font-black uppercase tracking-tighter shrink-0 ${wish.attendance === 'yes' ? 'bg-gold/10 text-gold' : 'bg-ink/5 text-ink/20'}`}>
                                         {wish.attendance === 'yes' ? 'Hadir' : 'Absen'}
                                       </span>
@@ -1906,6 +1947,7 @@ export default function App() {
                         <motion.button
                           whileHover={{ scale: 1.1, backgroundColor: 'rgba(212, 175, 55, 0.05)' }}
                           whileTap={{ scale: 0.9 }}
+                          aria-label="Halaman sebelumnya"
                           disabled={currentPage === 1}
                           onClick={() => setCurrentPage(p => p - 1)}
                           className="w-9 h-9 flex items-center justify-center rounded-full border border-gold/10 text-gold disabled:opacity-10 transition-all bubble-glow"
@@ -1922,6 +1964,7 @@ export default function App() {
                         <motion.button
                           whileHover={{ scale: 1.1, backgroundColor: 'rgba(212, 175, 55, 0.05)' }}
                           whileTap={{ scale: 0.9 }}
+                          aria-label="Halaman selanjutnya"
                           disabled={currentPage === totalPages}
                           onClick={() => setCurrentPage(p => p + 1)}
                           className="w-9 h-9 flex items-center justify-center rounded-full border border-gold/10 text-gold disabled:opacity-10 transition-all bubble-glow"
@@ -1954,7 +1997,7 @@ export default function App() {
                   initial={{ opacity: 0, scale: 0.95, y: 10 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                  className="relative w-full max-w-md bg-ivory p-6 md:p-6 rounded-[2.5rem] border border-gold/20 shadow-2xl overflow-hidden"
+                  className="relative w-full max-w-md max-h-[90vh] overflow-y-auto bg-ivory p-6 md:p-6 rounded-[2.5rem] border border-gold/20 shadow-2xl"
                 >
                   {/* Subtle Grainy Overlay or Decorative Element */}
                   <div className="absolute -top-10 -right-10 pointer-events-none opacity-[0.03]">
@@ -1962,12 +2005,30 @@ export default function App() {
                   </div>
 
                   <div className="relative z-10">
+                    {isSubmitSuccess ? (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="flex flex-col items-center justify-center py-10 text-center"
+                      >
+                        <motion.div
+                          animate={{ scale: [1, 1.2, 1] }}
+                          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                        >
+                          <Heart className="w-12 h-12 text-gold fill-gold/20 mb-4" />
+                        </motion.div>
+                        <h3 className="font-serif italic text-2xl text-ink mb-2">Terima Kasih</h3>
+                        <p className="text-[10px] uppercase tracking-[0.3em] text-gold/60 font-bold">Doa Anda sangat berarti bagi kami</p>
+                      </motion.div>
+                    ) : (
+                    <>
                     <div className="flex justify-between items-start mb-8">
                       <div className="space-y-1">
                         <span className="text-[8px] uppercase tracking-[0.4em] text-gold font-black block">Konfirmasi Kehadiran</span>
                         <h3 className="font-serif italic text-2xl text-ink">Beri Doa & Harapan</h3>
                       </div>
-                      <button 
+                      <button
+                        aria-label="Tutup"
                         onClick={() => setIsRSVPModalOpen(false)}
                         className="w-8 h-8 flex items-center justify-center hover:bg-gold/5 rounded-full transition-colors text-ink/40 hover:text-gold"
                       >
@@ -1977,9 +2038,9 @@ export default function App() {
 
                     <form onSubmit={handleRSVPSubmit} className="space-y-6">
                       <div className="relative group">
-                        <label className="text-[9px] uppercase tracking-[0.2em] text-gold/90 font-bold mb-1 block">Nama Lengkap</label>
+                        <label htmlFor="rsvp-name" className="text-[9px] uppercase tracking-[0.2em] text-gold/90 font-bold mb-1 block">Nama Lengkap</label>
                         <input
-                          name="name" required type="text" placeholder={guestName}
+                          id="rsvp-name" name="name" required type="text" maxLength={50} placeholder={guestName}
                           className="w-full bg-transparent border-b border-gold/20 py-2 outline-none focus:border-gold transition-all font-serif italic text-lg text-ink placeholder:text-ink/30"
                         />
                       </div>
@@ -2003,9 +2064,9 @@ export default function App() {
                       </div>
 
                       <div className="relative group">
-                        <label className="text-[9px] uppercase tracking-[0.2em] text-gold/90 font-bold mb-1 block">Pesan Tulus Anda</label>
+                        <label htmlFor="rsvp-message" className="text-[9px] uppercase tracking-[0.2em] text-gold/90 font-bold mb-1 block">Pesan Tulus Anda</label>
                         <textarea
-                          name="message" required rows={3} placeholder="Tuliskan harapan indah Anda..."
+                          id="rsvp-message" name="message" required rows={3} maxLength={200} placeholder="Tuliskan harapan indah Anda..."
                           className="w-full bg-transparent border-b border-gold/20 py-2 outline-none focus:border-gold transition-all resize-none font-serif italic text-base text-ink placeholder:text-ink/30"
                         />
                       </div>
@@ -2019,6 +2080,8 @@ export default function App() {
                         Kirimkan Doa
                       </motion.button>
                     </form>
+                    </>
+                    )}
                   </div>
                 </motion.div>
               </div>
@@ -2064,7 +2127,7 @@ export default function App() {
                   Kehadiran dan doa Anda adalah kado terindah. Jika ingin memberi tanda kasih, dapat melalui:
                 </p>
 
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 max-w-5xl mx-auto">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-w-5xl mx-auto">
                   {[
                     { bank: "BCA", account: "1234567890", owner: "M. Daniansyah C." },
                     { bank: "BRI", account: "0987654321", owner: "Siti Nur Marini" },
@@ -2140,6 +2203,8 @@ export default function App() {
                 <p className="font-serif text-[15px] italic tracking-[0.4em] text-gold">Beberapa Momen yang Kami Simpan, dan Kini Ingin Kami Bagikan.</p>
               </motion.div>
 
+              <div className="relative">
+                <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-paper to-transparent z-10 pointer-events-none" />
               <div className="overflow-x-auto pb-4 -mx-4 px-4">
   <div
     className="py-5 grid grid-rows-[200px_200px] md:grid-rows-[280px_280px] grid-flow-col-dense gap-4 md:gap-6 auto-cols-[150px] md:auto-cols-[210px]"
@@ -2163,13 +2228,14 @@ export default function App() {
         initial={{ opacity: 0, scale: 0.9 }}
         whileInView={{ opacity: 1, scale: 1 }}
         viewport={{ once: true }}
-        transition={{ duration: 0.8, delay: i * 0.1 }}
+        transition={{ duration: 0.8, delay: Math.min(i * 0.1, 0.3) }}
         whileHover={{ y: -10, scale: 1.02 }}
         onClick={() => setSelectedPhoto(item.src)}
         className={`${item.span} relative group overflow-hidden shadow-2xl ${item.shape} cursor-zoom-in isolate transform-gpu [-webkit-mask-image:-webkit-radial-gradient(white,black)]`}
       >
         <img
           src={item.src}
+          loading="lazy"
           alt={`Gallery ${i}`}
           className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 [backface-visibility:hidden]"
           referrerPolicy="no-referrer"
@@ -2187,6 +2253,7 @@ export default function App() {
     ))}
   </div>
 </div>
+              </div>
 
               <motion.div
                 initial={{ opacity: 0 }}
@@ -2226,8 +2293,9 @@ export default function App() {
                       Menulis setiap baris code di balik halaman ini, merangkainya satu per satu sampai akhirnya bisa bercerita tentang kami.
                     </p>
                     <div className="flex gap-4 opacity-30 hover:opacity-100 transition-opacity">
-                      <motion.a href="#" whileHover={{ y: -3, color: "#B48D3E" }} className="text-ink"><Instagram className="w-4 h-4" /></motion.a>
-                      <motion.a href="#" whileHover={{ y: -3, color: "#B48D3E" }} className="text-ink"><Twitter className="w-4 h-4" /></motion.a>
+                      <motion.a href="https://instagram.com/danichusyaidin" target="_blank" rel="noopener noreferrer" whileHover={{ y: -3, color: "#B48D3E" }} className="text-ink"><Instagram className="w-4 h-4" /></motion.a>
+                      <motion.a href="https://id.linkedin.com/in/daniansyahchusyaidin" target="_blank" rel="noopener noreferrer" whileHover={{ y: -3, color: "#B48D3E" }} className="text-ink"><Linkedin className="w-4 h-4" /></motion.a>
+                      <motion.a href="https://wa.me/6285790428078" target="_blank" rel="noopener noreferrer" whileHover={{ y: -3, color: "#B48D3E" }} className="text-ink"><svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></motion.a>
                     </div>
                   </div>
 
@@ -2241,8 +2309,9 @@ export default function App() {
                       Menjadikan setiap bagian tidak hanya terlihat indah, tapi juga hingga semuanya benar-benar seperti kami.
                     </p>
                     <div className="flex gap-4 opacity-30 hover:opacity-100 transition-opacity">
-                      <motion.a href="#" whileHover={{ y: -3, color: "#B48D3E" }} className="text-ink"><Instagram className="w-4 h-4" /></motion.a>
-                      <motion.a href="#" whileHover={{ y: -3, color: "#B48D3E" }} className="text-ink"><Facebook className="w-4 h-4" /></motion.a>
+                      <motion.a href="https://instagram.com/mariniw_" target="_blank" rel="noopener noreferrer" whileHover={{ y: -3, color: "#B48D3E" }} className="text-ink"><Instagram className="w-4 h-4" /></motion.a>
+                      <motion.a href="https://threads.com/@mariniw_" target="_blank" rel="noopener noreferrer" whileHover={{ y: -3, color: "#B48D3E" }} className="text-ink"><svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.2 1.48-.69 2.61-1.469 3.36-.998.963-2.395 1.452-4.153 1.452-1.31 0-2.4-.342-3.237-1.018-.873-.704-1.354-1.726-1.354-2.879 0-1.27.567-2.335 1.596-2.996.856-.55 1.97-.856 3.226-.886.907-.023 1.728.064 2.454.26-.137-.716-.44-1.259-.906-1.617-.533-.41-1.32-.617-2.342-.617h-.071c-.77.009-1.483.195-2.06.538l-.977-1.737c.82-.489 1.822-.753 2.983-.771h.094c1.486 0 2.697.39 3.6 1.159.837.714 1.378 1.712 1.61 2.966.478.213.923.47 1.327.776 1.078.817 1.852 1.94 2.24 3.247.55 1.86.35 4.17-1.564 6.09C18.648 23.1 16.143 23.974 12.186 24zm-1.14-8.376c-.837.019-1.508.2-1.996.534-.528.36-.79.842-.79 1.439 0 .567.22 1.03.654 1.38.468.378 1.133.57 1.975.57 1.254 0 2.218-.334 2.865-.993.525-.535.842-1.315.96-2.339-.82-.248-1.72-.375-2.668-.375z"/></svg></motion.a>
+                      <motion.a href="https://wa.me/628883816403" target="_blank" rel="noopener noreferrer" whileHover={{ y: -3, color: "#B48D3E" }} className="text-ink"><svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></motion.a>
                     </div>
                   </div>
                 </div>
@@ -2282,10 +2351,11 @@ export default function App() {
                   />
 
                   <button
+                    aria-label="Tutup"
                     onClick={() => setSelectedPhoto(null)}
                     className="absolute top-6 right-6 w-12 h-12 flex items-center justify-center bg-white/20 hover:bg-white/40 text-white rounded-full backdrop-blur-md transition-all border border-white/20 group"
                   >
-                    <Camera className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+                    <X className="w-5 h-5 transition-transform" />
                   </button>
                 </motion.div>
               </motion.div>

@@ -1,0 +1,123 @@
+import { useState, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Heart, MessageCircle, ArrowRight } from 'lucide-react';
+import { AmbientSocialLayer } from '../ui/AmbientSocialLayer';
+import { PetalEffect } from '../ui/PetalEffect';
+import { STORY_SLIDES } from '../../constants/wedding';
+
+export const CinematicStory = () => {
+  const [storyStats, setStoryStats] = useState<Record<number, { likes: number; comments: { name: string; text: string }[] }>>(
+    STORY_SLIDES.reduce((acc, _, i) => ({ ...acc, [i]: { likes: Math.floor(Math.random() * 50) + 120, comments: [] } }), {})
+  );
+  const [commentInput, setCommentInput] = useState<{ index: number; name: string; text: string } | null>(null);
+  const [heartTrigger, setHeartTrigger] = useState(0);
+  const [commentTrigger, setCommentTrigger] = useState<{ name: string; text: string; id: number } | null>(null);
+  const [activeSlide, setActiveSlide] = useState(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleStoryScroll = useCallback(() => {
+    const el = scrollContainerRef.current;
+    if (!el || !el.clientWidth) return;
+    setActiveSlide(Math.round(el.scrollLeft / el.clientWidth));
+  }, []);
+
+  const handleLike = (idx: number) => {
+    setHeartTrigger(Date.now());
+    setStoryStats((prev) => ({ ...prev, [idx]: { ...prev[idx], likes: prev[idx].likes + 1 } }));
+  };
+
+  const handleAddComment = (idx: number) => {
+    if (!commentInput?.text.trim() || !commentInput?.name.trim()) return;
+    const newComment = { name: commentInput.name, text: commentInput.text.trim() };
+    setStoryStats((prev) => ({ ...prev, [idx]: { ...prev[idx], comments: [...prev[idx].comments, newComment] } }));
+    setCommentTrigger({ ...newComment, id: Date.now() });
+    setCommentInput(null);
+  };
+
+  return (
+    <section id="story-section" className="relative h-screen w-full bg-ink overflow-hidden scroll-snap-container">
+      <div ref={scrollContainerRef} onScroll={handleStoryScroll} className="h-full w-full flex overflow-x-auto snap-x snap-mandatory no-scrollbar scroll-smooth">
+        {STORY_SLIDES.map((slide, idx) => (
+          <div key={idx} className="relative h-full w-full min-w-full snap-center flex items-center justify-center overflow-hidden">
+            <div className="absolute inset-0">
+              <img src={slide.bg} loading="lazy" className="w-full h-full object-cover opacity-40 md:opacity-50 grayscale hover:grayscale-0 transition-all duration-[3000ms]" alt="Memory" referrerPolicy="no-referrer" />
+              <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/20 to-ink/60" />
+            </div>
+
+            {idx === activeSlide && (
+              <>
+                <AmbientSocialLayer customComments={storyStats[idx].comments} triggerHeartTap={heartTrigger} triggerCommentTap={commentTrigger} />
+                <PetalEffect />
+              </>
+            )}
+
+            {commentInput?.index !== idx && (
+              <div className="absolute bottom-32 right-6 flex flex-col gap-5 z-[60]">
+                <motion.button whileTap={{ scale: 0.8 }} aria-label="Suka" onClick={() => handleLike(idx)} className="relative flex flex-col items-center gap-1 group">
+                  <div className="w-12 h-12 rounded-full bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center group-hover:bg-rose-pastel/20 transition-all">
+                    <Heart className="w-5 h-5 text-rose-pastel transition-transform group-active:scale-125" fill={storyStats[idx].likes > 120 ? 'currentColor' : 'none'} />
+                  </div>
+                  <span className="text-[9px] font-sans text-white/60 tracking-widest">{storyStats[idx].likes}</span>
+                </motion.button>
+                <motion.button whileTap={{ scale: 0.8 }} aria-label="Komentar" onClick={() => setCommentInput({ index: idx, name: '', text: '' })} className="flex flex-col items-center gap-1 group">
+                  <div className="w-12 h-12 rounded-full bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center group-hover:bg-white/10 transition-all">
+                    <MessageCircle className="w-5 h-5 text-ivory/80" />
+                  </div>
+                  <span className="text-[9px] font-sans text-white/60 tracking-widest">{storyStats[idx].comments.length}</span>
+                </motion.button>
+              </div>
+            )}
+
+            <AnimatePresence>
+              {commentInput?.index === idx && (
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="absolute inset-x-6 bottom-48 z-[70] max-w-sm mx-auto">
+                  <div className="bg-ink/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-5 shadow-2xl">
+                    <div className="flex items-center gap-3 mb-4">
+                      <MessageCircle className="w-4 h-4 text-rose-pastel" />
+                      <span className="text-[10px] uppercase tracking-[0.2em] text-ivory/60 font-bold">Bagikan Kebahagiaan</span>
+                    </div>
+                    <input type="text" maxLength={30} value={commentInput.name} onChange={(e) => setCommentInput({ ...commentInput, name: e.target.value })} placeholder="Nama Anda" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-ivory placeholder:text-white/20 focus:outline-none focus:border-gold/50 mb-3 font-sans" />
+                    <textarea autoFocus maxLength={100} value={commentInput.text} onChange={(e) => setCommentInput({ ...commentInput, text: e.target.value })} placeholder="Tulis pesan..." className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-ivory placeholder:text-white/20 focus:outline-none focus:border-rose-pastel/50 min-h-[80px] resize-none font-sans" />
+                    <div className="flex justify-end gap-2 mt-4 font-sans">
+                      <button onClick={() => setCommentInput(null)} className="px-4 py-2 text-[10px] uppercase tracking-widest text-white/40 hover:text-white transition-colors">Batal</button>
+                      <button disabled={!commentInput.text.trim() || !commentInput.name.trim()} onClick={() => handleAddComment(idx)} className="px-6 py-2 bg-rose-pastel rounded-full text-ink text-[10px] uppercase font-black tracking-widest hover:brightness-110 disabled:opacity-30 transition-all">Kirim</button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div className="relative z-30 px-8 pb-48 pt-20 w-full h-full flex flex-col items-start justify-end text-left">
+              <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} transition={{ duration: 1.2, ease: 'easeOut' }} className="max-w-[75%] md:max-w-md w-full">
+                <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ duration: 2 }} className="font-sans text-[9px] uppercase tracking-[0.6em] text-gold/80 mb-6 flex items-center gap-3">
+                  <span className="h-[1px] w-6 bg-gold/30" />
+                  <span>{slide.year}</span>
+                </motion.div>
+                <h2 className="font-serif italic text-sm md:text-base text-ivory/90 leading-relaxed whitespace-pre-line tracking-tight">{slide.text}</h2>
+              </motion.div>
+            </div>
+
+            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-2.5 z-40">
+              {STORY_SLIDES.map((_, i) => (
+                <motion.div key={i} animate={{ scale: i === idx ? 1.2 : 0.8, width: i === idx ? 20 : 6, opacity: i === idx ? 1 : 0.3 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }} className="h-1.5 bg-gold rounded-full transition-colors duration-500" />
+              ))}
+            </div>
+
+            {idx === 0 && (
+              <>
+                <motion.div animate={{ x: [0, 8, 0], opacity: [0.2, 0.5, 0.2] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }} className="absolute right-8 top-1/2 -translate-y-1/2 flex flex-col items-center gap-3 z-30 invisible md:visible">
+                  <div className="w-[1px] h-16 bg-gradient-to-b from-transparent via-gold to-transparent" />
+                  <span className="text-[7px] tracking-[0.6em] uppercase text-gold rotate-90 origin-right translate-x-3 whitespace-nowrap mt-4">Geser untuk melihat</span>
+                </motion.div>
+                <motion.div initial={{ opacity: 0, x: 0 }} animate={{ opacity: [0, 0.8, 0.8, 0], x: [0, 10, 10, 0] }} transition={{ duration: 3, delay: 1.5 }} className="absolute bottom-24 left-1/2 -translate-x-1/2 flex items-center gap-2 z-30 md:hidden">
+                  <span className="text-[8px] tracking-[0.3em] uppercase text-gold font-bold">Geser</span>
+                  <ArrowRight className="w-3 h-3 text-gold" />
+                </motion.div>
+              </>
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+};

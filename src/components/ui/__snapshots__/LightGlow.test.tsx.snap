@@ -1,0 +1,3 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`LightGlow > snapshot stability > matches snapshot on first render 1`] = `"<div class="absolute inset-0 pointer-events-none overflow-hidden z-[5]"><div class="absolute -top-1/4 -right-1/4 w-[150%] h-[150%] bg-gold/10 blur-[180px] rounded-full pointer-events-none mix-blend-soft-light"></div></div>"`;

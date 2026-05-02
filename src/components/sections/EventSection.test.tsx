@@ -508,7 +508,7 @@ describe('EventSection', () => {
     it('all essential content renders in a single pass', () => {
       renderComponent();
       expect(screen.getByText('Dengan Segenap Cinta')).toBeInTheDocument();
-      expect(screen.getByText('Kami Menanti Kehadiran Anda')).toBeInTheDocument();
+      expect(screen.getByText('Kami menanti kehadiran Anda di hari istimewa kami.')).toBeInTheDocument();
       expect(screen.getByText('Sabtu, 29 Agustus 2026')).toBeInTheDocument();
       expect(screen.getByText(/Dan dijadikan-Nya di antaramu rasa kasih dan sayang/)).toBeInTheDocument();
       expect(screen.getByText('Akad Nikah')).toBeInTheDocument();

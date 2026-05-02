@@ -159,8 +159,8 @@ export function TwibbonCreator() {
   };
 
   return (
-    <div ref={wrapperRef} className="flex flex-col h-fit w-full py-4 items-center justify-center">
-      <div className="text-center mb-6 shrink-0 px-4">
+    <div ref={wrapperRef} className="flex flex-col h-fit w-full py-2 md:py-4 items-center justify-center">
+      <div className="text-center mb-3 md:mb-6 shrink-0 px-4">
         <h3 className="font-serif text-xl italic text-ink mb-1">Rayakan Momen Ini</h3>
         <p className="text-[9px] uppercase tracking-[0.4em] text-gold font-black opacity-60">Signature Twibbon</p>
       </div>
@@ -170,7 +170,7 @@ export function TwibbonCreator() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="relative h-fit w-[82%] max-w-[320px] aspect-[9/16] shadow-[0_45px_120px_-20px_rgba(0,0,0,0.3)] border border-ink/10 bg-[#F2EEE9] group/result"
+          className="relative h-fit w-[82%] max-w-[320px] md:max-w-[380px] lg:max-w-[420px] max-h-[50vh] md:max-h-none aspect-[9/16] shadow-[0_45px_120px_-20px_rgba(0,0,0,0.3)] border border-ink/10 bg-[#F2EEE9] group/result"
         >
           <div
             ref={containerRef}
@@ -223,7 +223,7 @@ export function TwibbonCreator() {
           </div>
         </motion.div>
 
-        <div className="mt-8 flex flex-col items-center h-fit w-[82%] max-w-[320px] shrink-0">
+        <div className="mt-4 md:mt-8 flex flex-col items-center h-fit w-[82%] max-w-[320px] md:max-w-[380px] lg:max-w-[420px] shrink-0">
           {image && (
             <motion.button
               onClick={() => setImage(null)}

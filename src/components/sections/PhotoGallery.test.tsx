@@ -268,7 +268,7 @@ describe('PhotoGallery', () => {
 
     it('grid has responsive row heights 200px for mobile', () => {
       const { container } = renderGallery();
-      const grid = container.querySelector('.grid-rows-\\[200px_200px\\]');
+      const grid = container.querySelector('.grid-rows-\\[150px_150px\\]');
       expect(grid).toBeInTheDocument();
     });
 
@@ -419,7 +419,7 @@ describe('PhotoGallery', () => {
 
     it('auto-cols are 150px mobile, 210px desktop', () => {
       const { container } = renderGallery();
-      const grid = container.querySelector('.auto-cols-\\[150px\\]');
+      const grid = container.querySelector('.auto-cols-\\[120px\\]');
       expect(grid).toBeInTheDocument();
       expect(grid?.className).toContain('md:auto-cols-[210px]');
     });

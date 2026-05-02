@@ -39,7 +39,7 @@ describe('TwibbonSection', () => {
 
     it('section has py-6 vertical padding', () => {
       const { container } = renderComponent();
-      expect(container.querySelector('section')).toHaveClass('py-6');
+      expect(container.querySelector('section')).toHaveClass('py-4');
     });
 
     it('section has overflow-hidden', () => {
@@ -174,7 +174,7 @@ describe('TwibbonSection', () => {
 
     it('text header section has text-center alignment', () => {
       const { container } = renderComponent();
-      const header = container.querySelector('.text-center.mb-6');
+      const header = container.querySelector('.text-center.mb-3');
       expect(header).toBeInTheDocument();
     });
 

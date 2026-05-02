@@ -8,14 +8,14 @@ interface DigitalEnvelopeProps {
 }
 
 export const DigitalEnvelope = ({ copiedIndex, onCopy }: DigitalEnvelopeProps) => (
-  <section id="gift-section" className="relative py-6 bg-ivory overflow-hidden">
+  <section id="gift-section" className="relative py-4 md:py-6 max-h-[100dvh] bg-ivory overflow-hidden">
     <div className="absolute inset-0 pointer-events-none opacity-[0.4]">
       <motion.div animate={{ rotate: [0, 360], scale: [1, 1.2, 1] }} transition={{ duration: 40, repeat: Infinity, ease: 'linear' }} className="absolute -top-1/4 -left-1/4 w-full h-full border border-gold/5 rounded-full" />
       <motion.div animate={{ rotate: [360, 0], scale: [1, 1.3, 1] }} transition={{ duration: 50, repeat: Infinity, ease: 'linear' }} className="absolute -bottom-1/4 -right-1/4 w-full h-full border border-gold/5 rounded-full" />
     </div>
 
     <div className="container mx-auto px-6 max-w-4xl relative z-10">
-      <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-10">
+      <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-4 md:mb-10">
         <div className="flex justify-center items-center gap-4 mb-3">
           <div className="h-px w-8 bg-gold/30" />
           <Gift className="w-5 h-5 text-gold/60" />
@@ -26,7 +26,7 @@ export const DigitalEnvelope = ({ copiedIndex, onCopy }: DigitalEnvelopeProps) =
           Kehadiran dan doa Anda adalah kado terindah. Jika ingin memberi tanda kasih, dapat melalui:
         </p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-w-5xl mx-auto">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 md:gap-3 max-w-5xl mx-auto">
           {BANK_ACCOUNTS.map((gift, i) => (
             <motion.div key={i} whileHover={{ y: -3, scale: 1.01 }} onClick={() => onCopy(gift.account, i)} className="bg-white/40 backdrop-blur-md p-3 md:p-4 rounded-xl border border-white/60 flex flex-col items-center gap-1 group cursor-pointer shadow-sm transition-all relative overflow-hidden">
               <div className="absolute -top-4 -right-4 w-12 h-12 bg-gold/5 rounded-full blur-xl group-hover:scale-150 transition-transform duration-700" />

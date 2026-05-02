@@ -13,14 +13,14 @@ interface RSVPSectionProps {
 }
 
 export const RSVPSection = ({ wishes, currentWishes, currentPage, totalPages, setCurrentPage, onOpenRSVP }: RSVPSectionProps) => (
-  <section id="rsvp-section" className="relative py-6 bg-ivory/50 overflow-hidden">
+  <section id="rsvp-section" className="relative py-4 md:py-6 max-h-[100dvh] bg-ivory/50 overflow-hidden">
     <div className="absolute inset-0 pointer-events-none">
       <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }} transition={{ duration: 15, repeat: Infinity }} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-gold/5 rounded-full blur-[120px]" />
     </div>
 
     <div className="container h-full mx-auto px-6 max-w-4xl relative z-10">
       <div className="flex flex-col h-full items-center">
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-10 w-full">
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-4 md:mb-10 w-full">
           <div className="flex justify-center items-center gap-4 mb-3">
             <div className="h-px w-8 bg-gold/30" />
             <MessageSquare className="w-5 h-5 text-gold/60" />
@@ -68,7 +68,7 @@ export const RSVPSection = ({ wishes, currentWishes, currentPage, totalPages, se
             </div>
 
             {totalPages > 1 && (
-              <div className="h-fit flex justify-center items-center gap-4 shrink-0 border-t border-gold/10 py-6 mt-6">
+              <div className="h-fit flex justify-center items-center gap-4 shrink-0 border-t border-gold/10 py-3 mt-3 md:py-6 md:mt-6">
                 <motion.button whileHover={{ scale: 1.1, backgroundColor: 'rgba(212, 175, 55, 0.05)' }} whileTap={{ scale: 0.9 }} aria-label="Halaman sebelumnya" disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)} className="w-9 h-9 flex items-center justify-center rounded-full border border-gold/10 text-gold disabled:opacity-10 transition-all bubble-glow">
                   <ArrowRight className="w-3 h-3 rotate-180" />
                 </motion.button>

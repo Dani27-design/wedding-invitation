@@ -3,6 +3,7 @@ import { Heart } from 'lucide-react';
 import { LightGlow } from '../ui/LightGlow';
 import { FloatingPetals } from '../ui/FloatingPetals';
 import { ForegroundOrnaments } from '../ui/ForegroundOrnaments';
+import { WEDDING_DATE_SHORT } from '../../constants/wedding';
 
 interface CinematicOpeningProps {
   guestName: string;
@@ -30,7 +31,7 @@ export const CinematicOpening = ({ guestName, onOpen }: CinematicOpeningProps) =
     <div className="relative z-10 p-6 md:p-6 flex justify-between items-start w-full">
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }} className="flex flex-col gap-1">
         <span className="font-sans text-[8px] tracking-[0.4rem] uppercase text-gold font-bold">Surabaya</span>
-        <span className="font-serif italic text-sm text-ivory/60">29 Agustus 2026</span>
+        <span className="font-serif italic text-sm text-ivory/60">{WEDDING_DATE_SHORT}</span>
       </motion.div>
 
       <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 1.2, duration: 1.5 }} className="relative w-12 h-12 flex items-center justify-center">
@@ -48,7 +49,7 @@ export const CinematicOpening = ({ guestName, onOpen }: CinematicOpeningProps) =
     <div className="relative z-10 px-8 md:px-24 flex-1 flex flex-col justify-between w-full h-full">
       <div className="pt-0 md:pt-2 flex flex-col items-center justify-center">
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.8, delay: 0.5 }} className="space-y-4 text-center">
-          <h1 className="font-dayland text-7xl md:text-9xl text-ivory drop-shadow-2xl">Dani & Marini</h1>
+          <h1 className="font-dayland text-5xl sm:text-7xl md:text-9xl text-ivory drop-shadow-2xl">Dani & Marini</h1>
         </motion.div>
       </div>
 

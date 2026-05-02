@@ -7,12 +7,12 @@ interface PhotoGalleryProps {
 }
 
 export const PhotoGallery = ({ onSelectPhoto }: PhotoGalleryProps) => (
-  <section className="relative py-6 bg-paper overflow-hidden">
+  <section className="relative py-4 md:py-6 max-h-[100dvh] bg-paper overflow-hidden">
     <div className="absolute top-0 left-0 w-64 h-64 bg-gold/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
     <div className="absolute bottom-0 right-0 w-96 h-96 bg-sepia/20 rounded-full blur-3xl translate-x-1/3 translate-y-1/3" />
 
     <div className="container mx-auto px-6 relative z-10">
-      <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-10">
+      <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-4 md:mb-10">
         <div className="flex justify-center items-center gap-4 mb-3">
           <div className="h-px w-8 bg-gold/30" />
           <Camera className="w-5 h-5 text-gold/60" />
@@ -24,7 +24,7 @@ export const PhotoGallery = ({ onSelectPhoto }: PhotoGalleryProps) => (
       <div className="relative">
         <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-paper to-transparent z-10 pointer-events-none" />
         <div className="overflow-x-auto pb-4 -mx-4 px-4">
-          <div className="py-5 grid grid-rows-[200px_200px] md:grid-rows-[280px_280px] grid-flow-col-dense gap-4 md:gap-6 auto-cols-[150px] md:auto-cols-[210px]">
+          <div className="py-5 grid grid-rows-[150px_150px] sm:grid-rows-[200px_200px] md:grid-rows-[280px_280px] grid-flow-col-dense gap-3 sm:gap-4 md:gap-6 auto-cols-[120px] sm:auto-cols-[150px] md:auto-cols-[210px]">
             {GALLERY_ITEMS.map((item, i) => (
               <motion.div
                 key={i}
@@ -48,7 +48,7 @@ export const PhotoGallery = ({ onSelectPhoto }: PhotoGalleryProps) => (
         </div>
       </div>
 
-      <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="mt-10 text-center">
+      <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="mt-4 md:mt-10 text-center">
         <p className="font-serif italic text-ink/40 text-lg">Setiap foto menyimpan cerita yang tidak selalu mudah, tapi selalu kami pilih untuk lanjutkan.</p>
       </motion.div>
     </div>

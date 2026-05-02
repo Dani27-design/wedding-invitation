@@ -5,20 +5,29 @@ import { AmbientSocialLayer } from '../ui/AmbientSocialLayer';
 import { PetalEffect } from '../ui/PetalEffect';
 import { STORY_SLIDES } from '../../constants/wedding';
 
+const INITIAL_LIKES = [142, 167, 128, 155, 139, 163];
+
 export const CinematicStory = () => {
   const [storyStats, setStoryStats] = useState<Record<number, { likes: number; comments: { name: string; text: string }[] }>>(
-    STORY_SLIDES.reduce((acc, _, i) => ({ ...acc, [i]: { likes: Math.floor(Math.random() * 50) + 120, comments: [] } }), {})
+    STORY_SLIDES.reduce((acc, _, i) => ({ ...acc, [i]: { likes: INITIAL_LIKES[i], comments: [] } }), {})
   );
   const [commentInput, setCommentInput] = useState<{ index: number; name: string; text: string } | null>(null);
   const [heartTrigger, setHeartTrigger] = useState(0);
   const [commentTrigger, setCommentTrigger] = useState<{ name: string; text: string; id: number } | null>(null);
   const [activeSlide, setActiveSlide] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const scrollRafRef = useRef(false);
 
   const handleStoryScroll = useCallback(() => {
-    const el = scrollContainerRef.current;
-    if (!el || !el.clientWidth) return;
-    setActiveSlide(Math.round(el.scrollLeft / el.clientWidth));
+    if (scrollRafRef.current) return;
+    scrollRafRef.current = true;
+    requestAnimationFrame(() => {
+      const el = scrollContainerRef.current;
+      if (el && el.clientWidth) {
+        setActiveSlide(Math.round(el.scrollLeft / el.clientWidth));
+      }
+      scrollRafRef.current = false;
+    });
   }, []);
 
   const handleLike = (idx: number) => {
@@ -87,7 +96,7 @@ export const CinematicStory = () => {
               )}
             </AnimatePresence>
 
-            <div className="relative z-30 px-8 pb-48 pt-20 w-full h-full flex flex-col items-start justify-end text-left">
+            <div className="relative z-30 px-8 pb-32 sm:pb-40 md:pb-48 pt-12 sm:pt-16 md:pt-20 w-full h-full flex flex-col items-start justify-end text-left">
               <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} transition={{ duration: 1.2, ease: 'easeOut' }} className="max-w-[75%] md:max-w-md w-full">
                 <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ duration: 2 }} className="font-sans text-[9px] uppercase tracking-[0.6em] text-gold/80 mb-6 flex items-center gap-3">
                   <span className="h-[1px] w-6 bg-gold/30" />

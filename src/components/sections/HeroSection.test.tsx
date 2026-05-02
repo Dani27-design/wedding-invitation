@@ -22,16 +22,16 @@ describe('HeroSection', () => {
       expect(container.firstChild!.nodeName).toBe('SECTION');
     });
 
-    it('section has min-h-[100vh] for full viewport height', () => {
+    it('section has h-[100dvh] for full viewport height', () => {
       const { container } = renderComponent();
       const section = container.querySelector('section');
-      expect(section).toHaveClass('min-h-[100vh]');
+      expect(section).toHaveClass('h-[100dvh]');
     });
 
-    it('section has md:min-h-screen for desktop', () => {
+    it('section does not use md:min-h-screen (replaced by h-[100dvh])', () => {
       const { container } = renderComponent();
       const section = container.querySelector('section');
-      expect(section!.className).toContain('md:min-h-screen');
+      expect(section!.className).not.toContain('md:min-h-screen');
     });
 
     it('section has bg-ivory background', () => {
@@ -338,14 +338,14 @@ describe('HeroSection', () => {
       expect(container.querySelector('section')).toHaveClass('px-6');
     });
 
-    it('section has pb-6 bottom padding', () => {
+    it('section has pb-[3vh] bottom padding', () => {
       const { container } = renderComponent();
-      expect(container.querySelector('section')).toHaveClass('pb-6');
+      expect(container.querySelector('section')).toHaveClass('pb-[3vh]');
     });
 
     it('top content section has text-center', () => {
       const { container } = renderComponent();
-      const topContent = container.querySelector('.z-10.text-center.pt-6');
+      const topContent = container.querySelector('.z-10.text-center.pt-\\[3vh\\]');
       expect(topContent).toBeInTheDocument();
     });
 
@@ -401,9 +401,9 @@ describe('HeroSection', () => {
       expect(h1s).toHaveLength(1);
     });
 
-    it('date section has space-y-6 for consistent spacing', () => {
+    it('date section has space-y-4 for consistent spacing', () => {
       const { container } = renderComponent();
-      const spacer = container.querySelector('.space-y-6');
+      const spacer = container.querySelector('.space-y-4');
       expect(spacer).toBeInTheDocument();
     });
 

@@ -267,8 +267,7 @@ describe('DigitalEnvelope', () => {
     it('uses responsive grid: 1 col -> 2 col -> 3 col', () => {
       const { container } = renderWithProps();
       const grid = container.querySelector('.grid');
-      expect(grid?.className).toContain('grid-cols-1');
-      expect(grid?.className).toContain('sm:grid-cols-2');
+      expect(grid?.className).toContain('grid-cols-2');
       expect(grid?.className).toContain('lg:grid-cols-3');
     });
 

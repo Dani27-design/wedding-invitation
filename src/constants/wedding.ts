@@ -1,4 +1,6 @@
 export const WEDDING_DATE = '2026-08-29T09:00:00';
+export const WEDDING_DATE_DISPLAY = 'Sabtu, 29 Agustus 2026';
+export const WEDDING_DATE_SHORT = '29 Agustus 2026';
 
 export const VENUE = {
   name: 'Gedung Wanita Candra Kencana',

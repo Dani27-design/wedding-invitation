@@ -31,7 +31,7 @@ export default function App() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const wishPages = useMemo(() => {
-    const availableHeight = 630;
+    const availableHeight = 400;
     const pages: GuestWishes[][] = [];
     let currentPageWishes: GuestWishes[] = [];
     let currentHeight = 0;
@@ -73,27 +73,37 @@ export default function App() {
 
   const toggleMusic = () => {
     if (audioRef.current) {
-      if (isPlaying) audioRef.current.pause();
-      else audioRef.current.play();
-      setIsPlaying(!isPlaying);
+      if (isPlaying) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        audioRef.current.play().catch(() => setIsPlaying(false));
+        setIsPlaying(true);
+      }
     }
   };
 
   const handleCopy = async (text: string, index: number) => {
+    let success = false;
     try {
       await navigator.clipboard.writeText(text);
+      success = true;
     } catch {
-      const textarea = document.createElement('textarea');
-      textarea.value = text;
-      textarea.style.position = 'fixed';
-      textarea.style.opacity = '0';
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textarea);
+      try {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        success = document.execCommand('copy');
+        document.body.removeChild(textarea);
+      } catch { /* both methods failed */ }
     }
-    setCopiedIndex(index);
-    setTimeout(() => setCopiedIndex(null), 2000);
+    if (success) {
+      setCopiedIndex(index);
+      setTimeout(() => setCopiedIndex(null), 2000);
+    }
   };
 
   const handleRSVPSubmit = (e: FormEvent<HTMLFormElement>) => {
@@ -119,7 +129,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-ivory text-ink selection:bg-gold/20 font-sans overflow-x-hidden">
       <BackgroundLayers />
-      <audio ref={audioRef} loop src="/musics/adele-make-you-feel-my-love.mp3" />
+      <audio ref={audioRef} loop preload="none" src="/musics/adele-make-you-feel-my-love.mp3" />
 
       <AnimatePresence mode="wait">
         {!isOpen && <CinematicOpening guestName={guestName} onOpen={handleOpen} />}

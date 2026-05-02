@@ -29,7 +29,7 @@ describe('CoupleSection', () => {
 
     it('section has min-h-screen for full viewport height', () => {
       const { container } = renderComponent();
-      expect(container.querySelector('section')).toHaveClass('min-h-screen');
+      expect(container.querySelector('section')!.className).toContain('max-h-[100dvh]');
     });
 
     it('section has bg-ivory background', () => {
@@ -44,7 +44,7 @@ describe('CoupleSection', () => {
 
     it('section has py-6 vertical padding', () => {
       const { container } = renderComponent();
-      expect(container.querySelector('section')).toHaveClass('py-6');
+      expect(container.querySelector('section')).toHaveClass('py-4');
     });
 
     it('section uses flex items-center for vertical centering', () => {
@@ -366,7 +366,7 @@ describe('CoupleSection', () => {
     it('grid has gap-8 spacing', () => {
       const { container } = renderComponent();
       const grid = container.querySelector('.grid');
-      expect(grid).toHaveClass('gap-8');
+      expect(grid).toHaveClass('gap-4');
     });
 
     it('groom portrait has z-10 layering', () => {
@@ -401,7 +401,7 @@ describe('CoupleSection', () => {
 
     it('portrait container has defined height (h-[400px] md:h-[500px])', () => {
       const { container } = renderComponent();
-      const portraitArea = container.querySelector('[class*="h-[400px]"]');
+      const portraitArea = container.querySelector('[class*="h-[40vh]"]');
       expect(portraitArea).toBeInTheDocument();
     });
 

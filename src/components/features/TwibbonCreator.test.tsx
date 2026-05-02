@@ -391,7 +391,7 @@ describe('TwibbonCreator', () => {
     it('header section has margin-bottom mb-6', () => {
       render(<TwibbonCreator />);
       const headerSection = screen.getByText('Rayakan Momen Ini').parentElement;
-      expect(headerSection).toHaveClass('mb-6');
+      expect(headerSection).toHaveClass('mb-3');
     });
 
     it('header section has shrink-0 to prevent compression', () => {
@@ -410,7 +410,7 @@ describe('TwibbonCreator', () => {
       render(<TwibbonCreator />);
       const btn = screen.getByText('Bagikan Momen').closest('button');
       const buttonArea = btn?.parentElement;
-      expect(buttonArea).toHaveClass('mt-8');
+      expect(buttonArea).toHaveClass('mt-4');
     });
 
     it('button area has max-w-[320px] matching frame width', () => {
@@ -438,7 +438,7 @@ describe('TwibbonCreator', () => {
 
     it('wrapper has py-4 vertical padding', () => {
       const { container } = render(<TwibbonCreator />);
-      expect(container.firstChild).toHaveClass('py-4');
+      expect(container.firstChild).toHaveClass('py-2');
     });
 
     it('wrapper has h-fit height', () => {

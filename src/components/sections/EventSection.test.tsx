@@ -39,7 +39,7 @@ describe('EventSection', () => {
 
     it('section has py-6 vertical padding', () => {
       const { container } = renderComponent();
-      expect(container.querySelector('section')).toHaveClass('py-6');
+      expect(container.querySelector('section')).toHaveClass('py-4');
     });
 
     it('section has overflow-hidden', () => {

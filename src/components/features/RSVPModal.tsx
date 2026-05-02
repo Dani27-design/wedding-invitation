@@ -1,7 +1,6 @@
 import { FormEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Heart, X } from 'lucide-react';
-import { GuestWishes } from '../../types';
 
 interface RSVPModalProps {
   isOpen: boolean;

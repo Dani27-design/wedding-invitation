@@ -131,7 +131,7 @@ describe('Footer', () => {
     it('has Code icon for Dani (developer credit)', () => {
       const { container } = renderFooter();
       // Code icon is in the first credit card
-      const iconContainers = container.querySelectorAll('.w-12.h-12.rounded-full.bg-gold\\/5');
+      const iconContainers = container.querySelectorAll('.w-8.h-8.rounded-full.bg-gold\\/5');
       expect(iconContainers.length).toBe(2);
     });
 
@@ -322,13 +322,12 @@ describe('Footer', () => {
     it('has 2-column grid on md+ screens', () => {
       const { container } = renderFooter();
       const grid = container.querySelector('.grid');
-      expect(grid?.className).toContain('grid-cols-1');
-      expect(grid?.className).toContain('md:grid-cols-2');
+      expect(grid?.className).toContain('grid-cols-2');
     });
 
     it('credit cards have rounded-[2.5rem] corners', () => {
       const { container } = renderFooter();
-      const cards = container.querySelectorAll('.rounded-\\[2\\.5rem\\]');
+      const cards = container.querySelectorAll('.rounded-\\[1\\.5rem\\]');
       expect(cards.length).toBe(2);
     });
 
@@ -352,7 +351,7 @@ describe('Footer', () => {
 
     it('icon containers have rounded-full with gold background', () => {
       const { container } = renderFooter();
-      const iconCircles = container.querySelectorAll('.w-12.h-12.rounded-full.bg-gold\\/5');
+      const iconCircles = container.querySelectorAll('.w-8.h-8.rounded-full.bg-gold\\/5');
       expect(iconCircles.length).toBe(2);
     });
 
@@ -405,7 +404,7 @@ describe('Footer', () => {
 
     it('names section has mb-5 margin bottom', () => {
       const { container } = renderFooter();
-      const nameSection = container.querySelector('.mb-5');
+      const nameSection = container.querySelector('.mb-3');
       expect(nameSection).toBeInTheDocument();
     });
 
@@ -423,7 +422,7 @@ describe('Footer', () => {
 
     it('copyright section has mb-8 margin bottom', () => {
       const { container } = renderFooter();
-      const copyrightSection = container.querySelector('.mb-8');
+      const copyrightSection = container.querySelector('.mb-4');
       expect(copyrightSection).toBeInTheDocument();
     });
   });
@@ -466,7 +465,7 @@ describe('Footer', () => {
 
     it('both credit cards have p-3 padding', () => {
       const { container } = renderFooter();
-      const cards = container.querySelectorAll('.p-3.rounded-\\[2\\.5rem\\]');
+      const cards = container.querySelectorAll('.p-2.rounded-\\[1\\.5rem\\]');
       expect(cards.length).toBe(2);
     });
 

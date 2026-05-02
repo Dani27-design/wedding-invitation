@@ -12,8 +12,8 @@ export const EventSection = () => (
 
     <div className="container mx-auto px-6 max-w-lg relative z-10 h-full flex flex-col items-center text-center justify-evenly">
         <motion.div initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, delay: 0.1 }} className="w-full">
-          <p className="text-[9px] uppercase tracking-[0.4em] text-gold font-black mb-2">Dengan Segenap Cinta</p>
-          <p className="font-serif italic text-[13px] leading-relaxed text-ink/60 max-w-[300px] mx-auto mb-[2vh]">Kami menanti kehadiran Anda di hari istimewa kami.</p>
+          <p className="text-xs uppercase tracking-[0.4em] text-gold font-black mb-2">Dengan Segenap Cinta</p>
+          <p className="font-serif italic text-[13px] leading-relaxed text-ink/70 max-w-[300px] mx-auto mb-[2vh]">Kami menanti kehadiran Anda di hari istimewa kami.</p>
           <h2 className="font-display text-3xl sm:text-4xl md:text-5xl text-ink tracking-tight mb-[2vh]">{WEDDING_DATE_DISPLAY}</h2>
           <CountdownTimer targetDate={WEDDING_DATE} />
         </motion.div>
@@ -21,29 +21,29 @@ export const EventSection = () => (
         <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 1.2, delay: 0.2 }} className="max-w-[300px]">
           <p className="font-serif text-xl leading-relaxed text-gold mb-2" dir="rtl">وَجَعَلَ بَيْنَكُم مَّوَدَّةً وَرَحْمَةً</p>
           <p className="font-serif italic text-[13px] leading-relaxed text-ink/70">"Dan dijadikan-Nya di antaramu rasa kasih dan sayang"</p>
-          <p className="text-[12px] uppercase tracking-[0.3em] text-gold/80 mt-2 font-medium">QS. Ar-Rum: 21</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-gold/70 mt-2 font-medium">QS. Ar-Rum: 21</p>
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, delay: 0.3 }} className="w-full flex flex-col items-center justify-center gap-[1.5vh]">
           <motion.div whileHover={{ y: -3, scale: 1.01 }} className="w-full bg-white/60 border border-gold/15 rounded-[3rem_1rem_3rem_1rem] py-4 px-6 text-center cursor-default transition-all shadow-sm">
             <span className="font-serif text-2xl italic text-ink mb-1 block">Akad Nikah</span>
-            <span className="font-display text-[15px] text-gold font-bold uppercase tracking-[0.15em]">09:00 — 10:00</span>
+            <span className="font-display text-sm text-gold font-bold uppercase tracking-[0.15em]">09:00 — 10:00</span>
           </motion.div>
           <motion.div whileHover={{ y: -3, scale: 1.01 }} className="w-full bg-white/60 border border-gold/15 rounded-[1rem_3rem_1rem_3rem] py-4 px-6 text-center cursor-default transition-all shadow-sm">
             <span className="font-serif text-2xl italic text-ink mb-1 block">Resepsi</span>
-            <span className="font-display text-[15px] text-gold font-bold uppercase tracking-[0.15em]">10:00 — 13:00</span>
+            <span className="font-display text-sm text-gold font-bold uppercase tracking-[0.15em]">10:00 — 13:00</span>
           </motion.div>
           <motion.div whileHover={{ y: -3, scale: 1.01 }} className="w-full bg-white/60 border border-gold/15 rounded-[2rem_3rem_3rem_2rem] py-4 px-6 text-center cursor-default transition-all shadow-sm">
             <div className="flex justify-center items-center gap-2 mb-2">
               <MapPin className="w-3.5 h-3.5 text-gold" />
               <p className="font-serif italic text-lg text-ink">{VENUE.name}</p>
             </div>
-            <p className="text-[11px] text-ink/60 font-light max-w-[280px] mx-auto leading-relaxed">{VENUE.address}</p>
+            <p className="text-xs text-ink/70 font-light max-w-[280px] mx-auto leading-relaxed">{VENUE.address}</p>
           </motion.div>
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, delay: 0.5 }} className="flex flex-wrap justify-center gap-4">
-          <motion.a whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} href={VENUE.mapsUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 py-2.5 px-6 bg-ink text-gold rounded-full text-[9px] uppercase tracking-[0.3em] font-black transition-all shadow-md">
+          <motion.a whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} href={VENUE.mapsUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 py-2.5 px-6 bg-ink text-gold rounded-full text-xs uppercase tracking-[0.3em] font-black transition-all shadow-md">
             <MapPin className="w-3 h-3" />
             <span>Lihat Peta</span>
           </motion.a>
@@ -54,7 +54,7 @@ export const EventSection = () => (
               const event = { title: 'Pernikahan Dani & Marini', start: '20260829T090000', end: '20260829T130000', location: 'Gedung Wanita Candra Kencana, Surabaya' };
               window.open(`https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&dates=${event.start}/${event.end}&details=Pernikahan+kami&location=${encodeURIComponent(event.location)}&sf=true&output=xml`);
             }}
-            className="inline-flex items-center gap-2 py-2.5 px-6 border border-ink/10 text-ink rounded-full text-[9px] uppercase tracking-[0.3em] font-black transition-all bg-white/50 backdrop-blur-sm"
+            className="inline-flex items-center gap-2 py-2.5 px-6 border border-ink/10 text-ink rounded-full text-xs uppercase tracking-[0.3em] font-black transition-all bg-white/50 backdrop-blur-sm"
           >
             <Calendar className="w-3 h-3" />
             <span>Ke Kalender</span>

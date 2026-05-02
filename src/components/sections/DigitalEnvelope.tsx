@@ -16,8 +16,8 @@ export const DigitalEnvelope = ({ copiedIndex, onCopy }: DigitalEnvelopeProps) =
 
     <div className="container mx-auto px-6 max-w-4xl relative z-10">
       <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-[3vh]">
-        <p className="text-[9px] uppercase tracking-[0.4em] text-gold font-black mb-2">Tanda Kasih</p>
-        <p className="font-serif italic text-[13px] leading-relaxed text-ink/60 max-w-[300px] mx-auto mb-[3vh]">
+        <p className="text-xs uppercase tracking-[0.4em] text-gold font-black mb-2">Tanda Kasih</p>
+        <p className="font-serif italic text-sm leading-relaxed text-ink/70 max-w-[300px] mx-auto mb-[3vh]">
           Kehadiran dan Doa Anda adalah hadiah terindah bagi kami. Namun jika berkenan memberi tanda kasih, kami menerimanya dengan penuh rasa terima kasih.
         </p>
 
@@ -26,15 +26,15 @@ export const DigitalEnvelope = ({ copiedIndex, onCopy }: DigitalEnvelopeProps) =
             <motion.div key={i} whileHover={{ y: -3, scale: 1.01 }} onClick={() => onCopy(gift.account, i)} className="bg-white/40 backdrop-blur-md p-3 md:p-4 rounded-xl border border-white/60 flex flex-col items-center gap-1 group cursor-pointer shadow-sm transition-all relative overflow-hidden">
               <div className="absolute -top-4 -right-4 w-12 h-12 bg-gold/5 rounded-full blur-xl group-hover:scale-150 transition-transform duration-700" />
               <div className="relative z-10 w-full flex flex-col items-center text-center">
-                <p className="text-[7px] uppercase tracking-widest text-gold/80 font-bold mb-1">{gift.bank}</p>
+                <p className="text-xs uppercase tracking-widest text-gold/70 font-bold mb-1">{gift.bank}</p>
                 <div className="flex flex-col items-center gap-1 mb-1.5">
                   <span className="font-serif text-lg md:text-xl tracking-tight text-ink group-hover:text-gold transition-colors leading-none">{gift.account}</span>
-                  <div className={`px-2 py-0.5 rounded-full text-[6.5px] uppercase tracking-tighter font-black transition-all ${copiedIndex === i ? 'bg-green-500 text-white shadow-sm' : 'bg-gold/5 text-gold/50 group-hover:bg-gold group-hover:text-white'}`}>
+                  <div className={`px-2 py-0.5 rounded-full text-xs uppercase tracking-tighter font-black transition-all ${copiedIndex === i ? 'bg-green-500 text-white shadow-sm' : 'bg-gold/5 text-gold/70 group-hover:bg-gold group-hover:text-white'}`}>
                     {copiedIndex === i ? 'Tersalin' : 'Salin'}
                   </div>
                 </div>
                 <div className="pt-1.5 border-t border-gold/5 w-full">
-                  <p className="text-[7.5px] text-ink/30 uppercase tracking-tight font-medium truncate">{gift.owner}</p>
+                  <p className="text-xs text-ink/50 uppercase tracking-tight font-medium truncate">{gift.owner}</p>
                 </div>
               </div>
               <AnimatePresence>

@@ -331,7 +331,7 @@ describe('PhotoGallery', () => {
     it('description has subdued text color', () => {
       renderGallery();
       const desc = screen.getByText(/Setiap foto menyimpan cerita/);
-      expect(desc.className).toContain('text-ink/60');
+      expect(desc.className).toContain('text-ink/70');
     });
 
     it('description is centered', () => {
@@ -434,7 +434,7 @@ describe('PhotoGallery', () => {
 
     it('hover overlay appears on each item', () => {
       const { container } = renderGallery();
-      const overlays = container.querySelectorAll('.bg-ink\\/20');
+      const overlays = container.querySelectorAll('.bg-ink\\/30');
       expect(overlays.length).toBe(12);
     });
 

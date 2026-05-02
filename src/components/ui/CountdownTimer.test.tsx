@@ -192,7 +192,7 @@ describe('CountdownTimer', () => {
     it('labels have gold color', () => {
       render(<CountdownTimer targetDate="2030-01-01T00:00:00" />);
       const hari = screen.getByText('Hari');
-      expect(hari.className).toContain('text-gold/80');
+      expect(hari.className).toContain('text-gold/70');
     });
 
     it('labels have font-bold', () => {

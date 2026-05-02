@@ -112,7 +112,7 @@ describe('RSVPSection', () => {
       renderWithProps({ currentWishes: noWish, wishes: noWish });
       const badge = screen.getByText('Berhalangan');
       expect(badge.className).toContain('bg-ink/5');
-      expect(badge.className).toContain('text-ink/30');
+      expect(badge.className).toContain('text-ink/50');
     });
 
     it('displays formatted dates for each wish', () => {

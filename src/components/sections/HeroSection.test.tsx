@@ -226,7 +226,7 @@ describe('HeroSection', () => {
 
     it('location uses very small font size text-[8px]', () => {
       renderComponent();
-      expect(screen.getByText('Surabaya . Indonesia')).toHaveClass('text-[8px]');
+      expect(screen.getByText('Surabaya . Indonesia')).toHaveClass('text-xs');
     });
   });
 

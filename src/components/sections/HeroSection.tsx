@@ -28,7 +28,7 @@ export const HeroSection = () => (
         <h1 className="font-dayland text-5xl sm:text-7xl md:text-9xl text-ivory drop-shadow-2xl">
           Dani
         </h1>
-        <h2 className="font-dayland text-2xl sm:text-4xl md:text-6xl text-gold/80 drop-shadow-2xl">
+        <h2 className="font-dayland text-2xl sm:text-4xl md:text-6xl text-gold/70 drop-shadow-2xl">
           &
         </h2>
         <h1 className="font-dayland text-5xl sm:text-7xl md:text-9xl text-ivory drop-shadow-2xl">
@@ -46,10 +46,10 @@ export const HeroSection = () => (
       >
         <div className="w-12 h-px bg-gold/30 mx-auto" />
         <div className="space-y-3">
-          <p className="font-display italic text-2xl sm:text-3xl md:text-5xl text-ink/80">
+          <p className="font-display italic text-2xl sm:text-3xl md:text-5xl text-ink/70">
             {WEDDING_DATE_DISPLAY}
           </p>
-          <p className="font-display italic text-[8px] tracking-[0.6rem] uppercase text-gold font-medium">
+          <p className="font-display italic text-xs tracking-[0.6rem] uppercase text-gold font-medium">
             Surabaya . Indonesia
           </p>
         </div>

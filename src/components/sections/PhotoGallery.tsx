@@ -13,8 +13,8 @@ export const PhotoGallery = ({ onSelectPhoto }: PhotoGalleryProps) => (
 
     <div className="container mx-auto px-6 relative z-10">
       <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-[3vh]">
-        <p className="text-[9px] uppercase tracking-[0.4em] text-gold font-black mb-2">Jejak Cerita Kami</p>
-        <p className="font-serif italic text-[13px] leading-relaxed text-ink/60 max-w-[300px] mx-auto">Beberapa momen yang kami simpan, dan kini ingin kami bagikan bersama Anda.</p>
+        <p className="text-xs uppercase tracking-[0.4em] text-gold font-black mb-2">Jejak Cerita Kami</p>
+        <p className="font-serif italic text-sm leading-relaxed text-ink/70 max-w-[300px] mx-auto">Beberapa momen yang kami simpan, dan kini ingin kami bagikan bersama Anda.</p>
       </motion.div>
 
       <div className="relative">
@@ -33,7 +33,7 @@ export const PhotoGallery = ({ onSelectPhoto }: PhotoGalleryProps) => (
                 className={`${item.span} relative group overflow-hidden shadow-2xl ${item.shape} cursor-zoom-in isolate transform-gpu [-webkit-mask-image:-webkit-radial-gradient(white,black)]`}
               >
                 <img src={item.src} loading="lazy" alt={`Gallery ${i}`} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 [backface-visibility:hidden]" referrerPolicy="no-referrer" />
-                <div className="absolute inset-0 bg-ink/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
+                <div className="absolute inset-0 bg-ink/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
                   <motion.div initial={{ y: 20, opacity: 0 }} whileHover={{ y: 0, opacity: 1 }} className="bg-white/20 backdrop-blur-md p-4 rounded-full border border-white/30">
                     <ImageIcon className="w-5 h-5 text-white" />
                   </motion.div>
@@ -45,7 +45,7 @@ export const PhotoGallery = ({ onSelectPhoto }: PhotoGalleryProps) => (
       </div>
 
       <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="mt-[2vh] text-center">
-        <p className="font-serif italic text-ink/60 text-lg">Setiap foto menyimpan cerita yang tidak selalu mudah, tapi selalu kami pilih untuk dilanjutkan.</p>
+        <p className="font-serif italic text-ink/70 text-sm">Setiap foto menyimpan cerita yang tidak selalu mudah, tapi selalu kami pilih untuk dilanjutkan.</p>
       </motion.div>
     </div>
   </section>

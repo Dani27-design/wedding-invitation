@@ -44,9 +44,9 @@ export const CoupleSection = () => (
 
       <motion.div initial="initial" whileInView="animate" viewport={{ once: true }} variants={stagger} className="flex flex-col gap-[1.5vh] md:pl-16 text-center md:text-left">
           <motion.div variants={fadeUp}>
-            <p className="text-[9px] uppercase tracking-[0.5em] text-gold mb-1 font-black">Mempelai Pria</p>
+            <p className="text-xs uppercase tracking-[0.5em] text-gold mb-1 font-black">Mempelai Pria</p>
             <h3 className="font-serif text-2xl sm:text-3xl md:text-5xl leading-none mb-1 tracking-tighter">M. Daniansyah Chusyaidin, S.Kom</h3>
-            <p className="text-[10px] tracking-widest text-ink/40">Putra Bapak M. Safiudin Sukri & Ibu Indiarti</p>
+            <p className="text-xs tracking-widest text-ink/70">Putra Bapak M. Safiudin Sukri & Ibu Indiarti</p>
           </motion.div>
           <motion.div variants={fadeUp} className="flex justify-center md:justify-start items-center gap-4">
             <div className="h-px w-12 bg-gold/20" />
@@ -54,9 +54,9 @@ export const CoupleSection = () => (
             <div className="h-px w-12 bg-gold/20" />
           </motion.div>
           <motion.div variants={fadeUp}>
-            <p className="text-[9px] uppercase tracking-[0.5em] text-gold mb-1 font-black">Mempelai Wanita</p>
+            <p className="text-xs uppercase tracking-[0.5em] text-gold mb-1 font-black">Mempelai Wanita</p>
             <h3 className="font-serif text-2xl sm:text-3xl md:text-5xl leading-none mb-1 tracking-tighter">Siti Nur Marini, A.Md.M</h3>
-            <p className="text-[10px] tracking-widest text-ink/40">Putri Bapak Margono & Ibu (Almh) Sulami</p>
+            <p className="text-xs tracking-widest text-ink/70">Putri Bapak Margono & Ibu (Almh) Sulami</p>
           </motion.div>
       </motion.div>
     </div>

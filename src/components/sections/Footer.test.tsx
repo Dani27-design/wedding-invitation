@@ -125,7 +125,7 @@ describe('Footer', () => {
       const dani = screen.getByText('M. Daniansyah C.');
       expect(dani.className).toContain('font-serif');
       expect(dani.className).toContain('italic');
-      expect(dani.className).toContain('text-xl');
+      expect(dani.className).toContain('text-lg');
     });
 
     it('has Code icon for Dani (developer credit)', () => {
@@ -149,7 +149,7 @@ describe('Footer', () => {
       renderFooter();
       const desc = screen.getByText(/Menulis setiap baris code/);
       expect(desc.className).toContain('text-xs');
-      expect(desc.className).toContain('text-ink/50');
+      expect(desc.className).toContain('text-ink/70');
     });
   });
 
@@ -283,13 +283,13 @@ describe('Footer', () => {
     it('copyright text has small font size', () => {
       renderFooter();
       const copyright = screen.getByText(/2026/);
-      expect(copyright.className).toContain('text-[8px]');
+      expect(copyright.className).toContain('text-xs');
     });
 
     it('copyright text has subdued ink color', () => {
       renderFooter();
       const copyright = screen.getByText(/2026/);
-      expect(copyright.className).toContain('text-ink/20');
+      expect(copyright.className).toContain('text-ink/50');
     });
 
     it('has heart icon with gold fill near copyright', () => {

@@ -19,15 +19,16 @@ export const Footer = () => (
     <div className="container mx-auto px-6 relative z-10">
       <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="max-w-4xl mx-auto text-center">
         <div className="mb-[2vh]">
-          <h4 className="font-dayland text-4xl sm:text-5xl md:text-6xl text-ink mb-1 md:mb-2">Dani & Marini</h4>
-          <p className="text-[11px] md:text-[12px] tracking-[0.2em] text-gold font-serif italic">Sebuah Cerita dari Perjalanan yang Kami Jalani dan Bangun Bersama, Dengan Keyakinan yang Sama</p>
+          {/* <h4 className="font-dayland text-4xl sm:text-5xl md:text-6xl text-ink mb-1 md:mb-2">Dani & Marini</h4> */}
+          <p className="text-xs uppercase tracking-[0.4em] text-gold font-black mb-2">Penutup</p>
+          <p className="text-sm leading-relaxed text-ink/70 font-serif italic">Sebuah Cerita dari Perjalanan yang Kami Jalani dan Bangun Bersama, Dengan Keyakinan yang Sama</p>
         </div>
 
         <div className="grid grid-cols-2 gap-[1vh] mb-[2vh]">
-          <div className="p-2 md:p-3 rounded-[1.5rem] md:rounded-[2.5rem] bg-paper/50 border border-gold/5 flex flex-col items-center">
-            <div className="w-8 h-8 md:w-12 md:h-12 rounded-full bg-gold/5 flex items-center justify-center mb-1 md:mb-2 text-gold/60"><Code className="w-4 h-4 md:w-5 md:h-5" /></div>
-            <h5 className="font-serif italic text-base md:text-xl text-ink mb-1 md:mb-2">M. Daniansyah C.</h5>
-            <p className="text-[10px] md:text-xs text-ink/50 leading-relaxed mb-1 md:mb-2 max-w-[240px]">Menulis setiap baris code di balik halaman ini, merangkainya satu per satu sampai akhirnya bisa bercerita tentang kami.</p>
+          <div className="p-2 md:p-3 rounded-[1.5rem] md:rounded-[2.5rem] bg-paper/50 border border-gold/5 flex flex-col items-center justify-evenly">
+            <div className="w-8 h-8 md:w-12 md:h-12 rounded-full bg-gold/5 flex items-center justify-center mb-1 md:mb-2 text-gold/70"><Code className="w-4 h-4 md:w-5 md:h-5" /></div>
+            <h5 className="font-serif italic text-lg text-ink mb-1 md:mb-2">M. Daniansyah C.</h5>
+            <p className="font-serif text-xs text-ink/70 leading-relaxed mb-1 md:mb-2 max-w-[240px]">Menulis setiap baris code di balik halaman ini, merangkainya satu per satu sampai akhirnya bisa bercerita tentang kami.</p>
             <div className="flex gap-4 opacity-30 hover:opacity-100 transition-opacity">
               <SocialLink href="https://instagram.com/danichusyaidin"><Instagram className="w-4 h-4" /></SocialLink>
               <SocialLink href="https://id.linkedin.com/in/daniansyahchusyaidin"><Linkedin className="w-4 h-4" /></SocialLink>
@@ -35,10 +36,10 @@ export const Footer = () => (
             </div>
           </div>
 
-          <div className="p-2 md:p-3 rounded-[1.5rem] md:rounded-[2.5rem] bg-paper/50 border border-gold/5 flex flex-col items-center">
-            <div className="w-8 h-8 md:w-12 md:h-12 rounded-full bg-gold/5 flex items-center justify-center mb-1 md:mb-2 text-gold/60"><Palette className="w-4 h-4 md:w-5 md:h-5" /></div>
-            <h5 className="font-serif italic text-base md:text-xl text-ink mb-1 md:mb-2">Siti Nur Marini</h5>
-            <p className="text-[10px] md:text-xs text-ink/50 leading-relaxed mb-1 md:mb-2 max-w-[240px]">Menjadikan setiap bagian tidak hanya terlihat indah, tapi juga hingga semuanya benar-benar seperti kami.</p>
+          <div className="p-2 md:p-3 rounded-[1.5rem] md:rounded-[2.5rem] bg-paper/50 border border-gold/5 flex flex-col items-center justify-evenly">
+            <div className="w-8 h-8 md:w-12 md:h-12 rounded-full bg-gold/5 flex items-center justify-center mb-1 md:mb-2 text-gold/70"><Palette className="w-4 h-4 md:w-5 md:h-5" /></div>
+            <h5 className="font-serif italic text-lg text-ink mb-1 md:mb-2">Siti Nur Marini</h5>
+            <p className="font-serif text-xs text-ink/70 leading-relaxed mb-1 md:mb-2 max-w-[240px]">Memperindah setiap bagian di balik halaman ini, menyusunnya satu per satu sampai akhirnya benar-benar terasa seperti kami.</p>
             <div className="flex gap-4 opacity-30 hover:opacity-100 transition-opacity">
               <SocialLink href="https://instagram.com/mariniw_"><Instagram className="w-4 h-4" /></SocialLink>
               <SocialLink href="https://threads.com/@mariniw_"><ThreadsIcon /></SocialLink>
@@ -49,7 +50,7 @@ export const Footer = () => (
 
         <div className="pt-1 border-t border-gold/5 mb-[2vh]">
           <div className="flex justify-center items-center gap-2 mb-2"><Heart className="w-3 h-3 text-gold fill-gold" /></div>
-          <p className="text-[8px] text-ink/20 tracking-widest uppercase">&copy; 2026. Kami membangunnya bersama, dari perjalanan kami.</p>
+          <p className="text-xs text-ink/50 tracking-widest font-serif italic">&copy; 2026. Kami membangunnya bersama, dari perjalanan kami.</p>
         </div>
       </motion.div>
     </div>

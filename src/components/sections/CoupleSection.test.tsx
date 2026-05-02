@@ -295,7 +295,7 @@ describe('CoupleSection', () => {
     it('parent info uses very small text (text-[10px])', () => {
       renderComponent();
       const parentInfo = screen.getByText(/Safiudin Sukri/);
-      expect(parentInfo).toHaveClass('text-[10px]');
+      expect(parentInfo).toHaveClass('text-xs');
     });
 
     it('parent info has tracking-widest', () => {
@@ -307,7 +307,7 @@ describe('CoupleSection', () => {
     it('parent info has muted ink color', () => {
       renderComponent();
       const parentInfo = screen.getByText(/Safiudin Sukri/);
-      expect(parentInfo.className).toContain('text-ink/40');
+      expect(parentInfo.className).toContain('text-ink/70');
     });
   });
 

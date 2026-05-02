@@ -31,8 +31,8 @@ export const CinematicOpening = ({ guestName, onOpen }: CinematicOpeningProps) =
 
     <div className="relative z-10 p-6 md:p-6 flex justify-between items-start w-full">
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }} className="flex flex-col gap-1">
-        <span className="font-sans text-[8px] tracking-[0.4rem] uppercase text-gold font-bold">Surabaya</span>
-        <span className="font-serif italic text-sm text-ivory/60">{WEDDING_DATE_SHORT}</span>
+        <span className="font-sans text-xs tracking-[0.4rem] uppercase text-gold font-bold">Surabaya</span>
+        <span className="font-serif italic text-sm text-ivory">{WEDDING_DATE_SHORT}</span>
       </motion.div>
 
       <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 1.2, duration: 1.5 }} className="relative w-12 h-12 flex items-center justify-center">
@@ -51,7 +51,7 @@ export const CinematicOpening = ({ guestName, onOpen }: CinematicOpeningProps) =
       <div className="pt-0 md:pt-2 flex flex-col items-center justify-center">
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.8, delay: 0.5 }} className="space-y-4 text-center">
           <h1 className="font-dayland text-5xl sm:text-7xl md:text-9xl text-ivory drop-shadow-2xl">Dani</h1>
-          <h2 className="font-dayland text-2xl sm:text-4xl md:text-6xl text-gold/80 drop-shadow-2xl">&</h2>
+          <h2 className="font-dayland text-2xl sm:text-4xl md:text-6xl text-gold/70 drop-shadow-2xl">&</h2>
           <h1 className="font-dayland text-5xl sm:text-7xl md:text-9xl text-ivory drop-shadow-2xl">Marini</h1>
         </motion.div>
       </div>
@@ -59,14 +59,14 @@ export const CinematicOpening = ({ guestName, onOpen }: CinematicOpeningProps) =
       <div className="pb-6 md:pb-6 flex flex-col items-center justify-center">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.5 }} className="flex flex-col items-center text-center gap-6">
           <div className="space-y-2">
-            <p className="font-sans text-[9px] tracking-[0.3rem] uppercase text-gold/60 font-medium">Turut Mengundang</p>
-            <h2 className="font-display italic text-3xl md:text-4xl text-ivory/90 font-light max-w-[85vw] break-words">{guestName}</h2>
+            <p className="font-sans text-xs tracking-[0.3rem] uppercase text-gold/70 font-medium">Turut Mengundang</p>
+            <h2 className="font-display italic text-3xl md:text-4xl text-ivory font-light max-w-[85vw] break-words">{guestName}</h2>
           </div>
           <div className="pt-4">
             <motion.button
               whileHover={{ letterSpacing: '0.6rem' }}
               onClick={onOpen}
-              className="font-sans text-[11px] tracking-[0.4rem] uppercase text-gold font-bold transition-all duration-500 py-4 border-b border-gold/20"
+              className="font-sans text-xs tracking-[0.4rem] uppercase text-gold font-bold transition-all duration-500 py-4 border-b border-gold/20"
             >
               Buka Undangan
             </motion.button>

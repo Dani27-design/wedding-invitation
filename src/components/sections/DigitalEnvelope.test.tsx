@@ -177,7 +177,7 @@ describe('DigitalEnvelope', () => {
       const salins = screen.getAllByText('Salin');
       salins.forEach((salin) => {
         expect(salin.className).toContain('bg-gold/5');
-        expect(salin.className).toContain('text-gold/50');
+        expect(salin.className).toContain('text-gold/70');
       });
     });
 

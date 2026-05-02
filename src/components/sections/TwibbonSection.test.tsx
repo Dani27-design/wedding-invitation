@@ -94,7 +94,7 @@ describe('TwibbonSection', () => {
 
     it('"Rayakan Momen Hari Ini" has ink text color', () => {
       renderComponent();
-      expect(screen.getByText('Rayakan momen hari ini bersama kami.')).toHaveClass('text-ink/60');
+      expect(screen.getByText('Rayakan momen hari ini bersama kami.')).toHaveClass('text-ink/70');
     });
 
     it('displays "Twibbon Pernikahan Kami" subtitle', () => {

@@ -161,8 +161,8 @@ export function TwibbonCreator() {
   return (
     <div ref={wrapperRef} className="flex flex-col h-fit w-full items-center justify-start gap-[3vh] px-4">
       <div className="text-center shrink-0">
-        <p className="text-[9px] uppercase tracking-[0.4em] text-gold font-black mb-2">Twibbon Pernikahan Kami</p>
-        <p className="font-serif italic text-[13px] leading-relaxed text-ink/60 max-w-[300px] mx-auto">Rayakan momen hari ini bersama kami.</p>
+        <p className="text-xs uppercase tracking-[0.4em] text-gold font-black mb-2">Twibbon Pernikahan Kami</p>
+        <p className="font-serif italic text-[13px] leading-relaxed text-ink/70 max-w-[300px] mx-auto">Rayakan momen hari ini bersama kami.</p>
       </div>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -212,7 +212,7 @@ export function TwibbonCreator() {
                 <motion.span
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 0.4, y: 0 }}
-                  className="bg-ink/10 backdrop-blur-md text-ink text-[7px] px-3 py-1 rounded-full uppercase tracking-widest font-black"
+                  className="bg-ink/10 backdrop-blur-md text-ink text-xs px-3 py-1 rounded-full uppercase tracking-widest font-black"
                 >
                   Seret • Cubit untuk Atur
                 </motion.span>
@@ -225,7 +225,7 @@ export function TwibbonCreator() {
         {image && (
           <motion.button
             onClick={() => setImage(null)}
-            className="mb-4 flex items-center gap-2 text-[10px] uppercase font-black text-ink/40 hover:text-ink transition-colors"
+            className="mb-4 flex items-center gap-2 text-xs uppercase font-black text-ink/70 hover:text-ink transition-colors"
           >
             <RefreshCw className="w-3.5 h-3.5" /> Ganti Foto
           </motion.button>
@@ -235,7 +235,7 @@ export function TwibbonCreator() {
           whileTap={{ scale: 0.98 }}
           onClick={handleDownload}
           disabled={!isReady || !image}
-          className="w-full py-2 bg-ink text-gold rounded-full font-black uppercase text-[10px] tracking-[0.4em] shadow-xl disabled:opacity-50 disabled:pointer-events-none transition-all border border-gold/10"
+          className="w-full py-2 bg-ink text-gold rounded-full font-black uppercase text-xs tracking-[0.4em] shadow-xl disabled:opacity-50 disabled:pointer-events-none transition-all border border-gold/10"
         >
           Bagikan Momen
         </motion.button>

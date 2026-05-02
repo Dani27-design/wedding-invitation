@@ -27,9 +27,9 @@ describe('EventSection', () => {
       expect(container.querySelector('#event-section')).toBeInTheDocument();
     });
 
-    it('section has bg-ivory background', () => {
+    it('section has bg-paper background', () => {
       const { container } = renderComponent();
-      expect(container.querySelector('section')).toHaveClass('bg-ivory');
+      expect(container.querySelector('section')).toHaveClass('bg-paper');
     });
 
     it('section has relative positioning', () => {
@@ -39,7 +39,7 @@ describe('EventSection', () => {
 
     it('section has py-6 vertical padding', () => {
       const { container } = renderComponent();
-      expect(container.querySelector('section')).toHaveClass('py-4');
+      expect(container.querySelector('section')).toHaveClass('py-[3vh]');
     });
 
     it('section has overflow-hidden', () => {
@@ -64,24 +64,24 @@ describe('EventSection', () => {
   // 2. CONTENT — labels, dates, events, times
   // =========================================================================
   describe('Content', () => {
-    it('displays "Menuju Hari Bahagia" label', () => {
+    it('displays "Dengan Segenap Cinta" label', () => {
       renderComponent();
-      expect(screen.getByText('Menuju Hari Bahagia')).toBeInTheDocument();
+      expect(screen.getByText('Dengan Segenap Cinta')).toBeInTheDocument();
     });
 
-    it('"Menuju Hari Bahagia" is uppercase', () => {
+    it('"Dengan Segenap Cinta" is uppercase', () => {
       renderComponent();
-      expect(screen.getByText('Menuju Hari Bahagia')).toHaveClass('uppercase');
+      expect(screen.getByText('Dengan Segenap Cinta')).toHaveClass('uppercase');
     });
 
-    it('"Menuju Hari Bahagia" has gold color', () => {
+    it('"Dengan Segenap Cinta" has gold color', () => {
       renderComponent();
-      expect(screen.getByText('Menuju Hari Bahagia')).toHaveClass('text-gold');
+      expect(screen.getByText('Dengan Segenap Cinta')).toHaveClass('text-gold');
     });
 
-    it('"Menuju Hari Bahagia" has font-black weight', () => {
+    it('"Dengan Segenap Cinta" has font-black weight', () => {
       renderComponent();
-      expect(screen.getByText('Menuju Hari Bahagia')).toHaveClass('font-black');
+      expect(screen.getByText('Dengan Segenap Cinta')).toHaveClass('font-black');
     });
 
     it('displays "Sabtu, 29 Agustus 2026" date', () => {
@@ -89,17 +89,16 @@ describe('EventSection', () => {
       expect(screen.getByText('Sabtu, 29 Agustus 2026')).toBeInTheDocument();
     });
 
-    it('date is in italic serif font', () => {
+    it('date uses font-display', () => {
       renderComponent();
       const el = screen.getByText('Sabtu, 29 Agustus 2026');
-      expect(el).toHaveClass('italic');
-      expect(el).toHaveClass('font-serif');
+      expect(el).toHaveClass('font-display');
     });
 
-    it('date uses responsive sizing (text-3xl md:text-4xl)', () => {
+    it('date uses responsive sizing (text-4xl sm:text-5xl md:text-6xl)', () => {
       renderComponent();
       const el = screen.getByText('Sabtu, 29 Agustus 2026');
-      expect(el.className).toContain('text-3xl');
+      expect(el.className).toContain('text-4xl');
     });
 
     it('date has tracking-tight', () => {
@@ -141,10 +140,10 @@ describe('EventSection', () => {
       expect(el).toHaveClass('italic');
     });
 
-    it('time uses mono font', () => {
+    it('time uses display font', () => {
       renderComponent();
       const el = screen.getByText('09:00 — 10:00');
-      expect(el).toHaveClass('font-mono');
+      expect(el).toHaveClass('font-display');
     });
 
     it('time is uppercase with tracking', () => {
@@ -457,28 +456,28 @@ describe('EventSection', () => {
   // 9. VISUAL — border dividers, vertical line
   // =========================================================================
   describe('Visual', () => {
-    it('has border-y divider between Akad and Resepsi section', () => {
+    it('Akad, Resepsi, and Venue cards have border-gold/10 styling', () => {
       const { container } = renderComponent();
-      const divider = container.querySelector('.border-y');
-      expect(divider).toBeInTheDocument();
+      const cards = container.querySelectorAll('.border.border-gold\\/15');
+      expect(cards.length).toBe(3);
     });
 
-    it('border-y uses gold color (border-gold/10)', () => {
+    it('Akad, Resepsi, and Venue cards have bg-white/50 background', () => {
       const { container } = renderComponent();
-      const divider = container.querySelector('.border-y.border-gold\\/10');
-      expect(divider).toBeInTheDocument();
+      const cards = container.querySelectorAll('.bg-white\\/60.border-gold\\/15');
+      expect(cards.length).toBe(3);
     });
 
-    it('has vertical divider line between Akad and Resepsi (w-px h-8)', () => {
+    it('vertical divider line (w-px h-8) does not exist', () => {
       const { container } = renderComponent();
       const vLine = container.querySelector('.w-px.h-8');
-      expect(vLine).toBeInTheDocument();
+      expect(vLine).not.toBeInTheDocument();
     });
 
-    it('vertical divider has gold background', () => {
+    it('w-px.h-8 element does not exist', () => {
       const { container } = renderComponent();
-      const vLine = container.querySelector('.w-px.h-8.bg-gold\\/20');
-      expect(vLine).toBeInTheDocument();
+      const vLine = container.querySelector('.w-px.h-8');
+      expect(vLine).not.toBeInTheDocument();
     });
 
     it('Akad and Resepsi are in a flex row with gap', () => {
@@ -508,8 +507,10 @@ describe('EventSection', () => {
 
     it('all essential content renders in a single pass', () => {
       renderComponent();
-      expect(screen.getByText('Menuju Hari Bahagia')).toBeInTheDocument();
+      expect(screen.getByText('Dengan Segenap Cinta')).toBeInTheDocument();
+      expect(screen.getByText('Kami Menanti Kehadiran Anda')).toBeInTheDocument();
       expect(screen.getByText('Sabtu, 29 Agustus 2026')).toBeInTheDocument();
+      expect(screen.getByText(/Dan dijadikan-Nya di antaramu rasa kasih dan sayang/)).toBeInTheDocument();
       expect(screen.getByText('Akad Nikah')).toBeInTheDocument();
       expect(screen.getByText('Resepsi')).toBeInTheDocument();
       expect(screen.getByText('Gedung Wanita Candra Kencana')).toBeInTheDocument();

@@ -326,7 +326,7 @@ describe('DigitalEnvelope', () => {
     it('section has py-6 padding', () => {
       const { container } = renderWithProps();
       const section = container.querySelector('section');
-      expect(section?.className).toContain('py-6');
+      expect(section?.className).toContain('py-[5vh]');
     });
 
     it('section has bg-ivory background', () => {

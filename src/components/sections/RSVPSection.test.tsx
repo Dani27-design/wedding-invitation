@@ -112,7 +112,7 @@ describe('RSVPSection', () => {
       renderWithProps({ currentWishes: noWish, wishes: noWish });
       const badge = screen.getByText('Absen');
       expect(badge.className).toContain('bg-ink/5');
-      expect(badge.className).toContain('text-ink/20');
+      expect(badge.className).toContain('text-ink/30');
     });
 
     it('displays formatted dates for each wish', () => {
@@ -170,9 +170,9 @@ describe('RSVPSection', () => {
       expect(pulsingHeart).toBeInTheDocument();
     });
 
-    it('empty state container has 25vh height', () => {
+    it('empty state container fills available height', () => {
       const { container } = renderWithProps({ wishes: [], currentWishes: [], totalPages: 0 });
-      const emptyBox = container.querySelector('.h-\\[25vh\\]');
+      const emptyBox = container.querySelector('.h-full.border-dashed');
       expect(emptyBox).toBeInTheDocument();
     });
 
@@ -376,7 +376,7 @@ describe('RSVPSection', () => {
     it('section has glassmorphism background bg-ivory/50', () => {
       const { container } = renderWithProps();
       const section = container.querySelector('section');
-      expect(section?.className).toContain('bg-ivory/50');
+      expect(section?.className).toContain('bg-paper');
     });
 
     it('section has overflow-hidden', () => {
@@ -425,12 +425,12 @@ describe('RSVPSection', () => {
     it('section has py-6 vertical padding', () => {
       const { container } = renderWithProps();
       const section = container.querySelector('section');
-      expect(section?.className).toContain('py-6');
+      expect(section?.className).toContain('py-[5vh]');
     });
 
     it('wish cards have rounded corners', () => {
       const { container } = renderWithProps();
-      const cards = container.querySelectorAll('.rounded-xl');
+      const cards = container.querySelectorAll('.rounded-2xl');
       expect(cards.length).toBeGreaterThan(0);
     });
 

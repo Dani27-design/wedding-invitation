@@ -183,10 +183,10 @@ describe('CountdownTimer', () => {
       expect(hari.className).toMatch(/tracking-\[/);
     });
 
-    it('labels use font-sans', () => {
+    it('labels use font-serif italic', () => {
       render(<CountdownTimer targetDate="2030-01-01T00:00:00" />);
       const hari = screen.getByText('Hari');
-      expect(hari).toHaveClass('font-sans');
+      expect(hari).toHaveClass('font-serif', 'italic');
     });
 
     it('labels have gold color', () => {
@@ -312,11 +312,11 @@ describe('CountdownTimer', () => {
   // 11. Number typography
   // ---------------------------------------------------------------------------
   describe('number typography', () => {
-    it('numbers use font-serif', () => {
+    it('numbers use font-display', () => {
       render(<CountdownTimer targetDate="2030-01-01T00:00:00" />);
       const numbers = screen.getAllByText(/^\d{2}$/);
       numbers.forEach((num) => {
-        expect(num).toHaveClass('font-serif');
+        expect(num).toHaveClass('font-display');
       });
     });
 

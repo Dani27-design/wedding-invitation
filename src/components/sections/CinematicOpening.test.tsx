@@ -75,34 +75,38 @@ describe('CinematicOpening', () => {
   describe('Content', () => {
     it('displays "Dani & Marini" couple names', () => {
       renderComponent();
-      expect(screen.getByText('Dani & Marini')).toBeInTheDocument();
+      expect(screen.getByText('Dani')).toBeInTheDocument();
+      expect(screen.getByText('Marini')).toBeInTheDocument();
     });
 
     it('couple names are inside an h1 element', () => {
       renderComponent();
-      const heading = screen.getByText('Dani & Marini');
-      expect(heading.tagName).toBe('H1');
+      expect(screen.getByText('Dani').tagName).toBe('H1');
+      expect(screen.getByText('Marini').tagName).toBe('H1');
     });
 
     it('couple names use font-dayland', () => {
       renderComponent();
-      expect(screen.getByText('Dani & Marini')).toHaveClass('font-dayland');
+      expect(screen.getByText('Dani')).toHaveClass('font-dayland');
+      expect(screen.getByText('Marini')).toHaveClass('font-dayland');
     });
 
     it('couple names use responsive sizing text-7xl md:text-9xl', () => {
       renderComponent();
-      const el = screen.getByText('Dani & Marini');
-      expect(el.className).toContain('text-7xl');
+      const el = screen.getByText('Dani');
+      expect(el.className).toContain('text-5xl');
     });
 
     it('couple names have text-ivory color', () => {
       renderComponent();
-      expect(screen.getByText('Dani & Marini')).toHaveClass('text-ivory');
+      expect(screen.getByText('Dani')).toHaveClass('text-ivory');
+      expect(screen.getByText('Marini')).toHaveClass('text-ivory');
     });
 
     it('couple names have drop-shadow-2xl', () => {
       renderComponent();
-      expect(screen.getByText('Dani & Marini')).toHaveClass('drop-shadow-2xl');
+      expect(screen.getByText('Dani')).toHaveClass('drop-shadow-2xl');
+      expect(screen.getByText('Marini')).toHaveClass('drop-shadow-2xl');
     });
 
     it('displays the guest name prop', () => {
@@ -288,10 +292,10 @@ describe('CinematicOpening', () => {
       expect(img).toHaveClass('object-cover');
     });
 
-    it('background image has animate-soft-zoom class', () => {
+    it('background image does not have conflicting animate-soft-zoom class', () => {
       renderComponent();
       const img = screen.getByAltText('Opening BG');
-      expect(img).toHaveClass('animate-soft-zoom');
+      expect(img).not.toHaveClass('animate-soft-zoom');
     });
 
     it('background image fills full width and height', () => {

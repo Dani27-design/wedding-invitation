@@ -81,15 +81,15 @@ describe('HeroSection', () => {
       expect(screen.getByText('&')).toBeInTheDocument();
     });
 
-    it('ampersand has gold color', () => {
+    it('ampersand has gold color (text-gold/80)', () => {
       renderComponent();
-      expect(screen.getByText('&')).toHaveClass('text-gold');
+      expect(screen.getByText('&').className).toContain('text-gold');
     });
 
-    it('ampersand is smaller than names (text-4xl md:text-5xl)', () => {
+    it('ampersand is smaller than names (text-2xl sm:text-4xl md:text-6xl)', () => {
       renderComponent();
       const el = screen.getByText('&');
-      expect(el.className).toContain('text-4xl');
+      expect(el.className).toContain('text-2xl');
     });
 
     it('displays "Sabtu, 29 Agustus 2026" date', () => {
@@ -102,18 +102,16 @@ describe('HeroSection', () => {
       expect(screen.getByText('Surabaya . Indonesia')).toBeInTheDocument();
     });
 
-    it('Dani and Marini are each in block span elements', () => {
+    it('Dani and Marini are each in their own h1 element', () => {
       renderComponent();
-      expect(screen.getByText('Dani').tagName).toBe('SPAN');
-      expect(screen.getByText('Dani')).toHaveClass('block');
-      expect(screen.getByText('Marini').tagName).toBe('SPAN');
-      expect(screen.getByText('Marini')).toHaveClass('block');
+      expect(screen.getByText('Dani').tagName).toBe('H1');
+      expect(screen.getByText('Marini').tagName).toBe('H1');
     });
 
-    it('names are inside an h1 element', () => {
+    it('names are h1 elements', () => {
       renderComponent();
-      const h1 = screen.getByText('Dani').closest('h1');
-      expect(h1).toBeInTheDocument();
+      expect(screen.getByText('Dani').tagName).toBe('H1');
+      expect(screen.getByText('Marini').tagName).toBe('H1');
     });
   });
 
@@ -138,9 +136,9 @@ describe('HeroSection', () => {
       expect(screen.getByAltText('Hero Portrait')).toHaveClass('object-cover');
     });
 
-    it('hero image has object-top positioning', () => {
+    it('hero image uses default center positioning (no object-top)', () => {
       renderComponent();
-      expect(screen.getByAltText('Hero Portrait')).toHaveClass('object-top');
+      expect(screen.getByAltText('Hero Portrait')).not.toHaveClass('object-top');
     });
 
     it('hero image has brightness filter', () => {
@@ -169,26 +167,22 @@ describe('HeroSection', () => {
   describe('Typography', () => {
     it('names use font-dayland', () => {
       renderComponent();
-      const h1 = screen.getByText('Dani').closest('h1');
-      expect(h1).toHaveClass('font-dayland');
+      expect(screen.getByText('Dani')).toHaveClass('font-dayland');
     });
 
-    it('names use responsive sizing text-7xl md:text-[8rem]', () => {
+    it('names use responsive sizing text-5xl sm:text-7xl md:text-9xl', () => {
       renderComponent();
-      const h1 = screen.getByText('Dani').closest('h1');
-      expect(h1!.className).toContain('text-7xl');
+      expect(screen.getByText('Dani').className).toContain('text-5xl');
     });
 
-    it('names have text-ink color', () => {
+    it('names have text-ivory color', () => {
       renderComponent();
-      const h1 = screen.getByText('Dani').closest('h1');
-      expect(h1).toHaveClass('text-ink');
+      expect(screen.getByText('Dani')).toHaveClass('text-ivory');
     });
 
-    it('names have leading-none for tight line spacing', () => {
+    it('names do not have leading-none (line spacing is default)', () => {
       renderComponent();
-      const h1 = screen.getByText('Dani').closest('h1');
-      expect(h1).toHaveClass('leading-none');
+      expect(screen.getByText('Dani').className).not.toContain('leading-none');
     });
 
     it('date uses responsive sizing (text-2xl sm:text-3xl md:text-5xl)', () => {
@@ -220,9 +214,9 @@ describe('HeroSection', () => {
       expect(loc.className).toContain('tracking-');
     });
 
-    it('location uses font-sans', () => {
+    it('location uses font-display', () => {
       renderComponent();
-      expect(screen.getByText('Surabaya . Indonesia')).toHaveClass('font-sans');
+      expect(screen.getByText('Surabaya . Indonesia')).toHaveClass('font-display');
     });
 
     it('location has gold color', () => {
@@ -293,22 +287,22 @@ describe('HeroSection', () => {
   // 6. AMBIENT COMPONENTS
   // =========================================================================
   describe('Ambient Components', () => {
-    it('renders LightGlow component', () => {
+    it('does not render LightGlow component (removed for GPU performance)', () => {
       const { container } = renderComponent();
       const glow = container.querySelector('.bg-gold\\/10.blur-\\[180px\\]');
-      expect(glow).toBeInTheDocument();
+      expect(glow).toBeNull();
     });
 
-    it('renders FloatingPetals component', () => {
+    it('does not render FloatingPetals component (removed for GPU performance)', () => {
       const { container } = renderComponent();
       const petals = container.querySelector('.bg-gold\\/5.rounded-\\[100\\%_10\\%_100\\%_10\\%\\]');
-      expect(petals).toBeInTheDocument();
+      expect(petals).toBeNull();
     });
 
-    it('renders ForegroundOrnaments component', () => {
+    it('does not render ForegroundOrnaments component (removed for GPU performance)', () => {
       const { container } = renderComponent();
       const ornaments = container.querySelector('.z-20');
-      expect(ornaments).toBeInTheDocument();
+      expect(ornaments).toBeNull();
     });
   });
 
@@ -340,25 +334,26 @@ describe('HeroSection', () => {
 
     it('section has pb-[3vh] bottom padding', () => {
       const { container } = renderComponent();
-      expect(container.querySelector('section')).toHaveClass('pb-[3vh]');
+      expect(container.querySelector('section')).toHaveClass('py-[5vh]');
     });
 
     it('top content section has text-center', () => {
       const { container } = renderComponent();
-      const topContent = container.querySelector('.z-10.text-center.pt-\\[3vh\\]');
+      const topContent = container.querySelector('.text-center');
       expect(topContent).toBeInTheDocument();
     });
 
-    it('bottom content section has text-center', () => {
+    it('bottom content section has text-center and z-10', () => {
       const { container } = renderComponent();
-      const sections = container.querySelectorAll('.z-10.text-center');
-      expect(sections.length).toBeGreaterThanOrEqual(2);
+      const bottomContent = container.querySelector('.relative.z-10.text-center.w-full');
+      expect(bottomContent).toBeInTheDocument();
     });
 
-    it('top and bottom sections have full width', () => {
+    it('bottom content section has full width and pb-[5vh]', () => {
       const { container } = renderComponent();
-      const wideSections = container.querySelectorAll('.z-10.text-center.w-full');
-      expect(wideSections.length).toBe(2);
+      const bottomSection = container.querySelector('.z-10.text-center.w-full');
+      expect(bottomSection).toBeInTheDocument();
+      expect(bottomSection!.className).toContain('pb-[5vh]');
     });
   });
 
@@ -395,10 +390,10 @@ describe('HeroSection', () => {
       expect(images).toHaveLength(1);
     });
 
-    it('section has only one h1 heading', () => {
+    it('section has two h1 headings (one per name)', () => {
       const { container } = renderComponent();
       const h1s = container.querySelectorAll('h1');
-      expect(h1s).toHaveLength(1);
+      expect(h1s).toHaveLength(2);
     });
 
     it('date section has space-y-4 for consistent spacing', () => {

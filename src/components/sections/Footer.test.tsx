@@ -41,7 +41,7 @@ describe('Footer', () => {
     it('footer has py-6 padding', () => {
       const { container } = renderFooter();
       const footer = container.querySelector('footer');
-      expect(footer?.className).toContain('py-6');
+      expect(footer?.className).toContain('py-[5vh]');
     });
 
     it('renders consistently on re-render', () => {
@@ -404,25 +404,25 @@ describe('Footer', () => {
 
     it('names section has mb-5 margin bottom', () => {
       const { container } = renderFooter();
-      const nameSection = container.querySelector('.mb-3');
+      const nameSection = container.querySelector('.mb-\\[2vh\\]');
       expect(nameSection).toBeInTheDocument();
     });
 
     it('grid has gap-3 between cards', () => {
       const { container } = renderFooter();
       const grid = container.querySelector('.grid');
-      expect(grid?.className).toContain('gap-3');
+      expect(grid?.className).toContain('gap-[1vh]');
     });
 
     it('grid has mb-4 margin bottom', () => {
       const { container } = renderFooter();
       const grid = container.querySelector('.grid');
-      expect(grid?.className).toContain('mb-4');
+      expect(grid?.className).toContain('mb-[2vh]');
     });
 
     it('copyright section has mb-8 margin bottom', () => {
       const { container } = renderFooter();
-      const copyrightSection = container.querySelector('.mb-4');
+      const copyrightSection = container.querySelector('.mb-\\[2vh\\]');
       expect(copyrightSection).toBeInTheDocument();
     });
   });

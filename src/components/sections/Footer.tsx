@@ -15,15 +15,15 @@ const SocialLink = ({ href, children }: { href: string; children: ReactNode }) =
 );
 
 export const Footer = () => (
-  <footer className="relative py-4 md:py-6 max-h-[100dvh] bg-ivory overflow-hidden border-t border-gold/10">
+  <footer className="relative py-[5vh] h-[100dvh] bg-ivory overflow-hidden border-t border-gold/10">
     <div className="container mx-auto px-6 relative z-10">
       <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="max-w-4xl mx-auto text-center">
-        <div className="mb-3 md:mb-5">
+        <div className="mb-[2vh]">
           <h4 className="font-dayland text-4xl sm:text-5xl md:text-6xl text-ink mb-1 md:mb-2">Dani & Marini</h4>
           <p className="text-[11px] md:text-[12px] tracking-[0.2em] text-gold font-serif italic">Sebuah Cerita dari Perjalanan yang Kami Jalani dan Bangun Bersama, Dengan Keyakinan yang Sama</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 md:gap-3 mb-3 md:mb-4">
+        <div className="grid grid-cols-2 gap-[1vh] mb-[2vh]">
           <div className="p-2 md:p-3 rounded-[1.5rem] md:rounded-[2.5rem] bg-paper/50 border border-gold/5 flex flex-col items-center">
             <div className="w-8 h-8 md:w-12 md:h-12 rounded-full bg-gold/5 flex items-center justify-center mb-1 md:mb-2 text-gold/60"><Code className="w-4 h-4 md:w-5 md:h-5" /></div>
             <h5 className="font-serif italic text-base md:text-xl text-ink mb-1 md:mb-2">M. Daniansyah C.</h5>
@@ -47,7 +47,7 @@ export const Footer = () => (
           </div>
         </div>
 
-        <div className="pt-1 border-t border-gold/5 mb-4 md:mb-8">
+        <div className="pt-1 border-t border-gold/5 mb-[2vh]">
           <div className="flex justify-center items-center gap-2 mb-2"><Heart className="w-3 h-3 text-gold fill-gold" /></div>
           <p className="text-[8px] text-ink/20 tracking-widest uppercase">&copy; 2026. Kami membangunnya bersama, dari perjalanan kami.</p>
         </div>

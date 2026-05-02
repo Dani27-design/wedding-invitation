@@ -3,10 +3,9 @@ import { Heart } from 'lucide-react';
 import { stagger, fadeUp } from '../../utils/animations';
 
 export const CoupleSection = () => (
-  <section id="couple-section" className="relative max-h-[100dvh] py-4 md:py-20 bg-ivory flex items-center overflow-hidden">
-    <div className="container mx-auto px-6 max-w-5xl">
-      <div className="grid pt-4 md:pt-6 md:grid-cols-2 gap-4 md:gap-8 items-center relative">
-        <div className="relative h-[40vh] sm:h-[50vh] md:h-[500px] w-full flex items-center justify-center">
+  <section id="couple-section" className="relative h-[100dvh] py-[5vh] bg-ivory overflow-hidden">
+    <div className="container mx-auto px-6 max-w-5xl h-full grid grid-rows-[1fr_auto] md:grid-rows-none md:grid-cols-2 gap-[3vh] items-center relative">
+      <div className="relative w-full h-full min-h-0 max-h-[60vh] md:max-h-none">
           <motion.div
             initial={{ opacity: 0, x: -40, scale: 0.9 }}
             whileInView={{ opacity: 1, x: 0, scale: 1 }}
@@ -43,7 +42,7 @@ export const CoupleSection = () => (
           </motion.div>
         </div>
 
-        <motion.div initial="initial" whileInView="animate" viewport={{ once: true }} variants={stagger} className="flex flex-col mt-0 pt-0 gap-2 md:gap-3 md:pl-16 text-center md:text-left">
+      <motion.div initial="initial" whileInView="animate" viewport={{ once: true }} variants={stagger} className="flex flex-col gap-[1.5vh] md:pl-16 text-center md:text-left">
           <motion.div variants={fadeUp}>
             <p className="text-[9px] uppercase tracking-[0.5em] text-gold mb-1 font-black">Mempelai Pria</p>
             <h3 className="font-serif text-2xl sm:text-3xl md:text-5xl leading-none mb-1 tracking-tighter">M. Daniansyah Chusyaidin, S.Kom</h3>
@@ -59,8 +58,7 @@ export const CoupleSection = () => (
             <h3 className="font-serif text-2xl sm:text-3xl md:text-5xl leading-none mb-1 tracking-tighter">Siti Nur Marini, A.Md.M</h3>
             <p className="text-[10px] tracking-widest text-ink/40">Putri Bapak Margono & Ibu (Almh) Sulami</p>
           </motion.div>
-        </motion.div>
-      </div>
+      </motion.div>
     </div>
   </section>
 );

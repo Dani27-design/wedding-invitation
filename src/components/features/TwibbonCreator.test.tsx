@@ -68,10 +68,10 @@ describe('TwibbonCreator', () => {
       expect(container.firstChild).toHaveClass('w-full');
     });
 
-    it('root wrapper centers content', () => {
+    it('root wrapper distributes content evenly', () => {
       const { container } = render(<TwibbonCreator />);
       expect(container.firstChild).toHaveClass('items-center');
-      expect(container.firstChild).toHaveClass('justify-center');
+      expect(container.firstChild).toHaveClass('justify-start');
     });
   });
 
@@ -116,7 +116,7 @@ describe('TwibbonCreator', () => {
     it('frame has shadow styling for depth', () => {
       render(<TwibbonCreator />);
       const frame = document.querySelector('.aspect-\\[9\\/16\\]');
-      expect(frame).toHaveClass('shadow-[0_45px_120px_-20px_rgba(0,0,0,0.3)]');
+      expect(frame).toHaveClass('shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)]');
     });
 
     it('frame has border for edge definition', () => {
@@ -132,16 +132,17 @@ describe('TwibbonCreator', () => {
       expect(frame).toHaveClass('bg-[#F2EEE9]');
     });
 
-    it('frame has max-w-[320px] constraint', () => {
+    it('frame has max-w-[82%] constraint', () => {
       render(<TwibbonCreator />);
       const frame = document.querySelector('.aspect-\\[9\\/16\\]');
-      expect(frame).toHaveClass('max-w-[320px]');
+      expect(frame).toHaveClass('max-w-[82%]');
     });
 
-    it('frame has w-[82%] width', () => {
+    it('frame uses height-driven sizing h-[55vh]', () => {
       render(<TwibbonCreator />);
       const frame = document.querySelector('.aspect-\\[9\\/16\\]');
-      expect(frame).toHaveClass('w-[82%]');
+      expect(frame).toHaveClass('h-[55vh]');
+      expect(frame).toHaveClass('w-auto');
     });
 
     it('frame container has select-none to prevent text selection', () => {
@@ -224,7 +225,7 @@ describe('TwibbonCreator', () => {
     it('disabled button has disabled:opacity-30 styling class', () => {
       render(<TwibbonCreator />);
       const btn = screen.getByText('Bagikan Momen').closest('button');
-      expect(btn).toHaveClass('disabled:opacity-30');
+      expect(btn).toHaveClass('disabled:opacity-50');
     });
 
     it('disabled button has disabled:pointer-events-none class', () => {
@@ -294,7 +295,7 @@ describe('TwibbonCreator', () => {
     it('camera icon has text-white/20 for subtle appearance', () => {
       const { container } = render(<TwibbonCreator />);
       const cameraIcon = container.querySelector('.stroke-\\[1\\]');
-      expect(cameraIcon).toHaveClass('text-white/20');
+      expect(cameraIcon).toHaveClass('text-white/40');
     });
 
     it('camera icon has w-10 h-10 size', () => {
@@ -388,10 +389,10 @@ describe('TwibbonCreator', () => {
       expect(headerSection).toHaveClass('text-center');
     });
 
-    it('header section has margin-bottom mb-6', () => {
+    it('header section has text-center and shrink-0', () => {
       render(<TwibbonCreator />);
       const headerSection = screen.getByText('Rayakan Momen Ini').parentElement;
-      expect(headerSection).toHaveClass('mb-3');
+      expect(headerSection).toHaveClass('text-center', 'shrink-0');
     });
 
     it('header section has shrink-0 to prevent compression', () => {
@@ -400,31 +401,30 @@ describe('TwibbonCreator', () => {
       expect(headerSection).toHaveClass('shrink-0');
     });
 
-    it('header section has horizontal padding px-4', () => {
-      render(<TwibbonCreator />);
-      const headerSection = screen.getByText('Rayakan Momen Ini').parentElement;
-      expect(headerSection).toHaveClass('px-4');
+    it('root wrapper has horizontal padding px-4', () => {
+      const { container } = render(<TwibbonCreator />);
+      expect(container.firstChild).toHaveClass('px-4');
     });
 
-    it('button area has mt-8 margin-top', () => {
+    it('button area has no manual margin (justify-evenly handles spacing)', () => {
       render(<TwibbonCreator />);
       const btn = screen.getByText('Bagikan Momen').closest('button');
       const buttonArea = btn?.parentElement;
-      expect(buttonArea).toHaveClass('mt-4');
+      expect(buttonArea?.className).not.toContain('mt-');
     });
 
-    it('button area has max-w-[320px] matching frame width', () => {
+    it('button area has max-w-[82%] matching frame constraint', () => {
       render(<TwibbonCreator />);
       const btn = screen.getByText('Bagikan Momen').closest('button');
       const buttonArea = btn?.parentElement;
-      expect(buttonArea).toHaveClass('max-w-[320px]');
+      expect(buttonArea).toHaveClass('max-w-[82%]');
     });
 
-    it('button area has w-[82%] matching frame width', () => {
+    it('button area has w-full width', () => {
       render(<TwibbonCreator />);
       const btn = screen.getByText('Bagikan Momen').closest('button');
       const buttonArea = btn?.parentElement;
-      expect(buttonArea).toHaveClass('w-[82%]');
+      expect(buttonArea).toHaveClass('w-full');
     });
 
     it('button area centers items', () => {
@@ -438,7 +438,7 @@ describe('TwibbonCreator', () => {
 
     it('wrapper has py-4 vertical padding', () => {
       const { container } = render(<TwibbonCreator />);
-      expect(container.firstChild).toHaveClass('py-2');
+      expect(container.firstChild).not.toHaveClass('py-2');
     });
 
     it('wrapper has h-fit height', () => {

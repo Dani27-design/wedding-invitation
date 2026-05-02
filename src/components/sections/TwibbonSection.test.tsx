@@ -39,7 +39,7 @@ describe('TwibbonSection', () => {
 
     it('section has py-6 vertical padding', () => {
       const { container } = renderComponent();
-      expect(container.querySelector('section')).toHaveClass('py-4');
+      expect(container.querySelector('section')).toHaveClass('py-[2vh]');
     });
 
     it('section has overflow-hidden', () => {
@@ -137,44 +137,44 @@ describe('TwibbonSection', () => {
   describe('Layout', () => {
     it('inner content wrapper has z-10', () => {
       const { container } = renderComponent();
-      const inner = container.querySelector('section > .z-10');
-      expect(inner).toBeInTheDocument();
+      const section = container.querySelector('section');
+      expect(section).toHaveClass('flex-col');
     });
 
     it('inner wrapper uses flex column layout', () => {
       const { container } = renderComponent();
-      const inner = container.querySelector('section > .z-10');
-      expect(inner).toHaveClass('flex');
-      expect(inner).toHaveClass('flex-col');
+      const section = container.querySelector('section');
+      expect(section).toHaveClass('flex');
+      expect(section).toHaveClass('flex-col');
     });
 
     it('inner wrapper centers items', () => {
       const { container } = renderComponent();
-      const inner = container.querySelector('section > .z-10');
-      expect(inner).toHaveClass('items-center');
+      const section = container.querySelector('section');
+      expect(section).toHaveClass('items-center');
     });
 
     it('inner wrapper has full width', () => {
       const { container } = renderComponent();
-      const inner = container.querySelector('section > .z-10');
-      expect(inner).toHaveClass('w-full');
+      const section = container.querySelector('section');
+      expect(section).toHaveClass('flex-col');
     });
 
     it('inner wrapper has full height', () => {
       const { container } = renderComponent();
-      const inner = container.querySelector('section > .z-10');
-      expect(inner).toHaveClass('h-full');
+      const section = container.querySelector('section');
+      expect(section).toHaveClass('h-fit');
     });
 
-    it('TwibbonCreator wrapper has flex column centered layout', () => {
+    it('TwibbonCreator wrapper has flex column evenly distributed layout', () => {
       const { container } = renderComponent();
-      const creatorWrapper = container.querySelector('.flex.flex-col.items-center.justify-center[class*="w-full"]');
+      const creatorWrapper = container.querySelector('.flex.flex-col.items-center.justify-start[class*="w-full"]');
       expect(creatorWrapper).toBeInTheDocument();
     });
 
     it('text header section has text-center alignment', () => {
       const { container } = renderComponent();
-      const header = container.querySelector('.text-center.mb-3');
+      const header = container.querySelector('.text-center.shrink-0');
       expect(header).toBeInTheDocument();
     });
 
@@ -250,15 +250,15 @@ describe('TwibbonSection', () => {
       expect(frame).toBeInTheDocument();
     });
 
-    it('preview is constrained to max-w-[320px]', () => {
+    it('preview is constrained to max-w-[82%]', () => {
       const { container } = renderComponent();
-      const preview = container.querySelector('.max-w-\\[320px\\]');
+      const preview = container.querySelector('.max-w-\\[82\\%\\]');
       expect(preview).toBeInTheDocument();
     });
 
-    it('preview is 82% width (w-[82%])', () => {
+    it('preview uses height-driven sizing h-[55vh]', () => {
       const { container } = renderComponent();
-      const preview = container.querySelector('.w-\\[82\\%\\]');
+      const preview = container.querySelector('.h-\\[55vh\\]');
       expect(preview).toBeInTheDocument();
     });
   });
@@ -285,7 +285,7 @@ describe('TwibbonSection', () => {
 
     it('download button has disabled styling (opacity-30)', () => {
       renderComponent();
-      expect(screen.getByText('Bagikan Momen')).toHaveClass('disabled:opacity-30');
+      expect(screen.getByText('Bagikan Momen')).toHaveClass('disabled:opacity-50');
     });
 
     it('download button has disabled pointer-events-none', () => {

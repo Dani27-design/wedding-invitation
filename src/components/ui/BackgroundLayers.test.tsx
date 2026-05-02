@@ -12,9 +12,9 @@ describe('BackgroundLayers', () => {
       expect(container.children.length).toBeGreaterThan(0);
     });
 
-    it('renders multiple top-level children (fragment with 3 layers)', () => {
+    it('renders multiple top-level children (fragment with 2 layers)', () => {
       const { container } = render(<BackgroundLayers />);
-      expect(container.children.length).toBe(3);
+      expect(container.children.length).toBe(2);
     });
 
     it('all top-level children are divs', () => {
@@ -46,23 +46,16 @@ describe('BackgroundLayers', () => {
   // 2. All layers pointer-events-none
   // ---------------------------------------------------------------------------
   describe('pointer-events-none', () => {
-    it('all 3 top-level layers have pointer-events-none', () => {
+    it('all 2 top-level layers have pointer-events-none', () => {
       const { container } = render(<BackgroundLayers />);
       const layers = container.querySelectorAll('.pointer-events-none');
-      expect(layers.length).toBeGreaterThanOrEqual(3);
+      expect(layers.length).toBeGreaterThanOrEqual(2);
     });
 
     it('film grain layer has pointer-events-none', () => {
       const { container } = render(<BackgroundLayers />);
       const grain = container.querySelector('.animate-grain');
       expect(grain).toHaveClass('pointer-events-none');
-    });
-
-    it('floral shadow layer has pointer-events-none', () => {
-      const { container } = render(<BackgroundLayers />);
-      const layers = Array.from(container.children);
-      const shadowLayer = layers.find((l) => l.className.includes('mix-blend-multiply'));
-      expect(shadowLayer).toHaveClass('pointer-events-none');
     });
 
     it('light sweep layer parent has pointer-events-none', () => {
@@ -76,23 +69,16 @@ describe('BackgroundLayers', () => {
   // 3. All layers fixed position
   // ---------------------------------------------------------------------------
   describe('fixed positioning', () => {
-    it('all 3 top-level layers use fixed positioning', () => {
+    it('all 2 top-level layers use fixed positioning', () => {
       const { container } = render(<BackgroundLayers />);
       const fixed = container.querySelectorAll('.fixed');
-      expect(fixed.length).toBeGreaterThanOrEqual(3);
+      expect(fixed.length).toBeGreaterThanOrEqual(2);
     });
 
     it('film grain layer has fixed position', () => {
       const { container } = render(<BackgroundLayers />);
       const grain = container.querySelector('.animate-grain');
       expect(grain).toHaveClass('fixed');
-    });
-
-    it('floral shadow container has fixed position', () => {
-      const { container } = render(<BackgroundLayers />);
-      const layers = Array.from(container.children);
-      const shadowLayer = layers.find((l) => l.className.includes('mix-blend-multiply'));
-      expect(shadowLayer).toHaveClass('fixed');
     });
 
     it('light sweep container has fixed position', () => {
@@ -141,7 +127,7 @@ describe('BackgroundLayers', () => {
     it('grain has highest z-index among background layers', () => {
       const { container } = render(<BackgroundLayers />);
       const grain = container.querySelector('.animate-grain');
-      expect(grain).toHaveClass('z-[9999]');
+      expect(grain).toHaveClass('z-[15]');
     });
   });
 
@@ -181,56 +167,35 @@ describe('BackgroundLayers', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // 6. Shadow drift layer
+  // 6. Shadow drift layer (removed)
   // ---------------------------------------------------------------------------
   describe('shadow drift layer', () => {
-    it('has at least one animate-shadow-drift element', () => {
+    it('does not have any animate-shadow-drift elements', () => {
       const { container } = render(<BackgroundLayers />);
       const drifts = container.querySelectorAll('.animate-shadow-drift');
-      expect(drifts.length).toBeGreaterThanOrEqual(1);
+      expect(drifts).toHaveLength(0);
     });
 
-    it('has exactly 2 shadow drift elements', () => {
-      const { container } = render(<BackgroundLayers />);
-      const drifts = container.querySelectorAll('.animate-shadow-drift');
-      expect(drifts).toHaveLength(2);
-    });
-
-    it('shadow drift elements use blur', () => {
-      const { container } = render(<BackgroundLayers />);
-      const drifts = container.querySelectorAll('.animate-shadow-drift');
-      drifts.forEach((drift) => {
-        expect(drift.className).toMatch(/blur-/);
-      });
-    });
-
-    it('shadow drift elements have rounded-full', () => {
-      const { container } = render(<BackgroundLayers />);
-      const drifts = container.querySelectorAll('.animate-shadow-drift');
-      drifts.forEach((drift) => {
-        expect(drift).toHaveClass('rounded-full');
-      });
-    });
-
-    it('shadow drift container has mix-blend-multiply', () => {
+    it('does not have any mix-blend-multiply elements', () => {
       const { container } = render(<BackgroundLayers />);
       const layers = Array.from(container.children);
       const shadowLayer = layers.find((l) => l.className.includes('mix-blend-multiply'));
-      expect(shadowLayer).toBeTruthy();
+      expect(shadowLayer).toBeUndefined();
     });
 
-    it('shadow drift container has opacity-30', () => {
+    it('does not reference stardust.png', () => {
       const { container } = render(<BackgroundLayers />);
-      const layers = Array.from(container.children);
-      const shadowLayer = layers.find((l) => l.className.includes('mix-blend-multiply'));
-      expect(shadowLayer).toHaveClass('opacity-30');
+      expect(container.innerHTML).not.toContain('stardust.png');
     });
 
-    it('shadow drift container has z-0', () => {
+    it('does not have blur-[80px] elements', () => {
       const { container } = render(<BackgroundLayers />);
-      const layers = Array.from(container.children);
-      const shadowLayer = layers.find((l) => l.className.includes('mix-blend-multiply'));
-      expect(shadowLayer).toHaveClass('z-0');
+      expect(container.innerHTML).not.toContain('blur-[80px]');
+    });
+
+    it('does not have blur-[100px] elements', () => {
+      const { container } = render(<BackgroundLayers />);
+      expect(container.innerHTML).not.toContain('blur-[100px]');
     });
   });
 
@@ -254,9 +219,9 @@ describe('BackgroundLayers', () => {
       expect(container.innerHTML).toContain('/textures/p6.png');
     });
 
-    it('references /textures/stardust.png for shadow', () => {
+    it('does not reference /textures/stardust.png (shadow layer removed)', () => {
       const { container } = render(<BackgroundLayers />);
-      expect(container.innerHTML).toContain('/textures/stardust.png');
+      expect(container.innerHTML).not.toContain('/textures/stardust.png');
     });
   });
 
@@ -264,20 +229,13 @@ describe('BackgroundLayers', () => {
   // 8. Z-index layering order
   // ---------------------------------------------------------------------------
   describe('z-index layering', () => {
-    it('grain has z-[9999] (topmost)', () => {
+    it('grain has z-[15] (below opening overlay z-1000)', () => {
       const { container } = render(<BackgroundLayers />);
       const grain = container.querySelector('.animate-grain');
-      expect(grain).toHaveClass('z-[9999]');
+      expect(grain).toHaveClass('z-[15]');
     });
 
-    it('shadow drift container has z-0 (bottommost)', () => {
-      const { container } = render(<BackgroundLayers />);
-      const layers = Array.from(container.children);
-      const shadowLayer = layers.find((l) => l.className.includes('mix-blend-multiply'));
-      expect(shadowLayer).toHaveClass('z-0');
-    });
-
-    it('light sweep container has z-[1] (middle)', () => {
+    it('light sweep container has z-[1] (below grain)', () => {
       const { container } = render(<BackgroundLayers />);
       const sweepParent = container.querySelector('.animate-light-sweep')?.parentElement;
       expect(sweepParent).toHaveClass('z-[1]');
@@ -314,7 +272,7 @@ describe('BackgroundLayers', () => {
     it('re-renders without duplicating layers', () => {
       const { container, rerender } = render(<BackgroundLayers />);
       rerender(<BackgroundLayers />);
-      expect(container.children.length).toBe(3);
+      expect(container.children.length).toBe(2);
     });
 
     it('re-renders 5 times without extra layers', () => {
@@ -322,14 +280,14 @@ describe('BackgroundLayers', () => {
       for (let i = 0; i < 5; i++) {
         rerender(<BackgroundLayers />);
       }
-      expect(container.children.length).toBe(3);
+      expect(container.children.length).toBe(2);
     });
 
-    it('still has grain, shadow drift, and light sweep after re-render', () => {
+    it('still has grain and light sweep after re-render', () => {
       const { container, rerender } = render(<BackgroundLayers />);
       rerender(<BackgroundLayers />);
       expect(container.querySelector('.animate-grain')).toBeInTheDocument();
-      expect(container.querySelectorAll('.animate-shadow-drift')).toHaveLength(2);
+      expect(container.querySelectorAll('.animate-shadow-drift')).toHaveLength(0);
       expect(container.querySelector('.animate-light-sweep')).toBeInTheDocument();
     });
 

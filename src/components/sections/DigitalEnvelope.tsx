@@ -8,14 +8,14 @@ interface DigitalEnvelopeProps {
 }
 
 export const DigitalEnvelope = ({ copiedIndex, onCopy }: DigitalEnvelopeProps) => (
-  <section id="gift-section" className="relative py-4 md:py-6 max-h-[100dvh] bg-ivory overflow-hidden">
+  <section id="gift-section" className="relative py-[5vh] h-[100dvh] bg-ivory overflow-hidden">
     <div className="absolute inset-0 pointer-events-none opacity-[0.4]">
       <motion.div animate={{ rotate: [0, 360], scale: [1, 1.2, 1] }} transition={{ duration: 40, repeat: Infinity, ease: 'linear' }} className="absolute -top-1/4 -left-1/4 w-full h-full border border-gold/5 rounded-full" />
       <motion.div animate={{ rotate: [360, 0], scale: [1, 1.3, 1] }} transition={{ duration: 50, repeat: Infinity, ease: 'linear' }} className="absolute -bottom-1/4 -right-1/4 w-full h-full border border-gold/5 rounded-full" />
     </div>
 
     <div className="container mx-auto px-6 max-w-4xl relative z-10">
-      <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-4 md:mb-10">
+      <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-[3vh]">
         <div className="flex justify-center items-center gap-4 mb-3">
           <div className="h-px w-8 bg-gold/30" />
           <Gift className="w-5 h-5 text-gold/60" />

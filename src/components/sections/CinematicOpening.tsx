@@ -13,15 +13,16 @@ interface CinematicOpeningProps {
 export const CinematicOpening = ({ guestName, onOpen }: CinematicOpeningProps) => (
   <motion.div
     initial={{ opacity: 1 }}
-    exit={{ opacity: 0, scale: 1.05, filter: 'blur(30px)', transition: { duration: 2, ease: [0.76, 0, 0.24, 1] } }}
-    className="fixed inset-0 z-[1000] flex flex-col bg-ink overflow-hidden"
+    exit={{ opacity: 0, scale: 1.05, transition: { duration: 2, ease: [0.76, 0, 0.24, 1] } }}
+    className="fixed inset-0 z-[1000] flex flex-col bg-ink py-[5vh] overflow-hidden"
   >
     <motion.div
-      animate={{ scale: [1, 1.05, 1], opacity: 0.4 }}
-      transition={{ scale: { duration: 20, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 4 } }}
+      initial={{ opacity: 0.4 }}
+      animate={{ scale: [1, 1.05, 1] }}
+      transition={{ scale: { duration: 20, repeat: Infinity, ease: 'easeInOut' } }}
       className="absolute inset-0 z-0"
     >
-      <img src="/bride_and_groom_full_body_potrait.jpeg" className="w-full h-full object-cover animate-soft-zoom" alt="Opening BG" />
+      <img src="/bride_and_groom_full_body_potrait.jpeg" className="w-full h-full object-cover" alt="Opening BG" />
       <div className="absolute inset-0 bg-gradient-to-b from-ink/60 via-transparent to-ink/90" />
       <LightGlow />
       <FloatingPetals />
@@ -49,7 +50,9 @@ export const CinematicOpening = ({ guestName, onOpen }: CinematicOpeningProps) =
     <div className="relative z-10 px-8 md:px-24 flex-1 flex flex-col justify-between w-full h-full">
       <div className="pt-0 md:pt-2 flex flex-col items-center justify-center">
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.8, delay: 0.5 }} className="space-y-4 text-center">
-          <h1 className="font-dayland text-5xl sm:text-7xl md:text-9xl text-ivory drop-shadow-2xl">Dani & Marini</h1>
+          <h1 className="font-dayland text-5xl sm:text-7xl md:text-9xl text-ivory drop-shadow-2xl">Dani</h1>
+          <h2 className="font-dayland text-2xl sm:text-4xl md:text-6xl text-gold/80 drop-shadow-2xl">&</h2>
+          <h1 className="font-dayland text-5xl sm:text-7xl md:text-9xl text-ivory drop-shadow-2xl">Marini</h1>
         </motion.div>
       </div>
 

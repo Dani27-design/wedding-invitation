@@ -437,3 +437,233 @@ On all mobile devices with browser chrome, the hero's bottom content (wedding da
 1. Replace `min-h-[100vh]` with `h-[100dvh]` — `dvh` (dynamic viewport height) accounts for browser chrome, ensuring the section fills exactly the visible area
 2. Use viewport-relative padding: `pt-[3vh] md:pt-6` and `pb-[3vh] md:pb-6` for proportional spacing
 3. Reduce `space-y-6` to `space-y-4 md:space-y-6` on bottom content for tighter mobile layout
+
+---
+
+## Issue #34 — CinematicOpening Flickers/Glitches Black Overlay on Desktop [FIXED]
+
+**Root Cause:**
+Three issues combine to produce a flickering black overlay effect on desktop that is barely visible on mobile:
+
+1. **Grain texture above opening:** `BackgroundLayers.tsx` renders a grain texture at `z-[9999]`, but CinematicOpening is at `z-[1000]`. The grain sits ON TOP of the opening. The `animate-grain` CSS animation uses `steps(10)` (discrete jumps), creating visible flickering over the dark opening background. On desktop's larger pixel area, this is much more noticeable.
+
+2. **Competing scale animations:** `CinematicOpening.tsx` applies both Motion `scale: [1, 1.05, 1]` on the container AND CSS `animate-soft-zoom` (scale 1→1.08→1) on the image. Two scale animations fighting each other cause GPU compositing stutter on desktop.
+
+3. **4-second opacity fade reveals black background:** The background container animates `opacity` from 1 to 0.4 over 4 seconds. The parent `bg-ink` (#1A1A1A) bleeds through increasingly during this transition, creating a "black flash" effect.
+
+**Impact:**
+On desktop, the opening screen appears to have a flickering/glitchy black overlay. The combination of grain texture stepping, competing animations, and opacity fade creates an unprofessional stutter effect that undermines the cinematic feel.
+
+**Solution:**
+1. Lower grain `z-[9999]` to `z-[999]` — below the opening's `z-[1000]`, so grain only affects main content sections
+2. Remove `animate-soft-zoom` CSS class from opening image — Motion's `scale` animation is sufficient
+3. Set `initial={{ opacity: 0.4 }}` instead of animating opacity — eliminates the 4-second black bleed-through
+
+---
+
+## Issue #35 — HeroSection Flickers/Glitches Black Overlay on Desktop [FIXED]
+
+**Root Cause:**
+Three issues combine to create a flickering/stutter effect on the hero section on desktop:
+
+1. **Grain texture at z-999 overlays the hero:** After Issue #34's fix lowered grain from z-9999 to z-999, it's still above `main` (z-10). The `steps(10)` CSS animation creates discrete position jumps that are visible as flicker on desktop's large pixel area over the hero's dark image.
+
+2. **Scale animation on parent recomposites all heavy children:** `HeroSection.tsx:10` wraps the image, gradient, LightGlow (`blur-[180px]` + `mix-blend-soft-light`), 8 FloatingPetals, and 2 ForegroundOrnaments inside a single `motion.div` with `scale: [1, 1.03, 1]`. Every scale frame triggers a full GPU recomposite of all these layers. On desktop (1920×1080+) this causes frame drops.
+
+3. **Opening exit creates 2-second dark flash:** When user clicks "Buka Undangan", `isOpen` becomes true — the hero mounts instantly while the opening plays a 2-second exit animation (`opacity: 0, blur: 30px`) with `bg-ink` bleeding through. The hero image pops in abruptly, contrasting with the dark exit.
+
+**Impact:**
+Desktop users see a dark flash during the opening→hero transition, followed by subtle grain flicker and occasional stutter from the heavy compositing load.
+
+**Solution:**
+1. Move LightGlow, FloatingPetals, ForegroundOrnaments outside the scale container — they become siblings, so the lightweight image-only scale no longer triggers recomposite of blur/blend elements. Added `transform-gpu` for proper GPU layer promotion.
+2. Lower grain z-index from `z-[999]` to `z-[15]` and change grain animation from `0.8s steps(10)` to `4s linear` — eliminates visible discrete jumps while keeping the subtle texture effect.
+3. Hero background container uses a plain `<div>` (no fade-in) — the image is fully visible from mount, hidden behind the opening at z-1000. The opening's fade-out creates a natural dark-to-image crossfade. Ambient components (LightGlow, FloatingPetals, ForegroundOrnaments) are delayed by 2 seconds to avoid GPU overload during transition.
+
+---
+
+## Issue #36 ��� Hero Black Overlay Persists During Opening→Hero Transition on Desktop [FIXED]
+
+**Root Cause:**
+Two remaining issues after Issue #35 fixes:
+
+1. **`filter: blur(30px)` in opening exit animation:** The CinematicOpening root has `bg-ink` (#1A1A1A, near-black). During the 2-second exit, `filter: blur(30px)` causes the dark background to **diffuse/spread outward** through the blur filter. Combined with fading opacity, this creates a murky dark haze overlaying the entire viewport. On desktop with 4x the pixel area of mobile, this dark haze is very prominent — appearing as a "black overlay" over the hero.
+
+2. **50+ concurrent animations during transition overload desktop GPU:** When the user clicks "Buka Undangan", `isOpen` is set to true immediately. The hero mounts with all its ambient components (LightGlow with blur-180px + mix-blend, 8 FloatingPetals with 5 properties each, 2 ForegroundOrnaments with blur-60px/80px) while the opening is still playing its exit. The GPU must composite 50+ animations simultaneously across a large viewport, causing frame drops that appear as flicker.
+
+**Impact:**
+Desktop users see a dark haze/overlay during the 2-second opening→hero transition, plus stuttery frame drops from GPU overload during the transition period.
+
+**Solution:**
+1. Remove `filter: 'blur(30px)'` from CinematicOpening exit animation — keep only `opacity: 0, scale: 1.05` for a clean fade-out that doesn't spread the dark `bg-ink` background across the viewport.
+2. Delay hero ambient components (LightGlow, FloatingPetals, ForegroundOrnaments) by 2 seconds — they fade in with `initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2 }}` after the opening exit completes, reducing simultaneous GPU work from 50+ animations to ~5 during the transition.
+
+---
+
+## Issue #37 — Hero Desktop Flicker Persists Due to Excessive GPU Load (58 Animation Tracks + 5 Blurs + 2 Blend Modes) [FIXED]
+
+**Root Cause:**
+A full GPU audit revealed the hero section and BackgroundLayers run **58 concurrent animation tracks, 5 animated blur filters, and 2 blend modes** simultaneously on desktop. The most expensive operations:
+
+| Element | Cost | Detail |
+|---|---|---|
+| LightGlow | blur-180px + mix-blend-soft-light + 5 animated props | Heaviest single element |
+| BackgroundLayers shadow drift | 2 × blur-80px/100px + mix-blend-multiply + animated | 2nd heaviest |
+| ForegroundOrnaments | 2 × blur-60px/80px + animated y/rotate | 3rd heaviest |
+| FloatingPetals | 8 × 5 animated props = 40 tracks | Most animation tracks |
+
+On desktop at 1920×1080 (4× mobile pixel count), the GPU cannot composite all these layers without frame drops. The drops appear as visible flicker/stutter.
+
+Mobile is smooth because it has ~4× fewer pixels and simpler compositing requirements for the same effects.
+
+**Impact:**
+Persistent flicker/stutter on hero section on desktop despite previous fixes (#34, #35, #36). The root cause was not a specific animation conflict but rather the cumulative GPU cost of all effects running simultaneously.
+
+**Solution:**
+1. **Remove LightGlow, FloatingPetals, ForegroundOrnaments from HeroSection** — These effects shine on the dark CinematicOpening background but are barely visible on the bright hero image. The gradient overlay (`bg-gradient-to-b from-transparent via-ivory/20 to-ivory`) provides sufficient visual depth.
+2. **Remove shadow drift layer from BackgroundLayers** — Eliminated 2 large animated blur elements (blur-80px + blur-100px) with `mix-blend-multiply`. Kept the grain texture and light sweep which are lightweight.
+3. **CinematicOpening retains all effects** — LightGlow, FloatingPetals, ForegroundOrnaments remain in the opening where they have maximum visual impact on the dark cinematic background with no transition GPU contention.
+
+Result: Hero GPU load reduced from **58 tracks + 5 blurs + 2 blends** to **3 tracks + 0 blurs + 0 blends**.
+
+---
+
+## Issue #38 — Opening and Hero Photo Position Mismatch Causes Visual Jump on Transition [FIXED]
+
+**Root Cause:**
+Both CinematicOpening and HeroSection use the same image (`bride_and_groom_full_body_potrait.jpeg`) but with different `object-position` values:
+
+| Property | CinematicOpening | HeroSection |
+|---|---|---|
+| object-position | `center` (default) | `object-top` |
+
+On desktop (wide viewport), `object-cover` crops the image vertically. With `center`, the crop is even top/bottom. With `object-top`, the image anchors to the top edge. When the opening fades out to reveal the hero, the same photo **visibly jumps position** from center-anchored to top-anchored.
+
+On mobile (tall viewport), minimal cropping occurs so the difference is barely noticeable.
+
+**Impact:**
+On desktop, the opening→hero transition shows the photo shifting downward as it switches from center to top positioning, breaking the seamless cinematic reveal.
+
+**Solution:**
+Remove `object-top` from HeroSection so both use the default `object-cover` (center positioning). Center keeps the subjects visible across all viewport ratios — desktop (wide crop) and mobile (tall crop) — without cutting the top or bottom awkwardly. Both now use identical `object-cover` with no `object-position` override, ensuring a seamless transition.
+
+---
+
+## Issue #39 — Inconsistent Section Padding, Height Constraints, Gaps, and Redundant Wrappers [FIXED]
+
+**Root Cause:**
+Four systemic inconsistencies across all sections:
+
+1. **Padding:** Sections used a mix of `py-4`, `py-6`, `py-4 md:py-6`, `py-4 md:py-20`, `pt-[3vh] pb-[3vh]` — no uniform pattern. Different sections had different padding on the same device.
+2. **Height:** Some used `max-h-[100dvh]` (capped but could be shorter), some `h-[100dvh]` (exact), some `h-screen` (100vh, doesn't account for mobile browser chrome). No consistency.
+3. **Gaps:** Internal margins used a mix of `mb-4`, `mb-6`, `mb-8`, `mb-10`, `mb-3 md:mb-5`, `mb-4 md:mb-10` — no proportional system. Gaps didn't scale with viewport.
+4. **Redundant wrappers:** TwibbonSection had an unnecessary inner `<div>` just wrapping `<TwibbonCreator />`. TwibbonCreator had its own `py-2 md:py-4` duplicating the section padding. CoupleSection grid had `pt-4 md:pt-6` redundant with section padding. HeroSection had separate `pt-[3vh]` redundant with section padding.
+
+**Impact:**
+Sections looked inconsistent across viewports — some had tight padding on mobile and loose on desktop, others the opposite. The visual rhythm between sections was uneven. On large monitors, the mismatch was most noticeable.
+
+**Solution:**
+
+1. **Uniform padding `py-[5vh]`** on all sections (except CinematicOpening overlay and CinematicStory full-bleed). This scales proportionally: ~33px on 667px phone, ~50px on 1024px tablet, ~54px on 1080p desktop.
+
+2. **Exact `h-[100dvh]`** on all sections. Every section is exactly one viewport height using `dvh` (accounts for mobile browser chrome). No more `max-h` or `h-screen`.
+
+3. **Standardized gap system using vh units:**
+   - Header to content: `mb-[3vh]`
+   - Between content blocks: `mb-[2vh]`
+   - Between small elements: `mb-[1vh]`
+   - Grid gaps: `gap-[2vh]` / `gap-[1vh]`
+   All gaps now scale proportionally with viewport height.
+
+4. **Removed redundant wrappers:**
+   - TwibbonSection: removed inner `<div>` wrapper, moved `flex flex-col items-center` to section
+   - TwibbonCreator: removed `py-2 md:py-4` (section handles padding)
+   - CoupleSection: merged container + grid into single div (removed one nesting level), removed redundant `pt-4 md:pt-6`
+   - HeroSection: removed `pt-[3vh]` from inner div (section handles padding)
+
+---
+
+## Issue #40 — CoupleSection Redundant Container Wrapper + Small Photos + Tight Gaps on Mobile [FIXED]
+
+**Root Cause:**
+Four issues in CoupleSection mobile layout:
+
+1. **Redundant nesting:** `container` div and `grid` div served overlapping purposes — container provided centering/padding/max-width, grid provided columns. They could be merged into one element.
+2. **Photo area too small:** `h-[40vh]` made portraits tiny on mobile — at 667px viewport, 40vh = 267px, with each overlapping photo at 65% = ~174px. Too small to see faces clearly.
+3. **Grid gap too tight:** `gap-[2vh]` between photos and text was only ~13px on mobile — no breathing room.
+4. **Text gap too tight:** `gap-[1vh]` between couple info blocks was only ~7px — names almost touching.
+
+**Impact:**
+On mobile, the couple section looked cramped with tiny portraits and text jammed against photos. The redundant wrapper added unnecessary DOM depth.
+
+**Solution:**
+1. Merged `container` and `grid` into single `<div className="container mx-auto px-6 max-w-5xl grid md:grid-cols-2 gap-[3vh] items-center relative">` — one less nesting level.
+2. Photo area increased from `h-[40vh]` to `h-[50vh]` — at 667px: 50vh = 334px, each photo ~217px. Much more visible.
+3. Grid gap increased from `gap-[2vh]` to `gap-[3vh]` — ~20px on mobile, better separation.
+4. Text gap increased from `gap-[1vh]` to `gap-[1.5vh]` — ~10px on mobile, comfortable spacing.
+
+---
+
+## Issue #41 — CoupleSection Empty Space Above Photos and Below Text on Mobile [FIXED]
+
+**Root Cause:**
+The section used `flex items-center` to vertically center the grid content. With fixed `h-[50vh]` photos + text (~78vh total content) inside 90vh available space (100dvh - 2×5vh padding), ~12vh of dead space was distributed equally above and below by `items-center` — creating visible empty gaps on both ends.
+
+On taller viewports the gap was even worse: desktop 1080px had ~200px of wasted space.
+
+**Impact:**
+Visible empty gaps above the photo area and below the couple text, making the layout feel loose and unfinished, especially on taller devices.
+
+**Solution:**
+1. Removed `flex items-center` from section — no more equal-distribution of empty space
+2. Grid container now has `h-full` — fills entire available height within the section padding
+3. On mobile: `grid-rows-[1fr_auto]` — photos take ALL remaining space (`1fr`), text takes only its natural height (`auto`). No empty gaps.
+4. On desktop: `md:grid-rows-none md:grid-cols-2` — existing 2-column layout preserved
+5. Photo area: replaced fixed `h-[50vh]` with `h-full min-h-0` — dynamically fills whatever space the text doesn't need
+
+---
+
+## Issue #42 — EventSection Redundant Wrapper + Empty Space Below Buttons on Mobile [FIXED]
+
+**Root Cause:**
+Two issues:
+
+1. **Redundant nesting:** The `container` div and inner `flex flex-col` div served overlapping purposes. Container provided centering/max-width/padding, flex-col provided vertical layout. Could be merged into one element.
+2. **Empty space below buttons:** Content (~450px) inside `h-[100dvh]` section left ~120px of dead space below the "Lihat Peta" / "Ke Kalender" buttons on mobile. The `flex-col` didn't fill the section height and content wasn't vertically centered.
+
+**Impact:**
+Visible empty gap below the action buttons on mobile, making the section look bottom-heavy. Unnecessary DOM nesting.
+
+**Solution:**
+1. Merged `container` and `flex flex-col` into single `<div className="container mx-auto px-6 max-w-lg relative z-10 h-full flex flex-col items-center text-center justify-center">` — one less nesting level.
+2. Added `h-full` so the container fills the section, and `justify-center` to vertically center all content — eliminating the bottom gap.
+
+---
+
+## Issue #43 — EventSection Empty Space Above Countdown and Below Buttons [FIXED]
+
+**Root Cause:**
+Content (~350px) was centered via `justify-center` inside ~600px available space on mobile, leaving ~125px gaps above and below. The manual `mb-[3vh]`/`mb-[2vh]` margins between blocks created fixed spacing while the remaining space sat unused at both ends.
+
+**Impact:**
+Visible empty gaps above "Menuju Hari Bahagia" and below "Lihat Peta"/"Ke Kalender" buttons, making the section feel sparse on mobile.
+
+**Solution:**
+1. Changed `justify-center` to `justify-evenly` — content blocks are now distributed proportionally across the full available height, filling the section edge-to-edge.
+2. Removed all manual `mb-[3vh]`/`mb-[2vh]` margins from content blocks — `justify-evenly` handles all spacing automatically, adapting to any viewport height.
+
+---
+
+## Issue #44 — EventSection Redesign: Akad/Resepsi Cards + bg-paper + Compact Mobile Layout [FIXED]
+
+**Root Cause:**
+The EventSection had Akad Nikah and Resepsi side-by-side in a thin horizontal row (~80px), leaving excessive empty space on mobile. The `bg-ivory` background blended with adjacent sections, lacking visual distinction.
+
+**Impact:**
+The section felt sparse on mobile with most of the 100dvh viewport being empty space around compact content. Akad/Resepsi info was small and easy to miss.
+
+**Solution:**
+1. **Background:** Changed `bg-ivory` to `bg-paper` for visual distinction from adjacent sections.
+2. **Akad/Resepsi as styled cards:** Each event is now a `bg-white/40 border border-gold/10 rounded-2xl` card with `py-4 px-6`. On mobile: stacked vertically (`flex-col`) filling ~200px. On desktop: side by side (`md:flex-row`) with vertical divider (`hidden md:block w-px h-8`).
+3. **Grouped countdown + date:** Countdown timer and date are now in a single header block, reducing the number of evenly-distributed items for better proportions.
+4. **Kept `justify-evenly`:** 4 content blocks (header, cards, venue, buttons) now distribute evenly — the taller card stack fills the middle space naturally.

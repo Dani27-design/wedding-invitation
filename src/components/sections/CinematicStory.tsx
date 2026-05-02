@@ -44,7 +44,7 @@ export const CinematicStory = () => {
   };
 
   return (
-    <section id="story-section" className="relative h-screen w-full bg-ink overflow-hidden scroll-snap-container">
+    <section id="story-section" className="relative h-[100dvh] w-full bg-ink overflow-hidden scroll-snap-container">
       <div ref={scrollContainerRef} onScroll={handleStoryScroll} className="h-full w-full flex overflow-x-auto snap-x snap-mandatory no-scrollbar scroll-smooth">
         {STORY_SLIDES.map((slide, idx) => (
           <div key={idx} className="relative h-full w-full min-w-full snap-center flex items-center justify-center overflow-hidden">

@@ -29,7 +29,7 @@ describe('CoupleSection', () => {
 
     it('section has min-h-screen for full viewport height', () => {
       const { container } = renderComponent();
-      expect(container.querySelector('section')!.className).toContain('max-h-[100dvh]');
+      expect(container.querySelector('section')!.className).toContain('h-[100dvh]');
     });
 
     it('section has bg-ivory background', () => {
@@ -44,14 +44,14 @@ describe('CoupleSection', () => {
 
     it('section has py-6 vertical padding', () => {
       const { container } = renderComponent();
-      expect(container.querySelector('section')).toHaveClass('py-4');
+      expect(container.querySelector('section')).toHaveClass('py-[5vh]');
     });
 
-    it('section uses flex items-center for vertical centering', () => {
+    it('section does not use flex items-center (grid fills height instead)', () => {
       const { container } = renderComponent();
       const section = container.querySelector('section');
-      expect(section).toHaveClass('flex');
-      expect(section).toHaveClass('items-center');
+      expect(section).not.toHaveClass('flex');
+      expect(section).not.toHaveClass('items-center');
     });
 
     it('mounts and unmounts cleanly', () => {
@@ -366,7 +366,7 @@ describe('CoupleSection', () => {
     it('grid has gap-8 spacing', () => {
       const { container } = renderComponent();
       const grid = container.querySelector('.grid');
-      expect(grid).toHaveClass('gap-4');
+      expect(grid).toHaveClass('gap-[3vh]');
     });
 
     it('groom portrait has z-10 layering', () => {
@@ -399,9 +399,9 @@ describe('CoupleSection', () => {
       expect(brideContainer).toBeInTheDocument();
     });
 
-    it('portrait container has defined height (h-[400px] md:h-[500px])', () => {
+    it('portrait container fills available height (h-full with 1fr grid row)', () => {
       const { container } = renderComponent();
-      const portraitArea = container.querySelector('[class*="h-[40vh]"]');
+      const portraitArea = container.querySelector('[class*="h-full"][class*="min-h-0"]');
       expect(portraitArea).toBeInTheDocument();
     });
 

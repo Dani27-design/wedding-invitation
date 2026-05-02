@@ -7,12 +7,12 @@ interface PhotoGalleryProps {
 }
 
 export const PhotoGallery = ({ onSelectPhoto }: PhotoGalleryProps) => (
-  <section className="relative py-4 md:py-6 max-h-[100dvh] bg-paper overflow-hidden">
+  <section className="relative py-[5vh] h-[100dvh] bg-paper overflow-hidden">
     <div className="absolute top-0 left-0 w-64 h-64 bg-gold/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
     <div className="absolute bottom-0 right-0 w-96 h-96 bg-sepia/20 rounded-full blur-3xl translate-x-1/3 translate-y-1/3" />
 
     <div className="container mx-auto px-6 relative z-10">
-      <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-4 md:mb-10">
+      <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-[3vh]">
         <div className="flex justify-center items-center gap-4 mb-3">
           <div className="h-px w-8 bg-gold/30" />
           <Camera className="w-5 h-5 text-gold/60" />
@@ -48,7 +48,7 @@ export const PhotoGallery = ({ onSelectPhoto }: PhotoGalleryProps) => (
         </div>
       </div>
 
-      <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="mt-4 md:mt-10 text-center">
+      <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="mt-[2vh] text-center">
         <p className="font-serif italic text-ink/40 text-lg">Setiap foto menyimpan cerita yang tidak selalu mudah, tapi selalu kami pilih untuk lanjutkan.</p>
       </motion.div>
     </div>

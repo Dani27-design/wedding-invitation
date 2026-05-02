@@ -28,17 +28,24 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState(1);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [isSubmitSuccess, setIsSubmitSuccess] = useState(false);
+  const [viewportHeight, setViewportHeight] = useState(typeof window !== 'undefined' ? window.innerHeight : 667);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  useEffect(() => {
+    const handleResize = () => setViewportHeight(window.innerHeight);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const wishPages = useMemo(() => {
-    const availableHeight = 400;
+    const availableHeight = Math.floor(viewportHeight * 1);
     const pages: GuestWishes[][] = [];
     let currentPageWishes: GuestWishes[] = [];
     let currentHeight = 0;
 
     wishes.forEach((wish) => {
-      const lines = Math.max(1, Math.ceil(wish.message.length / 30));
-      const estimatedHeight = 52 + lines * 17;
+      const lines = Math.min(2, Math.max(1, Math.ceil(wish.message.length / 30)));
+      const estimatedHeight = 58 + lines * 18;
 
       if (currentHeight + estimatedHeight > availableHeight && currentPageWishes.length > 0) {
         pages.push(currentPageWishes);
@@ -52,7 +59,7 @@ export default function App() {
 
     if (currentPageWishes.length > 0) pages.push(currentPageWishes);
     return pages;
-  }, [wishes]);
+  }, [wishes, viewportHeight]);
 
   const currentWishes = wishPages[currentPage - 1] || [];
   const totalPages = wishPages.length;

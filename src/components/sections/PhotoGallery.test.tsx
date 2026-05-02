@@ -35,7 +35,7 @@ describe('PhotoGallery', () => {
     it('section has py-6 padding', () => {
       const { container } = renderGallery();
       const section = container.querySelector('section');
-      expect(section?.className).toContain('py-6');
+      expect(section?.className).toContain('py-[5vh]');
     });
 
     it('renders consistently on re-render', () => {
@@ -346,7 +346,7 @@ describe('PhotoGallery', () => {
       renderGallery();
       const desc = screen.getByText(/Setiap foto menyimpan cerita/);
       const parent = desc.parentElement;
-      expect(parent?.className).toContain('mt-10');
+      expect(parent?.className).toContain('mt-[2vh]');
     });
   });
 

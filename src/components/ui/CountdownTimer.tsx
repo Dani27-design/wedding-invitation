@@ -16,13 +16,13 @@ const TimeBox = ({ value, label }: { value: number; label: string }) => (
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -10, scale: 1.1 }}
           transition={{ duration: 0.4, ease: 'backOut' }}
-          className="font-serif text-3xl md:text-5xl text-ink/90 block font-light leading-none tracking-tighter"
+          className="font-display text-3xl md:text-5xl text-ink/90 block font-light leading-none tracking-tighter"
         >
           {value.toString().padStart(2, '0')}
         </motion.span>
       </AnimatePresence>
     </div>
-    <span className="font-sans text-[7px] md:text-[9px] tracking-[0.2em] md:tracking-[0.3em] uppercase text-gold/80 font-bold mt-2">
+    <span className="font-serif italic text-[8px] md:text-[9px] tracking-[0.2em] md:tracking-[0.3em] uppercase text-gold/80 font-bold mt-2">
       {label}
     </span>
   </motion.div>

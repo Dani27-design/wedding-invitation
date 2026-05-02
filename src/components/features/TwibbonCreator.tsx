@@ -159,18 +159,16 @@ export function TwibbonCreator() {
   };
 
   return (
-    <div ref={wrapperRef} className="flex flex-col h-fit w-full py-2 md:py-4 items-center justify-center">
-      <div className="text-center mb-3 md:mb-6 shrink-0 px-4">
+    <div ref={wrapperRef} className="flex flex-col h-fit w-full items-center justify-start gap-[3vh] px-4">
+      <div className="text-center shrink-0">
         <h3 className="font-serif text-xl italic text-ink mb-1">Rayakan Momen Ini</h3>
         <p className="text-[9px] uppercase tracking-[0.4em] text-gold font-black opacity-60">Signature Twibbon</p>
       </div>
-
-      <div className="flex-1 w-full flex flex-col items-center justify-center min-h-0 h-fit px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="relative h-fit w-[82%] max-w-[320px] md:max-w-[380px] lg:max-w-[420px] max-h-[50vh] md:max-h-none aspect-[9/16] shadow-[0_45px_120px_-20px_rgba(0,0,0,0.3)] border border-ink/10 bg-[#F2EEE9] group/result"
+          className="relative h-[55vh] w-auto max-w-[82%] md:max-w-[380px] lg:max-w-[420px] aspect-[9/16] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] border border-ink/10 bg-[#F2EEE9] group/result"
         >
           <div
             ref={containerRef}
@@ -202,7 +200,7 @@ export function TwibbonCreator() {
                     transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
                     className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent"
                   />
-                  <Camera className="w-10 h-10 text-white/20 stroke-[1]" />
+                  <Camera className="w-10 h-10 text-white/40 stroke-[1]" />
                 </div>
               )}
             </div>
@@ -223,25 +221,24 @@ export function TwibbonCreator() {
           </div>
         </motion.div>
 
-        <div className="mt-4 md:mt-8 flex flex-col items-center h-fit w-[82%] max-w-[320px] md:max-w-[380px] lg:max-w-[420px] shrink-0">
-          {image && (
-            <motion.button
-              onClick={() => setImage(null)}
-              className="mb-4 flex items-center gap-2 text-[10px] uppercase font-black text-ink/40 hover:text-ink transition-colors"
-            >
-              <RefreshCw className="w-3.5 h-3.5" /> Ganti Foto
-            </motion.button>
-          )}
+      <div className="flex flex-col items-center h-fit w-full max-w-[82%] md:max-w-[380px] lg:max-w-[420px] shrink-0">
+        {image && (
           <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handleDownload}
-            disabled={!isReady || !image}
-            className="w-full py-2 bg-ink text-gold rounded-full font-black uppercase text-[10px] tracking-[0.4em] shadow-xl disabled:opacity-30 disabled:pointer-events-none transition-all border border-gold/10"
+            onClick={() => setImage(null)}
+            className="mb-4 flex items-center gap-2 text-[10px] uppercase font-black text-ink/40 hover:text-ink transition-colors"
           >
-            Bagikan Momen
+            <RefreshCw className="w-3.5 h-3.5" /> Ganti Foto
           </motion.button>
-        </div>
+        )}
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={handleDownload}
+          disabled={!isReady || !image}
+          className="w-full py-2 bg-ink text-gold rounded-full font-black uppercase text-[10px] tracking-[0.4em] shadow-xl disabled:opacity-50 disabled:pointer-events-none transition-all border border-gold/10"
+        >
+          Bagikan Momen
+        </motion.button>
       </div>
 
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />

@@ -183,17 +183,17 @@ describe('utils/twibbonOverlay', () => {
       expect(mockCtx.texts).toContain('&');
     });
 
-    it('calls fillText with "turut merayakan pernikahan"', () => {
+    it('calls fillText with "Turut Menyertai Hari Bahagia"', () => {
       const mockCtx = createMockContext();
       drawOverlay(mockCtx.ctx, 1080, 1920);
-      const hasTurut = mockCtx.texts.some((t) => t.includes('turut merayakan pernikahan'));
+      const hasTurut = mockCtx.texts.some((t) => t.includes('Turut Menyertai Hari Bahagia'));
       expect(hasTurut).toBe(true);
     });
 
-    it('calls fillText with "surabaya 29 agustus 2026"', () => {
+    it('calls fillText with "Surabaya 29 Agustus 2026"', () => {
       const mockCtx = createMockContext();
       drawOverlay(mockCtx.ctx, 1080, 1920);
-      const hasSurabaya = mockCtx.texts.some((t) => t.includes('surabaya 29 agustus 2026'));
+      const hasSurabaya = mockCtx.texts.some((t) => t.includes('Surabaya 29 Agustus 2026'));
       expect(hasSurabaya).toBe(true);
     });
 
@@ -206,12 +206,12 @@ describe('utils/twibbonOverlay', () => {
     it('text elements appear in the correct order', () => {
       const mockCtx = createMockContext();
       drawOverlay(mockCtx.ctx, 1080, 1920);
-      // Order: turut merayakan, Dani, &, Marini, surabaya
-      expect(mockCtx.texts[0]).toBe('turut merayakan pernikahan');
+      // Order: Turut Menyertai, Dani, &, Marini, Surabaya
+      expect(mockCtx.texts[0]).toBe('Turut Menyertai Hari Bahagia');
       expect(mockCtx.texts[1]).toBe('Dani');
       expect(mockCtx.texts[2]).toBe('&');
       expect(mockCtx.texts[3]).toBe('Marini');
-      expect(mockCtx.texts[4]).toBe('surabaya 29 agustus 2026');
+      expect(mockCtx.texts[4]).toBe('Surabaya 29 Agustus 2026');
     });
 
     it('calls measureText to calculate name widths', () => {

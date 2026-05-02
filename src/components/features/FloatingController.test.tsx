@@ -42,7 +42,7 @@ describe('FloatingController', () => {
     it('is positioned bottom-8 right-3', () => {
       const { container } = render(<FloatingController {...createProps()} />);
       expect(container.firstChild).toHaveClass('bottom-8');
-      expect(container.firstChild).toHaveClass('right-3');
+      expect(container.firstChild).toHaveClass('right-5');
     });
 
     it('has z-[100] for proper layering above page content', () => {
@@ -161,14 +161,14 @@ describe('FloatingController', () => {
       expect(screen.queryByText('Twibbon')).not.toBeInTheDocument();
     });
 
-    it('does not show Konfirmasi menu item', () => {
+    it('does not show Ucapan & Doa menu item', () => {
       render(<FloatingController {...createProps()} />);
-      expect(screen.queryByText('Konfirmasi')).not.toBeInTheDocument();
+      expect(screen.queryByText('Ucapan & Doa')).not.toBeInTheDocument();
     });
 
-    it('does not show Digital Gift menu item', () => {
+    it('does not show Tanda Kasih menu item', () => {
       render(<FloatingController {...createProps()} />);
-      expect(screen.queryByText('Digital Gift')).not.toBeInTheDocument();
+      expect(screen.queryByText('Tanda Kasih')).not.toBeInTheDocument();
     });
 
     it('does not show Info Acara menu item', () => {
@@ -181,9 +181,9 @@ describe('FloatingController', () => {
       expect(screen.queryByText('Putar Musik')).not.toBeInTheDocument();
     });
 
-    it('does not show Hentikan Musik toggle', () => {
+    it('does not show Senyapkan Musik toggle', () => {
       render(<FloatingController {...createProps({ isPlaying: true })} />);
-      expect(screen.queryByText('Hentikan Musik')).not.toBeInTheDocument();
+      expect(screen.queryByText('Senyapkan Musik')).not.toBeInTheDocument();
     });
 
     it('renders only the main button as a button element', () => {
@@ -203,14 +203,14 @@ describe('FloatingController', () => {
       expect(screen.getByText('Twibbon')).toBeInTheDocument();
     });
 
-    it('shows Konfirmasi label', () => {
+    it('shows Ucapan & Doa label', () => {
       render(<FloatingController {...createProps({ isToolsOpen: true })} />);
-      expect(screen.getByText('Konfirmasi')).toBeInTheDocument();
+      expect(screen.getByText('Ucapan & Doa')).toBeInTheDocument();
     });
 
-    it('shows Digital Gift label', () => {
+    it('shows Tanda Kasih label', () => {
       render(<FloatingController {...createProps({ isToolsOpen: true })} />);
-      expect(screen.getByText('Digital Gift')).toBeInTheDocument();
+      expect(screen.getByText('Tanda Kasih')).toBeInTheDocument();
     });
 
     it('shows Info Acara label', () => {
@@ -273,9 +273,9 @@ describe('FloatingController', () => {
       expect(screen.getByText('Putar Musik')).toBeInTheDocument();
     });
 
-    it('shows "Hentikan Musik" when isPlaying is true and menu open', () => {
+    it('shows "Senyapkan Musik" when isPlaying is true and menu open', () => {
       render(<FloatingController {...createProps({ isToolsOpen: true, isPlaying: true })} />);
-      expect(screen.getByText('Hentikan Musik')).toBeInTheDocument();
+      expect(screen.getByText('Senyapkan Musik')).toBeInTheDocument();
     });
 
     it('does not show "Putar Musik" when playing', () => {
@@ -283,9 +283,9 @@ describe('FloatingController', () => {
       expect(screen.queryByText('Putar Musik')).not.toBeInTheDocument();
     });
 
-    it('does not show "Hentikan Musik" when not playing', () => {
+    it('does not show "Senyapkan Musik" when not playing', () => {
       render(<FloatingController {...createProps({ isToolsOpen: true, isPlaying: false })} />);
-      expect(screen.queryByText('Hentikan Musik')).not.toBeInTheDocument();
+      expect(screen.queryByText('Senyapkan Musik')).not.toBeInTheDocument();
     });
 
     it('calls toggleMusic when music button is clicked', () => {
@@ -295,10 +295,10 @@ describe('FloatingController', () => {
       expect(toggleMusic).toHaveBeenCalledTimes(1);
     });
 
-    it('calls toggleMusic when Hentikan Musik is clicked', () => {
+    it('calls toggleMusic when Senyapkan Musik is clicked', () => {
       const toggleMusic = vi.fn();
       render(<FloatingController {...createProps({ isToolsOpen: true, isPlaying: true, toggleMusic })} />);
-      fireEvent.click(screen.getByText('Hentikan Musik'));
+      fireEvent.click(screen.getByText('Senyapkan Musik'));
       expect(toggleMusic).toHaveBeenCalledTimes(1);
     });
 
@@ -389,23 +389,23 @@ describe('FloatingController', () => {
       vi.restoreAllMocks();
     });
 
-    it('Konfirmasi button scrolls to rsvp-section', () => {
+    it('Ucapan & Doa button scrolls to rsvp-section', () => {
       const scrollMock = vi.fn();
       vi.spyOn(document, 'getElementById').mockReturnValue({ scrollIntoView: scrollMock } as any);
 
       render(<FloatingController {...createProps({ isToolsOpen: true })} />);
-      fireEvent.click(screen.getByText('Konfirmasi'));
+      fireEvent.click(screen.getByText('Ucapan & Doa'));
 
       expect(document.getElementById).toHaveBeenCalledWith('rsvp-section');
       vi.restoreAllMocks();
     });
 
-    it('Digital Gift button scrolls to gift-section', () => {
+    it('Tanda Kasih button scrolls to gift-section', () => {
       const scrollMock = vi.fn();
       vi.spyOn(document, 'getElementById').mockReturnValue({ scrollIntoView: scrollMock } as any);
 
       render(<FloatingController {...createProps({ isToolsOpen: true })} />);
-      fireEvent.click(screen.getByText('Digital Gift'));
+      fireEvent.click(screen.getByText('Tanda Kasih'));
 
       expect(document.getElementById).toHaveBeenCalledWith('gift-section');
       vi.restoreAllMocks();
@@ -433,11 +433,11 @@ describe('FloatingController', () => {
       expect(setIsToolsOpen).toHaveBeenCalledWith(false);
 
       setIsToolsOpen.mockClear();
-      fireEvent.click(screen.getByText('Konfirmasi'));
+      fireEvent.click(screen.getByText('Ucapan & Doa'));
       expect(setIsToolsOpen).toHaveBeenCalledWith(false);
 
       setIsToolsOpen.mockClear();
-      fireEvent.click(screen.getByText('Digital Gift'));
+      fireEvent.click(screen.getByText('Tanda Kasih'));
       expect(setIsToolsOpen).toHaveBeenCalledWith(false);
 
       setIsToolsOpen.mockClear();
@@ -476,8 +476,8 @@ describe('FloatingController', () => {
       rerender(<FloatingController {...createProps({ isToolsOpen: true })} />);
 
       expect(screen.getAllByText('Twibbon')).toHaveLength(1);
-      expect(screen.getAllByText('Konfirmasi')).toHaveLength(1);
-      expect(screen.getAllByText('Digital Gift')).toHaveLength(1);
+      expect(screen.getAllByText('Ucapan & Doa')).toHaveLength(1);
+      expect(screen.getAllByText('Tanda Kasih')).toHaveLength(1);
       expect(screen.getAllByText('Info Acara')).toHaveLength(1);
     });
 
@@ -503,7 +503,7 @@ describe('FloatingController', () => {
       expect(screen.getByText('Putar Musik')).toBeInTheDocument();
 
       rerender(<FloatingController {...createProps({ isToolsOpen: true, isPlaying: true })} />);
-      expect(screen.getByText('Hentikan Musik')).toBeInTheDocument();
+      expect(screen.getByText('Senyapkan Musik')).toBeInTheDocument();
       expect(screen.queryByText('Putar Musik')).not.toBeInTheDocument();
     });
 
@@ -514,12 +514,12 @@ describe('FloatingController', () => {
       expect(screen.queryByText('Putar Musik')).not.toBeInTheDocument();
 
       rerender(<FloatingController {...createProps({ isPlaying: true })} />);
-      expect(screen.queryByText('Hentikan Musik')).not.toBeInTheDocument();
+      expect(screen.queryByText('Senyapkan Musik')).not.toBeInTheDocument();
     });
 
     it('all four navigation labels have consistent styling', () => {
       render(<FloatingController {...createProps({ isToolsOpen: true })} />);
-      const labels = ['Twibbon', 'Konfirmasi', 'Digital Gift', 'Info Acara'];
+      const labels = ['Twibbon', 'Ucapan & Doa', 'Tanda Kasih', 'Info Acara'];
       labels.forEach((label) => {
         const el = screen.getByText(label);
         expect(el.tagName).toBe('SPAN');
@@ -540,7 +540,7 @@ describe('FloatingController', () => {
         <FloatingController isToolsOpen={true} setIsToolsOpen={vi.fn()} isPlaying={true} toggleMusic={vi.fn()} />
       );
       expect(container.firstChild).toBeInTheDocument();
-      expect(screen.getByText('Hentikan Musik')).toBeInTheDocument();
+      expect(screen.getByText('Senyapkan Musik')).toBeInTheDocument();
       expect(screen.getByLabelText('Tutup menu')).toBeInTheDocument();
     });
 

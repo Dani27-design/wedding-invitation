@@ -41,7 +41,7 @@ describe('Footer', () => {
     it('footer has py-6 padding', () => {
       const { container } = renderFooter();
       const footer = container.querySelector('footer');
-      expect(footer?.className).toContain('py-[5vh]');
+      expect(footer?.className).toContain('py-[2vh]');
     });
 
     it('renders consistently on re-render', () => {

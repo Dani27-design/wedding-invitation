@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { Gift, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { BANK_ACCOUNTS } from '../../constants/wedding';
 
 interface DigitalEnvelopeProps {
@@ -8,7 +8,7 @@ interface DigitalEnvelopeProps {
 }
 
 export const DigitalEnvelope = ({ copiedIndex, onCopy }: DigitalEnvelopeProps) => (
-  <section id="gift-section" className="relative py-[5vh] h-[100dvh] bg-ivory overflow-hidden">
+  <section id="gift-section" className="relative py-[2vh] h-fit bg-ivory overflow-hidden">
     <div className="absolute inset-0 pointer-events-none opacity-[0.4]">
       <motion.div animate={{ rotate: [0, 360], scale: [1, 1.2, 1] }} transition={{ duration: 40, repeat: Infinity, ease: 'linear' }} className="absolute -top-1/4 -left-1/4 w-full h-full border border-gold/5 rounded-full" />
       <motion.div animate={{ rotate: [360, 0], scale: [1, 1.3, 1] }} transition={{ duration: 50, repeat: Infinity, ease: 'linear' }} className="absolute -bottom-1/4 -right-1/4 w-full h-full border border-gold/5 rounded-full" />
@@ -16,14 +16,9 @@ export const DigitalEnvelope = ({ copiedIndex, onCopy }: DigitalEnvelopeProps) =
 
     <div className="container mx-auto px-6 max-w-4xl relative z-10">
       <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-[3vh]">
-        <div className="flex justify-center items-center gap-4 mb-3">
-          <div className="h-px w-8 bg-gold/30" />
-          <Gift className="w-5 h-5 text-gold/60" />
-          <div className="h-px w-8 bg-gold/30" />
-        </div>
-        <p className="font-serif text-[15px] italic tracking-[0.4em] text-gold uppercase">Tanda Kasih</p>
-        <p className="text-[10px] md:text-[11px] text-ink/50 mt-4 leading-relaxed max-w-sm mx-auto italic font-light">
-          Kehadiran dan doa Anda adalah kado terindah. Jika ingin memberi tanda kasih, dapat melalui:
+        <p className="text-[9px] uppercase tracking-[0.4em] text-gold font-black mb-2">Tanda Kasih</p>
+        <p className="font-serif italic text-[13px] leading-relaxed text-ink/60 max-w-[300px] mx-auto mb-[3vh]">
+          Kehadiran dan Doa Anda adalah hadiah terindah bagi kami. Namun jika berkenan memberi tanda kasih, kami menerimanya dengan penuh rasa terima kasih.
         </p>
 
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 md:gap-3 max-w-5xl mx-auto">
@@ -39,7 +34,7 @@ export const DigitalEnvelope = ({ copiedIndex, onCopy }: DigitalEnvelopeProps) =
                   </div>
                 </div>
                 <div className="pt-1.5 border-t border-gold/5 w-full">
-                  <p className="text-[7.5px] text-ink/30 uppercase tracking-tight font-medium truncate">A/N {gift.owner}</p>
+                  <p className="text-[7.5px] text-ink/30 uppercase tracking-tight font-medium truncate">{gift.owner}</p>
                 </div>
               </div>
               <AnimatePresence>
@@ -48,7 +43,7 @@ export const DigitalEnvelope = ({ copiedIndex, onCopy }: DigitalEnvelopeProps) =
                     <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center mb-1 shadow-md">
                       <Check className="w-5 h-5 text-white" />
                     </div>
-                    <p className="font-serif italic text-xs text-ink">Disalin</p>
+                    <p className="font-serif italic text-xs text-ink">Tersalin</p>
                   </motion.div>
                 )}
               </AnimatePresence>

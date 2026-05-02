@@ -40,12 +40,12 @@ describe('RSVPSection', () => {
 
     it('displays "RSVP & Wishes" title text', () => {
       renderWithProps();
-      expect(screen.getByText('RSVP & Wishes')).toBeInTheDocument();
+      expect(screen.getByText('Ucapan & Doa')).toBeInTheDocument();
     });
 
     it('title has uppercase tracking styling', () => {
       renderWithProps();
-      const title = screen.getByText('RSVP & Wishes');
+      const title = screen.getByText('Ucapan & Doa');
       expect(title.className).toContain('uppercase');
       expect(title.className).toContain('tracking-');
     });
@@ -53,7 +53,7 @@ describe('RSVPSection', () => {
     it('renders consistently on re-render without errors', () => {
       const { rerender } = render(<RSVPSection {...defaultProps} />);
       rerender(<RSVPSection {...defaultProps} />);
-      expect(screen.getByText('RSVP & Wishes')).toBeInTheDocument();
+      expect(screen.getByText('Ucapan & Doa')).toBeInTheDocument();
     });
 
     it('renders MessageSquare icon in header', () => {
@@ -95,7 +95,7 @@ describe('RSVPSection', () => {
     it('displays attendance badge "Absen" for no attendance', () => {
       const noWish = SEED_WISHES.filter((w) => w.attendance === 'no').slice(0, 2);
       renderWithProps({ currentWishes: noWish, wishes: noWish });
-      const absenBadges = screen.getAllByText('Absen');
+      const absenBadges = screen.getAllByText('Berhalangan');
       expect(absenBadges.length).toBe(noWish.length);
     });
 
@@ -110,7 +110,7 @@ describe('RSVPSection', () => {
     it('attendance badge "Absen" has ink styling', () => {
       const noWish = SEED_WISHES.filter((w) => w.attendance === 'no').slice(0, 1);
       renderWithProps({ currentWishes: noWish, wishes: noWish });
-      const badge = screen.getByText('Absen');
+      const badge = screen.getByText('Berhalangan');
       expect(badge.className).toContain('bg-ink/5');
       expect(badge.className).toContain('text-ink/30');
     });
@@ -148,12 +148,12 @@ describe('RSVPSection', () => {
   describe('empty state', () => {
     it('shows "Belum ada doa." when wishes array is empty', () => {
       renderWithProps({ wishes: [], currentWishes: [], totalPages: 0 });
-      expect(screen.getByText('Belum ada doa.')).toBeInTheDocument();
+      expect(screen.getByText('Ruang ini masih menunggu cerita pertama.')).toBeInTheDocument();
     });
 
     it('empty state text has serif italic font', () => {
       renderWithProps({ wishes: [], currentWishes: [], totalPages: 0 });
-      const text = screen.getByText('Belum ada doa.');
+      const text = screen.getByText('Ruang ini masih menunggu cerita pertama.');
       expect(text.className).toContain('font-serif');
       expect(text.className).toContain('italic');
     });
@@ -172,7 +172,7 @@ describe('RSVPSection', () => {
 
     it('empty state container fills available height', () => {
       const { container } = renderWithProps({ wishes: [], currentWishes: [], totalPages: 0 });
-      const emptyBox = container.querySelector('.h-full.border-dashed');
+      const emptyBox = container.querySelector('.w-full.border-dashed');
       expect(emptyBox).toBeInTheDocument();
     });
 
@@ -292,12 +292,12 @@ describe('RSVPSection', () => {
 
     it('displays page indicator "X / Y"', () => {
       renderWithProps({ currentPage: 2, totalPages: 5 });
-      expect(screen.getByText('2 / 5')).toBeInTheDocument();
+      expect(screen.getByText('Bab 2 dari 5')).toBeInTheDocument();
     });
 
     it('displays page indicator "1 / 3" on first page', () => {
       renderWithProps({ currentPage: 1, totalPages: 3 });
-      expect(screen.getByText('1 / 3')).toBeInTheDocument();
+      expect(screen.getByText('Bab 1 dari 3')).toBeInTheDocument();
     });
 
     it('hides pagination when totalPages is 1', () => {
@@ -425,7 +425,7 @@ describe('RSVPSection', () => {
     it('section has py-6 vertical padding', () => {
       const { container } = renderWithProps();
       const section = container.querySelector('section');
-      expect(section?.className).toContain('py-[5vh]');
+      expect(section?.className).toContain('py-[2vh]');
     });
 
     it('wish cards have rounded corners', () => {
@@ -507,10 +507,10 @@ describe('RSVPSection', () => {
       const { rerender } = render(
         <RSVPSection {...defaultProps} wishes={[]} currentWishes={[]} totalPages={0} />
       );
-      expect(screen.getByText('Belum ada doa.')).toBeInTheDocument();
+      expect(screen.getByText('Ruang ini masih menunggu cerita pertama.')).toBeInTheDocument();
 
       rerender(<RSVPSection {...defaultProps} />);
-      expect(screen.queryByText('Belum ada doa.')).not.toBeInTheDocument();
+      expect(screen.queryByText('Ruang ini masih menunggu cerita pertama.')).not.toBeInTheDocument();
       expect(screen.getByText(SEED_WISHES[0].name)).toBeInTheDocument();
     });
 
@@ -521,7 +521,7 @@ describe('RSVPSection', () => {
       ];
       renderWithProps({ wishes: mixed, currentWishes: mixed, totalPages: 1 });
       expect(screen.getByText('Hadir')).toBeInTheDocument();
-      expect(screen.getByText('Absen')).toBeInTheDocument();
+      expect(screen.getByText('Berhalangan')).toBeInTheDocument();
     });
 
     it('each wish card has a unique key via id', () => {
@@ -535,10 +535,10 @@ describe('RSVPSection', () => {
       const { rerender } = render(
         <RSVPSection {...defaultProps} currentPage={1} totalPages={4} />
       );
-      expect(screen.getByText('1 / 4')).toBeInTheDocument();
+      expect(screen.getByText('Bab 1 dari 4')).toBeInTheDocument();
 
       rerender(<RSVPSection {...defaultProps} currentPage={3} totalPages={4} />);
-      expect(screen.getByText('3 / 4')).toBeInTheDocument();
+      expect(screen.getByText('Bab 3 dari 4')).toBeInTheDocument();
     });
   });
 });

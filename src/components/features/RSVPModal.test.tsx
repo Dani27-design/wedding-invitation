@@ -35,14 +35,15 @@ describe('RSVPModal', () => {
       expect(container.innerHTML).not.toBe('');
     });
 
-    it('renders the form header "Beri Doa & Harapan"', () => {
+    it('renders the form header "Setiap doa yang Anda titipkan akan kami simpan sebagai bagian dari perjalanan ini"', () => {
       render(<RSVPModal {...createProps()} />);
-      expect(screen.getByText('Beri Doa & Harapan')).toBeInTheDocument();
+      expect(screen.getByText('Setiap doa yang Anda titipkan akan kami simpan sebagai bagian dari perjalanan ini')).toBeInTheDocument();
     });
 
-    it('renders the section label "Konfirmasi Kehadiran"', () => {
+    it('renders the form header as h4 element', () => {
       render(<RSVPModal {...createProps()} />);
-      expect(screen.getByText('Konfirmasi Kehadiran')).toBeInTheDocument();
+      const heading = screen.getByText('Setiap doa yang Anda titipkan akan kami simpan sebagai bagian dari perjalanan ini');
+      expect(heading.tagName).toBe('H4');
     });
 
     it('has backdrop blur overlay', () => {
@@ -57,16 +58,17 @@ describe('RSVPModal', () => {
       expect(backdrop).toBeInTheDocument();
     });
 
-    it('has scrollable container with max-h-[90vh]', () => {
+    it('modal does not have scroll (no max-h or overflow-y-auto)', () => {
       render(<RSVPModal {...createProps()} />);
-      const scrollable = document.querySelector('.max-h-\\[90vh\\]');
-      expect(scrollable).toBeInTheDocument();
+      const modal = document.querySelector('.rounded-\\[2\\.5rem\\]');
+      expect(modal).toBeInTheDocument();
+      expect(modal).not.toHaveClass('overflow-y-auto');
     });
 
-    it('has overflow-y-auto for scroll behavior', () => {
+    it('modal has max-w-md constraint', () => {
       render(<RSVPModal {...createProps()} />);
-      const scrollable = document.querySelector('.overflow-y-auto');
-      expect(scrollable).toBeInTheDocument();
+      const modal = document.querySelector('.max-w-md');
+      expect(modal).toBeInTheDocument();
     });
 
     it('has fixed inset-0 positioning for full-screen overlay', () => {
@@ -75,9 +77,9 @@ describe('RSVPModal', () => {
       expect(overlay).toBeInTheDocument();
     });
 
-    it('renders submit button with text "Kirimkan Doa"', () => {
+    it('renders submit button with text "Kirim"', () => {
       render(<RSVPModal {...createProps()} />);
-      expect(screen.getByText('Kirimkan Doa')).toBeInTheDocument();
+      expect(screen.getByText('Kirim')).toBeInTheDocument();
     });
   });
 
@@ -118,38 +120,38 @@ describe('RSVPModal', () => {
 
     it('message textarea exists with placeholder', () => {
       render(<RSVPModal {...createProps()} />);
-      const textarea = screen.getByPlaceholderText('Tuliskan harapan indah Anda...');
+      const textarea = screen.getByPlaceholderText('Tinggalkan doa Anda, dan biarkan ia menjadi bagian dari cerita kami...');
       expect(textarea).toBeInTheDocument();
     });
 
     it('message textarea has maxLength of 200', () => {
       render(<RSVPModal {...createProps()} />);
-      const textarea = screen.getByPlaceholderText('Tuliskan harapan indah Anda...');
+      const textarea = screen.getByPlaceholderText('Tinggalkan doa Anda, dan biarkan ia menjadi bagian dari cerita kami...');
       expect(textarea).toHaveAttribute('maxLength', '200');
     });
 
     it('message textarea has name attribute "message"', () => {
       render(<RSVPModal {...createProps()} />);
-      const textarea = screen.getByPlaceholderText('Tuliskan harapan indah Anda...');
+      const textarea = screen.getByPlaceholderText('Tinggalkan doa Anda, dan biarkan ia menjadi bagian dari cerita kami...');
       expect(textarea).toHaveAttribute('name', 'message');
     });
 
     it('message textarea is required', () => {
       render(<RSVPModal {...createProps()} />);
-      const textarea = screen.getByPlaceholderText('Tuliskan harapan indah Anda...');
+      const textarea = screen.getByPlaceholderText('Tinggalkan doa Anda, dan biarkan ia menjadi bagian dari cerita kami...');
       expect(textarea).toBeRequired();
     });
 
     it('message textarea has 3 rows', () => {
       render(<RSVPModal {...createProps()} />);
-      const textarea = screen.getByPlaceholderText('Tuliskan harapan indah Anda...');
+      const textarea = screen.getByPlaceholderText('Tinggalkan doa Anda, dan biarkan ia menjadi bagian dari cerita kami...');
       expect(textarea).toHaveAttribute('rows', '3');
     });
 
-    it('attendance radio buttons exist (Hadir and Absen)', () => {
+    it('attendance radio buttons exist (Hadir and Berhalangan)', () => {
       render(<RSVPModal {...createProps()} />);
       expect(screen.getByText('Hadir')).toBeInTheDocument();
-      expect(screen.getByText('Absen')).toBeInTheDocument();
+      expect(screen.getByText('Berhalangan')).toBeInTheDocument();
     });
 
     it('Hadir radio is defaultChecked', () => {
@@ -161,7 +163,7 @@ describe('RSVPModal', () => {
       expect(hadirRadio.defaultChecked).toBe(true);
     });
 
-    it('Absen radio is NOT defaultChecked', () => {
+    it('Berhalangan radio is NOT defaultChecked', () => {
       render(<RSVPModal {...createProps()} />);
       const absenRadio = document.querySelector('input[type="radio"][value="no"]') as HTMLInputElement;
       expect(absenRadio).toBeInTheDocument();
@@ -193,24 +195,24 @@ describe('RSVPModal', () => {
 
     it('message textarea accepts text entry', () => {
       render(<RSVPModal {...createProps()} />);
-      const textarea = screen.getByPlaceholderText('Tuliskan harapan indah Anda...');
+      const textarea = screen.getByPlaceholderText('Tinggalkan doa Anda, dan biarkan ia menjadi bagian dari cerita kami...');
       fireEvent.change(textarea, { target: { value: 'Selamat!' } });
       expect(textarea).toHaveValue('Selamat!');
     });
 
-    it('has "Nama Lengkap" label text', () => {
+    it('has "Nama" label text', () => {
       render(<RSVPModal {...createProps()} />);
-      expect(screen.getByText('Nama Lengkap')).toBeInTheDocument();
+      expect(screen.getByText('Nama')).toBeInTheDocument();
     });
 
-    it('has "Status Kehadiran" label text', () => {
+    it('has "Konfirmasi Kehadiran" label text', () => {
       render(<RSVPModal {...createProps()} />);
-      expect(screen.getByText('Status Kehadiran')).toBeInTheDocument();
+      expect(screen.getByText('Konfirmasi Kehadiran')).toBeInTheDocument();
     });
 
-    it('has "Pesan Tulus Anda" label text', () => {
+    it('has "Ucapan & Doa" label text', () => {
       render(<RSVPModal {...createProps()} />);
-      expect(screen.getByText('Pesan Tulus Anda')).toBeInTheDocument();
+      expect(screen.getByText('Ucapan & Doa')).toBeInTheDocument();
     });
   });
 
@@ -240,21 +242,21 @@ describe('RSVPModal', () => {
 
     it('label for name uses htmlFor="rsvp-name"', () => {
       render(<RSVPModal {...createProps()} />);
-      const label = screen.getByText('Nama Lengkap');
+      const label = screen.getByText('Nama');
       expect(label.tagName).toBe('LABEL');
       expect(label).toHaveAttribute('for', 'rsvp-name');
     });
 
     it('label for message uses htmlFor="rsvp-message"', () => {
       render(<RSVPModal {...createProps()} />);
-      const label = screen.getByText('Pesan Tulus Anda');
+      const label = screen.getByText('Ucapan & Doa');
       expect(label.tagName).toBe('LABEL');
       expect(label).toHaveAttribute('for', 'rsvp-message');
     });
 
     it('submit button has type="submit"', () => {
       render(<RSVPModal {...createProps()} />);
-      const btn = screen.getByText('Kirimkan Doa');
+      const btn = screen.getByText('Kirim');
       expect(btn).toHaveAttribute('type', 'submit');
     });
 
@@ -289,7 +291,7 @@ describe('RSVPModal', () => {
     it('clicking modal content does NOT call onClose', () => {
       const onClose = vi.fn();
       render(<RSVPModal {...createProps({ onClose })} />);
-      const modalContent = document.querySelector('.max-h-\\[90vh\\]');
+      const modalContent = document.querySelector('.max-w-md.bg-ivory');
       fireEvent.click(modalContent!);
       // The click should not propagate to backdrop handler
       // because the modal content is a separate element
@@ -299,7 +301,7 @@ describe('RSVPModal', () => {
 
     it('submit button exists and is clickable', () => {
       render(<RSVPModal {...createProps()} />);
-      const btn = screen.getByText('Kirimkan Doa');
+      const btn = screen.getByText('Kirim');
       expect(btn).toBeInTheDocument();
       expect(() => fireEvent.click(btn)).not.toThrow();
     });
@@ -313,14 +315,14 @@ describe('RSVPModal', () => {
       expect(onSubmit).not.toHaveBeenCalled();
     });
 
-    it('can select Absen radio button', () => {
+    it('can select Berhalangan radio button', () => {
       render(<RSVPModal {...createProps()} />);
       const absenRadio = document.querySelector('input[type="radio"][value="no"]') as HTMLInputElement;
       fireEvent.click(absenRadio);
       expect(absenRadio.checked).toBe(true);
     });
 
-    it('selecting Absen deselects Hadir', () => {
+    it('selecting Berhalangan deselects Hadir', () => {
       render(<RSVPModal {...createProps()} />);
       const hadirRadio = document.querySelector('input[type="radio"][value="yes"]') as HTMLInputElement;
       const absenRadio = document.querySelector('input[type="radio"][value="no"]') as HTMLInputElement;
@@ -335,19 +337,19 @@ describe('RSVPModal', () => {
   /* ------------------------------------------------------------------ */
 
   describe('Success state', () => {
-    it('shows "Terima Kasih" when isSubmitSuccess is true', () => {
+    it('shows "Terima Kasih Atas Doa Anda" when isSubmitSuccess is true', () => {
       render(<RSVPModal {...createProps({ isSubmitSuccess: true })} />);
-      expect(screen.getByText('Terima Kasih')).toBeInTheDocument();
+      expect(screen.getByText('Terima Kasih Atas Doa Anda')).toBeInTheDocument();
     });
 
     it('shows encouragement message in success state', () => {
       render(<RSVPModal {...createProps({ isSubmitSuccess: true })} />);
-      expect(screen.getByText('Doa Anda sangat berarti bagi kami')).toBeInTheDocument();
+      expect(screen.getByText('Setiap kata yang Anda sampaikan akan kami simpan dalam hati')).toBeInTheDocument();
     });
 
     it('hides form header during success state', () => {
       render(<RSVPModal {...createProps({ isSubmitSuccess: true })} />);
-      expect(screen.queryByText('Beri Doa & Harapan')).not.toBeInTheDocument();
+      expect(screen.queryByText('Setiap doa yang Anda titipkan akan kami simpan sebagai bagian dari perjalanan ini')).not.toBeInTheDocument();
     });
 
     it('hides name input during success state', () => {
@@ -363,12 +365,12 @@ describe('RSVPModal', () => {
     it('hides attendance radio buttons during success state', () => {
       render(<RSVPModal {...createProps({ isSubmitSuccess: true })} />);
       expect(screen.queryByText('Hadir')).not.toBeInTheDocument();
-      expect(screen.queryByText('Absen')).not.toBeInTheDocument();
+      expect(screen.queryByText('Berhalangan')).not.toBeInTheDocument();
     });
 
     it('hides submit button during success state', () => {
       render(<RSVPModal {...createProps({ isSubmitSuccess: true })} />);
-      expect(screen.queryByText('Kirimkan Doa')).not.toBeInTheDocument();
+      expect(screen.queryByText('Kirim')).not.toBeInTheDocument();
     });
 
     it('hides close button during success state', () => {
@@ -384,11 +386,11 @@ describe('RSVPModal', () => {
 
     it('transitioning from form to success removes form elements', () => {
       const { rerender } = render(<RSVPModal {...createProps({ isSubmitSuccess: false })} />);
-      expect(screen.getByText('Beri Doa & Harapan')).toBeInTheDocument();
+      expect(screen.getByText('Setiap doa yang Anda titipkan akan kami simpan sebagai bagian dari perjalanan ini')).toBeInTheDocument();
 
       rerender(<RSVPModal {...createProps({ isSubmitSuccess: true })} />);
-      expect(screen.queryByText('Beri Doa & Harapan')).not.toBeInTheDocument();
-      expect(screen.getByText('Terima Kasih')).toBeInTheDocument();
+      expect(screen.queryByText('Setiap doa yang Anda titipkan akan kami simpan sebagai bagian dari perjalanan ini')).not.toBeInTheDocument();
+      expect(screen.getByText('Terima Kasih Atas Doa Anda')).toBeInTheDocument();
     });
   });
 
@@ -447,19 +449,19 @@ describe('RSVPModal', () => {
 
     it('submit button has full width (w-full)', () => {
       render(<RSVPModal {...createProps()} />);
-      const btn = screen.getByText('Kirimkan Doa');
+      const btn = screen.getByText('Kirim');
       expect(btn).toHaveClass('w-full');
     });
 
     it('submit button has bg-ink background', () => {
       render(<RSVPModal {...createProps()} />);
-      const btn = screen.getByText('Kirimkan Doa');
+      const btn = screen.getByText('Kirim');
       expect(btn).toHaveClass('bg-ink');
     });
 
     it('submit button has rounded-full styling', () => {
       render(<RSVPModal {...createProps()} />);
-      const btn = screen.getByText('Kirimkan Doa');
+      const btn = screen.getByText('Kirim');
       expect(btn).toHaveClass('rounded-full');
     });
 
@@ -513,20 +515,20 @@ describe('RSVPModal', () => {
 
     it('re-opening modal after close renders fresh', () => {
       const { rerender } = render(<RSVPModal {...createProps({ isOpen: true })} />);
-      expect(screen.getByText('Beri Doa & Harapan')).toBeInTheDocument();
+      expect(screen.getByText('Setiap doa yang Anda titipkan akan kami simpan sebagai bagian dari perjalanan ini')).toBeInTheDocument();
 
       rerender(<RSVPModal {...createProps({ isOpen: false })} />);
       rerender(<RSVPModal {...createProps({ isOpen: true })} />);
-      expect(screen.getByText('Beri Doa & Harapan')).toBeInTheDocument();
+      expect(screen.getByText('Setiap doa yang Anda titipkan akan kami simpan sebagai bagian dari perjalanan ini')).toBeInTheDocument();
     });
 
     it('switching from success back to form state works', () => {
       const { rerender } = render(<RSVPModal {...createProps({ isSubmitSuccess: true })} />);
-      expect(screen.getByText('Terima Kasih')).toBeInTheDocument();
+      expect(screen.getByText('Terima Kasih Atas Doa Anda')).toBeInTheDocument();
 
       rerender(<RSVPModal {...createProps({ isSubmitSuccess: false })} />);
-      expect(screen.getByText('Beri Doa & Harapan')).toBeInTheDocument();
-      expect(screen.queryByText('Terima Kasih')).not.toBeInTheDocument();
+      expect(screen.getByText('Setiap doa yang Anda titipkan akan kami simpan sebagai bagian dari perjalanan ini')).toBeInTheDocument();
+      expect(screen.queryByText('Terima Kasih Atas Doa Anda')).not.toBeInTheDocument();
     });
 
     it('multiple rapid open/close cycles do not break state', () => {
@@ -552,7 +554,7 @@ describe('RSVPModal', () => {
 
     it('message textarea has required attribute', () => {
       render(<RSVPModal {...createProps()} />);
-      const textarea = screen.getByPlaceholderText('Tuliskan harapan indah Anda...');
+      const textarea = screen.getByPlaceholderText('Tinggalkan doa Anda, dan biarkan ia menjadi bagian dari cerita kami...');
       expect(textarea).toHaveAttribute('required');
     });
 
@@ -564,7 +566,7 @@ describe('RSVPModal', () => {
 
     it('message textarea enforces maxLength of 200 characters', () => {
       render(<RSVPModal {...createProps()} />);
-      const textarea = screen.getByPlaceholderText('Tuliskan harapan indah Anda...');
+      const textarea = screen.getByPlaceholderText('Tinggalkan doa Anda, dan biarkan ia menjadi bagian dari cerita kami...');
       expect(textarea).toHaveAttribute('maxLength', '200');
     });
 
@@ -585,7 +587,7 @@ describe('RSVPModal', () => {
     it('empty form cannot bypass required fields natively', () => {
       render(<RSVPModal {...createProps()} />);
       const input = screen.getByPlaceholderText('Tamu Terkasih') as HTMLInputElement;
-      const textarea = screen.getByPlaceholderText('Tuliskan harapan indah Anda...') as HTMLTextAreaElement;
+      const textarea = screen.getByPlaceholderText('Tinggalkan doa Anda, dan biarkan ia menjadi bagian dari cerita kami...') as HTMLTextAreaElement;
       // Both fields start empty and are required
       expect(input.value).toBe('');
       expect(textarea.value).toBe('');

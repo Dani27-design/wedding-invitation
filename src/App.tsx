@@ -38,7 +38,7 @@ export default function App() {
   }, []);
 
   const wishPages = useMemo(() => {
-    const availableHeight = Math.floor(viewportHeight * 1);
+    const availableHeight = Math.floor(viewportHeight * 0.9);
     const pages: GuestWishes[][] = [];
     let currentPageWishes: GuestWishes[] = [];
     let currentHeight = 0;

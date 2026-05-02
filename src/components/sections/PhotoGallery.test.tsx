@@ -35,7 +35,7 @@ describe('PhotoGallery', () => {
     it('section has py-6 padding', () => {
       const { container } = renderGallery();
       const section = container.querySelector('section');
-      expect(section?.className).toContain('py-[5vh]');
+      expect(section?.className).toContain('py-[2vh]');
     });
 
     it('renders consistently on re-render', () => {
@@ -45,15 +45,14 @@ describe('PhotoGallery', () => {
       expect(images).toHaveLength(12);
     });
 
-    it('renders Camera icon in header', () => {
-      const { container } = renderGallery();
-      const svgs = container.querySelectorAll('svg');
-      expect(svgs.length).toBeGreaterThan(0);
+    it('renders "Jejak Cerita Kami" label', () => {
+      renderGallery();
+      expect(screen.getByText('Jejak Cerita Kami')).toBeInTheDocument();
     });
 
     it('renders header description text', () => {
       renderGallery();
-      expect(screen.getByText(/Beberapa Momen yang Kami Simpan/)).toBeInTheDocument();
+      expect(screen.getByText(/Beberapa momen yang kami simpan/)).toBeInTheDocument();
     });
   });
 
@@ -332,7 +331,7 @@ describe('PhotoGallery', () => {
     it('description has subdued text color', () => {
       renderGallery();
       const desc = screen.getByText(/Setiap foto menyimpan cerita/);
-      expect(desc.className).toContain('text-ink/40');
+      expect(desc.className).toContain('text-ink/60');
     });
 
     it('description is centered', () => {

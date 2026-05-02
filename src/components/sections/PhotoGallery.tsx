@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Camera, Image as ImageIcon } from 'lucide-react';
+import { Image as ImageIcon } from 'lucide-react';
 import { GALLERY_ITEMS } from '../../constants/wedding';
 
 interface PhotoGalleryProps {
@@ -7,18 +7,14 @@ interface PhotoGalleryProps {
 }
 
 export const PhotoGallery = ({ onSelectPhoto }: PhotoGalleryProps) => (
-  <section className="relative py-[5vh] h-[100dvh] bg-paper overflow-hidden">
+  <section className="relative py-[2vh] h-fit bg-paper overflow-hidden">
     <div className="absolute top-0 left-0 w-64 h-64 bg-gold/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
     <div className="absolute bottom-0 right-0 w-96 h-96 bg-sepia/20 rounded-full blur-3xl translate-x-1/3 translate-y-1/3" />
 
     <div className="container mx-auto px-6 relative z-10">
       <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-[3vh]">
-        <div className="flex justify-center items-center gap-4 mb-3">
-          <div className="h-px w-8 bg-gold/30" />
-          <Camera className="w-5 h-5 text-gold/60" />
-          <div className="h-px w-8 bg-gold/30" />
-        </div>
-        <p className="font-serif text-[15px] italic tracking-[0.4em] text-gold">Beberapa Momen yang Kami Simpan, dan Kini Ingin Kami Bagikan.</p>
+        <p className="text-[9px] uppercase tracking-[0.4em] text-gold font-black mb-2">Jejak Cerita Kami</p>
+        <p className="font-serif italic text-[13px] leading-relaxed text-ink/60 max-w-[300px] mx-auto">Beberapa momen yang kami simpan, dan kini ingin kami bagikan bersama Anda.</p>
       </motion.div>
 
       <div className="relative">
@@ -49,7 +45,7 @@ export const PhotoGallery = ({ onSelectPhoto }: PhotoGalleryProps) => (
       </div>
 
       <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="mt-[2vh] text-center">
-        <p className="font-serif italic text-ink/40 text-lg">Setiap foto menyimpan cerita yang tidak selalu mudah, tapi selalu kami pilih untuk lanjutkan.</p>
+        <p className="font-serif italic text-ink/60 text-lg">Setiap foto menyimpan cerita yang tidak selalu mudah, tapi selalu kami pilih untuk dilanjutkan.</p>
       </motion.div>
     </div>
   </section>

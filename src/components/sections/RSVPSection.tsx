@@ -20,26 +20,33 @@ export const RSVPSection = ({ wishes, currentWishes, currentPage, totalPages, se
 
     <div className="container h-full mx-auto px-6 max-w-4xl relative z-10 flex flex-col items-center">
       <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-[3vh] w-full shrink-0">
-        <div className="flex justify-center items-center gap-4 mb-3">
-          <div className="h-px w-8 bg-gold/30" />
-          <MessageSquare className="w-5 h-5 text-gold/60" />
-          <div className="h-px w-8 bg-gold/30" />
-        </div>
-        <p className="font-serif text-[15px] italic tracking-[0.4em] text-gold uppercase">RSVP & Wishes</p>
+       
+        <p className="text-[9px] uppercase tracking-[0.4em] text-gold font-black mb-2">Ucapan & Doa</p>
+        <p className="font-serif italic text-[13px] leading-relaxed text-ink/60 max-w-[300px] mx-auto">Di antara {wishes.length} doa yang kami terima di sini, setiap satunya akan kami bawa sebagai bagian dari langkah kami ke depan.</p>
       </motion.div>
 
-      <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="w-full flex flex-col flex-1 min-h-0 relative">
-        <div className="absolute -top-12 -right-3 z-20">
-          <motion.button whileHover={{ scale: 1.1, y: -2 }} whileTap={{ scale: 0.9 }} onClick={onOpenRSVP} className="w-14 h-14 bg-gradient-to-br from-gold via-gold/80 to-gold text-white rounded-full transition-all duration-500 flex items-center justify-center shadow-[0_10px_40px_rgba(212,175,55,0.3)] group border border-white/20" title="Kirim Doa" aria-label="Kirim Doa">
-            <MessageSquare className="w-6 h-6 transition-transform duration-500 group-hover:scale-110" />
-          </motion.button>
-        </div>
+      <motion.button
+        initial={{ opacity: 0, scale: 0.8 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true }}
+        whileHover={{ scale: 1.1, y: -2 }}
+        whileTap={{ scale: 0.9 }}
+        onClick={onOpenRSVP}
+        className="absolute right-6 top-[7vh] z-20 w-11 h-11 bg-gradient-to-br from-gold via-gold/80 to-gold text-white rounded-full transition-all duration-500 flex items-center justify-center shadow-[0_8px_30px_rgba(212,175,55,0.35)] group border border-white/20"
+        title="Kirim Doa"
+        aria-label="Kirim Doa"
+      >
+        <MessageSquare className="w-4 h-4 transition-transform duration-500 group-hover:scale-110" />
+      </motion.button>
+
+      <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="w-full flex flex-col flex-1 min-h-0">
 
         <div className="flex min-h-0 h-fit">
           {wishes.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center border border-dashed border-gold/20 rounded-2xl bg-gold/5 px-6 text-center">
-              <Heart className="w-4 h-4 text-gold/30 mb-2 animate-pulse" />
-              <p className="text-[9px] opacity-40 italic font-serif tracking-widest uppercase">Belum ada doa.</p>
+            <div className="w-full py-12 flex flex-col items-center justify-center border border-dashed border-gold/20 rounded-2xl bg-gold/5 px-6 text-center">
+              <Heart className="w-4 h-4 text-gold/30 mb-3 animate-pulse" />
+              <p className="font-serif italic text-[13px] text-ink/40 leading-relaxed">Ruang ini masih menunggu cerita pertama.</p>
+              <p className="font-serif italic text-[12px] text-ink/30 mt-1">Jika berkenan, tinggalkan doa untuk kami.</p>
             </div>
           ) : (
             <div className="w-full h-fit">
@@ -51,7 +58,7 @@ export const RSVPSection = ({ wishes, currentWishes, currentPage, totalPages, se
                         <div className="flex items-center gap-2 overflow-hidden">
                           <p className="text-ink font-bold uppercase text-[9px] tracking-tight truncate max-w-[130px] sm:max-w-[160px]">{wish.name}</p>
                           <span className={`text-[7px] px-1.5 py-0.5 rounded-full border font-black uppercase tracking-tighter shrink-0 ${wish.attendance === 'yes' ? 'bg-gold/10 text-gold border-gold/20' : 'bg-ink/5 text-ink/30 border-ink/10'}`}>
-                            {wish.attendance === 'yes' ? 'Hadir' : 'Absen'}
+                            {wish.attendance === 'yes' ? 'Hadir' : 'Berhalangan'}
                           </span>
                         </div>
                         <span className="text-[7px] text-ink/30 font-bold uppercase tracking-tighter shrink-0">{formatDate(wish.createdAt)}</span>
@@ -66,16 +73,19 @@ export const RSVPSection = ({ wishes, currentWishes, currentPage, totalPages, se
         </div>
 
         {totalPages > 1 && (
-          <div className="h-fit flex justify-center items-center gap-4 shrink-0 border-t border-gold/10 py-[1.5vh] mt-[1vh]">
-            <motion.button whileHover={{ scale: 1.1, backgroundColor: 'rgba(212, 175, 55, 0.05)' }} whileTap={{ scale: 0.9 }} aria-label="Halaman sebelumnya" disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)} className="w-10 h-10 flex items-center justify-center rounded-full border border-gold/20 text-gold disabled:opacity-10 transition-all bubble-glow">
-              <ArrowRight className="w-3 h-3 rotate-180" />
-            </motion.button>
-            <div className="text-center">
-              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-gold/80">{currentPage} / {totalPages}</span>
+          <div className="h-fit flex flex-col items-center shrink-0 border-t border-gold/10 py-[1.5vh] mt-[1vh]">
+            <div className="flex items-center gap-4 mb-1">
+              <motion.button whileHover={{ scale: 1.1, backgroundColor: 'rgba(212, 175, 55, 0.05)' }} whileTap={{ scale: 0.9 }} aria-label="Halaman sebelumnya" disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)} className="w-10 h-10 flex items-center justify-center rounded-full border border-gold/20 text-gold disabled:opacity-10 transition-all bubble-glow">
+                <ArrowRight className="w-3 h-3 rotate-180" />
+              </motion.button>
+              <div className="text-center">
+                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-gold/80">Bab {currentPage} dari {totalPages}</span>
+              </div>
+              <motion.button whileHover={{ scale: 1.1, backgroundColor: 'rgba(212, 175, 55, 0.05)' }} whileTap={{ scale: 0.9 }} aria-label="Halaman selanjutnya" disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)} className="w-10 h-10 flex items-center justify-center rounded-full border border-gold/20 text-gold disabled:opacity-10 transition-all bubble-glow">
+                <ArrowRight className="w-3 h-3" />
+              </motion.button>
             </div>
-            <motion.button whileHover={{ scale: 1.1, backgroundColor: 'rgba(212, 175, 55, 0.05)' }} whileTap={{ scale: 0.9 }} aria-label="Halaman selanjutnya" disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)} className="w-10 h-10 flex items-center justify-center rounded-full border border-gold/20 text-gold disabled:opacity-10 transition-all bubble-glow">
-              <ArrowRight className="w-3 h-3" />
-            </motion.button>
+            <p className="font-serif italic text-[10px] text-ink/30">Rangkaian Doa yang Kami Simpan</p>
           </div>
         )}
       </motion.div>

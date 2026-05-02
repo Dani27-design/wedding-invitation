@@ -26,7 +26,7 @@ export const RSVPModal = ({ isOpen, isSubmitSuccess, guestName, onClose, onSubmi
           initial={{ opacity: 0, scale: 0.95, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
-          className="relative w-full max-w-md max-h-[90vh] overflow-y-auto bg-ivory p-6 md:p-6 rounded-[2.5rem] border border-gold/20 shadow-2xl"
+          className="relative w-full max-w-md bg-ivory p-6 md:p-6 rounded-[2.5rem] border border-gold/20 shadow-2xl"
         >
           <div className="absolute -top-10 -right-10 pointer-events-none opacity-[0.03]">
             <Heart className="w-48 h-48 text-gold" fill="currentColor" />
@@ -42,15 +42,14 @@ export const RSVPModal = ({ isOpen, isSubmitSuccess, guestName, onClose, onSubmi
                 <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}>
                   <Heart className="w-12 h-12 text-gold fill-gold/20 mb-4" />
                 </motion.div>
-                <h3 className="font-serif italic text-2xl text-ink mb-2">Terima Kasih</h3>
-                <p className="text-[10px] uppercase tracking-[0.3em] text-gold/60 font-bold">Doa Anda sangat berarti bagi kami</p>
+                <h3 className="font-serif italic text-2xl text-ink mb-2">Terima Kasih Atas Doa Anda</h3>
+                <p className="text-[10px] uppercase tracking-[0.3em] text-gold/60 font-bold max-w-[260px]">Setiap kata yang Anda sampaikan akan kami simpan dalam hati</p>
               </motion.div>
             ) : (
               <>
                 <div className="flex justify-between items-start mb-8">
                   <div className="space-y-1">
-                    <span className="text-[8px] uppercase tracking-[0.4em] text-gold font-black block">Konfirmasi Kehadiran</span>
-                    <h3 className="font-serif italic text-2xl text-ink">Beri Doa & Harapan</h3>
+                    <h4 className="font-serif italic text-xl text-ink">Setiap doa yang Anda titipkan akan kami simpan sebagai bagian dari perjalanan ini</h4>
                   </div>
                   <button
                     aria-label="Tutup"
@@ -63,7 +62,7 @@ export const RSVPModal = ({ isOpen, isSubmitSuccess, guestName, onClose, onSubmi
 
                 <form onSubmit={onSubmit} className="space-y-6">
                   <div className="relative group">
-                    <label htmlFor="rsvp-name" className="text-[9px] uppercase tracking-[0.2em] text-gold/90 font-bold mb-1 block">Nama Lengkap</label>
+                    <label htmlFor="rsvp-name" className="text-[9px] uppercase tracking-[0.2em] text-gold/90 font-bold mb-1 block">Nama</label>
                     <input
                       id="rsvp-name" name="name" required type="text" maxLength={50} placeholder={guestName}
                       className="w-full bg-transparent border-b border-gold/20 py-2 outline-none focus:border-gold transition-all font-serif italic text-lg text-ink placeholder:text-ink/30"
@@ -71,7 +70,7 @@ export const RSVPModal = ({ isOpen, isSubmitSuccess, guestName, onClose, onSubmi
                   </div>
 
                   <div className="relative group">
-                    <label className="text-[9px] uppercase tracking-[0.2em] text-gold/90 font-bold mb-1.5 block">Status Kehadiran</label>
+                    <label className="text-[9px] uppercase tracking-[0.2em] text-gold/90 font-bold mb-1.5 block">Konfirmasi Kehadiran</label>
                     <div className="flex gap-3">
                       <label className="flex-1 cursor-pointer">
                         <input type="radio" name="attendance" value="yes" defaultChecked className="hidden peer" />
@@ -82,16 +81,16 @@ export const RSVPModal = ({ isOpen, isSubmitSuccess, guestName, onClose, onSubmi
                       <label className="flex-1 cursor-pointer">
                         <input type="radio" name="attendance" value="no" className="hidden peer" />
                         <div className="w-full py-2.5 text-center border border-gold/20 rounded-xl peer-checked:border-gold peer-checked:bg-gold/5 transition-all text-ink/60 peer-checked:text-gold uppercase text-[8px] font-black tracking-widest leading-none">
-                          Absen
+                          Berhalangan
                         </div>
                       </label>
                     </div>
                   </div>
 
                   <div className="relative group">
-                    <label htmlFor="rsvp-message" className="text-[9px] uppercase tracking-[0.2em] text-gold/90 font-bold mb-1 block">Pesan Tulus Anda</label>
+                    <label htmlFor="rsvp-message" className="text-[9px] uppercase tracking-[0.2em] text-gold/90 font-bold mb-1 block">Ucapan & Doa</label>
                     <textarea
-                      id="rsvp-message" name="message" required rows={3} maxLength={200} placeholder="Tuliskan harapan indah Anda..."
+                      id="rsvp-message" name="message" required rows={3} maxLength={200} placeholder="Tinggalkan doa Anda, dan biarkan ia menjadi bagian dari cerita kami..."
                       className="w-full bg-transparent border-b border-gold/20 py-2 outline-none focus:border-gold transition-all resize-none font-serif italic text-base text-ink placeholder:text-ink/30"
                     />
                   </div>
@@ -102,7 +101,7 @@ export const RSVPModal = ({ isOpen, isSubmitSuccess, guestName, onClose, onSubmi
                     type="submit"
                     className="w-full py-4 bg-ink text-gold rounded-full text-[10px] tracking-[0.35em] font-black uppercase transition-all duration-500 shadow-xl mt-2"
                   >
-                    Kirimkan Doa
+                    Kirim
                   </motion.button>
                 </form>
               </>

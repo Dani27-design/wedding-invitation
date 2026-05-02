@@ -265,7 +265,7 @@ describe('constants/wedding', () => {
     });
 
     it('bank names are known Indonesian banks or e-wallets', () => {
-      const knownBanks = ['BCA', 'BRI', 'Mandiri', 'BSI', 'BNI', 'CIMB', 'Gopay', 'DANA', 'OVO', 'ShopeePay'];
+      const knownBanks = ['BCA', 'BRI', 'Jenius', 'BTN', 'BNI', 'CIMB', 'Gopay', 'OVO', 'ShopeePay', 'Seabank'];
       BANK_ACCOUNTS.forEach((acc) => {
         expect(knownBanks).toContain(acc.bank);
       });
@@ -281,7 +281,7 @@ describe('constants/wedding', () => {
 
     it('includes both conventional banks and e-wallets', () => {
       const banks = BANK_ACCOUNTS.map((a) => a.bank);
-      const eWallets = ['Gopay', 'DANA', 'OVO', 'ShopeePay'];
+      const eWallets = ['Gopay', 'OVO', 'ShopeePay', 'Seabank'];
       const hasEWallet = banks.some((b) => eWallets.includes(b));
       const hasBank = banks.some((b) => !eWallets.includes(b));
       expect(hasEWallet).toBe(true);

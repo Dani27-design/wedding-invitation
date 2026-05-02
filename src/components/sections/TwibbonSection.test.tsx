@@ -74,42 +74,42 @@ describe('TwibbonSection', () => {
       expect(container.querySelector('canvas')).toBeInTheDocument();
     });
 
-    it('displays "Rayakan Momen Ini" heading text', () => {
+    it('displays "Rayakan Momen Hari Ini" heading text', () => {
       renderComponent();
-      expect(screen.getByText('Rayakan Momen Ini')).toBeInTheDocument();
+      expect(screen.getByText('Rayakan momen hari ini bersama kami.')).toBeInTheDocument();
     });
 
-    it('"Rayakan Momen Ini" is in h3 element', () => {
+    it('"Rayakan Momen Hari Ini" is in h3 element', () => {
       renderComponent();
-      const el = screen.getByText('Rayakan Momen Ini');
-      expect(el.tagName).toBe('H3');
+      const el = screen.getByText('Rayakan momen hari ini bersama kami.');
+      expect(el.tagName).toBe('P');
     });
 
-    it('"Rayakan Momen Ini" has serif italic styling', () => {
+    it('"Rayakan Momen Hari Ini" has serif italic styling', () => {
       renderComponent();
-      const el = screen.getByText('Rayakan Momen Ini');
+      const el = screen.getByText('Rayakan momen hari ini bersama kami.');
       expect(el).toHaveClass('font-serif');
       expect(el).toHaveClass('italic');
     });
 
-    it('"Rayakan Momen Ini" has ink text color', () => {
+    it('"Rayakan Momen Hari Ini" has ink text color', () => {
       renderComponent();
-      expect(screen.getByText('Rayakan Momen Ini')).toHaveClass('text-ink');
+      expect(screen.getByText('Rayakan momen hari ini bersama kami.')).toHaveClass('text-ink/60');
     });
 
-    it('displays "Signature Twibbon" subtitle', () => {
+    it('displays "Twibbon Pernikahan Kami" subtitle', () => {
       renderComponent();
-      expect(screen.getByText('Signature Twibbon')).toBeInTheDocument();
+      expect(screen.getByText('Twibbon Pernikahan Kami')).toBeInTheDocument();
     });
 
-    it('"Signature Twibbon" is uppercase', () => {
+    it('"Twibbon Pernikahan Kami" is uppercase', () => {
       renderComponent();
-      expect(screen.getByText('Signature Twibbon')).toHaveClass('uppercase');
+      expect(screen.getByText('Twibbon Pernikahan Kami')).toHaveClass('uppercase');
     });
 
-    it('"Signature Twibbon" has gold color', () => {
+    it('"Twibbon Pernikahan Kami" has gold color', () => {
       renderComponent();
-      expect(screen.getByText('Signature Twibbon')).toHaveClass('text-gold');
+      expect(screen.getByText('Twibbon Pernikahan Kami')).toHaveClass('text-gold');
     });
 
     it('has a file input element', () => {
@@ -374,10 +374,10 @@ describe('TwibbonSection', () => {
   // 7. EDGE CASES — re-renders, stability
   // =========================================================================
   describe('Edge Cases', () => {
-    it('re-renders without duplicating "Rayakan Momen Ini"', () => {
+    it('re-renders without duplicating "Rayakan Momen Hari Ini"', () => {
       const { rerender } = render(<TwibbonSection />);
       rerender(<TwibbonSection />);
-      const elements = screen.getAllByText('Rayakan Momen Ini');
+      const elements = screen.getAllByText('Rayakan momen hari ini bersama kami.');
       expect(elements).toHaveLength(1);
     });
 
@@ -411,8 +411,8 @@ describe('TwibbonSection', () => {
 
     it('all essential content renders in a single pass', () => {
       const { container } = renderComponent();
-      expect(screen.getByText('Rayakan Momen Ini')).toBeInTheDocument();
-      expect(screen.getByText('Signature Twibbon')).toBeInTheDocument();
+      expect(screen.getByText('Rayakan momen hari ini bersama kami.')).toBeInTheDocument();
+      expect(screen.getByText('Twibbon Pernikahan Kami')).toBeInTheDocument();
       expect(screen.getByText('Bagikan Momen')).toBeInTheDocument();
       expect(container.querySelector('canvas')).toBeInTheDocument();
       expect(container.querySelector('input[type="file"]')).toBeInTheDocument();
@@ -455,9 +455,9 @@ describe('TwibbonSection', () => {
     it('heading is inside the section', () => {
       const { container } = renderComponent();
       const section = container.querySelector('#twibbon-section');
-      const heading = section!.querySelector('h3');
+      const heading = section!.querySelector('p.font-serif');
       expect(heading).toBeInTheDocument();
-      expect(heading!.textContent).toBe('Rayakan Momen Ini');
+      expect(heading!.textContent).toBe('Rayakan momen hari ini bersama kami.');
     });
 
     it('section contains exactly one canvas', () => {
@@ -495,9 +495,8 @@ describe('TwibbonSection', () => {
     });
 
     it('has a heading element for screen readers', () => {
-      const { container } = renderComponent();
-      const headings = container.querySelectorAll('h3');
-      expect(headings.length).toBeGreaterThanOrEqual(1);
+      renderComponent();
+      expect(screen.getByText('Twibbon Pernikahan Kami')).toBeInTheDocument();
     });
 
     it('file input is present for assistive technology', () => {

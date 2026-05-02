@@ -211,7 +211,7 @@ export function drawOverlay(ctx: CanvasRenderingContext2D, w: number, h: number)
 
   ctx.font = "italic 32px 'Playfair Display', serif";
   ctx.fillStyle = 'rgba(26, 26, 26, 0.45)';
-  ctx.fillText('turut merayakan pernikahan', w / 2, h - 255);
+  ctx.fillText('Turut Menyertai Hari Bahagia', w / 2, h - 255);
 
   const fontMain = "110px 'Dayland', cursive";
   const fontAmp = "65px 'Dayland', cursive";
@@ -242,7 +242,7 @@ export function drawOverlay(ctx: CanvasRenderingContext2D, w: number, h: number)
   ctx.textAlign = 'center';
   ctx.font = "italic 28px 'Playfair Display', serif";
   ctx.fillStyle = 'rgba(163, 143, 106, 0.7)';
-  ctx.fillText('surabaya 29 agustus 2026', w / 2, h - 40);
+  ctx.fillText('Surabaya 29 Agustus 2026', w / 2, h - 40);
 
   for (let i = 0; i < 65; i++) {
     ctx.beginPath();

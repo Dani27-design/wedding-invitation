@@ -294,7 +294,7 @@ describe('App - Opening to Main Content Transition', () => {
 
   it('after opening: RSVP section is visible', () => {
     renderAndOpen();
-    expect(screen.getByText(/RSVP/i)).toBeInTheDocument();
+    expect(screen.getByText('Ucapan & Doa')).toBeInTheDocument();
   });
 
   it('after opening: digital envelope section is visible', () => {

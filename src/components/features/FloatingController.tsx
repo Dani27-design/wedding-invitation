@@ -13,16 +13,16 @@ export const FloatingController = ({ isToolsOpen, setIsToolsOpen, isPlaying, tog
     drag
     dragMomentum={false}
     dragElastic={0.1}
-    className="fixed bottom-8 right-3 z-[100] flex flex-col items-center gap-4 touch-none cursor-grab active:cursor-grabbing"
+    className="fixed bottom-8 right-5 z-[100] flex flex-col items-center gap-4 touch-none cursor-grab active:cursor-grabbing"
   >
     <AnimatePresence>
       {isToolsOpen && (
         <div className="flex flex-col items-center gap-3 mb-2">
           {[
-            { id: 'twibbon-section', label: 'Twibbon', icon: Sparkles },
-            { id: 'rsvp-section', label: 'Konfirmasi', icon: Heart },
-            { id: 'gift-section', label: 'Digital Gift', icon: Gift },
             { id: 'event-section', label: 'Info Acara', icon: MapPin },
+            { id: 'twibbon-section', label: 'Twibbon', icon: Sparkles },
+            { id: 'rsvp-section', label: 'Ucapan & Doa', icon: Heart },
+            { id: 'gift-section', label: 'Tanda Kasih', icon: Gift },
           ].map((tool, idx) => (
             <motion.button
               key={tool.id}
@@ -50,7 +50,7 @@ export const FloatingController = ({ isToolsOpen, setIsToolsOpen, isPlaying, tog
             className="group flex items-center gap-3 pr-4 pl-3 py-2 bg-ivory/90 backdrop-blur-xl border border-rose-pastel/20 rounded-full shadow-xl hover:bg-white transition-all"
           >
             {isPlaying ? <Pause className="w-3.5 h-3.5 text-rose-pastel" /> : <Play className="w-3.5 h-3.5 text-rose-pastel" />}
-            <span className="font-sans text-[8px] tracking-[0.2em] uppercase text-ink font-bold">{isPlaying ? 'Hentikan Musik' : 'Putar Musik'}</span>
+            <span className="font-sans text-[8px] tracking-[0.2em] uppercase text-ink font-bold">{isPlaying ? 'Senyapkan Musik' : 'Putar Musik'}</span>
           </motion.button>
         </div>
       )}

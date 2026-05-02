@@ -20,32 +20,32 @@ describe('TwibbonCreator', () => {
       expect(container.children).toHaveLength(1);
     });
 
-    it('shows "Rayakan Momen Ini" header', () => {
+    it('shows "Rayakan Momen Hari Ini" header', () => {
       render(<TwibbonCreator />);
-      expect(screen.getByText('Rayakan Momen Ini')).toBeInTheDocument();
+      expect(screen.getByText('Rayakan momen hari ini bersama kami.')).toBeInTheDocument();
     });
 
     it('header uses font-serif italic styling', () => {
       render(<TwibbonCreator />);
-      const header = screen.getByText('Rayakan Momen Ini');
+      const header = screen.getByText('Rayakan momen hari ini bersama kami.');
       expect(header).toHaveClass('font-serif');
       expect(header).toHaveClass('italic');
     });
 
     it('header is an h3 element', () => {
       render(<TwibbonCreator />);
-      const header = screen.getByText('Rayakan Momen Ini');
-      expect(header.tagName).toBe('H3');
+      const header = screen.getByText('Rayakan momen hari ini bersama kami.');
+      expect(header.tagName).toBe('P');
     });
 
-    it('shows "Signature Twibbon" subtitle', () => {
+    it('shows "Twibbon Pernikahan Kami" subtitle', () => {
       render(<TwibbonCreator />);
-      expect(screen.getByText('Signature Twibbon')).toBeInTheDocument();
+      expect(screen.getByText('Twibbon Pernikahan Kami')).toBeInTheDocument();
     });
 
     it('subtitle uses uppercase tracking text style', () => {
       render(<TwibbonCreator />);
-      const subtitle = screen.getByText('Signature Twibbon');
+      const subtitle = screen.getByText('Twibbon Pernikahan Kami');
       expect(subtitle).toHaveClass('uppercase');
       expect(subtitle).toHaveClass('tracking-[0.4em]');
       expect(subtitle).toHaveClass('font-black');
@@ -53,7 +53,7 @@ describe('TwibbonCreator', () => {
 
     it('subtitle is a p element', () => {
       render(<TwibbonCreator />);
-      const subtitle = screen.getByText('Signature Twibbon');
+      const subtitle = screen.getByText('Twibbon Pernikahan Kami');
       expect(subtitle.tagName).toBe('P');
     });
 
@@ -123,7 +123,7 @@ describe('TwibbonCreator', () => {
       render(<TwibbonCreator />);
       const frame = document.querySelector('.aspect-\\[9\\/16\\]');
       expect(frame).toHaveClass('border');
-      expect(frame).toHaveClass('border-ink/10');
+      expect(frame).toHaveClass('border-gold/10');
     });
 
     it('frame has bg-[#F2EEE9] warm sand background', () => {
@@ -385,19 +385,19 @@ describe('TwibbonCreator', () => {
   describe('Visual layout', () => {
     it('text center alignment for header section', () => {
       render(<TwibbonCreator />);
-      const headerSection = screen.getByText('Rayakan Momen Ini').parentElement;
+      const headerSection = screen.getByText('Rayakan momen hari ini bersama kami.').parentElement;
       expect(headerSection).toHaveClass('text-center');
     });
 
     it('header section has text-center and shrink-0', () => {
       render(<TwibbonCreator />);
-      const headerSection = screen.getByText('Rayakan Momen Ini').parentElement;
+      const headerSection = screen.getByText('Rayakan momen hari ini bersama kami.').parentElement;
       expect(headerSection).toHaveClass('text-center', 'shrink-0');
     });
 
     it('header section has shrink-0 to prevent compression', () => {
       render(<TwibbonCreator />);
-      const headerSection = screen.getByText('Rayakan Momen Ini').parentElement;
+      const headerSection = screen.getByText('Rayakan momen hari ini bersama kami.').parentElement;
       expect(headerSection).toHaveClass('shrink-0');
     });
 
@@ -474,8 +474,8 @@ describe('TwibbonCreator', () => {
       const { rerender } = render(<TwibbonCreator />);
       rerender(<TwibbonCreator />);
 
-      expect(screen.getAllByText('Rayakan Momen Ini')).toHaveLength(1);
-      expect(screen.getAllByText('Signature Twibbon')).toHaveLength(1);
+      expect(screen.getAllByText('Rayakan momen hari ini bersama kami.')).toHaveLength(1);
+      expect(screen.getAllByText('Twibbon Pernikahan Kami')).toHaveLength(1);
     });
 
     it('re-renders do not duplicate download button', () => {
@@ -489,7 +489,7 @@ describe('TwibbonCreator', () => {
       for (let i = 0; i < 5; i++) {
         const { container, unmount } = render(<TwibbonCreator />);
         expect(container.firstChild).toBeInTheDocument();
-        expect(screen.getByText('Rayakan Momen Ini')).toBeInTheDocument();
+        expect(screen.getByText('Rayakan momen hari ini bersama kami.')).toBeInTheDocument();
         unmount();
       }
     });

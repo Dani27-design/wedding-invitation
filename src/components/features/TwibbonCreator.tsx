@@ -161,14 +161,14 @@ export function TwibbonCreator() {
   return (
     <div ref={wrapperRef} className="flex flex-col h-fit w-full items-center justify-start gap-[3vh] px-4">
       <div className="text-center shrink-0">
-        <h3 className="font-serif text-xl italic text-ink mb-1">Rayakan Momen Ini</h3>
-        <p className="text-[9px] uppercase tracking-[0.4em] text-gold font-black opacity-60">Signature Twibbon</p>
+        <p className="text-[9px] uppercase tracking-[0.4em] text-gold font-black mb-2">Twibbon Pernikahan Kami</p>
+        <p className="font-serif italic text-[13px] leading-relaxed text-ink/60 max-w-[300px] mx-auto">Rayakan momen hari ini bersama kami.</p>
       </div>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="relative h-[55vh] w-auto max-w-[82%] md:max-w-[380px] lg:max-w-[420px] aspect-[9/16] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] border border-ink/10 bg-[#F2EEE9] group/result"
+          className="relative h-[55vh] w-auto max-w-[82%] md:max-w-[380px] lg:max-w-[420px] aspect-[9/16] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] border border-gold/10 bg-[#F2EEE9] group/result"
         >
           <div
             ref={containerRef}

@@ -22,13 +22,13 @@ describe('HeroSection', () => {
       expect(container.firstChild!.nodeName).toBe('SECTION');
     });
 
-    it('section has h-[100dvh] for full viewport height', () => {
+    it('section has h-[100svh] for full viewport height', () => {
       const { container } = renderComponent();
       const section = container.querySelector('section');
-      expect(section).toHaveClass('h-[100dvh]');
+      expect(section).toHaveClass('h-[100svh]');
     });
 
-    it('section does not use md:min-h-screen (replaced by h-[100dvh])', () => {
+    it('section does not use md:min-h-screen (replaced by h-[100svh])', () => {
       const { container } = renderComponent();
       const section = container.querySelector('section');
       expect(section!.className).not.toContain('md:min-h-screen');

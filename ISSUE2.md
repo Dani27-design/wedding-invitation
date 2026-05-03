@@ -4,7 +4,7 @@
 
 ---
 
-## Issue #S1 — Page Scroll Jumps and Shifts Unexpectedly on Mobile [FIXED]
+## Issue #S1 — Page Scroll Jumps and Shifts Unexpectedly on Mobile [FIXED — Round 1]
 
 **Root Cause:**
 Four issues combining to cause scroll jumping:
@@ -19,6 +19,22 @@ Four issues combining to cause scroll jumping:
 2. Added `dragConstraints={{ left: -200, right: 0, top: -400, bottom: 0 }}` to FloatingController — limits drag range and reduces scroll interference.
 3. Changed resize handler from RAF throttle to 300ms debounce — skips updates during active scroll/URL-bar transitions.
 4. Removed `y` offset from all `whileInView` animations (7 elements) — opacity-only entrance prevents any layout shift during scroll.
+
+---
+
+## Issue #S2 — Ghost Scroll Jumps Persist Due to Dynamic Section Heights and Re-renders [FIXED]
+
+**Root Cause:**
+Three remaining causes after S1 fixes:
+
+1. **`viewportHeight` reactive state triggers re-renders during scroll:** Resize events from URL bar changes update `viewportHeight` state → `wishPages` recalculates → RSVPSection re-renders with different card count → section height changes → scroll jumps.
+2. **BackgroundLayers light-sweep `w-[200%]` element extends beyond viewport:** The animated child translates from `-100%` to `100%` on a `200%` wide element. Some mobile browsers detect this as horizontal overflow even with `overflow-hidden` on parent, causing scroll position adjustments.
+3. **`h-[100dvh]` sections resize dynamically during scroll:** `dvh` (dynamic viewport height) changes as the mobile URL bar shows/hides during scroll. Multiple stacked 100dvh sections compound the height change, causing cumulative scroll jumps.
+
+**Solution:**
+1. Changed `viewportHeight` from `useState` to `useRef` — read once on mount, never triggers re-renders. Wish pagination stays stable throughout the session. Removed resize event listener entirely.
+2. Added `will-change-transform` to light-sweep container and `transform-gpu` to the animated child — ensures the browser isolates the oversized element in its own compositing layer, preventing overflow detection.
+3. Changed all 4 full-height sections from `h-[100dvh]` to `h-[100svh]` — `svh` (small viewport height) uses the viewport with URL bar visible, so it never changes during scroll. No resize = no jump.
 
 ---
 

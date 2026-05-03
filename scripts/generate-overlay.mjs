@@ -2,8 +2,8 @@ import { createCanvas, registerFont } from 'canvas';
 import { writeFileSync } from 'fs';
 
 registerFont('public/fonts/Dayland.ttf', { family: 'Dayland' });
-registerFont('public/fonts/PlayfairDisplay-Regular.ttf', { family: 'Playfair Display' });
-registerFont('public/fonts/PlayfairDisplay-Italic.ttf', { family: 'Playfair Display', style: 'italic' });
+registerFont('public/fonts/CormorantGaramond-Italic.ttf', { family: 'Cormorant Regular' });
+registerFont('public/fonts/CormorantGaramond-Regular.ttf', { family: 'Cormorant Italic' });
 
 const CANVAS_W = 1080;
 const CANVAS_H = 1920;
@@ -170,7 +170,7 @@ for (let i = 0; i < 40; i++) {
 
 ctx.textAlign = 'center';
 ctx.textBaseline = 'middle';
-ctx.font = "italic 32px 'Playfair Display', serif";
+ctx.font = "32px 'Cormorant Italic', serif";
 ctx.fillStyle = 'rgba(26, 26, 26, 0.45)';
 ctx.fillText('Turut Menyertai Hari Bahagia', w / 2, h - 255);
 
@@ -199,7 +199,7 @@ ctx.font = fontMain;
 ctx.fillText('Marini', currentX, nameY);
 
 ctx.textAlign = 'center';
-ctx.font = "italic 28px 'Playfair Display', serif";
+ctx.font = "28px 'Cormorant Italic', serif";
 ctx.fillStyle = 'rgba(163, 143, 106, 0.7)';
 ctx.fillText('Surabaya 29 Agustus 2026', w / 2, h - 40);
 

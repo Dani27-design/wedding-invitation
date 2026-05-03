@@ -30,7 +30,7 @@ describe('CinematicStory', () => {
     it('section has h-screen for full viewport height', () => {
       const { container } = renderStory();
       const section = container.querySelector('section');
-      expect(section?.className).toContain('h-[100dvh]');
+      expect(section?.className).toContain('h-[100svh]');
     });
 
     it('section has bg-ink dark background', () => {

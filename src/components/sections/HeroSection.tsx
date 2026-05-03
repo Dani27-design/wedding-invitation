@@ -2,7 +2,7 @@ import { motion } from "motion/react";
 import { WEDDING_DATE_DISPLAY } from "../../constants/wedding";
 
 export const HeroSection = () => (
-  <section className="relative h-[100dvh] flex flex-col items-center justify-between px-6 py-[5vh] overflow-hidden bg-ivory">
+  <section className="relative h-[100svh] flex flex-col items-center justify-between px-6 py-[5vh] overflow-hidden bg-ivory">
     <div className="absolute inset-0 z-0">
       <motion.div
         animate={{ scale: [1, 1.03, 1] }}

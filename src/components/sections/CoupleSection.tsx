@@ -5,7 +5,7 @@ import { stagger, fadeUp } from "../../utils/animations";
 export const CoupleSection = () => (
   <section
     id="couple-section"
-    className="relative h-[100dvh] py-[5vh] bg-ivory overflow-hidden"
+    className="relative h-[100svh] py-[5vh] bg-ivory overflow-hidden"
   >
     <div className="container mx-auto px-6 max-w-5xl h-full grid grid-rows-[1fr_auto] md:grid-rows-none md:grid-cols-2 gap-[1vh] items-center relative">
       <div className="relative w-full h-full min-h-0 max-h-[60vh] md:max-h-none">

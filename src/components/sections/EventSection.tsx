@@ -4,7 +4,7 @@ import { CountdownTimer } from '../ui/CountdownTimer';
 import { WEDDING_DATE, WEDDING_DATE_DISPLAY, VENUE } from '../../constants/wedding';
 
 export const EventSection = () => (
-  <section id="event-section" className="relative py-[3vh] h-[100dvh] bg-paper overflow-hidden">
+  <section id="event-section" className="relative py-[3vh] h-[100svh] bg-paper overflow-hidden">
     <div className="absolute inset-0 pointer-events-none opacity-[0.3]">
       <motion.div animate={{ rotate: [0, 360], scale: [1, 1.15, 1] }} transition={{ duration: 45, repeat: Infinity, ease: 'linear' }} className="absolute -top-1/3 -right-1/3 w-full h-full border border-gold/10 rounded-full" />
       <motion.div animate={{ rotate: [360, 0], scale: [1, 1.2, 1] }} transition={{ duration: 55, repeat: Infinity, ease: 'linear' }} className="absolute -bottom-1/3 -left-1/3 w-full h-full border border-gold/10 rounded-full" />

@@ -29,10 +29,10 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState(1);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [isSubmitSuccess, setIsSubmitSuccess] = useState(false);
-  const [viewportHeight, setViewportHeight] = useState(typeof window !== 'undefined' ? window.innerHeight : 667);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const submitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const viewportHeight = useRef(typeof window !== 'undefined' ? window.innerHeight : 667);
 
   useEffect(() => {
     return () => {
@@ -41,24 +41,8 @@ export default function App() {
     };
   }, []);
 
-  useEffect(() => {
-    let timerId: ReturnType<typeof setTimeout> | null = null;
-    const handleResize = () => {
-      if (timerId) clearTimeout(timerId);
-      timerId = setTimeout(() => {
-        setViewportHeight(window.innerHeight);
-        timerId = null;
-      }, 300);
-    };
-    window.addEventListener('resize', handleResize);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      if (timerId) clearTimeout(timerId);
-    };
-  }, []);
-
   const wishPages = useMemo(() => {
-    const availableHeight = Math.floor(viewportHeight * 0.9);
+    const availableHeight = Math.floor(viewportHeight.current * 0.9);
     const pages: GuestWishes[][] = [];
     let currentPageWishes: GuestWishes[] = [];
     let currentHeight = 0;
@@ -79,7 +63,7 @@ export default function App() {
 
     if (currentPageWishes.length > 0) pages.push(currentPageWishes);
     return pages;
-  }, [wishes, viewportHeight]);
+  }, [wishes]);
 
   const currentWishes = wishPages[currentPage - 1] || [];
   const totalPages = wishPages.length;

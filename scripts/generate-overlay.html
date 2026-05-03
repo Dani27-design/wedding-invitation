@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head><title>Generate Twibbon Overlay</title></head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script type="module">
+import { drawOverlay } from '../src/utils/twibbonOverlay.ts';
+
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+drawOverlay(ctx, 1080, 1920);
+
+// Convert to PNG and trigger download
+const link = document.createElement('a');
+link.download = 'twibbon-overlay.png';
+link.href = canvas.toDataURL('image/png', 1.0);
+link.click();
+document.body.innerHTML = '<h1>Done! Check your downloads folder for twibbon-overlay.png</h1><p>Move it to public/images/twibbon-overlay.png</p>';
+</script>
+</body>
+</html>

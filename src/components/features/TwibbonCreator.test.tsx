@@ -88,29 +88,29 @@ describe('TwibbonCreator', () => {
 
     it('has canvas element for overlay', () => {
       render(<TwibbonCreator />);
-      const canvas = document.querySelector('canvas');
-      expect(canvas).toBeInTheDocument();
+      const overlayImg = document.querySelector('img[src*="twibbon-overlay"]');
+      expect(overlayImg).toBeInTheDocument();
     });
 
     it('canvas has pointer-events-none to not block interactions', () => {
       render(<TwibbonCreator />);
-      const canvas = document.querySelector('canvas');
-      expect(canvas).toHaveClass('pointer-events-none');
+      const overlayImg = document.querySelector('img[src*="twibbon-overlay"]');
+      expect(overlayImg).toHaveClass('pointer-events-none');
     });
 
     it('canvas has z-10 to layer above image', () => {
       render(<TwibbonCreator />);
-      const canvas = document.querySelector('canvas');
-      expect(canvas).toHaveClass('z-10');
+      const overlayImg = document.querySelector('img[src*="twibbon-overlay"]');
+      expect(overlayImg).toHaveClass('z-10');
     });
 
     it('canvas covers full area with absolute inset-0', () => {
       render(<TwibbonCreator />);
-      const canvas = document.querySelector('canvas');
-      expect(canvas).toHaveClass('absolute');
-      expect(canvas).toHaveClass('inset-0');
-      expect(canvas).toHaveClass('w-full');
-      expect(canvas).toHaveClass('h-full');
+      const overlayImg = document.querySelector('img[src*="twibbon-overlay"]');
+      expect(overlayImg).toHaveClass('absolute');
+      expect(overlayImg).toHaveClass('inset-0');
+      expect(overlayImg).toHaveClass('w-full');
+      expect(overlayImg).toHaveClass('h-full');
     });
 
     it('frame has shadow styling for depth', () => {
@@ -434,8 +434,8 @@ describe('TwibbonCreator', () => {
       rerender(<TwibbonCreator />);
       rerender(<TwibbonCreator />);
 
-      const canvases = document.querySelectorAll('canvas');
-      expect(canvases).toHaveLength(1);
+      const overlayImgs = document.querySelectorAll('img[src*="twibbon-overlay"]');
+      expect(overlayImgs).toHaveLength(1);
     });
 
     it('re-renders do not duplicate file inputs', () => {

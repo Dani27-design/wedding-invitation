@@ -71,7 +71,7 @@ describe('TwibbonSection', () => {
   describe('TwibbonCreator Content', () => {
     it('renders a canvas element', () => {
       const { container } = renderComponent();
-      expect(container.querySelector('canvas')).toBeInTheDocument();
+      expect(container.querySelector('img[src*="twibbon-overlay"]')).toBeInTheDocument();
     });
 
     it('displays "rayakan momen bahagia ini" heading text', () => {
@@ -203,33 +203,33 @@ describe('TwibbonSection', () => {
   describe('Visual', () => {
     it('canvas is absolutely positioned within preview', () => {
       const { container } = renderComponent();
-      const canvas = container.querySelector('canvas');
-      expect(canvas).toHaveClass('absolute');
+      const overlayImg = container.querySelector('img[src*="twibbon-overlay"]');
+      expect(overlayImg).toHaveClass('absolute');
     });
 
     it('canvas covers full area (inset-0)', () => {
       const { container } = renderComponent();
-      const canvas = container.querySelector('canvas');
-      expect(canvas).toHaveClass('inset-0');
+      const overlayImg = container.querySelector('img[src*="twibbon-overlay"]');
+      expect(overlayImg).toHaveClass('inset-0');
     });
 
     it('canvas is on z-10 layer', () => {
       const { container } = renderComponent();
-      const canvas = container.querySelector('canvas');
-      expect(canvas).toHaveClass('z-10');
+      const overlayImg = container.querySelector('img[src*="twibbon-overlay"]');
+      expect(overlayImg).toHaveClass('z-10');
     });
 
     it('canvas has pointer-events-none', () => {
       const { container } = renderComponent();
-      const canvas = container.querySelector('canvas');
-      expect(canvas).toHaveClass('pointer-events-none');
+      const overlayImg = container.querySelector('img[src*="twibbon-overlay"]');
+      expect(overlayImg).toHaveClass('pointer-events-none');
     });
 
     it('canvas fills width and height (w-full h-full)', () => {
       const { container } = renderComponent();
-      const canvas = container.querySelector('canvas');
-      expect(canvas).toHaveClass('w-full');
-      expect(canvas).toHaveClass('h-full');
+      const overlayImg = container.querySelector('img[src*="twibbon-overlay"]');
+      expect(overlayImg).toHaveClass('w-full');
+      expect(overlayImg).toHaveClass('h-full');
     });
 
     it('placeholder area has neutral background (#8E8A85)', () => {
@@ -380,8 +380,8 @@ describe('TwibbonSection', () => {
     it('re-renders without duplicating canvas', () => {
       const { container, rerender } = render(<TwibbonSection />);
       rerender(<TwibbonSection />);
-      const canvases = container.querySelectorAll('canvas');
-      expect(canvases).toHaveLength(1);
+      const overlayImgs = container.querySelectorAll('img[src*="twibbon-overlay"]');
+      expect(overlayImgs).toHaveLength(1);
     });
 
     it('re-renders without duplicating file input', () => {
@@ -409,7 +409,7 @@ describe('TwibbonSection', () => {
       expect(screen.getByText('rayakan momen bahagia ini bersama kami.')).toBeInTheDocument();
       expect(screen.getByText('Twibbon Pernikahan Kami')).toBeInTheDocument();
       expect(screen.queryByText('Bagikan Momen')).not.toBeInTheDocument();
-      expect(container.querySelector('canvas')).toBeInTheDocument();
+      expect(container.querySelector('img[src*="twibbon-overlay"]')).toBeInTheDocument();
       expect(container.querySelector('input[type="file"]')).toBeInTheDocument();
     });
 
@@ -428,8 +428,8 @@ describe('TwibbonSection', () => {
     it('TwibbonCreator is rendered inside the section', () => {
       const { container } = renderComponent();
       const section = container.querySelector('#twibbon-section');
-      const canvas = section!.querySelector('canvas');
-      expect(canvas).toBeInTheDocument();
+      const overlayImg = section!.querySelector('img[src*="twibbon-overlay"]');
+      expect(overlayImg).toBeInTheDocument();
     });
 
     it('download button is inside the section', () => {
@@ -456,8 +456,8 @@ describe('TwibbonSection', () => {
 
     it('section contains exactly one canvas', () => {
       const { container } = renderComponent();
-      const canvases = container.querySelectorAll('#twibbon-section canvas');
-      expect(canvases).toHaveLength(1);
+      const overlayImgs = container.querySelectorAll('#twibbon-section img[src*="twibbon-overlay"]');
+      expect(overlayImgs).toHaveLength(1);
     });
 
     it('section contains exactly one file input', () => {
@@ -475,7 +475,7 @@ describe('TwibbonSection', () => {
     it('section has no broken image elements initially', () => {
       const { container } = renderComponent();
       const images = container.querySelectorAll('#twibbon-section img');
-      expect(images).toHaveLength(0);
+      expect(images).toHaveLength(1);
     });
   });
 

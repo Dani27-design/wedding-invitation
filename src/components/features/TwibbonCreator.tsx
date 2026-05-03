@@ -1,15 +1,10 @@
 import { useState, useRef, useEffect, useCallback, ChangeEvent, MouseEvent, TouchEvent } from 'react';
 import { motion } from 'motion/react';
 import { Camera, RefreshCw } from 'lucide-react';
-import { drawOverlay } from '../../utils/twibbonOverlay';
 
 const CANVAS_W = 1080;
 const CANVAS_H = 1920;
-const PREVIEW_W = 1080;
-const PREVIEW_H = 1920;
-const FRAME_MARGIN = 100;
-const FRAME_TOP = 140;
-const FRAME_BOTTOM = 280;
+const OVERLAY_SRC = '/images/twibbon-overlay.png';
 
 export function TwibbonCreator() {
   const [image, setImage] = useState<string | null>(null);
@@ -19,9 +14,8 @@ export function TwibbonCreator() {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const imgElementRef = useRef<HTMLImageElement>(null);
-  const overlayCanvasRef = useRef<HTMLCanvasElement>(null);
+  const overlayImgRef = useRef<HTMLImageElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const hasDrawn = useRef(false);
 
   const isDragging = useRef(false);
   const lastPos = useRef({ x: 0, y: 0 });
@@ -31,32 +25,6 @@ export function TwibbonCreator() {
     if (!imgElementRef.current) return;
     const { x, y, zoom } = transformRef.current;
     imgElementRef.current.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${zoom})`;
-  }, []);
-
-  useEffect(() => {
-    const el = wrapperRef.current;
-    if (!el || hasDrawn.current) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !hasDrawn.current) {
-          hasDrawn.current = true;
-          const canvas = overlayCanvasRef.current;
-          if (canvas) {
-            canvas.width = PREVIEW_W;
-            canvas.height = PREVIEW_H;
-            const ctx = canvas.getContext('2d');
-            if (ctx) drawOverlay(ctx, PREVIEW_W, PREVIEW_H);
-          }
-          setIsReady(true);
-          observer.disconnect();
-        }
-      },
-      { rootMargin: '200px' }
-    );
-
-    observer.observe(el);
-    return () => observer.disconnect();
   }, []);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -130,20 +98,13 @@ export function TwibbonCreator() {
     };
   });
 
-  const handleCanvasClick = (e: MouseEvent) => {
+  const handleCanvasClick = () => {
     if (image) return;
-    const rect = containerRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const x = ((e.clientX - rect.left) / rect.width) * CANVAS_W;
-    const y = ((e.clientY - rect.top) / rect.height) * CANVAS_H;
-    const vH = CANVAS_H - FRAME_TOP - FRAME_BOTTOM;
-    if (x >= FRAME_MARGIN + 40 && x <= CANVAS_W - FRAME_MARGIN - 40 && y >= FRAME_TOP + 40 && y <= FRAME_TOP + vH - 40) {
-      fileInputRef.current?.click();
-    }
+    fileInputRef.current?.click();
   };
 
   const handleDownload = () => {
-    if (!overlayCanvasRef.current || !image) return;
+    if (!overlayImgRef.current || !image) return;
     const canvas = document.createElement('canvas');
     canvas.width = CANVAS_W;
     canvas.height = CANVAS_H;
@@ -151,7 +112,6 @@ export function TwibbonCreator() {
     if (!ctx) return;
 
     const img = new Image();
-    img.crossOrigin = 'anonymous';
     img.onload = () => {
       ctx.fillStyle = '#F2EEE9';
       ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
@@ -163,13 +123,15 @@ export function TwibbonCreator() {
 
       ctx.save();
       const previewEl = containerRef.current;
-      if (previewEl) {
-        ctx.translate(x * (CANVAS_W / previewEl.clientWidth), y * (CANVAS_W / previewEl.clientWidth));
+      if (previewEl && previewEl.clientWidth > 0) {
+        const scaleX = CANVAS_W / previewEl.clientWidth;
+        const scaleY = CANVAS_H / previewEl.clientHeight;
+        ctx.translate(x * scaleX, y * scaleY);
       }
       ctx.drawImage(img, (CANVAS_W - dw) / 2, (CANVAS_H - dh) / 2, dw, dh);
       ctx.restore();
 
-      drawOverlay(ctx, CANVAS_W, CANVAS_H);
+      ctx.drawImage(overlayImgRef.current!, 0, 0, CANVAS_W, CANVAS_H);
 
       const link = document.createElement('a');
       link.download = 'Memori-Dani-Marini.png';
@@ -223,19 +185,7 @@ export function TwibbonCreator() {
               )}
             </div>
 
-            <canvas ref={overlayCanvasRef} className="absolute inset-0 z-10 w-full h-full pointer-events-none" />
-
-            {image && (
-              <div className="absolute inset-x-0 bottom-32 flex justify-center pointer-events-none">
-                <motion.span
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 0.4, y: 0 }}
-                  className="bg-ink/10 backdrop-blur-md text-ink text-xs px-3 py-1 rounded-full uppercase tracking-widest font-black"
-                >
-                  Seret • Cubit untuk Atur
-                </motion.span>
-              </div>
-            )}
+            <img ref={overlayImgRef} src={OVERLAY_SRC} onLoad={() => setIsReady(true)} className="absolute inset-0 z-10 w-full h-full pointer-events-none" alt="" />
           </div>
         </motion.div>
 

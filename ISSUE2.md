@@ -160,7 +160,7 @@ Add `decoding="async"` to gallery and story images.
 
 ---
 
-## Issue #P12 — TwibbonCreator Canvas is Full Resolution (1080x1920) for Preview [FIXED]
+## Issue #P12 — TwibbonCreator Overlay Uses Expensive Procedural Drawing [FIXED]
 
 **Root Cause:**
 `TwibbonCreator.tsx:6-7,41-46` — Canvas created at 1080x1920 (~8MB GPU texture) for a preview rendered in a ~300px container.

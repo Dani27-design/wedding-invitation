@@ -9,6 +9,7 @@ const OVERLAY_SRC = '/images/twibbon-overlay.png';
 
 export function TwibbonCreator() {
   const [image, setImage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [isReady, setIsReady] = useState(false);
 
   const transformRef = useRef({ x: 0, y: 0, zoom: 1 });
@@ -42,6 +43,7 @@ export function TwibbonCreator() {
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !file.type.startsWith('image/')) return;
+    setIsLoading(true);
 
     const originalUrl = URL.createObjectURL(file);
     const img = new Image();
@@ -52,6 +54,7 @@ export function TwibbonCreator() {
       if (maxDim <= MAX_PREVIEW_DIM) {
         if (image) URL.revokeObjectURL(image);
         setImage(originalUrl);
+        setIsLoading(false);
       } else {
         const scale = MAX_PREVIEW_DIM / maxDim;
         const canvas = document.createElement('canvas');
@@ -66,6 +69,7 @@ export function TwibbonCreator() {
               if (image) URL.revokeObjectURL(image);
               setImage(URL.createObjectURL(blob));
             }
+            setIsLoading(false);
           }, 'image/jpeg', 0.85);
         }
       }
@@ -139,42 +143,61 @@ export function TwibbonCreator() {
     fileInputRef.current?.click();
   };
 
-  const handleDownload = () => {
-    if (!overlayImgRef.current || !image) return;
-    const canvas = document.createElement('canvas');
-    canvas.width = CANVAS_W;
-    canvas.height = CANVAS_H;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+  const generateTwibbonBlob = (): Promise<Blob | null> => {
+    return new Promise((resolve) => {
+      if (!overlayImgRef.current || !image) return resolve(null);
+      const canvas = document.createElement('canvas');
+      canvas.width = CANVAS_W;
+      canvas.height = CANVAS_H;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return resolve(null);
 
-    const img = new Image();
-    img.onload = () => {
-      ctx.fillStyle = '#F2EEE9';
-      ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+      const img = new Image();
+      img.onload = () => {
+        ctx.fillStyle = '#F2EEE9';
+        ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
 
-      const { x, y, zoom } = transformRef.current;
-      const scale = Math.max(CANVAS_W / img.width, CANVAS_H / img.height) * zoom;
-      const dw = img.width * scale;
-      const dh = img.height * scale;
+        const { x, y, zoom } = transformRef.current;
+        const scale = Math.max(CANVAS_W / img.width, CANVAS_H / img.height) * zoom;
+        const dw = img.width * scale;
+        const dh = img.height * scale;
 
-      ctx.save();
-      const previewEl = containerRef.current;
-      if (previewEl && previewEl.clientWidth > 0) {
-        const scaleX = CANVAS_W / previewEl.clientWidth;
-        const scaleY = CANVAS_H / previewEl.clientHeight;
-        ctx.translate(x * scaleX, y * scaleY);
-      }
-      ctx.drawImage(img, (CANVAS_W - dw) / 2, (CANVAS_H - dh) / 2, dw, dh);
-      ctx.restore();
+        ctx.save();
+        const previewEl = containerRef.current;
+        if (previewEl && previewEl.clientWidth > 0) {
+          const scaleX = CANVAS_W / previewEl.clientWidth;
+          const scaleY = CANVAS_H / previewEl.clientHeight;
+          ctx.translate(x * scaleX, y * scaleY);
+        }
+        ctx.drawImage(img, (CANVAS_W - dw) / 2, (CANVAS_H - dh) / 2, dw, dh);
+        ctx.restore();
 
-      ctx.drawImage(overlayImgRef.current!, 0, 0, CANVAS_W, CANVAS_H);
+        ctx.drawImage(overlayImgRef.current!, 0, 0, CANVAS_W, CANVAS_H);
 
-      const link = document.createElement('a');
-      link.download = 'Memori-Dani-Marini.png';
-      link.href = canvas.toDataURL('image/png', 1.0);
-      link.click();
-    };
-    img.src = image;
+        canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0);
+      };
+      img.src = image;
+    });
+  };
+
+  const handleShare = async () => {
+    const blob = await generateTwibbonBlob();
+    if (!blob) return;
+
+    const file = new File([blob], 'Memori-Dani-Marini.png', { type: 'image/png' });
+
+    if (navigator.share && navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file] });
+        return;
+      } catch { /* user cancelled or error — fall through to download */ }
+    }
+
+    const link = document.createElement('a');
+    link.download = 'Memori-Dani-Marini.png';
+    link.href = URL.createObjectURL(blob);
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
   };
 
   return (
@@ -199,7 +222,16 @@ export function TwibbonCreator() {
             onMouseLeave={handleEnd}
           >
             <div className="absolute inset-0 z-0 bg-[#8E8A85] flex items-center justify-center">
-              {image ? (
+              {isLoading ? (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
+                    className="w-8 h-8 border-2 border-white/20 border-t-gold rounded-full"
+                  />
+                  <p className="font-serif italic text-xs text-white/50">Memproses foto...</p>
+                </div>
+              ) : image ? (
                 <motion.img
                   ref={imgElementRef}
                   initial={{ opacity: 0, scale: 1.1 }}
@@ -236,7 +268,7 @@ export function TwibbonCreator() {
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            onClick={handleDownload}
+            onClick={handleShare}
             disabled={!isReady}
             className="w-full py-2 bg-gold text-ivory rounded-full font-black uppercase text-xs tracking-[0.4em] shadow-xl disabled:opacity-50 disabled:pointer-events-none transition-all"
           >

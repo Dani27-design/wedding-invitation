@@ -5,6 +5,8 @@ import { drawOverlay } from '../../utils/twibbonOverlay';
 
 const CANVAS_W = 1080;
 const CANVAS_H = 1920;
+const PREVIEW_W = 1080;
+const PREVIEW_H = 1920;
 const FRAME_MARGIN = 100;
 const FRAME_TOP = 140;
 const FRAME_BOTTOM = 280;
@@ -41,10 +43,10 @@ export function TwibbonCreator() {
           hasDrawn.current = true;
           const canvas = overlayCanvasRef.current;
           if (canvas) {
-            canvas.width = CANVAS_W;
-            canvas.height = CANVAS_H;
+            canvas.width = PREVIEW_W;
+            canvas.height = PREVIEW_H;
             const ctx = canvas.getContext('2d');
-            if (ctx) drawOverlay(ctx, CANVAS_W, CANVAS_H);
+            if (ctx) drawOverlay(ctx, PREVIEW_W, PREVIEW_H);
           }
           setIsReady(true);
           observer.disconnect();
@@ -148,7 +150,7 @@ export function TwibbonCreator() {
       ctx.drawImage(img, (CANVAS_W - dw) / 2, (CANVAS_H - dh) / 2, dw, dh);
       ctx.restore();
 
-      ctx.drawImage(overlayCanvasRef.current!, 0, 0);
+      drawOverlay(ctx, CANVAS_W, CANVAS_H);
 
       const link = document.createElement('a');
       link.download = 'Memori-Dani-Marini.png';
@@ -162,7 +164,7 @@ export function TwibbonCreator() {
     <div ref={wrapperRef} className="flex flex-col h-fit w-full items-center justify-start gap-[3vh] px-4">
       <div className="text-center shrink-0">
         <p className="text-xs uppercase tracking-[0.4em] text-gold font-black mb-2">Twibbon Pernikahan Kami</p>
-        <p className="font-serif italic text-[13px] leading-relaxed text-ink/70 max-w-[300px] mx-auto">Rayakan momen hari ini bersama kami.</p>
+        <p className="font-serif italic text-[13px] leading-relaxed text-ink/70 max-w-[300px] mx-auto">rayakan momen bahagia ini bersama kami.</p>
       </div>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -221,25 +223,25 @@ export function TwibbonCreator() {
           </div>
         </motion.div>
 
-      <div className="flex flex-col items-center h-fit w-full max-w-[82%] md:max-w-[380px] lg:max-w-[420px] shrink-0">
-        {image && (
+      {image && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center h-fit w-full max-w-[82%] md:max-w-[380px] lg:max-w-[420px] shrink-0">
           <motion.button
             onClick={() => setImage(null)}
             className="mb-4 flex items-center gap-2 text-xs uppercase font-black text-ink/70 hover:text-ink transition-colors"
           >
             <RefreshCw className="w-3.5 h-3.5" /> Ganti Foto
           </motion.button>
-        )}
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={handleDownload}
-          disabled={!isReady || !image}
-          className="w-full py-2 bg-ink text-gold rounded-full font-black uppercase text-xs tracking-[0.4em] shadow-xl disabled:opacity-50 disabled:pointer-events-none transition-all border border-gold/10"
-        >
-          Bagikan Momen
-        </motion.button>
-      </div>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleDownload}
+            disabled={!isReady}
+            className="w-full py-2 bg-gold text-ivory rounded-full font-black uppercase text-xs tracking-[0.4em] shadow-xl disabled:opacity-50 disabled:pointer-events-none transition-all"
+          >
+            Bagikan Momen
+          </motion.button>
+        </motion.div>
+      )}
 
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
     </div>

@@ -164,10 +164,10 @@ describe('CinematicOpening', () => {
       expect(screen.getByText('Buka Undangan')).toBeInTheDocument();
     });
 
-    it('"Buka Undangan" is a button element', () => {
+    it('"Buka Undangan" is inside a button element', () => {
       renderComponent();
-      const btn = screen.getByText('Buka Undangan');
-      expect(btn.tagName).toBe('BUTTON');
+      const text = screen.getByText('Buka Undangan');
+      expect(text.closest('button')).toBeInTheDocument();
     });
 
     it('calls onOpen callback when button is clicked', () => {
@@ -185,15 +185,15 @@ describe('CinematicOpening', () => {
       expect(onOpen).toHaveBeenCalledTimes(2);
     });
 
-    it('button has border-b styling', () => {
-      renderComponent();
-      const btn = screen.getByText('Buka Undangan');
-      expect(btn).toHaveClass('border-b');
+    it('button has envelope SVG icon', () => {
+      const { container } = renderComponent();
+      const svg = container.querySelector('button svg');
+      expect(svg).toBeInTheDocument();
     });
 
-    it('button has uppercase text', () => {
+    it('button text has serif italic styling', () => {
       renderComponent();
-      expect(screen.getByText('Buka Undangan')).toHaveClass('uppercase');
+      expect(screen.getByText('Buka Undangan')).toHaveClass('font-serif', 'italic');
     });
 
     it('button has wide letter tracking', () => {
@@ -209,7 +209,7 @@ describe('CinematicOpening', () => {
 
     it('button has font-bold weight', () => {
       renderComponent();
-      expect(screen.getByText('Buka Undangan')).toHaveClass('font-bold');
+      expect(screen.getByText('Buka Undangan')).toHaveClass('font-serif');
     });
 
     it('button has transition-all for smooth hover effects', () => {

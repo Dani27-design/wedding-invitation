@@ -89,10 +89,10 @@ describe('EventSection', () => {
       expect(screen.getByText('Sabtu, 29 Agustus 2026')).toBeInTheDocument();
     });
 
-    it('date uses font-display', () => {
+    it('date uses font-serif italic', () => {
       renderComponent();
       const el = screen.getByText('Sabtu, 29 Agustus 2026');
-      expect(el).toHaveClass('font-display');
+      expect(el).toHaveClass('font-serif', 'italic');
     });
 
     it('date uses responsive sizing (text-4xl sm:text-5xl md:text-6xl)', () => {
@@ -231,11 +231,11 @@ describe('EventSection', () => {
       expect(link).toHaveClass('rounded-full');
     });
 
-    it('"Lihat Peta" has bg-ink text-gold colors', () => {
+    it('"Lihat Peta" has bg-gold text-ivory colors', () => {
       renderComponent();
       const link = screen.getByText('Lihat Peta').closest('a');
-      expect(link).toHaveClass('bg-ink');
-      expect(link).toHaveClass('text-gold');
+      expect(link).toHaveClass('bg-gold');
+      expect(link).toHaveClass('text-ivory');
     });
 
     it('"Lihat Peta" is uppercase with tracking', () => {
@@ -270,7 +270,7 @@ describe('EventSection', () => {
 
     it('CTA container uses flex-wrap with gap-4', () => {
       const { container } = renderComponent();
-      const ctaContainer = container.querySelector('.flex-wrap.gap-4');
+      const ctaContainer = container.querySelector('.flex-wrap.gap-3');
       expect(ctaContainer).toBeInTheDocument();
     });
   });
@@ -510,7 +510,7 @@ describe('EventSection', () => {
       expect(screen.getByText('Dengan Segenap Cinta')).toBeInTheDocument();
       expect(screen.getByText('Kami menanti kehadiran Anda di hari istimewa kami.')).toBeInTheDocument();
       expect(screen.getByText('Sabtu, 29 Agustus 2026')).toBeInTheDocument();
-      expect(screen.getByText(/Dan dijadikan-Nya di antaramu rasa kasih dan sayang/)).toBeInTheDocument();
+      expect(screen.getByText(/Dan di antara tanda-tanda kekuasaan-Nya/)).toBeInTheDocument();
       expect(screen.getByText('Akad Nikah')).toBeInTheDocument();
       expect(screen.getByText('Resepsi')).toBeInTheDocument();
       expect(screen.getByText('Gedung Wanita Candra Kencana')).toBeInTheDocument();

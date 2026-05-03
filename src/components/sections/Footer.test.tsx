@@ -47,34 +47,34 @@ describe('Footer', () => {
     it('renders consistently on re-render', () => {
       const { rerender } = render(<Footer />);
       rerender(<Footer />);
-      expect(screen.getByText('Dani & Marini')).toBeInTheDocument();
+      expect(screen.getByText('Penutup')).toBeInTheDocument();
     });
   });
 
   // ─── Names ────────────────────────────────────────────────────────
   describe('couple names', () => {
-    it('displays "Dani & Marini" heading', () => {
+    it('displays "Penutup" label', () => {
       renderFooter();
-      expect(screen.getByText('Dani & Marini')).toBeInTheDocument();
+      expect(screen.getByText('Penutup')).toBeInTheDocument();
     });
 
-    it('"Dani & Marini" has dayland font', () => {
+    it('"Penutup" label has gold color', () => {
       renderFooter();
-      const heading = screen.getByText('Dani & Marini');
-      expect(heading.className).toContain('font-dayland');
+      const label = screen.getByText('Penutup');
+      expect(label.className).toContain('text-gold');
     });
 
-    it('"Dani & Marini" is an h4 element', () => {
+    it('"Penutup" label is a p element', () => {
       renderFooter();
-      const heading = screen.getByText('Dani & Marini');
-      expect(heading.tagName).toBe('H4');
+      const label = screen.getByText('Penutup');
+      expect(label.tagName).toBe('P');
     });
 
-    it('"Dani & Marini" has responsive text size', () => {
+    it('"Penutup" label has uppercase tracking style', () => {
       renderFooter();
-      const heading = screen.getByText('Dani & Marini');
-      expect(heading.className).toContain('text-5xl');
-      expect(heading.className).toContain('md:text-6xl');
+      const label = screen.getByText('Penutup');
+      expect(label.className).toContain('uppercase');
+      expect(label.className).toContain('font-black');
     });
 
     it('displays description tagline about perjalanan', () => {
@@ -89,10 +89,10 @@ describe('Footer', () => {
       expect(tagline.className).toContain('italic');
     });
 
-    it('tagline has gold color', () => {
+    it('tagline has subdued ink color', () => {
       renderFooter();
       const tagline = screen.getByText(/Sebuah Cerita dari Perjalanan/);
-      expect(tagline.className).toContain('text-gold');
+      expect(tagline.className).toContain('text-ink/70');
     });
   });
 
@@ -142,7 +142,7 @@ describe('Footer', () => {
 
     it('displays Marini description about design', () => {
       renderFooter();
-      expect(screen.getByText(/Menjadikan setiap bagian tidak hanya terlihat indah/)).toBeInTheDocument();
+      expect(screen.getByText(/Memperindah setiap bagian di balik halaman ini/)).toBeInTheDocument();
     });
 
     it('credit descriptions have xs text size and subdued color', () => {
@@ -273,10 +273,11 @@ describe('Footer', () => {
       expect(screen.getByText(/2026/)).toBeInTheDocument();
     });
 
-    it('copyright text has uppercase tracking-widest', () => {
+    it('copyright text has italic serif tracking-widest', () => {
       renderFooter();
       const copyright = screen.getByText(/2026/);
-      expect(copyright.className).toContain('uppercase');
+      expect(copyright.className).toContain('font-serif');
+      expect(copyright.className).toContain('italic');
       expect(copyright.className).toContain('tracking-widest');
     });
 
@@ -493,7 +494,7 @@ describe('Footer', () => {
       for (let i = 0; i < 5; i++) {
         rerender(<Footer />);
       }
-      expect(screen.getByText('Dani & Marini')).toBeInTheDocument();
+      expect(screen.getByText('Penutup')).toBeInTheDocument();
     });
   });
 });

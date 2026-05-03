@@ -1,21 +1,22 @@
-import { useState, useEffect, useRef, useMemo, FormEvent } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback, lazy, Suspense, FormEvent } from 'react';
 import { AnimatePresence } from 'motion/react';
 import { GuestWishes } from './types';
 import { SEED_WISHES } from './constants/wishes';
 import { BackgroundLayers } from './components/ui/BackgroundLayers';
-import { PhotoZoomModal } from './components/ui/PhotoZoomModal';
-import { FloatingController } from './components/features/FloatingController';
-import { RSVPModal } from './components/features/RSVPModal';
 import { CinematicOpening } from './components/sections/CinematicOpening';
-import { HeroSection } from './components/sections/HeroSection';
-import { CoupleSection } from './components/sections/CoupleSection';
-import { CinematicStory } from './components/sections/CinematicStory';
-import { EventSection } from './components/sections/EventSection';
-import { TwibbonSection } from './components/sections/TwibbonSection';
-import { RSVPSection } from './components/sections/RSVPSection';
-import { DigitalEnvelope } from './components/sections/DigitalEnvelope';
-import { PhotoGallery } from './components/sections/PhotoGallery';
-import { Footer } from './components/sections/Footer';
+
+const HeroSection = lazy(() => import('./components/sections/HeroSection').then(m => ({ default: m.HeroSection })));
+const CoupleSection = lazy(() => import('./components/sections/CoupleSection').then(m => ({ default: m.CoupleSection })));
+const CinematicStory = lazy(() => import('./components/sections/CinematicStory').then(m => ({ default: m.CinematicStory })));
+const EventSection = lazy(() => import('./components/sections/EventSection').then(m => ({ default: m.EventSection })));
+const TwibbonSection = lazy(() => import('./components/sections/TwibbonSection').then(m => ({ default: m.TwibbonSection })));
+const RSVPSection = lazy(() => import('./components/sections/RSVPSection').then(m => ({ default: m.RSVPSection })));
+const DigitalEnvelope = lazy(() => import('./components/sections/DigitalEnvelope').then(m => ({ default: m.DigitalEnvelope })));
+const PhotoGallery = lazy(() => import('./components/sections/PhotoGallery').then(m => ({ default: m.PhotoGallery })));
+const Footer = lazy(() => import('./components/sections/Footer').then(m => ({ default: m.Footer })));
+const FloatingController = lazy(() => import('./components/features/FloatingController').then(m => ({ default: m.FloatingController })));
+const RSVPModal = lazy(() => import('./components/features/RSVPModal').then(m => ({ default: m.RSVPModal })));
+const PhotoZoomModal = lazy(() => import('./components/ui/PhotoZoomModal').then(m => ({ default: m.PhotoZoomModal })));
 
 export default function App() {
   const [isOpen, setIsOpen] = useState(false);
@@ -30,11 +31,30 @@ export default function App() {
   const [isSubmitSuccess, setIsSubmitSuccess] = useState(false);
   const [viewportHeight, setViewportHeight] = useState(typeof window !== 'undefined' ? window.innerHeight : 667);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const submitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    const handleResize = () => setViewportHeight(window.innerHeight);
+    return () => {
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+      if (submitTimerRef.current) clearTimeout(submitTimerRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    let rafId: number | null = null;
+    const handleResize = () => {
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => {
+        setViewportHeight(window.innerHeight);
+        rafId = null;
+      });
+    };
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
   }, []);
 
   const wishPages = useMemo(() => {
@@ -70,17 +90,17 @@ export default function App() {
     if (to) setGuestName(decodeURIComponent(to));
   }, []);
 
-  const handleOpen = () => {
+  const handleOpen = useCallback(() => {
     setIsOpen(true);
     setIsPlaying(true);
     if (audioRef.current) {
       audioRef.current.play().catch(() => setIsPlaying(false));
     }
-  };
+  }, []);
 
-  const toggleMusic = () => {
+  const toggleMusic = useCallback(() => {
     if (audioRef.current) {
-      if (isPlaying) {
+      if (!audioRef.current.paused) {
         audioRef.current.pause();
         setIsPlaying(false);
       } else {
@@ -88,9 +108,9 @@ export default function App() {
         setIsPlaying(true);
       }
     }
-  };
+  }, []);
 
-  const handleCopy = async (text: string, index: number) => {
+  const handleCopy = useCallback(async (text: string, index: number) => {
     let success = false;
     try {
       await navigator.clipboard.writeText(text);
@@ -108,12 +128,13 @@ export default function App() {
       } catch { /* both methods failed */ }
     }
     if (success) {
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
       setCopiedIndex(index);
-      setTimeout(() => setCopiedIndex(null), 2000);
+      copyTimerRef.current = setTimeout(() => setCopiedIndex(null), 2000);
     }
-  };
+  }, []);
 
-  const handleRSVPSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleRSVPSubmit = useCallback((e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const newWish: GuestWishes = {
@@ -123,15 +144,15 @@ export default function App() {
       attendance: formData.get('attendance') as 'yes' | 'no',
       createdAt: Date.now(),
     };
-    setWishes([newWish, ...wishes]);
+    setWishes(prev => [newWish, ...prev]);
     setCurrentPage(1);
     setIsSubmitSuccess(true);
     e.currentTarget.reset();
-    setTimeout(() => {
+    submitTimerRef.current = setTimeout(() => {
       setIsRSVPModalOpen(false);
       setIsSubmitSuccess(false);
     }, 1500);
-  };
+  }, []);
 
   return (
     <div className="min-h-screen bg-ivory text-ink selection:bg-gold/20 font-sans overflow-x-hidden">
@@ -143,6 +164,7 @@ export default function App() {
       </AnimatePresence>
 
       {isOpen && (
+        <Suspense fallback={null}>
         <main className="relative z-10">
           <FloatingController
             isToolsOpen={isToolsOpen}
@@ -179,6 +201,7 @@ export default function App() {
           <Footer />
           <PhotoZoomModal selectedPhoto={selectedPhoto} onClose={() => setSelectedPhoto(null)} />
         </main>
+        </Suspense>
       )}
     </div>
   );

@@ -320,13 +320,13 @@ describe('FloatingController', () => {
   describe('Visual indicators', () => {
     it('pulsing aura element is present when isPlaying is true', () => {
       const { container } = render(<FloatingController {...createProps({ isPlaying: true })} />);
-      const aura = container.querySelector('.bg-rose-pastel\\/20.rounded-full.blur-xl');
+      const aura = container.querySelector('.bg-rose-pastel\\/20.rounded-full');
       expect(aura).toBeInTheDocument();
     });
 
     it('pulsing aura is NOT present when isPlaying is false', () => {
       const { container } = render(<FloatingController {...createProps({ isPlaying: false })} />);
-      const aura = container.querySelector('.bg-rose-pastel\\/20.rounded-full.blur-xl');
+      const aura = container.querySelector('.bg-rose-pastel\\/20.rounded-full');
       expect(aura).not.toBeInTheDocument();
     });
 

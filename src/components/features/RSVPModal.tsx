@@ -96,10 +96,10 @@ export const RSVPModal = ({ isOpen, isSubmitSuccess, guestName, onClose, onSubmi
                   </div>
 
                   <motion.button
-                    whileHover={{ scale: 1.01, backgroundColor: '#1A1A1A', color: '#D4AF37' }}
+                    whileHover={{ scale: 1.01, backgroundColor: '#a07a2e', color: '#FDFCF8' }}
                     whileTap={{ scale: 0.98 }}
                     type="submit"
-                    className="w-full py-4 bg-ink text-gold rounded-full text-xs tracking-[0.35em] font-black uppercase transition-all duration-500 shadow-xl mt-2"
+                    className="w-full py-4 bg-gold text-ivory rounded-full text-xs tracking-[0.35em] font-black uppercase transition-all duration-500 shadow-xl mt-2"
                   >
                     Kirim
                   </motion.button>

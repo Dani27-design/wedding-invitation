@@ -64,7 +64,7 @@ export const FloatingController = ({ isToolsOpen, setIsToolsOpen, isPlaying, tog
             animate={{ scale: [1, 1.8], opacity: [0.3, 0] }}
             exit={{ opacity: 0 }}
             transition={{ duration: 2, repeat: Infinity, ease: 'easeOut' }}
-            className="absolute inset-0 bg-rose-pastel/20 rounded-full blur-xl"
+            className="absolute inset-0 bg-rose-pastel/20 rounded-full"
           />
         )}
       </AnimatePresence>
@@ -83,7 +83,7 @@ export const FloatingController = ({ isToolsOpen, setIsToolsOpen, isPlaying, tog
       >
         <motion.div
           animate={isPlaying ? { rotate: 360 } : { rotate: 0 }}
-          transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
+          transition={{ duration: 12, repeat: Infinity, ease: 'linear' }}
           className="absolute inset-0 opacity-20 bg-gradient-to-tr from-rose-pastel via-transparent to-rose-pastel"
         />
         <motion.div animate={isToolsOpen ? { rotate: 180 } : { rotate: 0 }} transition={{ type: 'spring', stiffness: 260, damping: 20 }}>
@@ -91,7 +91,7 @@ export const FloatingController = ({ isToolsOpen, setIsToolsOpen, isPlaying, tog
             <X className="w-6 h-6 text-rose-pastel" />
           ) : (
             <motion.div
-              animate={isPlaying ? { scale: [1, 1.2, 1], opacity: [0.8, 1, 0.8] } : { scale: 1, opacity: 0.5 }}
+              animate={isPlaying ? { scale: [1, 1.2, 1] } : { scale: 1 }}
               transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
             >
               <Heart className={`w-6 h-6 text-rose-pastel ${isPlaying ? 'fill-rose-pastel' : ''} transition-colors duration-500`} />

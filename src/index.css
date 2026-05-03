@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'Dayland';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Dayland'), url('/fonts/Dayland.ttf') format('truetype');
+}
+
 @theme {
   --font-serif: "Cormorant Garamond", serif;
   --font-sans: "Montserrat", ui-sans-serif, system-ui, sans-serif;

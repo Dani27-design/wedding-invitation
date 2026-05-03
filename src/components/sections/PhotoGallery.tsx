@@ -18,7 +18,7 @@ export const PhotoGallery = ({ onSelectPhoto }: PhotoGalleryProps) => (
       </motion.div>
 
       <div className="relative">
-        <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-paper to-transparent z-10 pointer-events-none" />
+        <div className="absolute -right-8 top-0 bottom-0 w-12 bg-gradient-to-l from-paper to-transparent z-10 pointer-events-none" />
         <div className="overflow-x-auto pb-4 -mx-4 px-4">
           <div className="py-5 grid grid-rows-[150px_150px] sm:grid-rows-[200px_200px] md:grid-rows-[280px_280px] grid-flow-col-dense gap-3 sm:gap-4 md:gap-6 auto-cols-[120px] sm:auto-cols-[150px] md:auto-cols-[210px]">
             {GALLERY_ITEMS.map((item, i) => (
@@ -32,7 +32,7 @@ export const PhotoGallery = ({ onSelectPhoto }: PhotoGalleryProps) => (
                 onClick={() => onSelectPhoto(item.src)}
                 className={`${item.span} relative group overflow-hidden shadow-2xl ${item.shape} cursor-zoom-in isolate transform-gpu [-webkit-mask-image:-webkit-radial-gradient(white,black)]`}
               >
-                <img src={item.src} loading="lazy" alt={`Gallery ${i}`} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 [backface-visibility:hidden]" referrerPolicy="no-referrer" />
+                <img src={item.src} loading="lazy" decoding="async" alt={`Gallery ${i}`} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 [backface-visibility:hidden]" referrerPolicy="no-referrer" />
                 <div className="absolute inset-0 bg-ink/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
                   <motion.div initial={{ y: 20, opacity: 0 }} whileHover={{ y: 0, opacity: 1 }} className="bg-white/20 backdrop-blur-md p-4 rounded-full border border-white/30">
                     <ImageIcon className="w-5 h-5 text-white" />

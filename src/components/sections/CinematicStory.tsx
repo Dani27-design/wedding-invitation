@@ -49,7 +49,7 @@ export const CinematicStory = () => {
         {STORY_SLIDES.map((slide, idx) => (
           <div key={idx} className="relative h-full w-full min-w-full snap-center flex items-center justify-center overflow-hidden">
             <div className="absolute inset-0">
-              <img src={slide.bg} loading="lazy" className="w-full h-full object-cover opacity-40 md:opacity-50 grayscale hover:grayscale-0 transition-all duration-[3000ms]" alt="Memory" referrerPolicy="no-referrer" />
+              <img src={slide.bg} loading="lazy" decoding="async" className="w-full h-full object-cover opacity-40 md:opacity-50 grayscale hover:grayscale-0 transition-all duration-[3000ms]" alt="Memory" referrerPolicy="no-referrer" />
               <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/20 to-ink/60" />
             </div>
 

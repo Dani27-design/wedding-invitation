@@ -22,7 +22,7 @@ export const CinematicOpening = ({ guestName, onOpen }: CinematicOpeningProps) =
       transition={{ scale: { duration: 20, repeat: Infinity, ease: 'easeInOut' } }}
       className="absolute inset-0 z-0"
     >
-      <img src="/bride_and_groom_full_body_potrait.jpeg" className="w-full h-full object-cover" alt="Opening BG" />
+      <img src="/bride_and_groom_full_body_potrait.jpeg" fetchPriority="high" className="w-full h-full object-cover" alt="Opening BG" />
       <div className="absolute inset-0 bg-gradient-to-b from-ink/60 via-transparent to-ink/90" />
       <LightGlow />
       <FloatingPetals />
@@ -62,15 +62,39 @@ export const CinematicOpening = ({ guestName, onOpen }: CinematicOpeningProps) =
             <p className="font-sans text-xs tracking-[0.3rem] uppercase text-gold/70 font-medium">Turut Mengundang</p>
             <h2 className="font-display italic text-3xl md:text-4xl text-ivory font-light max-w-[85vw] break-words">{guestName}</h2>
           </div>
-          <div className="pt-4">
-            <motion.button
-              whileHover={{ letterSpacing: '0.6rem' }}
-              onClick={onOpen}
-              className="font-sans text-xs tracking-[0.4rem] uppercase text-gold font-bold transition-all duration-500 py-4 border-b border-gold/20"
+          <motion.button
+            onClick={onOpen}
+            className="flex flex-col items-center gap-3 pt-4 group cursor-pointer"
+          >
+            <motion.svg
+              width="44"
+              height="36"
+              viewBox="0 0 44 36"
+              fill="none"
+              className="text-gold"
+              animate={{ scale: [1, 1.05, 1] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <rect x="2" y="10" width="40" height="24" rx="3" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.6" />
+              <path d="M2 12 L22 24 L42 12" stroke="currentColor" strokeWidth="0.8" fill="none" opacity="0.3" />
+              <path d="M2 34 L16 22" stroke="currentColor" strokeWidth="0.8" fill="none" opacity="0.2" />
+              <path d="M42 34 L28 22" stroke="currentColor" strokeWidth="0.8" fill="none" opacity="0.2" />
+              <motion.path
+                d="M22 18 C22 14 18 12 16 14 C14 16 16 18 22 22 C28 18 30 16 28 14 C26 12 22 14 22 18Z"
+                fill="currentColor"
+                opacity="0.4"
+                animate={{ y: [0, -4, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+              />
+            </motion.svg>
+            <motion.span
+              animate={{ opacity: [0.6, 1, 0.6] }}
+              transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut' }}
+              className="font-serif italic uppercase text-sm tracking-[0.3rem] text-gold transition-all duration-500 group-hover:tracking-[0.5rem]"
             >
               Buka Undangan
-            </motion.button>
-          </div>
+            </motion.span>
+          </motion.button>
         </motion.div>
       </div>
     </div>

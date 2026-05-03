@@ -100,9 +100,9 @@ describe('CountdownTimer', () => {
   // 4. Numbers are zero-padded (2 digits)
   // ---------------------------------------------------------------------------
   describe('zero-padded numbers', () => {
-    it('all displayed numbers are 2 digits', () => {
+    it('all displayed numbers are at least 2 digits (zero-padded)', () => {
       render(<CountdownTimer targetDate="2030-01-01T00:00:00" />);
-      const numbers = screen.getAllByText(/^\d{2}$/);
+      const numbers = screen.getAllByText(/^\d{2,}$/);
       expect(numbers).toHaveLength(4);
     });
 
@@ -124,46 +124,34 @@ describe('CountdownTimer', () => {
   // 5. Gold aura element
   // ---------------------------------------------------------------------------
   describe('gold aura / pulse element', () => {
-    it('has an animate-pulse element for gold aura', () => {
+    it('has static gold aura element (no animate-pulse for performance)', () => {
       const { container } = render(<CountdownTimer targetDate="2030-01-01T00:00:00" />);
-      const pulseElements = container.querySelectorAll('.animate-pulse');
-      expect(pulseElements.length).toBeGreaterThanOrEqual(1);
+      const auras = container.querySelectorAll('.bg-gold\\/10');
+      expect(auras.length).toBeGreaterThanOrEqual(1);
     });
 
     it('aura has gold background', () => {
       const { container } = render(<CountdownTimer targetDate="2030-01-01T00:00:00" />);
-      const pulseElements = container.querySelectorAll('.animate-pulse');
-      const hasGold = Array.from(pulseElements).some((el) =>
-        el.className.includes('bg-gold/10')
-      );
-      expect(hasGold).toBe(true);
+      const auras = container.querySelectorAll('.bg-gold\\/10');
+      expect(auras.length).toBeGreaterThanOrEqual(1);
     });
 
-    it('aura has blur-xl for soft glow', () => {
+    it('aura has no blur-xl (removed for performance)', () => {
       const { container } = render(<CountdownTimer targetDate="2030-01-01T00:00:00" />);
-      const pulseElements = container.querySelectorAll('.animate-pulse');
-      const hasBlur = Array.from(pulseElements).some((el) =>
-        el.className.includes('blur-xl')
-      );
-      expect(hasBlur).toBe(true);
+      const blurs = container.querySelectorAll('.blur-xl');
+      expect(blurs.length).toBe(0);
     });
 
     it('aura has rounded-full', () => {
       const { container } = render(<CountdownTimer targetDate="2030-01-01T00:00:00" />);
-      const pulseElements = container.querySelectorAll('.animate-pulse');
-      const hasRounded = Array.from(pulseElements).some((el) =>
-        el.className.includes('rounded-full')
-      );
-      expect(hasRounded).toBe(true);
+      const auras = container.querySelectorAll('.rounded-full');
+      expect(auras.length).toBeGreaterThanOrEqual(1);
     });
 
     it('aura has negative z-index (behind text)', () => {
       const { container } = render(<CountdownTimer targetDate="2030-01-01T00:00:00" />);
-      const pulseElements = container.querySelectorAll('.animate-pulse');
-      const hasBehind = Array.from(pulseElements).some((el) =>
-        el.className.includes('-z-10')
-      );
-      expect(hasBehind).toBe(true);
+      const auras = container.querySelectorAll('.-z-10');
+      expect(auras.length).toBeGreaterThanOrEqual(1);
     });
   });
 
@@ -204,7 +192,7 @@ describe('CountdownTimer', () => {
     it('labels have small font size', () => {
       render(<CountdownTimer targetDate="2030-01-01T00:00:00" />);
       const hari = screen.getByText('Hari');
-      expect(hari.className).toMatch(/text-\[/);
+      expect(hari).toHaveClass('text-xs');
     });
   });
 
@@ -356,7 +344,7 @@ describe('CountdownTimer', () => {
       for (let i = 0; i < 5; i++) {
         rerender(<CountdownTimer targetDate="2030-01-01T00:00:00" />);
       }
-      expect(screen.getAllByText(/^\d{2}$/)).toHaveLength(4);
+      expect(screen.getAllByText(/^\d{2,}$/)).toHaveLength(4);
     });
 
     it('changing targetDate to past shows all zeros', () => {

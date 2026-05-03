@@ -231,7 +231,7 @@ describe('PhotoGallery', () => {
     it('fade is positioned right-0', () => {
       const { container } = renderGallery();
       const fade = container.querySelector('.bg-gradient-to-l');
-      expect(fade?.className).toContain('right-0');
+      expect(fade?.className).toContain('-right-8');
     });
 
     it('scroll container has relative wrapper', () => {

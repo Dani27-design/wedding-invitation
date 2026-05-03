@@ -11,6 +11,7 @@ export const HeroSection = () => (
       >
         <img
           src="/bride_and_groom_full_body_potrait.jpeg"
+          fetchPriority="high"
           className="w-full h-full object-cover brightness-[0.85] contrast-[1.05]"
           alt="Hero Portrait"
         />

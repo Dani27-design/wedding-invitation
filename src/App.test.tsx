@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import App from './App';
 
 // ---------------------------------------------------------------------------
@@ -16,10 +16,10 @@ function setLocationSearch(search: string) {
 }
 
 /** Utility: render App and click "Buka Undangan" to reach main content */
-function renderAndOpen() {
+async function renderAndOpen() {
   const result = render(<App />);
-  const button = screen.getByText('Buka Undangan');
-  fireEvent.click(button);
+  fireEvent.click(screen.getByText('Buka Undangan'));
+  await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
   return result;
 }
 
@@ -253,23 +253,23 @@ describe('App - Guest Name from URL', () => {
 // ===========================================================================
 
 describe('App - Opening to Main Content Transition', () => {
-  it('clicking "Buka Undangan" transitions to main content', () => {
+  it('clicking "Buka Undangan" transitions to main content', async () => {
     render(<App />);
     fireEvent.click(screen.getByText('Buka Undangan'));
-    const main = document.querySelector('main');
-    expect(main).toBeInTheDocument();
+    await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
   });
 
-  it('after opening: <main> element has relative and z-10 classes', () => {
+  it('after opening: <main> element has relative and z-10 classes', async () => {
     render(<App />);
     fireEvent.click(screen.getByText('Buka Undangan'));
+    await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
     const main = document.querySelector('main');
     expect(main).toHaveClass('relative');
     expect(main).toHaveClass('z-10');
   });
 
-  it('after opening: hero section is visible with couple names', () => {
-    renderAndOpen();
+  it('after opening: hero section is visible with couple names', async () => {
+    await renderAndOpen();
     // HeroSection should display Dani and Marini
     const allDani = screen.getAllByText(/Dani/i);
     const allMarini = screen.getAllByText(/Marini/i);
@@ -277,65 +277,65 @@ describe('App - Opening to Main Content Transition', () => {
     expect(allMarini.length).toBeGreaterThan(0);
   });
 
-  it('after opening: floating controller is rendered inside main', () => {
-    renderAndOpen();
+  it('after opening: floating controller is rendered inside main', async () => {
+    await renderAndOpen();
     const main = document.querySelector('main');
     expect(main).toBeInTheDocument();
     // FloatingController is the first child of main
     expect(main?.children.length).toBeGreaterThan(0);
   });
 
-  it('after opening: event section is visible', () => {
-    renderAndOpen();
+  it('after opening: event section is visible', async () => {
+    await renderAndOpen();
     // EventSection typically shows event details
     const main = document.querySelector('main');
     expect(main).toBeInTheDocument();
   });
 
-  it('after opening: RSVP section is visible', () => {
-    renderAndOpen();
+  it('after opening: RSVP section is visible', async () => {
+    await renderAndOpen();
     expect(screen.getByText('Ucapan & Doa')).toBeInTheDocument();
   });
 
-  it('after opening: digital envelope section is visible', () => {
-    renderAndOpen();
+  it('after opening: digital envelope section is visible', async () => {
+    await renderAndOpen();
     const main = document.querySelector('main');
     expect(main).toBeInTheDocument();
     // DigitalEnvelope is rendered within main
     expect(main?.innerHTML).toBeTruthy();
   });
 
-  it('after opening: footer is visible', () => {
-    renderAndOpen();
+  it('after opening: footer is visible', async () => {
+    await renderAndOpen();
     // Footer component is the last rendered section
     const main = document.querySelector('main');
     expect(main?.children.length).toBeGreaterThanOrEqual(5);
   });
 
-  it('opening overlay (CinematicOpening) is no longer the active view after click', () => {
+  it('opening overlay (CinematicOpening) is no longer the active view after click', async () => {
     render(<App />);
     expect(screen.getByText('Buka Undangan')).toBeInTheDocument();
     fireEvent.click(screen.getByText('Buka Undangan'));
     // After clicking, main content appears (AnimatePresence may keep exit animation in DOM)
-    const main = document.querySelector('main');
-    expect(main).toBeInTheDocument();
+    await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
   });
 
-  it('background layers persist after opening transition', () => {
-    renderAndOpen();
+  it('background layers persist after opening transition', async () => {
+    await renderAndOpen();
     const grain = document.querySelector('.animate-grain');
     expect(grain).toBeInTheDocument();
   });
 
-  it('audio element persists after opening transition', () => {
-    renderAndOpen();
+  it('audio element persists after opening transition', async () => {
+    await renderAndOpen();
     const audio = document.querySelector('audio');
     expect(audio).toBeInTheDocument();
   });
 
-  it('root container retains all CSS classes after opening', () => {
+  it('root container retains all CSS classes after opening', async () => {
     const { container } = render(<App />);
     fireEvent.click(screen.getByText('Buka Undangan'));
+    await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
     expect(container.firstChild).toHaveClass('min-h-screen');
     expect(container.firstChild).toHaveClass('bg-ivory');
     expect(container.firstChild).toHaveClass('overflow-x-hidden');
@@ -405,24 +405,24 @@ describe('App - Audio / Music', () => {
 // ===========================================================================
 
 describe('App - State Management', () => {
-  it('copiedIndex starts as null (no copy indicator visible initially)', () => {
-    renderAndOpen();
+  it('copiedIndex starts as null (no copy indicator visible initially)', async () => {
+    await renderAndOpen();
     // DigitalEnvelope receives copiedIndex=null, so no "Copied!" indicator
     // We verify indirectly: no copied-state class or text on initial render
     const copiedTexts = screen.queryAllByText(/Copied|Tersalin/i);
     expect(copiedTexts.length).toBe(0);
   });
 
-  it('currentPage starts at 1 (first page of wishes displayed)', () => {
-    renderAndOpen();
+  it('currentPage starts at 1 (first page of wishes displayed)', async () => {
+    await renderAndOpen();
     // The pagination should show page 1 as active/current
     // We verify the first page of wishes is displayed
     const main = document.querySelector('main');
     expect(main).toBeInTheDocument();
   });
 
-  it('isRSVPModalOpen starts as false (modal not visible)', () => {
-    renderAndOpen();
+  it('isRSVPModalOpen starts as false (modal not visible)', async () => {
+    await renderAndOpen();
     // RSVPModal with isOpen=false should not show modal overlay
     // Checking that no modal-specific submit button is immediately visible
     const submitButtons = screen.queryAllByText(/Kirim/i);
@@ -430,8 +430,8 @@ describe('App - State Management', () => {
     expect(document.querySelector('[data-rsvp-modal-open="true"]')).toBeNull();
   });
 
-  it('selectedPhoto starts as null (no photo zoom modal visible)', () => {
-    renderAndOpen();
+  it('selectedPhoto starts as null (no photo zoom modal visible)', async () => {
+    await renderAndOpen();
     // PhotoZoomModal with selectedPhoto=null should not render image overlay
     const zoomOverlay = document.querySelector('[data-photo-zoom]');
     expect(zoomOverlay).toBeNull();
@@ -451,15 +451,15 @@ describe('App - State Management', () => {
     expect(pauseSpy).not.toHaveBeenCalled();
   });
 
-  it('isToolsOpen starts as false', () => {
-    renderAndOpen();
+  it('isToolsOpen starts as false', async () => {
+    await renderAndOpen();
     // FloatingController is rendered but tools panel should be collapsed
     const main = document.querySelector('main');
     expect(main).toBeInTheDocument();
   });
 
-  it('wishes state is initialized with SEED_WISHES data', () => {
-    renderAndOpen();
+  it('wishes state is initialized with SEED_WISHES data', async () => {
+    await renderAndOpen();
     // The RSVP section should display seeded wishes
     const main = document.querySelector('main');
     expect(main).toBeInTheDocument();
@@ -472,7 +472,7 @@ describe('App - State Management', () => {
 // ===========================================================================
 
 describe('App - Edge Cases', () => {
-  it('multiple rapid clicks on "Buka Undangan" do not break the app', () => {
+  it('multiple rapid clicks on "Buka Undangan" do not break the app', async () => {
     render(<App />);
     const button = screen.getByText('Buka Undangan');
     // Simulate rapid clicking
@@ -483,8 +483,7 @@ describe('App - Edge Cases', () => {
     fireEvent.click(button);
 
     // App should still be functional with main content visible
-    const main = document.querySelector('main');
-    expect(main).toBeInTheDocument();
+    await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
   });
 
   it('re-renders are stable and do not duplicate content', () => {
@@ -505,17 +504,19 @@ describe('App - Edge Cases', () => {
     expect(() => unmount()).not.toThrow();
   });
 
-  it('component unmounts cleanly after opening', () => {
+  it('component unmounts cleanly after opening', async () => {
     const { unmount } = render(<App />);
     fireEvent.click(screen.getByText('Buka Undangan'));
+    await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
     expect(() => unmount()).not.toThrow();
   });
 
-  it('opening and unmounting does not leave orphaned DOM elements', () => {
+  it('opening and unmounting does not leave orphaned DOM elements', async () => {
     const container = document.createElement('div');
     document.body.appendChild(container);
     const { unmount } = render(<App />, { container });
     fireEvent.click(screen.getByText('Buka Undangan'));
+    await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
     unmount();
     expect(container.innerHTML).toBe('');
     document.body.removeChild(container);
@@ -570,8 +571,8 @@ describe('App - Visual Rendering Stability', () => {
     expect(screen.getByText('Buka Undangan')).toBeInTheDocument();
   });
 
-  it('main content sections all render after open (no missing sections)', () => {
-    renderAndOpen();
+  it('main content sections all render after open (no missing sections)', async () => {
+    await renderAndOpen();
     const main = document.querySelector('main');
     expect(main).toBeInTheDocument();
     // main should contain multiple section children
@@ -581,7 +582,7 @@ describe('App - Visual Rendering Stability', () => {
     expect(main!.children.length).toBeGreaterThanOrEqual(5);
   });
 
-  it('no blank screen: either opening or main content is always visible', () => {
+  it('no blank screen: either opening or main content is always visible', async () => {
     const { container } = render(<App />);
     // Before open: opening is visible
     expect(container.firstChild).toBeInTheDocument();
@@ -589,7 +590,7 @@ describe('App - Visual Rendering Stability', () => {
 
     // After open: main content is visible
     fireEvent.click(screen.getByText('Buka Undangan'));
-    expect(document.querySelector('main')).toBeInTheDocument();
+    await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
   });
 
   it('audio element is not visible (no phantom media player displayed)', () => {
@@ -599,9 +600,10 @@ describe('App - Visual Rendering Stability', () => {
     expect(audio.hasAttribute('controls')).toBe(false);
   });
 
-  it('after open, root div still has correct structure (not broken by re-render)', () => {
+  it('after open, root div still has correct structure (not broken by re-render)', async () => {
     const { container } = render(<App />);
     fireEvent.click(screen.getByText('Buka Undangan'));
+    await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
     const root = container.firstChild as HTMLElement;
     // Should contain BackgroundLayers, audio, and main
     expect(root.querySelector('audio')).toBeInTheDocument();
@@ -615,7 +617,7 @@ describe('App - Visual Rendering Stability', () => {
 // ===========================================================================
 
 describe('App - Logical Behavior', () => {
-  it('opening state is mutually exclusive with main content display', () => {
+  it('opening state is mutually exclusive with main content display', async () => {
     render(<App />);
     // Before: opening visible, main not
     expect(screen.getByText('Buka Undangan')).toBeInTheDocument();
@@ -624,36 +626,36 @@ describe('App - Logical Behavior', () => {
     fireEvent.click(screen.getByText('Buka Undangan'));
 
     // After: main visible (AnimatePresence may still hold exit animation in DOM)
-    expect(document.querySelector('main')).toBeInTheDocument();
+    await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
   });
 
-  it('AnimatePresence wraps CinematicOpening for exit animations', () => {
+  it('AnimatePresence wraps CinematicOpening for exit animations', async () => {
     // We verify this indirectly: after clicking open, main content appears
     // AnimatePresence manages the exit transition of CinematicOpening
     render(<App />);
     expect(screen.getByText('Buka Undangan')).toBeInTheDocument();
     fireEvent.click(screen.getByText('Buka Undangan'));
     // Main content should now be present alongside or replacing the opening
-    expect(document.querySelector('main')).toBeInTheDocument();
+    await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
   });
 
-  it('guest name from URL param is also passed to RSVPModal after opening', () => {
+  it('guest name from URL param is also passed to RSVPModal after opening', async () => {
     setLocationSearch('?to=Budi');
-    renderAndOpen();
+    await renderAndOpen();
     // RSVPModal receives guestName prop; it is rendered in the tree
     const main = document.querySelector('main');
     expect(main).toBeInTheDocument();
   });
 
-  it('wishes pagination: totalPages is derived from wishPages length', () => {
-    renderAndOpen();
+  it('wishes pagination: totalPages is derived from wishPages length', async () => {
+    await renderAndOpen();
     // We can verify the component renders without pagination errors
     const main = document.querySelector('main');
     expect(main).toBeInTheDocument();
   });
 
-  it('multiple sections render in correct order within main', () => {
-    renderAndOpen();
+  it('multiple sections render in correct order within main', async () => {
+    await renderAndOpen();
     const main = document.querySelector('main');
     expect(main).toBeInTheDocument();
     const children = main!.children;
@@ -683,7 +685,7 @@ describe('App - Bad Behavioral Usage', () => {
     expect(container.firstChild).toBeInTheDocument();
   });
 
-  it('handles opening when audio.play() is rejected', () => {
+  it('handles opening when audio.play() is rejected', async () => {
     const playSpy = window.HTMLMediaElement.prototype.play as ReturnType<typeof vi.fn>;
     playSpy.mockImplementationOnce(() => Promise.reject(new Error('Blocked')));
 
@@ -691,7 +693,7 @@ describe('App - Bad Behavioral Usage', () => {
     fireEvent.click(screen.getByText('Buka Undangan'));
 
     // App should still show main content even if audio fails
-    expect(document.querySelector('main')).toBeInTheDocument();
+    await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
   });
 
   it('handles query param with unicode characters', () => {
@@ -714,9 +716,10 @@ describe('App - Bad Behavioral Usage', () => {
     expect(container.firstChild).toBeInTheDocument();
   });
 
-  it('does not throw on rapid open followed by immediate unmount', () => {
+  it('does not throw on rapid open followed by immediate unmount', async () => {
     const { unmount } = render(<App />);
     fireEvent.click(screen.getByText('Buka Undangan'));
+    await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
     expect(() => unmount()).not.toThrow();
   });
 });
@@ -726,46 +729,50 @@ describe('App - Bad Behavioral Usage', () => {
 // ===========================================================================
 
 describe('App - Content Integrity After Transition', () => {
-  it('BackgroundLayers remain unchanged after opening', () => {
+  it('BackgroundLayers remain unchanged after opening', async () => {
     render(<App />);
     const grainBefore = document.querySelector('.animate-grain');
     expect(grainBefore).toBeInTheDocument();
 
     fireEvent.click(screen.getByText('Buka Undangan'));
+    await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
 
     const grainAfter = document.querySelector('.animate-grain');
     expect(grainAfter).toBeInTheDocument();
   });
 
-  it('audio src remains unchanged after opening', () => {
+  it('audio src remains unchanged after opening', async () => {
     render(<App />);
     const audioBefore = document.querySelector('audio')?.getAttribute('src');
 
     fireEvent.click(screen.getByText('Buka Undangan'));
+    await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
 
     const audioAfter = document.querySelector('audio')?.getAttribute('src');
     expect(audioBefore).toBe(audioAfter);
   });
 
-  it('audio loop attribute persists after opening', () => {
+  it('audio loop attribute persists after opening', async () => {
     render(<App />);
     fireEvent.click(screen.getByText('Buka Undangan'));
+    await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
     const audio = document.querySelector('audio') as HTMLAudioElement;
     expect(audio.loop).toBe(true);
   });
 
-  it('root div class list remains stable after transition', () => {
+  it('root div class list remains stable after transition', async () => {
     const { container } = render(<App />);
     const classesBefore = (container.firstChild as HTMLElement).className;
 
     fireEvent.click(screen.getByText('Buka Undangan'));
+    await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
 
     const classesAfter = (container.firstChild as HTMLElement).className;
     expect(classesAfter).toBe(classesBefore);
   });
 
-  it('no duplicate main elements after multiple state changes', () => {
-    renderAndOpen();
+  it('no duplicate main elements after multiple state changes', async () => {
+    await renderAndOpen();
     const mains = document.querySelectorAll('main');
     expect(mains.length).toBe(1);
   });

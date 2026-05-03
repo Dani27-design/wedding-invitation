@@ -453,10 +453,10 @@ describe('RSVPModal', () => {
       expect(btn).toHaveClass('w-full');
     });
 
-    it('submit button has bg-ink background', () => {
+    it('submit button has bg-gold background', () => {
       render(<RSVPModal {...createProps()} />);
       const btn = screen.getByText('Kirim');
-      expect(btn).toHaveClass('bg-ink');
+      expect(btn).toHaveClass('bg-gold');
     });
 
     it('submit button has rounded-full styling', () => {

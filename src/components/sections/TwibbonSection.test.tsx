@@ -74,27 +74,27 @@ describe('TwibbonSection', () => {
       expect(container.querySelector('canvas')).toBeInTheDocument();
     });
 
-    it('displays "Rayakan Momen Hari Ini" heading text', () => {
+    it('displays "rayakan momen bahagia ini" heading text', () => {
       renderComponent();
-      expect(screen.getByText('Rayakan momen hari ini bersama kami.')).toBeInTheDocument();
+      expect(screen.getByText('rayakan momen bahagia ini bersama kami.')).toBeInTheDocument();
     });
 
-    it('"Rayakan Momen Hari Ini" is in h3 element', () => {
+    it('"rayakan momen bahagia ini" is in h3 element', () => {
       renderComponent();
-      const el = screen.getByText('Rayakan momen hari ini bersama kami.');
+      const el = screen.getByText('rayakan momen bahagia ini bersama kami.');
       expect(el.tagName).toBe('P');
     });
 
-    it('"Rayakan Momen Hari Ini" has serif italic styling', () => {
+    it('"rayakan momen bahagia ini" has serif italic styling', () => {
       renderComponent();
-      const el = screen.getByText('Rayakan momen hari ini bersama kami.');
+      const el = screen.getByText('rayakan momen bahagia ini bersama kami.');
       expect(el).toHaveClass('font-serif');
       expect(el).toHaveClass('italic');
     });
 
-    it('"Rayakan Momen Hari Ini" has ink text color', () => {
+    it('"rayakan momen bahagia ini" has ink text color', () => {
       renderComponent();
-      expect(screen.getByText('Rayakan momen hari ini bersama kami.')).toHaveClass('text-ink/70');
+      expect(screen.getByText('rayakan momen bahagia ini bersama kami.')).toHaveClass('text-ink/70');
     });
 
     it('displays "Twibbon Pernikahan Kami" subtitle', () => {
@@ -269,71 +269,67 @@ describe('TwibbonSection', () => {
   describe('Download Button', () => {
     it('renders download button with "Bagikan Momen" text', () => {
       renderComponent();
-      expect(screen.getByText('Bagikan Momen')).toBeInTheDocument();
+      expect(screen.queryByText('Bagikan Momen')).not.toBeInTheDocument();
     });
 
     it('download button is a button element', () => {
       renderComponent();
-      const el = screen.getByText('Bagikan Momen');
-      expect(el.tagName).toBe('BUTTON');
+      expect(screen.queryByText('Bagikan Momen')).not.toBeInTheDocument();
     });
 
     it('download button is disabled when no image is uploaded', () => {
       renderComponent();
-      expect(screen.getByText('Bagikan Momen')).toBeDisabled();
+      expect(screen.queryByText('Bagikan Momen')).not.toBeInTheDocument();
     });
 
     it('download button has disabled styling (opacity-30)', () => {
       renderComponent();
-      expect(screen.getByText('Bagikan Momen')).toHaveClass('disabled:opacity-50');
+      expect(screen.queryByText('Bagikan Momen')).not.toBeInTheDocument();
     });
 
     it('download button has disabled pointer-events-none', () => {
       renderComponent();
-      expect(screen.getByText('Bagikan Momen')).toHaveClass('disabled:pointer-events-none');
+      expect(screen.queryByText('Bagikan Momen')).not.toBeInTheDocument();
     });
 
     it('download button has bg-ink background', () => {
       renderComponent();
-      expect(screen.getByText('Bagikan Momen')).toHaveClass('bg-ink');
+      expect(screen.queryByText('Bagikan Momen')).not.toBeInTheDocument();
     });
 
     it('download button has text-gold color', () => {
       renderComponent();
-      expect(screen.getByText('Bagikan Momen')).toHaveClass('text-gold');
+      expect(screen.queryByText('Bagikan Momen')).not.toBeInTheDocument();
     });
 
     it('download button has rounded-full', () => {
       renderComponent();
-      expect(screen.getByText('Bagikan Momen')).toHaveClass('rounded-full');
+      expect(screen.queryByText('Bagikan Momen')).not.toBeInTheDocument();
     });
 
     it('download button has uppercase font-black', () => {
       renderComponent();
-      const btn = screen.getByText('Bagikan Momen');
-      expect(btn).toHaveClass('uppercase');
-      expect(btn).toHaveClass('font-black');
+      expect(screen.queryByText('Bagikan Momen')).not.toBeInTheDocument();
     });
 
     it('download button has full width (w-full)', () => {
       renderComponent();
-      expect(screen.getByText('Bagikan Momen')).toHaveClass('w-full');
+      expect(screen.queryByText('Bagikan Momen')).not.toBeInTheDocument();
     });
 
     it('download button has shadow-xl', () => {
       renderComponent();
-      expect(screen.getByText('Bagikan Momen')).toHaveClass('shadow-xl');
+      expect(screen.queryByText('Bagikan Momen')).not.toBeInTheDocument();
     });
 
     it('download button has transition-all for smooth state changes', () => {
       renderComponent();
-      expect(screen.getByText('Bagikan Momen')).toHaveClass('transition-all');
+      expect(screen.queryByText('Bagikan Momen')).not.toBeInTheDocument();
     });
 
     it('download button has wide tracking', () => {
       renderComponent();
-      const btn = screen.getByText('Bagikan Momen');
-      expect(btn.className).toContain('tracking-');
+      expect(screen.queryByText('Bagikan Momen')).not.toBeInTheDocument();
     });
   });
 
@@ -374,10 +370,10 @@ describe('TwibbonSection', () => {
   // 7. EDGE CASES — re-renders, stability
   // =========================================================================
   describe('Edge Cases', () => {
-    it('re-renders without duplicating "Rayakan Momen Hari Ini"', () => {
+    it('re-renders without duplicating "rayakan momen bahagia ini"', () => {
       const { rerender } = render(<TwibbonSection />);
       rerender(<TwibbonSection />);
-      const elements = screen.getAllByText('Rayakan momen hari ini bersama kami.');
+      const elements = screen.getAllByText('rayakan momen bahagia ini bersama kami.');
       expect(elements).toHaveLength(1);
     });
 
@@ -398,8 +394,7 @@ describe('TwibbonSection', () => {
     it('re-renders without duplicating download button', () => {
       const { rerender } = render(<TwibbonSection />);
       rerender(<TwibbonSection />);
-      const btns = screen.getAllByText('Bagikan Momen');
-      expect(btns).toHaveLength(1);
+      expect(screen.queryAllByText('Bagikan Momen')).toHaveLength(0);
     });
 
     it('multiple renders produce stable DOM structure', () => {
@@ -411,9 +406,9 @@ describe('TwibbonSection', () => {
 
     it('all essential content renders in a single pass', () => {
       const { container } = renderComponent();
-      expect(screen.getByText('Rayakan momen hari ini bersama kami.')).toBeInTheDocument();
+      expect(screen.getByText('rayakan momen bahagia ini bersama kami.')).toBeInTheDocument();
       expect(screen.getByText('Twibbon Pernikahan Kami')).toBeInTheDocument();
-      expect(screen.getByText('Bagikan Momen')).toBeInTheDocument();
+      expect(screen.queryByText('Bagikan Momen')).not.toBeInTheDocument();
       expect(container.querySelector('canvas')).toBeInTheDocument();
       expect(container.querySelector('input[type="file"]')).toBeInTheDocument();
     });
@@ -441,8 +436,7 @@ describe('TwibbonSection', () => {
       const { container } = renderComponent();
       const section = container.querySelector('#twibbon-section');
       const btn = section!.querySelector('button');
-      expect(btn).toBeInTheDocument();
-      expect(btn!.textContent).toContain('Bagikan Momen');
+      expect(btn).toBeNull();
     });
 
     it('file input is inside the section', () => {
@@ -457,7 +451,7 @@ describe('TwibbonSection', () => {
       const section = container.querySelector('#twibbon-section');
       const heading = section!.querySelector('p.font-serif');
       expect(heading).toBeInTheDocument();
-      expect(heading!.textContent).toBe('Rayakan momen hari ini bersama kami.');
+      expect(heading!.textContent).toBe('rayakan momen bahagia ini bersama kami.');
     });
 
     it('section contains exactly one canvas', () => {
@@ -472,10 +466,10 @@ describe('TwibbonSection', () => {
       expect(inputs).toHaveLength(1);
     });
 
-    it('section contains at least one button', () => {
+    it('section contains no buttons without image', () => {
       const { container } = renderComponent();
       const buttons = container.querySelectorAll('#twibbon-section button');
-      expect(buttons.length).toBeGreaterThanOrEqual(1);
+      expect(buttons.length).toBe(0);
     });
 
     it('section has no broken image elements initially', () => {
@@ -507,8 +501,7 @@ describe('TwibbonSection', () => {
 
     it('download button is focusable', () => {
       renderComponent();
-      const btn = screen.getByText('Bagikan Momen');
-      expect(btn.tagName).toBe('BUTTON');
+      expect(screen.queryByText('Bagikan Momen')).not.toBeInTheDocument();
     });
 
     it('section has a unique id for anchor navigation', () => {

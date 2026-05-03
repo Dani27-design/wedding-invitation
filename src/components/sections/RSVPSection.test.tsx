@@ -118,7 +118,7 @@ describe('RSVPSection', () => {
     it('displays formatted dates for each wish', () => {
       const { container } = renderWithProps();
       // Each wish card has a date span with specific styling
-      const dateSpans = container.querySelectorAll('.tracking-tighter.shrink-0');
+      const dateSpans = container.querySelectorAll('.font-serif.shrink-0.text-ink\\/50');
       expect(dateSpans.length).toBeGreaterThanOrEqual(5);
     });
 
@@ -385,10 +385,10 @@ describe('RSVPSection', () => {
       expect(section?.className).toContain('overflow-hidden');
     });
 
-    it('has decorative background blur element', () => {
+    it('has decorative background gradient element', () => {
       const { container } = renderWithProps();
-      const blurEl = container.querySelector('.blur-\\[120px\\]');
-      expect(blurEl).toBeInTheDocument();
+      const gradientEl = container.querySelector('.pointer-events-none');
+      expect(gradientEl).toBeInTheDocument();
     });
 
     it('background blur element is pointer-events-none', () => {
@@ -430,7 +430,7 @@ describe('RSVPSection', () => {
 
     it('wish cards have rounded corners', () => {
       const { container } = renderWithProps();
-      const cards = container.querySelectorAll('.rounded-2xl');
+      const cards = container.querySelectorAll('.rounded-xl');
       expect(cards.length).toBeGreaterThan(0);
     });
 

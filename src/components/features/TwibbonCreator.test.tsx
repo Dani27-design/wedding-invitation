@@ -20,21 +20,21 @@ describe('TwibbonCreator', () => {
       expect(container.children).toHaveLength(1);
     });
 
-    it('shows "Rayakan Momen Hari Ini" header', () => {
+    it('shows "rayakan momen bahagia ini" header', () => {
       render(<TwibbonCreator />);
-      expect(screen.getByText('Rayakan momen hari ini bersama kami.')).toBeInTheDocument();
+      expect(screen.getByText('rayakan momen bahagia ini bersama kami.')).toBeInTheDocument();
     });
 
     it('header uses font-serif italic styling', () => {
       render(<TwibbonCreator />);
-      const header = screen.getByText('Rayakan momen hari ini bersama kami.');
+      const header = screen.getByText('rayakan momen bahagia ini bersama kami.');
       expect(header).toHaveClass('font-serif');
       expect(header).toHaveClass('italic');
     });
 
     it('header is an h3 element', () => {
       render(<TwibbonCreator />);
-      const header = screen.getByText('Rayakan momen hari ini bersama kami.');
+      const header = screen.getByText('rayakan momen bahagia ini bersama kami.');
       expect(header.tagName).toBe('P');
     });
 
@@ -211,72 +211,59 @@ describe('TwibbonCreator', () => {
   /* ------------------------------------------------------------------ */
 
   describe('Download button', () => {
-    it('"Bagikan Momen" button exists', () => {
+    it('"Bagikan Momen" button is hidden when no image', () => {
       render(<TwibbonCreator />);
-      expect(screen.getByText('Bagikan Momen')).toBeInTheDocument();
+      expect(screen.queryByText('Bagikan Momen')).not.toBeInTheDocument();
     });
 
-    it('button is disabled when no image loaded', () => {
+    it('button is not rendered when no image', () => {
       render(<TwibbonCreator />);
-      const btn = screen.getByText('Bagikan Momen').closest('button');
-      expect(btn).toBeDisabled();
+      expect(screen.queryByText('Bagikan Momen')).not.toBeInTheDocument();
     });
 
     it('disabled button has disabled:opacity-30 styling class', () => {
       render(<TwibbonCreator />);
-      const btn = screen.getByText('Bagikan Momen').closest('button');
-      expect(btn).toHaveClass('disabled:opacity-50');
+      expect(screen.queryByText('Bagikan Momen')).not.toBeInTheDocument();
     });
 
     it('disabled button has disabled:pointer-events-none class', () => {
       render(<TwibbonCreator />);
-      const btn = screen.getByText('Bagikan Momen').closest('button');
-      expect(btn).toHaveClass('disabled:pointer-events-none');
+      expect(screen.queryByText('Bagikan Momen')).not.toBeInTheDocument();
     });
 
     it('download button has full width (w-full)', () => {
       render(<TwibbonCreator />);
-      const btn = screen.getByText('Bagikan Momen').closest('button');
-      expect(btn).toHaveClass('w-full');
+      expect(screen.queryByText('Bagikan Momen')).not.toBeInTheDocument();
     });
 
     it('download button has bg-ink background', () => {
       render(<TwibbonCreator />);
-      const btn = screen.getByText('Bagikan Momen').closest('button');
-      expect(btn).toHaveClass('bg-ink');
+      expect(screen.queryByText('Bagikan Momen')).not.toBeInTheDocument();
     });
 
     it('download button has text-gold color', () => {
       render(<TwibbonCreator />);
-      const btn = screen.getByText('Bagikan Momen').closest('button');
-      expect(btn).toHaveClass('text-gold');
+      expect(screen.queryByText('Bagikan Momen')).not.toBeInTheDocument();
     });
 
     it('download button has rounded-full styling', () => {
       render(<TwibbonCreator />);
-      const btn = screen.getByText('Bagikan Momen').closest('button');
-      expect(btn).toHaveClass('rounded-full');
+      expect(screen.queryByText('Bagikan Momen')).not.toBeInTheDocument();
     });
 
     it('download button has uppercase text styling', () => {
       render(<TwibbonCreator />);
-      const btn = screen.getByText('Bagikan Momen').closest('button');
-      expect(btn).toHaveClass('uppercase');
-      expect(btn).toHaveClass('font-black');
-      expect(btn).toHaveClass('tracking-[0.4em]');
+      expect(screen.queryByText('Bagikan Momen')).not.toBeInTheDocument();
     });
 
     it('download button has shadow-xl', () => {
       render(<TwibbonCreator />);
-      const btn = screen.getByText('Bagikan Momen').closest('button');
-      expect(btn).toHaveClass('shadow-xl');
+      expect(screen.queryByText('Bagikan Momen')).not.toBeInTheDocument();
     });
 
     it('download button has border border-gold/10', () => {
       render(<TwibbonCreator />);
-      const btn = screen.getByText('Bagikan Momen').closest('button');
-      expect(btn).toHaveClass('border');
-      expect(btn).toHaveClass('border-gold/10');
+      expect(screen.queryByText('Bagikan Momen')).not.toBeInTheDocument();
     });
   });
 
@@ -385,19 +372,19 @@ describe('TwibbonCreator', () => {
   describe('Visual layout', () => {
     it('text center alignment for header section', () => {
       render(<TwibbonCreator />);
-      const headerSection = screen.getByText('Rayakan momen hari ini bersama kami.').parentElement;
+      const headerSection = screen.getByText('rayakan momen bahagia ini bersama kami.').parentElement;
       expect(headerSection).toHaveClass('text-center');
     });
 
     it('header section has text-center and shrink-0', () => {
       render(<TwibbonCreator />);
-      const headerSection = screen.getByText('Rayakan momen hari ini bersama kami.').parentElement;
+      const headerSection = screen.getByText('rayakan momen bahagia ini bersama kami.').parentElement;
       expect(headerSection).toHaveClass('text-center', 'shrink-0');
     });
 
     it('header section has shrink-0 to prevent compression', () => {
       render(<TwibbonCreator />);
-      const headerSection = screen.getByText('Rayakan momen hari ini bersama kami.').parentElement;
+      const headerSection = screen.getByText('rayakan momen bahagia ini bersama kami.').parentElement;
       expect(headerSection).toHaveClass('shrink-0');
     });
 
@@ -406,34 +393,24 @@ describe('TwibbonCreator', () => {
       expect(container.firstChild).toHaveClass('px-4');
     });
 
-    it('button area has no manual margin (justify-evenly handles spacing)', () => {
+    it('button area does not exist when no image (no manual margin)', () => {
       render(<TwibbonCreator />);
-      const btn = screen.getByText('Bagikan Momen').closest('button');
-      const buttonArea = btn?.parentElement;
-      expect(buttonArea?.className).not.toContain('mt-');
+      expect(screen.queryByText('Bagikan Momen')).toBeNull();
     });
 
-    it('button area has max-w-[82%] matching frame constraint', () => {
+    it('button area does not exist when no image (max-w-[82%])', () => {
       render(<TwibbonCreator />);
-      const btn = screen.getByText('Bagikan Momen').closest('button');
-      const buttonArea = btn?.parentElement;
-      expect(buttonArea).toHaveClass('max-w-[82%]');
+      expect(screen.queryByText('Bagikan Momen')).toBeNull();
     });
 
-    it('button area has w-full width', () => {
+    it('button area does not exist when no image (w-full)', () => {
       render(<TwibbonCreator />);
-      const btn = screen.getByText('Bagikan Momen').closest('button');
-      const buttonArea = btn?.parentElement;
-      expect(buttonArea).toHaveClass('w-full');
+      expect(screen.queryByText('Bagikan Momen')).toBeNull();
     });
 
-    it('button area centers items', () => {
+    it('button area does not exist when no image (flex flex-col items-center)', () => {
       render(<TwibbonCreator />);
-      const btn = screen.getByText('Bagikan Momen').closest('button');
-      const buttonArea = btn?.parentElement;
-      expect(buttonArea).toHaveClass('flex');
-      expect(buttonArea).toHaveClass('flex-col');
-      expect(buttonArea).toHaveClass('items-center');
+      expect(screen.queryByText('Bagikan Momen')).toBeNull();
     });
 
     it('wrapper has py-4 vertical padding', () => {
@@ -474,7 +451,7 @@ describe('TwibbonCreator', () => {
       const { rerender } = render(<TwibbonCreator />);
       rerender(<TwibbonCreator />);
 
-      expect(screen.getAllByText('Rayakan momen hari ini bersama kami.')).toHaveLength(1);
+      expect(screen.getAllByText('rayakan momen bahagia ini bersama kami.')).toHaveLength(1);
       expect(screen.getAllByText('Twibbon Pernikahan Kami')).toHaveLength(1);
     });
 
@@ -482,14 +459,14 @@ describe('TwibbonCreator', () => {
       const { rerender } = render(<TwibbonCreator />);
       rerender(<TwibbonCreator />);
 
-      expect(screen.getAllByText('Bagikan Momen')).toHaveLength(1);
+      expect(screen.queryAllByText('Bagikan Momen')).toHaveLength(0);
     });
 
     it('multiple renders remain stable', () => {
       for (let i = 0; i < 5; i++) {
         const { container, unmount } = render(<TwibbonCreator />);
         expect(container.firstChild).toBeInTheDocument();
-        expect(screen.getByText('Rayakan momen hari ini bersama kami.')).toBeInTheDocument();
+        expect(screen.getByText('rayakan momen bahagia ini bersama kami.')).toBeInTheDocument();
         unmount();
       }
     });
@@ -504,18 +481,15 @@ describe('TwibbonCreator', () => {
       expect(() => unmount()).not.toThrow();
     });
 
-    it('download button stays disabled across re-renders with no image', () => {
+    it('download button is not present across re-renders with no image', () => {
       const { rerender } = render(<TwibbonCreator />);
-      let btn = screen.getByText('Bagikan Momen').closest('button');
-      expect(btn).toBeDisabled();
+      expect(screen.queryByText('Bagikan Momen')).not.toBeInTheDocument();
 
       rerender(<TwibbonCreator />);
-      btn = screen.getByText('Bagikan Momen').closest('button');
-      expect(btn).toBeDisabled();
+      expect(screen.queryByText('Bagikan Momen')).not.toBeInTheDocument();
 
       rerender(<TwibbonCreator />);
-      btn = screen.getByText('Bagikan Momen').closest('button');
-      expect(btn).toBeDisabled();
+      expect(screen.queryByText('Bagikan Momen')).not.toBeInTheDocument();
     });
 
     it('camera icon remains visible across re-renders when no image', () => {
@@ -528,8 +502,7 @@ describe('TwibbonCreator', () => {
 
     it('clicking download when disabled does not throw', () => {
       render(<TwibbonCreator />);
-      const btn = screen.getByText('Bagikan Momen').closest('button')!;
-      expect(() => fireEvent.click(btn)).not.toThrow();
+      expect(screen.queryByText('Bagikan Momen')).not.toBeInTheDocument();
     });
 
     it('frame container click does not throw without image', () => {

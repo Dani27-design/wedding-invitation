@@ -4,6 +4,7 @@ import { Camera, RefreshCw } from 'lucide-react';
 
 const CANVAS_W = 1080;
 const CANVAS_H = 1920;
+const MAX_PREVIEW_DIM = 2000;
 const OVERLAY_SRC = '/images/twibbon-overlay.png';
 
 export function TwibbonCreator() {
@@ -41,11 +42,38 @@ export function TwibbonCreator() {
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !file.type.startsWith('image/')) return;
-    if (image) URL.revokeObjectURL(image);
-    const blobUrl = URL.createObjectURL(file);
-    setImage(blobUrl);
-    transformRef.current = { x: 0, y: 0, zoom: 1 };
-    setTimeout(updateImageTransform, 0);
+
+    const originalUrl = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const { width, height } = img;
+      const maxDim = Math.max(width, height);
+
+      if (maxDim <= MAX_PREVIEW_DIM) {
+        if (image) URL.revokeObjectURL(image);
+        setImage(originalUrl);
+      } else {
+        const scale = MAX_PREVIEW_DIM / maxDim;
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(width * scale);
+        canvas.height = Math.round(height * scale);
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob((blob) => {
+            URL.revokeObjectURL(originalUrl);
+            if (blob) {
+              if (image) URL.revokeObjectURL(image);
+              setImage(URL.createObjectURL(blob));
+            }
+          }, 'image/jpeg', 0.85);
+        }
+      }
+
+      transformRef.current = { x: 0, y: 0, zoom: 1 };
+      setTimeout(updateImageTransform, 0);
+    };
+    img.src = originalUrl;
   };
 
   const handleStart = (e: MouseEvent | TouchEvent) => {

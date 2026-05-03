@@ -231,9 +231,11 @@ Wrap all handlers in `useCallback` with appropriate dependencies.
 
 **Solution:**
 1. Replaced `readAsDataURL` with `URL.createObjectURL(file)` — creates a ~50-byte blob URL pointing to the file in browser memory. Zero base64 encoding, zero extra memory for the URL. Browser streams the file efficiently.
-2. Added `URL.revokeObjectURL()` on image reset ("Ganti Foto") and on component unmount to prevent memory leaks.
-3. Added `file.type.startsWith('image/')` validation — rejects non-image files programmatically (in addition to the existing `accept="image/*"` on the input).
-4. Single file upload already enforced — `<input>` has no `multiple` attribute.
+2. Added client-side image resize — if image exceeds 2000px on longest side, it's scaled down via off-screen canvas before being used for preview. A 100MB 8000x12000 photo becomes a ~2000px JPEG blob (~few MB in GPU memory vs ~400MB uncompressed). Quality is preserved — the export canvas is only 1080x1920, so 2000px source exceeds it.
+3. Added `URL.revokeObjectURL()` on image reset ("Ganti Foto"), on new upload (revoke previous), and on component unmount to prevent memory leaks.
+4. Added `file.type.startsWith('image/')` validation — rejects non-image files programmatically (in addition to the existing `accept="image/*"` on the input).
+5. Single file upload already enforced — `<input>` has no `multiple` attribute.
+6. Small images (under 2000px) skip the resize and use the blob URL directly — no unnecessary processing.
 
 ---
 

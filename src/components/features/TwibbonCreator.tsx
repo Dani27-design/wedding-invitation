@@ -111,6 +111,25 @@ export function TwibbonCreator() {
     lastTouchDistance.current = null;
   };
 
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const onTouchStart = (e: globalThis.TouchEvent) => handleStart(e as unknown as TouchEvent);
+    const onTouchMove = (e: globalThis.TouchEvent) => handleMove(e as unknown as TouchEvent);
+    const onTouchEnd = () => handleEnd();
+
+    el.addEventListener('touchstart', onTouchStart, { passive: false });
+    el.addEventListener('touchmove', onTouchMove, { passive: false });
+    el.addEventListener('touchend', onTouchEnd);
+
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchmove', onTouchMove);
+      el.removeEventListener('touchend', onTouchEnd);
+    };
+  });
+
   const handleCanvasClick = (e: MouseEvent) => {
     if (image) return;
     const rect = containerRef.current?.getBoundingClientRect();
@@ -180,9 +199,6 @@ export function TwibbonCreator() {
             onMouseMove={(e: any) => handleMove(e)}
             onMouseUp={handleEnd}
             onMouseLeave={handleEnd}
-            onTouchStart={(e: any) => handleStart(e)}
-            onTouchMove={(e: any) => handleMove(e)}
-            onTouchEnd={handleEnd}
           >
             <div className="absolute inset-0 z-0 bg-[#8E8A85] flex items-center justify-center">
               {image ? (

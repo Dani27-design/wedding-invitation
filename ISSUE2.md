@@ -190,7 +190,7 @@ Wrap all handlers in `useCallback` with appropriate dependencies.
 
 ---
 
-## Issue #F1 — TwibbonCreator Passive Touch Event Prevents preventDefault [SEVERITY: HIGH]
+## Issue #F1 — TwibbonCreator Passive Touch Event Prevents preventDefault [FIXED]
 
 **Root Cause:**
 `TwibbonCreator.tsx:181-183` — `onTouchStart`/`onTouchMove` are React synthetic events. React 17+ attaches touch listeners with `{ passive: true }` by default. `handleStart`/`handleMove` call `e.preventDefault()` which has no effect on passive listeners.

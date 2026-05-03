@@ -27,14 +27,14 @@ export const DigitalEnvelope = ({ copiedIndex, onCopy }: DigitalEnvelopeProps) =
               <div className="absolute -top-4 -right-4 w-12 h-12 bg-gold/5 rounded-full blur-xl group-hover:scale-150 transition-transform duration-700" />
               <div className="relative z-10 w-full flex flex-col items-center text-center">
                 <p className="text-xs uppercase tracking-widest text-gold/70 font-bold mb-1">{gift.bank}</p>
-                <div className="flex flex-col items-center gap-1 mb-1.5">
+                <div className="flex flex-col items-center gap-1.5 mb-1">
                   <span className="font-serif text-lg md:text-xl tracking-tight text-ink group-hover:text-gold transition-colors leading-none">{gift.account}</span>
-                  <div className={`px-2 py-0.5 rounded-full text-xs uppercase tracking-tighter font-black transition-all ${copiedIndex === i ? 'bg-green-500 text-white shadow-sm' : 'bg-gold/5 text-gold/70 group-hover:bg-gold group-hover:text-white'}`}>
+                  <div className={`px-2 py-0.5 rounded-full text-xs tracking-tighter font-serif transition-all ${copiedIndex === i ? 'bg-green-500 text-white shadow-sm' : 'bg-gold/5 text-gold/70 group-hover:bg-gold group-hover:text-white'}`}>
                     {copiedIndex === i ? 'Tersalin' : 'Salin'}
                   </div>
                 </div>
-                <div className="pt-1.5 border-t border-gold/5 w-full">
-                  <p className="text-xs text-ink/50 uppercase tracking-tight font-medium truncate">{gift.owner}</p>
+                <div className="pt-0.5 border-t border-gold/5 w-full">
+                  <p className="text-xs text-ink/50 tracking-tight font-serif truncate">{gift.owner}</p>
                 </div>
               </div>
               <AnimatePresence>

@@ -12,7 +12,7 @@ export const PhotoGallery = ({ onSelectPhoto }: PhotoGalleryProps) => (
     <div className="absolute bottom-0 right-0 w-96 h-96 bg-sepia/20 rounded-full blur-3xl translate-x-1/3 translate-y-1/3" />
 
     <div className="container mx-auto px-6 relative z-10">
-      <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-[3vh]">
+      <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mb-[3vh]">
         <p className="text-xs uppercase tracking-[0.4em] text-gold font-black mb-2">Jejak Cerita Kami</p>
         <p className="font-serif italic text-sm leading-relaxed text-ink/70 max-w-[300px] mx-auto">Beberapa momen yang kami simpan, dan kini ingin kami bagikan bersama Anda.</p>
       </motion.div>

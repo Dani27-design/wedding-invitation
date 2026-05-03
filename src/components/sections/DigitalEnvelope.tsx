@@ -15,7 +15,7 @@ export const DigitalEnvelope = ({ copiedIndex, onCopy }: DigitalEnvelopeProps) =
     </div>
 
     <div className="container mx-auto px-6 max-w-4xl relative z-10">
-      <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-[3vh]">
+      <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mb-[3vh]">
         <p className="text-xs uppercase tracking-[0.4em] text-gold font-black mb-2">Tanda Kasih</p>
         <p className="font-serif italic text-sm leading-relaxed text-ink/70 max-w-[300px] mx-auto mb-[3vh]">
           Kehadiran dan Doa Anda adalah hadiah terindah bagi kami. Namun jika berkenan memberi tanda kasih, kami menerimanya dengan penuh rasa terima kasih.

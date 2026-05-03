@@ -19,7 +19,7 @@ export const RSVPSection = ({ wishes, currentWishes, currentPage, totalPages, se
     </div>
 
     <div className="container h-full mx-auto px-6 max-w-4xl relative z-10 flex flex-col items-center">
-      <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-[3vh] w-full shrink-0">
+      <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mb-[3vh] w-full shrink-0">
        
         <p className="text-xs uppercase tracking-[0.4em] text-gold font-black mb-2">Ucapan & Doa</p>
         <p className="font-serif italic text-[13px] leading-relaxed text-ink/70 max-w-[300px] mx-auto">Di antara {wishes.length} doa yang kami terima di sini, setiap satunya akan kami bawa sebagai bagian dari langkah kami ke depan.</p>
@@ -39,7 +39,7 @@ export const RSVPSection = ({ wishes, currentWishes, currentPage, totalPages, se
         <MessageSquare className="w-4 h-4 transition-transform duration-500 group-hover:scale-110" />
       </motion.button>
 
-      <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="w-full flex flex-col flex-1 min-h-0">
+      <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="w-full flex flex-col flex-1 min-h-0">
 
         <div className="flex min-h-0 h-fit">
           {wishes.length === 0 ? (

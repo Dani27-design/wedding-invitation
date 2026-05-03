@@ -42,18 +42,18 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    let rafId: number | null = null;
+    let timerId: ReturnType<typeof setTimeout> | null = null;
     const handleResize = () => {
-      if (rafId) return;
-      rafId = requestAnimationFrame(() => {
+      if (timerId) clearTimeout(timerId);
+      timerId = setTimeout(() => {
         setViewportHeight(window.innerHeight);
-        rafId = null;
-      });
+        timerId = null;
+      }, 300);
     };
     window.addEventListener('resize', handleResize);
     return () => {
       window.removeEventListener('resize', handleResize);
-      if (rafId) cancelAnimationFrame(rafId);
+      if (timerId) clearTimeout(timerId);
     };
   }, []);
 

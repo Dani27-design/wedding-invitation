@@ -17,14 +17,14 @@ export const EventSection = () => (
           <p className="text-xs uppercase tracking-[0.3em] text-gold/60 mt-1 font-medium">QS. Ar-Rum: 21</p>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, delay: 0.1 }} className="w-full">
+        <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.8, delay: 0.1 }} className="w-full">
           <p className="text-xs uppercase tracking-[0.4em] text-gold font-black mb-1">Dengan Segenap Cinta</p>
           <p className="font-serif italic text-xs leading-relaxed text-ink/60 max-w-[300px] mx-auto mb-[1vh]">Kami menanti kehadiran Anda di hari istimewa kami.</p>
           <h2 className="font-serif italic text-3xl sm:text-4xl md:text-5xl text-ink tracking-tight mb-[1vh]">{WEDDING_DATE_DISPLAY}</h2>
           <CountdownTimer targetDate={WEDDING_DATE} />
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, delay: 0.3 }} className="w-full flex flex-col items-center justify-center gap-[1vh]">
+        <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.8, delay: 0.3 }} className="w-full flex flex-col items-center justify-center gap-[1vh]">
           <motion.div whileHover={{ y: -3, scale: 1.01 }} className="w-full bg-white/60 border border-gold/15 rounded-[3rem_1rem_3rem_1rem] py-3 px-6 text-center cursor-default transition-all shadow-sm">
             <span className="font-serif text-xl italic text-ink mb-1 block">Akad Nikah</span>
             <span className="font-display text-xs text-gold font-bold uppercase tracking-[0.15em]">09:00 — 10:00</span>
@@ -42,7 +42,7 @@ export const EventSection = () => (
           </motion.div>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, delay: 0.5 }} className="flex flex-wrap justify-center gap-3">
+        <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.8, delay: 0.5 }} className="flex flex-wrap justify-center gap-3">
           <motion.a whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} href={VENUE.mapsUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 py-2 px-5 bg-gold text-ivory rounded-full text-xs uppercase tracking-[0.3em] font-black transition-all shadow-md">
             <MapPin className="w-3 h-3" />
             <span>Lihat Peta</span>

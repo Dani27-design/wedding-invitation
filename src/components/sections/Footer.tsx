@@ -17,7 +17,7 @@ const SocialLink = ({ href, children }: { href: string; children: ReactNode }) =
 export const Footer = () => (
   <footer className="relative py-[2vh] h-fit bg-ivory overflow-hidden border-t border-gold/10">
     <div className="container mx-auto px-6 relative z-10">
-      <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="max-w-4xl mx-auto text-center">
+      <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="max-w-4xl mx-auto text-center">
         <div className="mb-[2vh]">
           {/* <h4 className="font-dayland text-4xl sm:text-5xl md:text-6xl text-ink mb-1 md:mb-2">Dani & Marini</h4> */}
           <p className="text-xs uppercase tracking-[0.4em] text-gold font-black mb-2">Penutup</p>

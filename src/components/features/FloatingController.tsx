@@ -13,6 +13,7 @@ export const FloatingController = ({ isToolsOpen, setIsToolsOpen, isPlaying, tog
     drag
     dragMomentum={false}
     dragElastic={0.1}
+    dragConstraints={{ left: -200, right: 0, top: -400, bottom: 0 }}
     className="fixed bottom-8 right-5 z-[100] flex flex-col items-center gap-4 touch-none cursor-grab active:cursor-grabbing"
   >
     <AnimatePresence>

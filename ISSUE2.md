@@ -4,6 +4,24 @@
 
 ---
 
+## Issue #S1 — Page Scroll Jumps and Shifts Unexpectedly on Mobile [FIXED]
+
+**Root Cause:**
+Four issues combining to cause scroll jumping:
+
+1. **CinematicStory horizontal scroll captures vertical swipe:** `snap-x snap-mandatory` aggressively captures diagonal finger gestures during vertical scroll, locking the view to the story section.
+2. **FloatingController drag interferes with page scroll:** `drag` on a fixed element captures `pointerdown` near the button during scroll, briefly stopping page scroll.
+3. **Resize handler triggers re-renders during scroll:** URL bar show/hide fires resize events which update `viewportHeight` state immediately, causing layout recalculation mid-scroll.
+4. **`whileInView` animations with `y` offset cause layout shift:** Elements starting at `y: 15-30` offset change their layout position during animation, causing scroll position recalculation.
+
+**Solution:**
+1. Added `overscroll-x-contain` to CinematicStory scroll container — prevents horizontal scroll from capturing vertical momentum.
+2. Added `dragConstraints={{ left: -200, right: 0, top: -400, bottom: 0 }}` to FloatingController — limits drag range and reduces scroll interference.
+3. Changed resize handler from RAF throttle to 300ms debounce — skips updates during active scroll/URL-bar transitions.
+4. Removed `y` offset from all `whileInView` animations (7 elements) — opacity-only entrance prevents any layout shift during scroll.
+
+---
+
 ## PERFORMANCE ISSUES
 
 ---

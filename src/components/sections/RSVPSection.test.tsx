@@ -112,13 +112,13 @@ describe('RSVPSection', () => {
       renderWithProps({ currentWishes: noWish, wishes: noWish });
       const badge = screen.getByText('Berhalangan');
       expect(badge.className).toContain('bg-ink/5');
-      expect(badge.className).toContain('text-ink/50');
+      expect(badge.className).toContain('text-ink/60');
     });
 
     it('displays formatted dates for each wish', () => {
       const { container } = renderWithProps();
       // Each wish card has a date span with specific styling
-      const dateSpans = container.querySelectorAll('.font-serif.shrink-0.text-ink\\/50');
+      const dateSpans = container.querySelectorAll('.font-serif.shrink-0.text-ink\\/60');
       expect(dateSpans.length).toBeGreaterThanOrEqual(5);
     });
 

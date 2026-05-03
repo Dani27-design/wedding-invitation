@@ -82,19 +82,19 @@ describe('PhotoGallery', () => {
     it('first image has correct src path', () => {
       renderGallery();
       const img = screen.getByAltText('Gallery 0');
-      expect(img).toHaveAttribute('src', '/bride_face_potrait.jpeg');
+      expect(img).toHaveAttribute('src', '/images/bride_face_potrait.jpeg');
     });
 
     it('second image has correct src path', () => {
       renderGallery();
       const img = screen.getByAltText('Gallery 1');
-      expect(img).toHaveAttribute('src', '/bride_and_groom_full_body_potrait.jpeg');
+      expect(img).toHaveAttribute('src', '/images/bride_and_groom_full_body_potrait.jpeg');
     });
 
     it('third image has correct src path', () => {
       renderGallery();
       const img = screen.getByAltText('Gallery 2');
-      expect(img).toHaveAttribute('src', '/groom_face_potrait.jpeg');
+      expect(img).toHaveAttribute('src', '/images/groom_face_potrait.jpeg');
     });
 
     it('each image src matches GALLERY_ITEMS constant', () => {
@@ -147,7 +147,7 @@ describe('PhotoGallery', () => {
       const firstImage = screen.getByAltText('Gallery 0');
       const clickable = firstImage.closest('.cursor-zoom-in');
       fireEvent.click(clickable!);
-      expect(onSelectPhoto).toHaveBeenCalledWith('/bride_face_potrait.jpeg');
+      expect(onSelectPhoto).toHaveBeenCalledWith('/images/bride_face_potrait.jpeg');
     });
 
     it('clicking second image calls onSelectPhoto with its src', () => {
@@ -155,7 +155,7 @@ describe('PhotoGallery', () => {
       renderGallery(onSelectPhoto);
       const img = screen.getByAltText('Gallery 1');
       fireEvent.click(img.closest('.cursor-zoom-in')!);
-      expect(onSelectPhoto).toHaveBeenCalledWith('/bride_and_groom_full_body_potrait.jpeg');
+      expect(onSelectPhoto).toHaveBeenCalledWith('/images/bride_and_groom_full_body_potrait.jpeg');
     });
 
     it('clicking third image calls onSelectPhoto with groom src', () => {
@@ -163,7 +163,7 @@ describe('PhotoGallery', () => {
       renderGallery(onSelectPhoto);
       const img = screen.getByAltText('Gallery 2');
       fireEvent.click(img.closest('.cursor-zoom-in')!);
-      expect(onSelectPhoto).toHaveBeenCalledWith('/groom_face_potrait.jpeg');
+      expect(onSelectPhoto).toHaveBeenCalledWith('/images/groom_face_potrait.jpeg');
     });
 
     it('clicking each image calls onSelectPhoto with correct GALLERY_ITEMS src', () => {

@@ -283,7 +283,7 @@ describe('CinematicOpening', () => {
     it('background image loads with correct src', () => {
       renderComponent();
       const img = screen.getByAltText('Opening BG');
-      expect(img).toHaveAttribute('src', '/bride_and_groom_full_body_potrait.jpeg');
+      expect(img).toHaveAttribute('src', '/images/bride_and_groom_full_body_potrait.jpeg');
     });
 
     it('background image has object-cover class', () => {

@@ -34,7 +34,7 @@ export const DigitalEnvelope = ({ copiedIndex, onCopy }: DigitalEnvelopeProps) =
                   </div>
                 </div>
                 <div className="pt-0.5 border-t border-gold/5 w-full">
-                  <p className="text-xs text-ink/50 tracking-tight font-serif truncate">{gift.owner}</p>
+                  <p className="text-xs text-ink/60 tracking-tight font-serif truncate">{gift.owner}</p>
                 </div>
               </div>
               <AnimatePresence>

@@ -27,7 +27,7 @@ export const CoupleSection = () => (
             className="w-full h-full overflow-hidden shadow-2xl relative group"
           >
             <img
-              src="/groom_face_potrait.jpeg"
+              src="/images/groom_face_potrait.jpeg"
               loading="lazy"
               decoding="async"
               className="w-full h-full object-cover filter saturate-[1.05] contrast-[1.02] hover:scale-105 transition-all duration-1000"
@@ -61,7 +61,7 @@ export const CoupleSection = () => (
             className="w-full h-full overflow-hidden shadow-2xl relative group bg-sepia"
           >
             <img
-              src="/bride_face_potrait.jpeg"
+              src="/images/bride_face_potrait.jpeg"
               loading="lazy"
               decoding="async"
               className="w-full h-full object-cover filter saturate-[1.05] contrast-[1.02] scale-110 hover:scale-115 transition-all duration-1000"

@@ -128,7 +128,7 @@ describe('HeroSection', () => {
     it('hero image has correct src path', () => {
       renderComponent();
       const img = screen.getByAltText('Hero Portrait');
-      expect(img).toHaveAttribute('src', '/bride_and_groom_full_body_potrait.jpeg');
+      expect(img).toHaveAttribute('src', '/images/bride_and_groom_full_body_potrait.jpeg');
     });
 
     it('hero image has object-cover class', () => {

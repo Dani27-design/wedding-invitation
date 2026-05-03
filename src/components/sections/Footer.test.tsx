@@ -290,7 +290,7 @@ describe('Footer', () => {
     it('copyright text has subdued ink color', () => {
       renderFooter();
       const copyright = screen.getByText(/2026/);
-      expect(copyright.className).toContain('text-ink/50');
+      expect(copyright.className).toContain('text-ink/60');
     });
 
     it('has heart icon with gold fill near copyright', () => {

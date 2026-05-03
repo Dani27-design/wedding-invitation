@@ -54,7 +54,7 @@ export const RSVPModal = ({ isOpen, isSubmitSuccess, guestName, onClose, onSubmi
                   <button
                     aria-label="Tutup"
                     onClick={onClose}
-                    className="w-8 h-8 flex items-center justify-center hover:bg-gold/5 rounded-full transition-colors text-ink/40 hover:text-gold"
+                    className="w-8 h-8 flex items-center justify-center hover:bg-gold/5 rounded-full transition-colors text-ink/60 hover:text-gold"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -65,7 +65,7 @@ export const RSVPModal = ({ isOpen, isSubmitSuccess, guestName, onClose, onSubmi
                     <label htmlFor="rsvp-name" className="text-xs uppercase tracking-[0.2em] text-gold font-bold mb-1 block">Nama</label>
                     <input
                       id="rsvp-name" name="name" required type="text" maxLength={50} placeholder={guestName}
-                      className="w-full bg-transparent border-b border-gold/20 py-2 outline-none focus:border-gold transition-all font-serif italic text-lg text-ink placeholder:text-ink/50"
+                      className="w-full bg-transparent border-b border-gold/20 py-2 outline-none focus:border-gold transition-all font-serif italic text-lg text-ink placeholder:text-ink/60"
                     />
                   </div>
 
@@ -91,7 +91,7 @@ export const RSVPModal = ({ isOpen, isSubmitSuccess, guestName, onClose, onSubmi
                     <label htmlFor="rsvp-message" className="text-xs uppercase tracking-[0.2em] text-gold font-bold mb-1 block">Ucapan & Doa</label>
                     <textarea
                       id="rsvp-message" name="message" required rows={3} maxLength={200} placeholder="Tinggalkan doa Anda, dan biarkan ia menjadi bagian dari cerita kami..."
-                      className="w-full bg-transparent border-b border-gold/20 py-2 outline-none focus:border-gold transition-all resize-none font-serif italic text-sm text-ink placeholder:text-ink/50"
+                      className="w-full bg-transparent border-b border-gold/20 py-2 outline-none focus:border-gold transition-all resize-none font-serif italic text-sm text-ink placeholder:text-ink/60"
                     />
                   </div>
 

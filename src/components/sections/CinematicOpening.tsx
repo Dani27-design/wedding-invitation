@@ -22,7 +22,7 @@ export const CinematicOpening = ({ guestName, onOpen }: CinematicOpeningProps) =
       transition={{ scale: { duration: 20, repeat: Infinity, ease: 'easeInOut' } }}
       className="absolute inset-0 z-0"
     >
-      <img src="/bride_and_groom_full_body_potrait.jpeg" fetchPriority="high" className="w-full h-full object-cover" alt="Opening BG" />
+      <img src="/images/bride_and_groom_full_body_potrait.jpeg" fetchPriority="high" className="w-full h-full object-cover" alt="Opening BG" />
       <div className="absolute inset-0 bg-gradient-to-b from-ink/60 via-transparent to-ink/90" />
       <LightGlow />
       <FloatingPetals />

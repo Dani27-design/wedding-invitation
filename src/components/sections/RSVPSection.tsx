@@ -46,7 +46,7 @@ export const RSVPSection = ({ wishes, currentWishes, currentPage, totalPages, se
             <div className="w-full py-12 flex flex-col items-center justify-center border border-dashed border-gold/20 rounded-2xl bg-gold/5 px-6 text-center">
               <Heart className="w-4 h-4 text-gold/30 mb-3 animate-pulse" />
               <p className="font-serif italic text-[13px] text-ink/70 leading-relaxed">Ruang ini masih menunggu cerita pertama.</p>
-              <p className="font-serif italic text-xs text-ink/50 mt-1">Jika berkenan, tinggalkan doa untuk kami.</p>
+              <p className="font-serif italic text-xs text-ink/60 mt-1">Jika berkenan, tinggalkan doa untuk kami.</p>
             </div>
           ) : (
             <div className="w-full h-fit">
@@ -57,11 +57,11 @@ export const RSVPSection = ({ wishes, currentWishes, currentPage, totalPages, se
                       <div className="flex justify-between items-center mb-1.5">
                         <div className="flex items-center gap-2 overflow-hidden">
                           <p className="text-ink font-serif text-xs truncate max-w-[130px] sm:max-w-[160px]">{wish.name}</p>
-                          <span className={`text-xs px-1 py-0.3 rounded-full border font-serif italic shrink-0 ${wish.attendance === 'yes' ? 'bg-gold/10 text-gold border-gold/20' : 'bg-ink/5 text-ink/50 border-ink/10'}`}>
+                          <span className={`text-xs px-1 py-0.3 rounded-full border font-serif italic shrink-0 ${wish.attendance === 'yes' ? 'bg-gold/10 text-gold border-gold/20' : 'bg-ink/5 text-ink/60 border-ink/10'}`}>
                             {wish.attendance === 'yes' ? 'Hadir' : 'Berhalangan'}
                           </span>
                         </div>
-                        <span className="text-xs text-ink/50 font-serif shrink-0">{formatDate(wish.createdAt)}</span>
+                        <span className="text-xs text-ink/60 font-serif shrink-0">{formatDate(wish.createdAt)}</span>
                       </div>
                       <p className="font-serif italic text-sm leading-[1.3] text-ink/70 line-clamp-2">"{wish.message}"</p>
                     </motion.div>
@@ -85,7 +85,7 @@ export const RSVPSection = ({ wishes, currentWishes, currentPage, totalPages, se
                 <ArrowRight className="w-3 h-3" />
               </motion.button>
             </div>
-            <p className="font-serif italic text-xs text-ink/50">Rangkaian Doa yang Kami Simpan</p>
+            <p className="font-serif italic text-xs text-ink/60">Rangkaian Doa yang Kami Simpan</p>
           </div>
         )}
       </motion.div>

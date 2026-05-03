@@ -195,12 +195,12 @@ describe('CoupleSection', () => {
 
     it('groom image has correct src path', () => {
       renderComponent();
-      expect(screen.getByAltText('Dani')).toHaveAttribute('src', '/groom_face_potrait.jpeg');
+      expect(screen.getByAltText('Dani')).toHaveAttribute('src', '/images/groom_face_potrait.jpeg');
     });
 
     it('bride image has correct src path', () => {
       renderComponent();
-      expect(screen.getByAltText('Marini')).toHaveAttribute('src', '/bride_face_potrait.jpeg');
+      expect(screen.getByAltText('Marini')).toHaveAttribute('src', '/images/bride_face_potrait.jpeg');
     });
 
     it('groom image has object-cover', () => {

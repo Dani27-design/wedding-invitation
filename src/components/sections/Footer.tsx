@@ -50,7 +50,7 @@ export const Footer = () => (
 
         <div className="pt-1 border-t border-gold/5 mb-[2vh]">
           <div className="flex justify-center items-center gap-2 mb-2"><Heart className="w-3 h-3 text-gold fill-gold" /></div>
-          <p className="text-xs text-ink/50 tracking-widest font-serif italic">&copy; 2026. Kami membangunnya bersama, dari perjalanan kami.</p>
+          <p className="text-xs text-ink/60 tracking-widest font-serif italic">&copy; 2026. Kami membangunnya bersama, dari perjalanan kami.</p>
         </div>
       </motion.div>
     </div>

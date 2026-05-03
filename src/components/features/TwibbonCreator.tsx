@@ -27,17 +27,25 @@ export function TwibbonCreator() {
     imgElementRef.current.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${zoom})`;
   }, []);
 
+  const clearImage = useCallback(() => {
+    if (image) URL.revokeObjectURL(image);
+    setImage(null);
+  }, [image]);
+
+  useEffect(() => {
+    return () => {
+      if (image) URL.revokeObjectURL(image);
+    };
+  }, [image]);
+
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setImage(event.target?.result as string);
-        transformRef.current = { x: 0, y: 0, zoom: 1 };
-        setTimeout(updateImageTransform, 0);
-      };
-      reader.readAsDataURL(file);
-    }
+    if (!file || !file.type.startsWith('image/')) return;
+    if (image) URL.revokeObjectURL(image);
+    const blobUrl = URL.createObjectURL(file);
+    setImage(blobUrl);
+    transformRef.current = { x: 0, y: 0, zoom: 1 };
+    setTimeout(updateImageTransform, 0);
   };
 
   const handleStart = (e: MouseEvent | TouchEvent) => {
@@ -192,7 +200,7 @@ export function TwibbonCreator() {
       {image && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center h-fit w-full max-w-[82%] md:max-w-[380px] lg:max-w-[420px] shrink-0">
           <motion.button
-            onClick={() => setImage(null)}
+            onClick={clearImage}
             className="mb-4 flex items-center gap-2 text-xs uppercase font-black text-ink/70 hover:text-ink transition-colors"
           >
             <RefreshCw className="w-3.5 h-3.5" /> Ganti Foto

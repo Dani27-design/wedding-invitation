@@ -224,6 +224,19 @@ Wrap all handlers in `useCallback` with appropriate dependencies.
 
 ---
 
+## Issue #F0 — TwibbonCreator Lags on Large Image Upload (100MB+) [FIXED]
+
+**Root Cause:**
+`TwibbonCreator.tsx:39` — `FileReader.readAsDataURL(file)` converts the entire file to a base64 string. A 100MB photo becomes ~133MB base64 stored in React state. Every render carries this string. The `<img src={dataUrl}>` must decode it every frame during drag/pinch — causing severe lag.
+
+**Solution:**
+1. Replaced `readAsDataURL` with `URL.createObjectURL(file)` — creates a ~50-byte blob URL pointing to the file in browser memory. Zero base64 encoding, zero extra memory for the URL. Browser streams the file efficiently.
+2. Added `URL.revokeObjectURL()` on image reset ("Ganti Foto") and on component unmount to prevent memory leaks.
+3. Added `file.type.startsWith('image/')` validation — rejects non-image files programmatically (in addition to the existing `accept="image/*"` on the input).
+4. Single file upload already enforced — `<input>` has no `multiple` attribute.
+
+---
+
 ## Issue #F1 — TwibbonCreator Passive Touch Event Prevents preventDefault [FIXED]
 
 **Root Cause:**

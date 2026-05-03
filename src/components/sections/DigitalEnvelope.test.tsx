@@ -244,10 +244,10 @@ describe('DigitalEnvelope', () => {
       expect(greenCircle).toBeInTheDocument();
     });
 
-    it('"Disalin" text has serif italic style', () => {
+    it('"Tersalin" overlay text has serif italic style', () => {
       renderWithProps({ copiedIndex: 0 });
       const tersalinElements = screen.getAllByText('Tersalin');
-      const overlayTersalin = tersalinElements.find((el) => el.className.includes('font-serif'));
+      const overlayTersalin = tersalinElements.find((el) => el.tagName === 'P');
       expect(overlayTersalin).toBeDefined();
       expect(overlayTersalin!.className).toContain('font-serif');
       expect(overlayTersalin!.className).toContain('italic');

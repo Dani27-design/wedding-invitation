@@ -1,5 +1,9 @@
-import { createCanvas } from 'canvas';
+import { createCanvas, registerFont } from 'canvas';
 import { writeFileSync } from 'fs';
+
+registerFont('public/fonts/Dayland.ttf', { family: 'Dayland' });
+registerFont('public/fonts/PlayfairDisplay-Regular.ttf', { family: 'Playfair Display' });
+registerFont('public/fonts/PlayfairDisplay-Italic.ttf', { family: 'Playfair Display', style: 'italic' });
 
 const CANVAS_W = 1080;
 const CANVAS_H = 1920;

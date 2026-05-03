@@ -29,7 +29,7 @@ describe('CoupleSection', () => {
 
     it('section has min-h-screen for full viewport height', () => {
       const { container } = renderComponent();
-      expect(container.querySelector('section')!.className).toContain('h-[100svh]');
+      expect(container.querySelector('section')!.className).toContain('h-screen-safe');
     });
 
     it('section has bg-ivory background', () => {

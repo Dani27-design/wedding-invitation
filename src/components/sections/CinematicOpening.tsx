@@ -22,7 +22,7 @@ export const CinematicOpening = ({ guestName, onOpen }: CinematicOpeningProps) =
       transition={{ scale: { duration: 20, repeat: Infinity, ease: 'easeInOut' } }}
       className="absolute inset-0 z-0"
     >
-      <img src="/images/bride_and_groom_full_body_potrait.jpeg" fetchPriority="high" className="w-full h-full object-cover" alt="Opening BG" />
+      <img src="/images/bride_and_groom_full_body_potrait.jpeg" fetchPriority="high" onError={(e) => { e.currentTarget.style.display = 'none'; }} className="w-full h-full object-cover" alt="Opening BG" />
       <div className="absolute inset-0 bg-gradient-to-b from-ink/60 via-transparent to-ink/90" />
       <LightGlow />
       <FloatingPetals />
@@ -67,6 +67,7 @@ export const CinematicOpening = ({ guestName, onOpen }: CinematicOpeningProps) =
             className="flex flex-col items-center gap-3 pt-4 group cursor-pointer"
           >
             <motion.svg
+              aria-hidden="true"
               width="44"
               height="36"
               viewBox="0 0 44 36"

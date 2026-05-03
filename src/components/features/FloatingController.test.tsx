@@ -143,7 +143,7 @@ describe('FloatingController', () => {
     it('changes background class when open vs closed', () => {
       const { rerender } = render(<FloatingController {...createProps()} />);
       const closedBtn = screen.getByLabelText('Buka menu');
-      expect(closedBtn).toHaveClass('bg-ivory/20');
+      expect(closedBtn).toHaveClass('bg-ivory/60');
 
       rerender(<FloatingController {...createProps({ isToolsOpen: true })} />);
       const openBtn = screen.getByLabelText('Tutup menu');

@@ -5,7 +5,7 @@ import { stagger, fadeUp } from "../../utils/animations";
 export const CoupleSection = () => (
   <section
     id="couple-section"
-    className="relative h-[100svh] py-[5vh] bg-ivory overflow-hidden"
+    className="relative h-screen-safe py-[5vh] bg-ivory overflow-hidden"
   >
     <div className="container mx-auto px-6 max-w-5xl h-full grid grid-rows-[1fr_auto] md:grid-rows-none md:grid-cols-2 gap-[1vh] items-center relative">
       <div className="relative w-full h-full min-h-0 max-h-[60vh] md:max-h-none">
@@ -30,6 +30,7 @@ export const CoupleSection = () => (
               src="/images/groom_face_potrait.jpeg"
               loading="lazy"
               decoding="async"
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
               className="w-full h-full object-cover filter saturate-[1.05] contrast-[1.02] hover:scale-105 transition-all duration-1000"
               alt="Dani"
             />
@@ -64,6 +65,7 @@ export const CoupleSection = () => (
               src="/images/bride_face_potrait.jpeg"
               loading="lazy"
               decoding="async"
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
               className="w-full h-full object-cover filter saturate-[1.05] contrast-[1.02] scale-110 hover:scale-115 transition-all duration-1000"
               alt="Marini"
             />

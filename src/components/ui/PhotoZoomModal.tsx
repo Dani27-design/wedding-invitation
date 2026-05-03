@@ -10,6 +10,10 @@ export const PhotoZoomModal = ({ selectedPhoto, onClose }: PhotoZoomModalProps) 
   <AnimatePresence>
     {selectedPhoto && (
       <motion.div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Lihat Foto"
+        onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -27,6 +31,7 @@ export const PhotoZoomModal = ({ selectedPhoto, onClose }: PhotoZoomModalProps) 
           <img
             src={selectedPhoto}
             alt="Zoomed Moment"
+            onError={(e) => { e.currentTarget.style.display = 'none'; }}
             className="max-w-full max-h-[85vh] object-contain rounded-[1.5rem]"
           />
           <button

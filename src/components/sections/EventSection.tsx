@@ -4,7 +4,7 @@ import { CountdownTimer } from '../ui/CountdownTimer';
 import { WEDDING_DATE, WEDDING_DATE_DISPLAY, VENUE } from '../../constants/wedding';
 
 export const EventSection = () => (
-  <section id="event-section" className="relative py-[3vh] h-[100svh] bg-paper overflow-hidden">
+  <section id="event-section" className="relative py-[3vh] h-screen-safe bg-paper overflow-hidden">
     <div className="absolute inset-0 pointer-events-none opacity-[0.3]">
       <motion.div animate={{ rotate: [0, 360], scale: [1, 1.15, 1] }} transition={{ duration: 45, repeat: Infinity, ease: 'linear' }} className="absolute -top-1/3 -right-1/3 w-full h-full border border-gold/10 rounded-full" />
       <motion.div animate={{ rotate: [360, 0], scale: [1, 1.2, 1] }} transition={{ duration: 55, repeat: Infinity, ease: 'linear' }} className="absolute -bottom-1/3 -left-1/3 w-full h-full border border-gold/10 rounded-full" />
@@ -54,7 +54,7 @@ export const EventSection = () => (
               const event = { title: 'Pernikahan Dani & Marini', start: '20260829T090000', end: '20260829T130000', location: 'Gedung Wanita Candra Kencana, Surabaya' };
               window.open(`https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&dates=${event.start}/${event.end}&details=Pernikahan+kami&location=${encodeURIComponent(event.location)}&sf=true&output=xml`);
             }}
-            className="inline-flex items-center gap-2 py-2 px-5 border border-ink/10 text-ink rounded-full text-xs uppercase tracking-[0.3em] font-black transition-all bg-white/50 backdrop-blur-sm"
+            className="inline-flex items-center gap-2 py-2 px-5 border border-ink/10 text-ink rounded-full text-xs uppercase tracking-[0.3em] font-black transition-all bg-white/70 backdrop-blur-sm"
           >
             <Calendar className="w-3 h-3" />
             <span>Ke Kalender</span>

@@ -13,7 +13,7 @@ interface RSVPModalProps {
 export const RSVPModal = ({ isOpen, isSubmitSuccess, guestName, onClose, onSubmit }: RSVPModalProps) => (
   <AnimatePresence>
     {isOpen && (
-      <div className="fixed inset-0 z-[200] flex items-center justify-center px-6 py-6">
+      <div role="dialog" aria-modal="true" aria-label="Kirim Doa" onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }} className="fixed inset-0 z-[200] flex items-center justify-center px-6 py-6">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -60,7 +60,7 @@ export const RSVPModal = ({ isOpen, isSubmitSuccess, guestName, onClose, onSubmi
                   </button>
                 </div>
 
-                <form onSubmit={onSubmit} className="space-y-6">
+                <form onSubmit={onSubmit} className="flex flex-col gap-6">
                   <div className="relative group">
                     <label htmlFor="rsvp-name" className="text-xs uppercase tracking-[0.2em] text-gold font-bold mb-1 block">Nama</label>
                     <input
@@ -69,8 +69,8 @@ export const RSVPModal = ({ isOpen, isSubmitSuccess, guestName, onClose, onSubmi
                     />
                   </div>
 
-                  <div className="relative group">
-                    <label className="text-xs uppercase tracking-[0.2em] text-gold font-bold mb-1.5 block">Konfirmasi Kehadiran</label>
+                  <fieldset className="relative group border-none p-0 m-0">
+                    <legend className="text-xs uppercase tracking-[0.2em] text-gold font-bold mb-1.5 block">Konfirmasi Kehadiran</legend>
                     <div className="flex gap-3">
                       <label className="flex-1 cursor-pointer">
                         <input type="radio" name="attendance" value="yes" defaultChecked className="hidden peer" />
@@ -85,7 +85,7 @@ export const RSVPModal = ({ isOpen, isSubmitSuccess, guestName, onClose, onSubmi
                         </div>
                       </label>
                     </div>
-                  </div>
+                  </fieldset>
 
                   <div className="relative group">
                     <label htmlFor="rsvp-message" className="text-xs uppercase tracking-[0.2em] text-gold font-bold mb-1 block">Ucapan & Doa</label>

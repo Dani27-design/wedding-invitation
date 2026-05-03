@@ -12,6 +12,7 @@ export function useCountdown(targetDate: string): TimeLeft {
 
   useEffect(() => {
     const target = new Date(targetDate).getTime();
+    if (isNaN(target)) return;
 
     const updateTimer = () => {
       const now = new Date().getTime();

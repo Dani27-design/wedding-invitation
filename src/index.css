@@ -35,6 +35,11 @@
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
   }
+
+  .h-screen-safe {
+    height: 100vh;
+    height: 100svh;
+  }
 }
 
 @keyframes shadow-drift {

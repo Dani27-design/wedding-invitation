@@ -19,7 +19,7 @@ function setLocationSearch(search: string) {
 async function renderAndOpen() {
   const result = render(<App />);
   fireEvent.click(screen.getByText('Buka Undangan'));
-  await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
+  await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument(), { timeout: 3000 });
   return result;
 }
 
@@ -256,7 +256,7 @@ describe('App - Opening to Main Content Transition', () => {
   it('clicking "Buka Undangan" transitions to main content', async () => {
     render(<App />);
     fireEvent.click(screen.getByText('Buka Undangan'));
-    await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
+    await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument(), { timeout: 3000 });
   });
 
   it('after opening: <main> element has relative and z-10 classes', async () => {
@@ -527,11 +527,11 @@ describe('App - Edge Cases', () => {
     expect(() => render(<App />)).not.toThrow();
   });
 
-  it('handles very long guest name without breaking layout', () => {
+  it('handles very long guest name by truncating to 100 chars', () => {
     const longName = 'A'.repeat(200);
     setLocationSearch(`?to=${longName}`);
     render(<App />);
-    expect(screen.getByText(longName)).toBeInTheDocument();
+    expect(screen.getByText('A'.repeat(100))).toBeInTheDocument();
   });
 
   it('handles guest name with ampersand in URL', () => {

@@ -69,9 +69,17 @@ export default function App() {
   const totalPages = wishPages.length;
 
   useEffect(() => {
+    setCurrentPage(p => Math.min(p, Math.max(1, totalPages)));
+  }, [totalPages]);
+
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const to = params.get('to');
-    if (to) setGuestName(decodeURIComponent(to));
+    if (to) {
+      try {
+        setGuestName(decodeURIComponent(to).replace(/-/g, ' ').slice(0, 100));
+      } catch { /* malformed URI — keep default guest name */ }
+    }
   }, []);
 
   const handleOpen = useCallback(() => {
@@ -88,8 +96,9 @@ export default function App() {
         audioRef.current.pause();
         setIsPlaying(false);
       } else {
-        audioRef.current.play().catch(() => setIsPlaying(false));
-        setIsPlaying(true);
+        audioRef.current.play()
+          .then(() => setIsPlaying(true))
+          .catch(() => setIsPlaying(false));
       }
     }
   }, []);
@@ -121,10 +130,13 @@ export default function App() {
   const handleRSVPSubmit = useCallback((e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
+    const name = (formData.get('name') as string).trim();
+    const message = (formData.get('message') as string).trim();
+    if (!name || !message) return;
     const newWish: GuestWishes = {
       id: Math.random().toString(36).substr(2, 9),
-      name: formData.get('name') as string,
-      message: formData.get('message') as string,
+      name,
+      message,
       attendance: formData.get('attendance') as 'yes' | 'no',
       createdAt: Date.now(),
     };

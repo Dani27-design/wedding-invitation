@@ -2,7 +2,7 @@ import { motion } from "motion/react";
 import { WEDDING_DATE_DISPLAY } from "../../constants/wedding";
 
 export const HeroSection = () => (
-  <section className="relative h-[100svh] flex flex-col items-center justify-between px-6 py-[5vh] overflow-hidden bg-ivory">
+  <section className="relative h-screen-safe flex flex-col items-center justify-between px-6 py-[5vh] overflow-hidden bg-ivory">
     <div className="absolute inset-0 z-0">
       <motion.div
         animate={{ scale: [1, 1.03, 1] }}
@@ -12,6 +12,7 @@ export const HeroSection = () => (
         <img
           src="/images/bride_and_groom_full_body_potrait.jpeg"
           fetchPriority="high"
+          onError={(e) => { e.currentTarget.style.display = 'none'; }}
           className="w-full h-full object-cover brightness-[0.85] contrast-[1.05]"
           alt="Hero Portrait"
         />

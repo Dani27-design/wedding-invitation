@@ -11,6 +11,7 @@ export function TwibbonCreator() {
   const [image, setImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isReady, setIsReady] = useState(false);
+  const [shareError, setShareError] = useState(false);
 
   const transformRef = useRef({ x: 0, y: 0, zoom: 1 });
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -89,6 +90,7 @@ export function TwibbonCreator() {
 
     if ('touches' in e && e.touches.length === 2) {
       lastTouchDistance.current = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+      lastPos.current = { x: clientX, y: clientY };
     } else {
       lastPos.current = { x: clientX, y: clientY };
     }
@@ -106,6 +108,7 @@ export function TwibbonCreator() {
         transformRef.current.zoom = Math.min(5, Math.max(0.1, transformRef.current.zoom * (dist / lastTouchDistance.current)));
       }
       lastTouchDistance.current = dist;
+      lastPos.current = { x: clientX, y: clientY };
     } else {
       transformRef.current.x += clientX - lastPos.current.x;
       transformRef.current.y += clientY - lastPos.current.y;
@@ -153,28 +156,33 @@ export function TwibbonCreator() {
       if (!ctx) return resolve(null);
 
       const img = new Image();
+      img.onerror = () => resolve(null);
       img.onload = () => {
-        ctx.fillStyle = '#F2EEE9';
-        ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+        try {
+          ctx.fillStyle = '#F2EEE9';
+          ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
 
-        const { x, y, zoom } = transformRef.current;
-        const scale = Math.max(CANVAS_W / img.width, CANVAS_H / img.height) * zoom;
-        const dw = img.width * scale;
-        const dh = img.height * scale;
+          const { x, y, zoom } = transformRef.current;
+          const scale = Math.max(CANVAS_W / img.width, CANVAS_H / img.height) * zoom;
+          const dw = img.width * scale;
+          const dh = img.height * scale;
 
-        ctx.save();
-        const previewEl = containerRef.current;
-        if (previewEl && previewEl.clientWidth > 0) {
-          const scaleX = CANVAS_W / previewEl.clientWidth;
-          const scaleY = CANVAS_H / previewEl.clientHeight;
-          ctx.translate(x * scaleX, y * scaleY);
+          ctx.save();
+          const previewEl = containerRef.current;
+          if (previewEl && previewEl.clientWidth > 0) {
+            const scaleX = CANVAS_W / previewEl.clientWidth;
+            const scaleY = CANVAS_H / previewEl.clientHeight;
+            ctx.translate(x * scaleX, y * scaleY);
+          }
+          ctx.drawImage(img, (CANVAS_W - dw) / 2, (CANVAS_H - dh) / 2, dw, dh);
+          ctx.restore();
+
+          ctx.drawImage(overlayImgRef.current!, 0, 0, CANVAS_W, CANVAS_H);
+
+          canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0);
+        } catch {
+          resolve(null);
         }
-        ctx.drawImage(img, (CANVAS_W - dw) / 2, (CANVAS_H - dh) / 2, dw, dh);
-        ctx.restore();
-
-        ctx.drawImage(overlayImgRef.current!, 0, 0, CANVAS_W, CANVAS_H);
-
-        canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0);
       };
       img.src = image;
     });
@@ -182,7 +190,11 @@ export function TwibbonCreator() {
 
   const handleShare = async () => {
     const blob = await generateTwibbonBlob();
-    if (!blob) return;
+    if (!blob) {
+      setShareError(true);
+      setTimeout(() => setShareError(false), 3000);
+      return;
+    }
 
     const file = new File([blob], 'Memori-Dani-Marini.png', { type: 'image/png' });
 
@@ -278,6 +290,7 @@ export function TwibbonCreator() {
           >
             Bagikan Momen
           </motion.button>
+          {shareError && <p className="text-xs text-red-400 mt-2 font-serif italic">Gagal membuat gambar. Coba lagi.</p>}
         </motion.div>
       )}
 

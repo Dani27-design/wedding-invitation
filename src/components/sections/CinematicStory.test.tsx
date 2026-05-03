@@ -30,7 +30,7 @@ describe('CinematicStory', () => {
     it('section has h-screen for full viewport height', () => {
       const { container } = renderStory();
       const section = container.querySelector('section');
-      expect(section?.className).toContain('h-[100svh]');
+      expect(section?.className).toContain('h-screen-safe');
     });
 
     it('section has bg-ink dark background', () => {
@@ -348,17 +348,16 @@ describe('CinematicStory', () => {
       expect(dots.length).toBeGreaterThanOrEqual(6);
     });
 
-    it('each slide has its own set of dot indicators', () => {
+    it('renders exactly one set of dot indicators (not per-slide)', () => {
       const { container } = renderStory();
-      // Each slide renders STORY_SLIDES.length dots, total = 6*6 = 36
       const dots = container.querySelectorAll('.bg-gold.rounded-full');
-      expect(dots.length).toBe(STORY_SLIDES.length * STORY_SLIDES.length);
+      expect(dots.length).toBe(STORY_SLIDES.length);
     });
 
-    it('dots are centered at bottom of slides', () => {
+    it('dot container is rendered once at section level', () => {
       const { container } = renderStory();
       const dotContainers = container.querySelectorAll('.bottom-12.left-1\\/2.-translate-x-1\\/2');
-      expect(dotContainers.length).toBe(STORY_SLIDES.length);
+      expect(dotContainers.length).toBe(1);
     });
   });
 

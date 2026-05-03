@@ -275,9 +275,9 @@ describe('DigitalEnvelope', () => {
       expect(grid?.className).toContain('lg:grid-cols-3');
     });
 
-    it('cards have glassmorphism: bg-white/40 backdrop-blur-md', () => {
+    it('cards have glassmorphism: bg-white/60 backdrop-blur-md', () => {
       const { container } = renderWithProps();
-      const cards = container.querySelectorAll('.bg-white\\/40');
+      const cards = container.querySelectorAll('.bg-white\\/60');
       expect(cards.length).toBe(6);
       cards.forEach((card) => {
         expect(card.className).toContain('backdrop-blur-md');

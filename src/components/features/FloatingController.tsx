@@ -77,10 +77,11 @@ export const FloatingController = ({ isToolsOpen, setIsToolsOpen, isPlaying, tog
       />
 
       <motion.button
+        onPointerDown={(e) => e.stopPropagation()}
         whileTap={{ scale: 0.9 }}
         aria-label={isToolsOpen ? 'Tutup menu' : 'Buka menu'}
         onClick={() => setIsToolsOpen(!isToolsOpen)}
-        className={`relative w-14 h-14 flex items-center justify-center backdrop-blur-xl border border-rose-pastel/40 rounded-full transition-all duration-700 shadow-2xl group overflow-hidden ${isToolsOpen ? 'bg-ink border-rose-pastel' : 'bg-ivory/20'}`}
+        className={`relative w-14 h-14 flex items-center justify-center backdrop-blur-xl border border-rose-pastel/40 rounded-full transition-all duration-700 shadow-2xl group overflow-hidden ${isToolsOpen ? 'bg-ink border-rose-pastel' : 'bg-ivory/60'}`}
       >
         <motion.div
           animate={isPlaying ? { rotate: 360 } : { rotate: 0 }}

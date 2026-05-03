@@ -44,12 +44,12 @@ export const CinematicStory = () => {
   };
 
   return (
-    <section id="story-section" className="relative h-[100svh] w-full bg-ink overflow-hidden scroll-snap-container">
+    <section id="story-section" className="relative h-screen-safe w-full bg-ink overflow-hidden scroll-snap-container">
       <div ref={scrollContainerRef} onScroll={handleStoryScroll} className="h-full w-full flex overflow-x-auto snap-x snap-mandatory no-scrollbar scroll-smooth overscroll-x-contain">
         {STORY_SLIDES.map((slide, idx) => (
           <div key={idx} className="relative h-full w-full min-w-full snap-center flex items-center justify-center overflow-hidden">
             <div className="absolute inset-0">
-              <img src={slide.bg} loading="lazy" decoding="async" className="w-full h-full object-cover opacity-40 md:opacity-50 grayscale hover:grayscale-0 transition-all duration-[3000ms]" alt="Memory" referrerPolicy="no-referrer" />
+              <img src={slide.bg} loading="lazy" decoding="async" onError={(e) => { e.currentTarget.style.display = 'none'; }} className="w-full h-full object-cover opacity-40 md:opacity-50 grayscale hover:grayscale-0 transition-all duration-[3000ms]" alt="Memory" referrerPolicy="no-referrer" />
               <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/20 to-ink/60" />
             </div>
 
@@ -106,25 +106,24 @@ export const CinematicStory = () => {
               </motion.div>
             </div>
 
-            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-2.5 z-40">
-              {STORY_SLIDES.map((_, i) => (
-                <motion.div key={i} animate={{ scale: i === idx ? 1.2 : 0.8, width: i === idx ? 20 : 6, opacity: i === idx ? 1 : 0.3 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }} className="h-1.5 bg-gold rounded-full transition-colors duration-500" />
-              ))}
-            </div>
-
             {idx === 0 && (
               <>
                 <motion.div animate={{ x: [0, 8, 0], opacity: [0.2, 0.5, 0.2] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }} className="absolute right-8 top-1/2 -translate-y-1/2 flex flex-col items-center gap-3 z-30 invisible md:visible">
                   <div className="w-[1px] h-16 bg-gradient-to-b from-transparent via-gold to-transparent" />
                   <span className="text-xs tracking-[0.6em] uppercase text-gold rotate-90 origin-right translate-x-3 whitespace-nowrap mt-4">Geser untuk melihat</span>
                 </motion.div>
-                <motion.div initial={{ opacity: 0, x: 0 }} animate={{ opacity: [0, 0.8, 0.8, 0], x: [0, 10, 10, 0] }} transition={{ duration: 3, delay: 1.5 }} className="absolute bottom-24 left-1/2 -translate-x-1/2 flex items-center gap-2 z-30 md:hidden">
+                <motion.div initial={{ opacity: 0, x: 0 }} animate={{ opacity: [0, 0.8, 0.8, 0], x: [0, 10, 10, 0] }} transition={{ duration: 3, delay: 1.5, repeat: Infinity, repeatDelay: 5 }} className="absolute bottom-24 left-1/2 -translate-x-1/2 flex items-center gap-2 z-30 md:hidden">
                   <span className="text-xs tracking-[0.3em] uppercase text-gold font-bold">Geser</span>
                   <ArrowRight className="w-3 h-3 text-gold" />
                 </motion.div>
               </>
             )}
           </div>
+        ))}
+      </div>
+      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-2.5 z-40">
+        {STORY_SLIDES.map((_, i) => (
+          <motion.div key={i} animate={{ scale: i === activeSlide ? 1.2 : 0.8, width: i === activeSlide ? 20 : 6, opacity: i === activeSlide ? 1 : 0.3 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }} className="h-1.5 bg-gold rounded-full transition-colors duration-500" />
         ))}
       </div>
     </section>

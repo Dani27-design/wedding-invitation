@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Heart } from 'lucide-react';
 
@@ -33,6 +33,8 @@ export const AmbientSocialLayer = ({
 }: AmbientSocialLayerProps) => {
   const [elements, setElements] = useState<SocialElement[]>([]);
   const pool = [...DEFAULT_COMMENTS, ...customComments.map((c) => `${c.name}: ${c.text}`)];
+  const poolRef = useRef(pool);
+  poolRef.current = pool;
 
   useEffect(() => {
     if (triggerHeartTap) {
@@ -64,11 +66,12 @@ export const AmbientSocialLayer = ({
   useEffect(() => {
     const interval = setInterval(() => {
       setElements((prev) => {
+        const currentPool = poolRef.current;
         const isComment = Math.random() > 0.6;
         const newEl: SocialElement = {
           id: Date.now() + Math.random(),
           type: isComment ? 'comment' : 'heart',
-          text: isComment ? pool[Math.floor(Math.random() * pool.length)] : undefined,
+          text: isComment ? currentPool[Math.floor(Math.random() * currentPool.length)] : undefined,
           x: isComment ? 20 + Math.random() * 60 : 5 + Math.random() * 90,
           delay: Math.random() * 1.5,
         };
@@ -76,7 +79,7 @@ export const AmbientSocialLayer = ({
       });
     }, 4000);
     return () => clearInterval(interval);
-  }, [pool.length]);
+  }, []);
 
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden z-20">

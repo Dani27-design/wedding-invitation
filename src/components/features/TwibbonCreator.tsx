@@ -223,13 +223,17 @@ export function TwibbonCreator() {
           >
             <div className="absolute inset-0 z-0 bg-[#8E8A85] flex items-center justify-center">
               {isLoading ? (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
-                    className="w-8 h-8 border-2 border-white/20 border-t-gold rounded-full"
-                  />
-                  <p className="font-serif italic text-xs text-white/50">Memproses foto...</p>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="flex items-center gap-2">
+                    {[0, 1, 2].map((i) => (
+                      <motion.div
+                        key={i}
+                        animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
+                        transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2, ease: 'easeInOut' }}
+                        className="w-2 h-2 rounded-full bg-white/60"
+                      />
+                    ))}
+                  </div>
                 </div>
               ) : image ? (
                 <motion.img

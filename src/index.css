@@ -40,6 +40,11 @@
     height: 100vh;
     height: 100svh;
   }
+
+  .min-h-screen-safe {
+    min-height: 100vh;
+    min-height: 100svh;
+  }
 }
 
 @keyframes shadow-drift {
@@ -87,7 +92,7 @@
 }
 
 .bubble-glow {
-  box-shadow: 0 0 12px rgba(180, 141, 62, 0.15);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--color-gold) 15%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {

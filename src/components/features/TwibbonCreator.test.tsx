@@ -1,5 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
+
+vi.mock('../../context/WeddingContext', () => ({
+  useWeddingContext: () => ({
+    twibbonOverlay: '/images/twibbon-overlay.png',
+    groomNickname: 'Dani',
+    brideNickname: 'Marini',
+  }),
+}));
+
 import { TwibbonCreator } from './TwibbonCreator';
 
 /* IntersectionObserver is mocked globally in src/test/setup.ts */

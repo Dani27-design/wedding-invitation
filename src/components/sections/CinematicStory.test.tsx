@@ -1,13 +1,52 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+
+const STORY_SLIDES = [
+  { year: '2016 — 2017', text: 'Berawal dari chat sederhana,\nlalu kita dipertemukan di dunia nyata.\n\nCappucino cincau dan Indomaret Point—\njadi saksi awal cerita kita.', bgImage: '/images/bride_face_potrait.jpeg' },
+  { year: '2018 — 2022', text: 'Kita berjalan beriringan,\nmelewati hari-hari yang mungkin terlihat biasa,\ntapi selalu terasa berbeda saat dijalani bersama.', bgImage: '/images/groom_face_potrait.jpeg' },
+  { year: '2023', text: 'Kita sampai di satu titik,\nsaling menyaksikan langkah masing-masing,\ndan tetap memilih untuk ada di sisi satu sama lain.', bgImage: '/images/bride_and_groom_half_body_potrait.png' },
+  { year: '2024 — 2025', text: 'Hubungan ini tidak lagi sekadar berjalan,\ntapi mulai menuju arah yang sama.\n\nDari cerita yang kita jalani,\nperlahan menjadi tujuan yang kita pilih.', bgImage: '/images/bride_and_groom_full_body_potrait.jpeg' },
+  { year: '2026', text: 'Setelah semua perjalanan ini,\nkita memutuskan untuk melangkah lebih jauh—\nbersama, selamanya.', bgImage: '/images/bride_and_groom_full_body_potrait.jpeg' },
+  { year: 'Ikrar', text: 'Bukan perjalanan yang singkat,\ndan tidak selalu mudah.\nAda waktu yang menguji,\nada langkah yang sempat rapuh.\n\nNamun kami tetap memilih,\nuntuk tidak berhenti satu sama lain.\n\nHingga akhirnya kami sampai di titik ini,\ntapi karena kami memutuskan\nuntuk tetap melaluinya bersama.', bgImage: '/images/bride_and_groom_full_body_potrait.jpeg' },
+];
+
+const MOCK_LIKES = [142, 167, 128, 155, 139, 163];
+const mockIncrementLike = vi.fn();
+const mockAddComment = vi.fn();
+
+vi.mock('../../context/WeddingContext', () => ({
+  useWeddingContext: () => ({
+    story: STORY_SLIDES,
+  }),
+}));
+
+vi.mock('../../hooks/useStoryLikes', () => ({
+  useStoryLikes: () => ({
+    likes: MOCK_LIKES,
+    incrementLike: mockIncrementLike,
+    isLoading: false,
+  }),
+}));
+
+vi.mock('../../hooks/useStoryComments', () => ({
+  useStoryComments: () => ({
+    comments: [],
+    addComment: mockAddComment,
+    isLoading: false,
+  }),
+}));
+
 import { CinematicStory } from './CinematicStory';
-import { STORY_SLIDES } from '../../constants/wedding';
 
 function renderStory() {
-  return render(<CinematicStory />);
+  return render(<CinematicStory weddingSlug="dani-marini" />);
 }
 
 describe('CinematicStory', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   // ─── Basic Rendering ───────────────────────────────────────────────
   describe('rendering', () => {
     it('renders without crashing', () => {
@@ -40,8 +79,8 @@ describe('CinematicStory', () => {
     });
 
     it('renders consistently on re-render without errors', () => {
-      const { rerender } = render(<CinematicStory />);
-      rerender(<CinematicStory />);
+      const { rerender } = render(<CinematicStory weddingSlug="dani-marini" />);
+      rerender(<CinematicStory weddingSlug="dani-marini" />);
       expect(screen.getByText('2016 — 2017')).toBeInTheDocument();
     });
 
@@ -205,7 +244,7 @@ describe('CinematicStory', () => {
     it('first image src matches first slide background', () => {
       renderStory();
       const images = screen.getAllByAltText('Memory');
-      expect(images[0]).toHaveAttribute('src', STORY_SLIDES[0].bg);
+      expect(images[0]).toHaveAttribute('src', STORY_SLIDES[0].bgImage);
     });
   });
 
@@ -239,18 +278,11 @@ describe('CinematicStory', () => {
       });
     });
 
-    it('clicking like button increments the like count', () => {
+    it('clicking like button calls incrementLike with slide index', () => {
       renderStory();
       const likeButtons = screen.getAllByLabelText('Suka');
-      // Get the initial like count text near the first like button
-      const firstLikeBtn = likeButtons[0];
-      const countBefore = firstLikeBtn.querySelector('span')?.textContent;
-      fireEvent.click(firstLikeBtn);
-      const countAfter = firstLikeBtn.querySelector('span')?.textContent;
-      // After click, count should have changed
-      if (countBefore && countAfter) {
-        expect(Number(countAfter)).toBe(Number(countBefore) + 1);
-      }
+      fireEvent.click(likeButtons[0]);
+      expect(mockIncrementLike).toHaveBeenCalledWith(0);
     });
 
     it('clicking comment button opens comment input form', () => {
@@ -578,9 +610,9 @@ describe('CinematicStory', () => {
   // ─── Edge Cases ───────────────────────────────────────────────────
   describe('edge cases', () => {
     it('re-renders are stable (no extra slides added)', () => {
-      const { rerender, container } = render(<CinematicStory />);
+      const { rerender, container } = render(<CinematicStory weddingSlug="dani-marini" />);
       const slidesBefore = container.querySelectorAll('.min-w-full').length;
-      rerender(<CinematicStory />);
+      rerender(<CinematicStory weddingSlug="dani-marini" />);
       const slidesAfter = container.querySelectorAll('.min-w-full').length;
       expect(slidesBefore).toBe(slidesAfter);
       expect(slidesAfter).toBe(6);
@@ -651,7 +683,7 @@ describe('CinematicStory', () => {
       expect(screen.getByText('Kirim')).not.toBeDisabled();
     });
 
-    it('submitting a comment triggers the submit handler', () => {
+    it('submitting a comment calls addComment with name and text', () => {
       renderStory();
       const commentButtons = screen.getAllByLabelText('Komentar');
       fireEvent.click(commentButtons[0]);
@@ -660,8 +692,7 @@ describe('CinematicStory', () => {
       fireEvent.change(nameInput, { target: { value: 'User' } });
       fireEvent.change(textInput, { target: { value: 'Nice!' } });
       fireEvent.click(screen.getByText('Kirim'));
-      // After submit, the component processes the comment
-      expect(true).toBe(true);
+      expect(mockAddComment).toHaveBeenCalledWith({ name: 'User', text: 'Nice!' });
     });
 
     it('section has scroll-snap-container class', () => {

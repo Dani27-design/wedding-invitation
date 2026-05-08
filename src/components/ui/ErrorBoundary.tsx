@@ -1,8 +1,12 @@
 import { Component, ReactNode } from 'react';
-import { WEDDING_DATE_DISPLAY } from '../../constants/wedding';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
+  groomNickname?: string;
+  brideNickname?: string;
+  dateDisplay?: string;
+  venueName?: string;
+  eventCity?: string;
 }
 
 interface ErrorBoundaryState {
@@ -21,11 +25,19 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   render() {
     if (this.state.hasError) {
+      const {
+        groomNickname = '',
+        brideNickname = '',
+        dateDisplay = '',
+        venueName = '',
+        eventCity = '',
+      } = this.props;
+
       return (
         <div className="min-h-screen bg-ivory flex flex-col items-center justify-center px-8 text-center">
-          <h1 className="font-dayland text-6xl text-ink mb-4">Dani & Marini</h1>
-          <p className="font-serif italic text-lg text-ink/70 mb-2">{WEDDING_DATE_DISPLAY}</p>
-          <p className="font-serif italic text-sm text-ink/60 mb-8">Gedung Wanita Candra Kencana, Surabaya</p>
+          <h1 className="font-dayland text-6xl text-ink mb-4">{groomNickname && brideNickname ? `${groomNickname} & ${brideNickname}` : 'Undangan Pernikahan'}</h1>
+          {dateDisplay && <p className="font-serif italic text-lg text-ink/70 mb-2">{dateDisplay}</p>}
+          {(venueName || eventCity) && <p className="font-serif italic text-sm text-ink/60 mb-8">{[venueName, eventCity].filter(Boolean).join(', ')}</p>}
           <div className="w-12 h-px bg-gold/30 mx-auto mb-8" />
           <p className="font-sans text-[10px] uppercase tracking-[0.3em] text-gold font-bold">Silakan refresh halaman</p>
         </div>

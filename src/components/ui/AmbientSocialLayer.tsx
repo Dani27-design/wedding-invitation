@@ -32,9 +32,22 @@ export const AmbientSocialLayer = ({
   triggerCommentTap,
 }: AmbientSocialLayerProps) => {
   const [elements, setElements] = useState<SocialElement[]>([]);
+  const [isVisible, setIsVisible] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
   const pool = [...DEFAULT_COMMENTS, ...customComments.map((c) => `${c.name}: ${c.text}`)];
   const poolRef = useRef(pool);
   poolRef.current = pool;
+
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsVisible(entry.isIntersecting),
+      { threshold: 0 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (triggerHeartTap) {
@@ -64,6 +77,7 @@ export const AmbientSocialLayer = ({
   }, [triggerCommentTap]);
 
   useEffect(() => {
+    if (!isVisible) return;
     const interval = setInterval(() => {
       setElements((prev) => {
         const currentPool = poolRef.current;
@@ -79,10 +93,10 @@ export const AmbientSocialLayer = ({
       });
     }, 4000);
     return () => clearInterval(interval);
-  }, []);
+  }, [isVisible]);
 
   return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden z-20">
+    <div ref={rootRef} className="absolute inset-0 pointer-events-none overflow-hidden z-20">
       <AnimatePresence>
         {elements.map((el) => (
           <motion.div

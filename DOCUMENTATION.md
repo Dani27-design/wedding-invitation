@@ -37,6 +37,12 @@ npm run loc:code     # LOC count for source files
 npm run loc:test     # LOC count for test files
 ```
 
+**Firestore seed (one-time):**
+```bash
+# Create .env with Firebase credentials (see .env.example)
+node scripts/seed-firestore.mjs
+```
+
 Guest name personalization via `?to=` query parameter:
 ```
 http://localhost:3000/?to=Budi%20Santoso
@@ -53,8 +59,9 @@ http://localhost:3000/?to=Budi%20Santoso
 | Styling      | Tailwind CSS (v4, `@theme` syntax)  | 4.1.x    |
 | Animations   | Motion (framer-motion successor)    | 12.x     |
 | Icons        | Lucide React                        | 0.546.x  |
+| Backend      | Firebase / Firestore                | 11.x     |
 | Testing      | Vitest + React Testing Library      | 4.1.x    |
-| Fonts        | Google Fonts + cdnfonts (Dayland)   | CDN      |
+| Fonts        | Local TTF + Google Fonts fallback   | —        |
 
 ---
 
@@ -62,78 +69,104 @@ http://localhost:3000/?to=Budi%20Santoso
 
 ```
 wedding-invitation/
-├── index.html                          # Entry HTML with SEO meta, OG tags, font preloads
+├── index.html                          # Entry HTML with SEO meta, OG tags, loading screen
 ├── package.json                        # Dependencies & scripts (v1.0.0)
 ├── vite.config.ts                      # Vite + Tailwind + Vitest config
 ├── tsconfig.json                       # TypeScript config (ES2022, bundler)
 ├── DOCUMENTATION.md                    # This file
 ├── README.md                           # Quick start guide
+├── FIRESTORE_INTEGRATION_TASK.md       # Firestore migration task tracker
+│
+├── scripts/
+│   ├── seed-firestore.mjs             # Idempotent Firestore seed (wedding + wishes + story-likes)
+│   ├── generate-overlay.mjs           # Twibbon overlay PNG generator
+│   └── generate-overlay.html          # Twibbon overlay preview
 │
 ├── public/                             # Static assets (served at /)
-│   ├── bride_face_potrait.jpeg         # (58KB)
-│   ├── groom_face_potrait.jpeg         # (103KB)
-│   ├── bride_and_groom_full_body_potrait.jpeg  # (65KB)
-│   ├── bride_and_groom_half_body_potrait.png   # (111KB, optimized)
+│   ├── fonts/
+│   │   ├── Dayland.ttf                # Custom display font
+│   │   ├── CormorantGaramond-*.ttf    # Serif font (regular + italic)
+│   │   └── PlayfairDisplay-*.ttf      # Display font (regular + italic)
+│   ├── images/
+│   │   ├── bride_face_potrait.jpeg
+│   │   ├── groom_face_potrait.jpeg
+│   │   ├── bride_and_groom_full_body_potrait.jpeg
+│   │   ├── bride_and_groom_half_body_potrait.png
+│   │   └── twibbon-overlay.png        # Pre-rendered twibbon frame
 │   ├── musics/
-│   │   └── adele-make-you-feel-my-love.mp3     # (3.2MB)
+│   │   └── adele-make-you-feel-my-love.mp3
 │   └── textures/
 │       ├── p6.png                      # Film grain texture
 │       └── stardust.png               # Floral shadow texture
 │
 └── src/
-    ├── main.tsx                        # React entry point
-    ├── App.tsx                         # Main orchestrator (168 lines)
+    ├── main.tsx                        # React entry point (ErrorBoundary wraps App)
+    ├── App.tsx                         # Main orchestrator (261 lines)
     ├── index.css                       # Tailwind theme, animations, utilities
     │
     ├── types/
-    │   └── index.ts                    # GuestWishes interface
+    │   ├── index.ts                    # GuestWishes interface
+    │   └── firestore.ts               # WeddingDocument, StorySlide, Ceremony, etc.
+    │
+    ├── context/
+    │   └── WeddingContext.tsx           # React context for wedding data
+    │
+    ├── lib/
+    │   ├── firebase.ts                 # Firebase app + Firestore init
+    │   └── wishes.ts                   # addWish() — write wish to Firestore
     │
     ├── constants/
-    │   ├── wedding.ts                  # WEDDING_DATE, VENUE, BANK_ACCOUNTS, STORY_SLIDES, GALLERY_ITEMS
-    │   └── wishes.ts                   # SEED_WISHES (20 sample wishes)
-    │
-    ├── utils/
-    │   ├── animations.ts              # transition, stagger, fadeUp presets
-    │   ├── formatDate.ts              # Indonesian locale date formatter
-    │   └── twibbonOverlay.ts          # Canvas drawing for twibbon frame (253 lines)
+    │   └── themeDefaults.ts            # Default theme values per template (cinematic, etc.)
     │
     ├── hooks/
-    │   └── useCountdown.ts            # Countdown timer hook
+    │   ├── useCountdown.ts             # Countdown timer hook
+    │   ├── useStoryComments.ts         # Real-time Firestore listener for story comments per slide
+    │   ├── useStoryLikes.ts            # Read + increment story likes from Firestore
+    │   ├── useWedding.ts               # One-time Firestore read for wedding document
+    │   └── useWishes.ts                # Real-time Firestore listener for wishes
+    │
+    ├── utils/
+    │   ├── animations.ts               # transition, stagger, fadeUp presets
+    │   ├── formatDate.ts               # Indonesian locale date formatter (Timestamp-aware)
+    │   ├── galleryLayout.ts            # Auto-assign span/shape CSS to gallery items by index
+    │   ├── twibbonOverlay.ts           # Canvas drawing for twibbon frame (268 lines)
+    │   └── weddingDerived.ts           # Derived display values from Firestore data
     │
     ├── components/
-    │   ├── ui/                        # Reusable visual primitives
-    │   │   ├── LightGlow.tsx          # Animated gold glow overlay
-    │   │   ├── ForegroundOrnaments.tsx # Floating ink/gold blur elements
-    │   │   ├── FloatingPetals.tsx     # 8 animated falling petals
-    │   │   ├── BackgroundLayers.tsx   # Film grain + shadows + light sweep
-    │   │   ├── PetalEffect.tsx        # 15 subtle floating particles
-    │   │   ├── CountdownTimer.tsx     # 4 time boxes (Hari/Jam/Menit/Detik)
-    │   │   ├── PhotoZoomModal.tsx     # Full-screen image viewer
-    │   │   └── AmbientSocialLayer.tsx # Instagram-style floating hearts/comments
+    │   ├── ui/                         # Reusable visual primitives
+    │   │   ├── LightGlow.tsx           # Animated gold glow overlay
+    │   │   ├── ForegroundOrnaments.tsx  # Floating ink/gold blur elements
+    │   │   ├── FloatingPetals.tsx      # 8 animated falling petals
+    │   │   ├── BackgroundLayers.tsx    # Film grain + shadows + light sweep
+    │   │   ├── PetalEffect.tsx         # 15 subtle floating particles
+    │   │   ├── CountdownTimer.tsx      # 4 time boxes (Hari/Jam/Menit/Detik)
+    │   │   ├── PhotoZoomModal.tsx      # Full-screen image viewer
+    │   │   ├── ErrorBoundary.tsx       # Class component error boundary with fallback
+    │   │   └── AmbientSocialLayer.tsx  # Instagram-style floating hearts/comments
     │   │
-    │   ├── features/                  # Complex interactive components
-    │   │   ├── TwibbonCreator.tsx     # Canvas photo frame with drag/pinch (250 lines)
-    │   │   ├── RSVPModal.tsx          # RSVP form modal with success state
-    │   │   └── FloatingController.tsx # Draggable nav + music toggle
+    │   ├── features/                   # Complex interactive components
+    │   │   ├── TwibbonCreator.tsx      # Canvas photo frame with drag/pinch (303 lines)
+    │   │   ├── RSVPModal.tsx           # RSVP form modal with success state
+    │   │   └── FloatingController.tsx  # Draggable nav + music toggle
     │   │
-    │   └── sections/                  # Page sections (render order)
-    │       ├── CinematicOpening.tsx   # Dark overlay with "Buka Undangan"
-    │       ├── HeroSection.tsx        # Full-bleed portrait with names
-    │       ├── CoupleSection.tsx      # Overlapping blob portraits + parent info
-    │       ├── CinematicStory.tsx     # Horizontal scroll love timeline (6 slides)
-    │       ├── EventSection.tsx       # Countdown + Akad/Resepsi + venue + CTAs
-    │       ├── TwibbonSection.tsx     # Wraps TwibbonCreator
-    │       ├── RSVPSection.tsx        # Paginated wish feed + FAB
-    │       ├── DigitalEnvelope.tsx    # 6 bank/e-wallet accounts with copy
-    │       ├── PhotoGallery.tsx       # Horizontal organic-shape gallery
-    │       └── Footer.tsx            # Credits + social links
+    │   └── sections/                   # Page sections (render order)
+    │       ├── CinematicOpening.tsx    # Dark overlay with "Buka Undangan"
+    │       ├── HeroSection.tsx         # Full-bleed portrait with names
+    │       ├── CoupleSection.tsx       # Overlapping blob portraits + parent info
+    │       ├── CinematicStory.tsx      # Horizontal scroll love timeline (6 slides)
+    │       ├── EventSection.tsx        # Countdown + ceremonies + venue + CTAs
+    │       ├── TwibbonSection.tsx      # Wraps TwibbonCreator
+    │       ├── RSVPSection.tsx         # Paginated wish feed + FAB
+    │       ├── DigitalEnvelope.tsx     # Bank/e-wallet accounts with copy
+    │       ├── PhotoGallery.tsx        # Horizontal organic-shape gallery
+    │       └── Footer.tsx             # Credits + social links + copyright
     │
     └── test/
-        └── setup.ts                   # Vitest setup (jest-dom, mocks)
+        └── setup.ts                    # Vitest setup (jest-dom, mocks)
 ```
 
-**Code stats:** 30 source files, 2,008 total LOC (largest: 253 lines)
-**Test stats:** 29 test files, 15,324 total LOC, 2,017 tests
+**Code stats:** 40 source files, 2,709 total LOC (largest: 303 lines — TwibbonCreator)
+**Test stats:** 37 test files, 17,656 total LOC, 2,190 tests
 
 ---
 
@@ -147,53 +180,58 @@ wedding-invitation/
                            │
                      src/main.tsx
                      <StrictMode>
-                       <App />
+                       <ErrorBoundary>
+                         <App />
                            │
-              ┌────────────┴────────────────────┐
-              │         src/App.tsx              │
-              │    (168 lines — orchestrator)    │
-              │                                 │
-              │  ┌─ BackgroundLayers (fixed)     │
-              │  ├─ Audio element               │
-              │  │                              │
-              │  ├─ AnimatePresence             │
-              │  │  └─ CinematicOpening         │
-              │  │     ├─ LightGlow             │
-              │  │     ├─ FloatingPetals        │
-              │  │     └─ ForegroundOrnaments   │
-              │  │                              │
-              │  └─ Main Content (when isOpen)   │
-              │     ├─ FloatingController       │
-              │     ├─ HeroSection              │
-              │     │  ├─ LightGlow             │
-              │     │  ├─ FloatingPetals        │
-              │     │  └─ ForegroundOrnaments   │
-              │     ├─ CoupleSection            │
-              │     ├─ CinematicStory           │
-              │     │  ├─ AmbientSocialLayer    │
-              │     │  └─ PetalEffect           │
-              │     ├─ EventSection             │
-              │     │  └─ CountdownTimer        │
-              │     │     └─ useCountdown hook  │
-              │     ├─ TwibbonSection           │
-              │     │  └─ TwibbonCreator        │
-              │     │     └─ twibbonOverlay     │
-              │     ├─ RSVPSection              │
-              │     ├─ RSVPModal                │
-              │     ├─ DigitalEnvelope          │
-              │     ├─ PhotoGallery             │
-              │     ├─ Footer                   │
-              │     └─ PhotoZoomModal           │
-              └─────────────────────────────────┘
+              ┌────────────┴──────────────────────────┐
+              │         src/App.tsx                    │
+              │    (261 lines — orchestrator)          │
+              │                                       │
+              │  ┌─ useWedding(slug) → Firestore      │
+              │  ├─ useWishes(slug) → Firestore       │
+              │  │                                    │
+              │  ├─ WeddingContext.Provider            │
+              │  │  ┌─ BackgroundLayers (fixed)        │
+              │  │  ├─ Audio element (wedding.musicUrl)│
+              │  │  │                                  │
+              │  │  ├─ AnimatePresence                 │
+              │  │  │  └─ CinematicOpening             │
+              │  │  │     ├─ LightGlow                 │
+              │  │  │     ├─ FloatingPetals            │
+              │  │  │     └─ ForegroundOrnaments       │
+              │  │  │                                  │
+              │  │  └─ Main Content (when isOpen)      │
+              │  │     ├─ FloatingController            │
+              │  │     ├─ HeroSection                   │
+              │  │     ├─ CoupleSection                 │
+              │  │     ├─ CinematicStory                │
+              │  │     │  ├─ AmbientSocialLayer         │
+              │  │     │  └─ PetalEffect                │
+              │  │     ├─ EventSection                  │
+              │  │     │  └─ CountdownTimer             │
+              │  │     │     └─ useCountdown hook       │
+              │  │     ├─ TwibbonSection                │
+              │  │     │  └─ TwibbonCreator             │
+              │  │     ├─ RSVPSection                   │
+              │  │     ├─ RSVPModal                     │
+              │  │     ├─ DigitalEnvelope               │
+              │  │     ├─ PhotoGallery                  │
+              │  │     ├─ Footer                        │
+              │  │     └─ PhotoZoomModal                │
+              │  └─────────────────────────────────────┘
+              └────────────────────────────────────────┘
 ```
 
 **Key architectural decisions:**
-- **Component-split architecture** — 30 files, max 253 LOC each, organized by `ui/`, `features/`, `sections/`
+- **Firestore-backed data** — all wedding content loaded from `weddings/{slug}` Firestore document; wishes are real-time via `onSnapshot`
+- **WeddingContext** — React context provides `WeddingDocument` to all sections via `useWeddingContext()` hook
+- **Derived display values** — `weddingDerived.ts` computes date display, calendar URL, twibbon filename, WhatsApp URLs, copyright from raw Firestore data
+- **Component-split architecture** — 37 files, max 303 LOC each, organized by `ui/`, `features/`, `sections/`
 - **No routing** — single page with sections revealed after "open invitation" interaction
-- **No backend** — wishes/RSVP are client-side state only, no persistence
 - **Cinematic gate** — `AnimatePresence` manages opening-to-content transition
 - **Music auto-play** — triggered on "Buka Undangan" click with fallback on autoplay rejection
 - **Co-located tests** — every source file has a `.test.tsx` sibling
+- **Code splitting** — sections lazy-loaded via `React.lazy` + `Suspense`
 
 ---
 
@@ -255,53 +293,55 @@ wedding-invitation/
 | `LightGlow` | 17 | Animated gold radial glow, `mix-blend-soft-light` |
 | `ForegroundOrnaments` | 16 | Two floating ink/gold blur shapes |
 | `FloatingPetals` | 34 | 8 animated petals with `transform-gpu` |
-| `BackgroundLayers` | 12 | Film grain + floral shadows + light sweep (fixed) |
+| `BackgroundLayers` | 8 | Film grain + floral shadows + light sweep (fixed) |
 | `PetalEffect` | 25 | 15 subtle rose-pastel particles |
-| `CountdownTimer` | 49 | 4 time boxes using `useCountdown` hook |
-| `PhotoZoomModal` | 43 | Full-screen image viewer (z-2000) |
-| `AmbientSocialLayer` | 122 | Instagram-Live-style floating hearts/comments |
+| `CountdownTimer` | 36 | 4 time boxes using `useCountdown` hook |
+| `PhotoZoomModal` | 48 | Full-screen image viewer (z-2000) |
+| `ErrorBoundary` | 49 | Class component error boundary with configurable fallback props |
+| `AmbientSocialLayer` | 125 | Instagram-Live-style floating hearts/comments |
 
 ### Feature Components (`components/features/`)
 
 | Component | Lines | Props | Description |
 |-----------|-------|-------|-------------|
-| `TwibbonCreator` | 250 | none | Canvas photo frame (1080x1920), drag/pinch, download PNG |
-| `RSVPModal` | 116 | isOpen, isSubmitSuccess, guestName, onClose, onSubmit | Form modal with success state |
-| `FloatingController` | 104 | isToolsOpen, setIsToolsOpen, isPlaying, toggleMusic | Draggable nav + music toggle |
+| `TwibbonCreator` | 303 | none (reads WeddingContext) | Canvas photo frame (1080x1920), drag/pinch, share/download PNG |
+| `RSVPModal` | 114 | isOpen, isSubmitSuccess, guestName, onClose, onSubmit | Form modal with success state |
+| `FloatingController` | 106 | isToolsOpen, setIsToolsOpen, isPlaying, toggleMusic | Draggable nav + music toggle |
 
 ### Section Components (`components/sections/`)
 
 | Component | Lines | Section ID | Description |
 |-----------|-------|------------|-------------|
-| `CinematicOpening` | 74 | — | Dark overlay, guest name, "Buka Undangan" |
-| `HeroSection` | 38 | — | Full-bleed portrait, names, date |
-| `CoupleSection` | 66 | `couple-section` | Overlapping blob portraits, parent info |
-| `CinematicStory` | 123 | `story-section` | 6 horizontal-scroll slides with likes/comments |
-| `EventSection` | 62 | `event-section` | Countdown, schedule, venue, map/calendar CTAs |
-| `TwibbonSection` | 9 | `twibbon-section` | Wraps TwibbonCreator |
-| `RSVPSection` | 88 | `rsvp-section` | Paginated wish feed + RSVP FAB |
-| `DigitalEnvelope` | 61 | `gift-section` | 6 bank/e-wallet accounts with copy |
-| `PhotoGallery` | 56 | — | Horizontal organic-shape gallery with scroll fade |
-| `Footer` | 57 | — | Credits, social links (Instagram, LinkedIn, Threads, WhatsApp) |
+| `CinematicOpening` | 108 | — | Dark overlay, guest name, "Buka Undangan" (reads context) |
+| `HeroSection` | 66 | — | Full-bleed portrait, names, date (reads context) |
+| `CoupleSection` | 127 | `couple-section` | Overlapping blob portraits, parent info (reads context) |
+| `CinematicStory` | 134 | `story-section` | 6 horizontal-scroll slides with likes/comments (reads context) |
+| `EventSection` | 70 | `event-section` | Countdown, ceremonies loop, venue, map/calendar CTAs (reads context) |
+| `TwibbonSection` | 7 | `twibbon-section` | Wraps TwibbonCreator |
+| `RSVPSection` | 94 | `rsvp-section` | Paginated wish feed + RSVP FAB |
+| `DigitalEnvelope` | 61 | `gift-section` | Bank/e-wallet accounts with copy (reads context) |
+| `PhotoGallery` | 61 | — | Horizontal organic-shape gallery with auto-layout (reads context) |
+| `Footer` | 75 | — | Credits loop, social links, copyright (reads context) |
 
 ---
 
 ## App State Management
 
-All state lives in `App.tsx` and is passed via props:
+**Data flow:** Firestore → `useWedding` / `useWishes` hooks → `App.tsx` → `WeddingContext.Provider` + props. Story section uses `useStoryLikes` / `useStoryComments` hooks directly in `CinematicStory.tsx`.
 
-| State              | Type                    | Default                        | Purpose                        |
-| ------------------ | ----------------------- | ------------------------------ | ------------------------------ |
-| `isOpen`           | `boolean`               | `false`                        | Gate between opening & content |
-| `wishes`           | `GuestWishes[]`         | `SEED_WISHES` (20 items)       | RSVP/wishes feed data          |
-| `guestName`        | `string`                | `"Tamu Terkasih Kami"`         | From `?to=` URL param          |
-| `isPlaying`        | `boolean`               | `false`                        | Music playback state           |
-| `isRSVPModalOpen`  | `boolean`               | `false`                        | RSVP form modal visibility     |
-| `isToolsOpen`      | `boolean`               | `false`                        | Floating tools menu visibility |
-| `selectedPhoto`    | `string \| null`        | `null`                         | Gallery zoom modal image src   |
-| `currentPage`      | `number`                | `1`                            | Wishes pagination              |
-| `copiedIndex`      | `number \| null`        | `null`                         | Copy feedback for envelopes    |
-| `isSubmitSuccess`  | `boolean`               | `false`                        | RSVP success state             |
+| State              | Type                    | Source                          | Purpose                        |
+| ------------------ | ----------------------- | ------------------------------- | ------------------------------ |
+| `wedding`          | `WeddingDocument\|null` | `useWedding(slug)` (Firestore)  | All wedding content            |
+| `wishes`           | `GuestWishes[]`         | `useWishes(slug)` (Firestore)   | Real-time RSVP/wishes feed     |
+| `isOpen`           | `boolean`               | `useState(false)`               | Gate between opening & content |
+| `guestName`        | `string`                | URL `?to=` or `wedding.defaultGuest` | Guest name display       |
+| `isPlaying`        | `boolean`               | `useState(false)`               | Music playback state           |
+| `isRSVPModalOpen`  | `boolean`               | `useState(false)`               | RSVP form modal visibility     |
+| `isToolsOpen`      | `boolean`               | `useState(false)`               | Floating tools menu visibility |
+| `selectedPhoto`    | `string \| null`        | `useState(null)`                | Gallery zoom modal image src   |
+| `currentPage`      | `number`                | `useState(1)`                   | Wishes pagination              |
+| `copiedIndex`      | `number \| null`        | `useState(null)`                | Copy feedback for envelopes    |
+| `isSubmitSuccess`  | `boolean`               | `useState(false)`               | RSVP success state             |
 
 **Derived state:**
 - `wishPages` — `useMemo` paginated based on estimated card heights
@@ -320,7 +360,7 @@ Sections render in this order after `isOpen === true`:
 | 1  | Hero               | —                   | ivory      |
 | 2  | Couple             | `couple-section`    | ivory      |
 | 3  | Story              | `story-section`     | ink (dark) |
-| 4  | Event              | `event-section`     | ivory      |
+| 4  | Event              | `event-section`     | paper      |
 | 5  | Twibbon            | `twibbon-section`   | ivory      |
 | 6  | RSVP & Wishes      | `rsvp-section`      | ivory/50   |
 | 7  | RSVP Modal         | —                   | overlay    |
@@ -350,43 +390,69 @@ Sections render in this order after `isOpen === true`:
 
 ## Data & Content Reference
 
-### TypeScript Interfaces (`src/types/index.ts`)
+### Firestore Collections
 
+| Collection | Document ID | Purpose |
+|------------|-------------|---------|
+| `weddings` | `dani-marini` | All wedding content (30+ fields, includes nested `theme` object) |
+| `wishes` | auto-generated | Guest wishes/RSVP (real-time listener) |
+| `story-likes` | `dani-marini` | Story slide like counts |
+| `story-comments` | auto-generated | Guest story slide comments (real-time listener per slide) |
+
+### TypeScript Interfaces
+
+**`src/types/index.ts`** — Guest wishes (used by UI components):
 ```ts
 interface GuestWishes {
   id: string;
   name: string;
   message: string;
   attendance: 'yes' | 'no';
-  createdAt: number;
+  createdAt: number | Timestamp;
 }
 ```
 
-### Wedding Details (`src/constants/wedding.ts`)
+**`src/types/firestore.ts`** — Full Firestore document types:
+```ts
+interface WeddingDocument {
+  ownerId: string;
+  status: 'draft' | 'published' | 'archived';
+  groomNickname: string; groomName: string; groomParents: string;
+  groomPhoto: string; groomInstagram: string; groomLinkedin: string; groomWhatsapp: string;
+  brideNickname: string; brideName: string; brideParents: string;
+  bridePhoto: string; brideInstagram: string; brideThreads: string; brideWhatsapp: string;
+  defaultGuest: string;
+  eventDate: string; eventCity: string;
+  venueName: string; venueAddress: string; venueMapsUrl: string;
+  ceremonies: Ceremony[];
+  story: StorySlide[];
+  gallery: string[];
+  giftAccounts: BankAccount[];
+  musicUrl: string; twibbonOverlay: string; heroImage: string; openingImage: string;
+  quranArabic: string; quranTranslation: string; quranReference: string;
+  theme: WeddingTheme; // { template, colors: ThemeColors, fonts: ThemeFonts }
+  credits: CreditPerson[];
+  createdAt: Timestamp; updatedAt: Timestamp;
+}
+```
 
-| Detail         | Value                                                                    |
-| -------------- | ------------------------------------------------------------------------ |
-| Groom          | M. Daniansyah Chusyaidin, S.Kom                                         |
-| Bride          | Siti Nur Marini, A.Md.M                                                 |
-| Groom Parents  | Bapak M. Safiudin Sukri & Ibu Indiarti                                  |
-| Bride Parents  | Bapak Margono & Ibu (Almh) Sulami                                       |
-| Date           | Saturday, 29 August 2026                                                 |
-| Akad Nikah     | 09:00 — 10:00                                                           |
-| Resepsi        | 10:00 — 13:00                                                           |
-| Venue          | Gedung Wanita Candra Kencana, Jl. Kalibokor Selatan No.2, Surabaya      |
+### Derived Values (`src/utils/weddingDerived.ts`)
 
-### Digital Envelope Accounts (`BANK_ACCOUNTS`)
+| Function | Input | Output |
+|----------|-------|--------|
+| `deriveDateDisplay(eventDate)` | `'2026-08-29'` | `'Sabtu, 29 Agustus 2026'` |
+| `deriveDateShort(eventDate)` | `'2026-08-29'` | `'29 Agustus 2026'` |
+| `deriveCalendarUrl(wedding)` | `WeddingDocument` | Google Calendar URL |
+| `deriveTwibbonFilename(groom, bride)` | nicknames | `'Memori-Dani-Marini.png'` |
+| `deriveWhatsappUrl(number)` | phone number | `'https://wa.me/...'` |
+| `deriveCopyright(eventDate)` | `'2026-08-29'` | `'© 2026. Kami membangunnya bersama...'` |
+| `deriveMetaTitle(groom, bride, date)` | names + date | `'Wedding Dani & Marini - ...'` |
 
-| Bank    | Account Number  | Account Name        |
-| ------- | --------------- | ------------------- |
-| BCA     | 1234567890      | M. Daniansyah C.    |
-| BRI     | 0987654321      | Siti Nur Marini     |
-| Mandiri | 111222333444    | M. Daniansyah C.    |
-| BSI     | 777888999000    | Siti Nur M.         |
-| Gopay   | 08123456789     | Daniansyah          |
-| DANA    | 08987654321     | Siti Nur             |
+### Gallery Layout (`src/utils/galleryLayout.ts`)
 
-### Social Links (Footer)
+12 layout patterns cycling via `getGalleryLayout(index)` returning `{ span, shape }` — auto-assigns CSS grid classes to gallery URL arrays from Firestore.
+
+### Social Links (Footer — from Firestore)
 
 **Dani:** [Instagram](https://instagram.com/danichusyaidin) · [LinkedIn](https://id.linkedin.com/in/daniansyahchusyaidin) · [WhatsApp](https://wa.me/6285790428078)
 
@@ -396,15 +462,27 @@ interface GuestWishes {
 
 ## Feature Details
 
+### Firestore Integration
+- **Wedding data:** One-time read via `useWedding(slug)` → `getDoc` from `weddings/{slug}`
+- **Wishes:** Real-time listener via `useWishes(slug)` → `onSnapshot` on `wishes` collection
+- **Write wishes:** `addWish(weddingId, data)` → `addDoc` with `serverTimestamp()`
+- **Story likes:** One-time read + increment via `useStoryLikes(slug)` → `getDoc` + `runTransaction` on `story-likes/{slug}`
+- **Story comments:** Real-time listener per slide via `useStoryComments(weddingId, slideIndex)` → `onSnapshot` on `story-comments` collection, `addComment()` via `addDoc`
+- **Context:** `WeddingContext.Provider` wraps entire app, sections read via `useWeddingContext()`
+- **Theme system:** `App.tsx` reads `wedding.theme` and overrides CSS custom properties at runtime (`--color-gold`, `--font-serif`, etc.), dynamically loads Google Fonts via injected `<link>` tag. Defaults defined in `src/constants/themeDefaults.ts`.
+- **Loading gate:** App shows blank ivory screen until wedding data loads
+- **Meta tags:** `document.title` and OG/Twitter meta updated dynamically after wedding loads
+- **Seed script:** `scripts/seed-firestore.mjs` creates wedding doc, story-likes, and 20 wishes (idempotent)
+
 ### Guest Name Personalization
 - Reads `?to=` query param on mount via `useEffect`
 - Decoded with `decodeURIComponent()`
 - Displayed in opening screen and as RSVP form placeholder
 - Has `max-w-[85vw] break-words` for overflow protection
-- Defaults to "Tamu Terkasih Kami" if not provided
+- Defaults to `wedding.defaultGuest` from Firestore if no URL param
 
 ### Music System
-- Local audio file: `/musics/adele-make-you-feel-my-love.mp3`
+- Audio URL from `wedding.musicUrl` (Firestore)
 - `<audio>` element with `loop` attribute
 - Auto-plays on "Buka Undangan" click with `.catch()` fallback
 - Toggle via floating controller menu
@@ -412,33 +490,34 @@ interface GuestWishes {
 
 ### RSVP & Wishes
 - **Form:** Name (maxLength=50), Attendance (radio: Hadir/Absen), Message (maxLength=200)
-- **Submit:** Prepends to wishes, shows "Terima Kasih" success for 1.5s, then closes modal
-- **Pagination:** `useMemo` height-based calculation (~30 chars/line, 17px/line, 52px base, 630px available)
-- **No persistence** — data lost on refresh
+- **Submit:** Writes to Firestore via `addWish()`, shows "Terima Kasih" success for 1.5s, then closes modal
+- **Real-time:** New wishes appear immediately via Firestore `onSnapshot` listener
+- **Pagination:** `useMemo` height-based calculation (~30 chars/line, 18px/line, 58px base)
+- **Limit:** 50 most recent wishes
 
 ### Twibbon Creator
 - Fixed 9:16 aspect ratio (1080x1920)
-- Procedurally drawn floral overlay via `utils/twibbonOverlay.ts`
-- Lazy canvas draw via `IntersectionObserver` (200px rootMargin)
+- Pre-rendered overlay from `wedding.twibbonOverlay` (Firestore)
 - Drag (mouse + touch) and pinch-to-zoom
-- Export reuses preview canvas (identical floral arrangement)
-- Download as `Memori-Dani-Marini.png`
+- Share via Web Share API with `navigator.canShare` check
+- Download fallback as `Memori-{groom}-{bride}.png` (derived from Firestore)
 
 ### CinematicStory
-- 6 horizontal-scroll slides (2016-2026 + Ikrar)
-- Slides from `constants/wedding.ts` → `STORY_SLIDES`
+- 6 horizontal-scroll slides from `wedding.story` (Firestore)
+- Field: `slide.bgImage` for background images
 - Active slide detection via `onScroll` + `scrollContainerRef`
 - `AmbientSocialLayer` + `PetalEffect` only render on active slide
 - Like/comment buttons hidden when comment form is open
 - Mobile swipe hint ("Geser") + desktop scroll hint
 
 ### Digital Envelope
+- Accounts from `wedding.giftAccounts` (Firestore)
 - Copy-to-clipboard with `navigator.clipboard` + legacy `execCommand` fallback
 - "Tersalin" success overlay with green checkmark
-- Responsive: 1-col → 2-col (sm) → 3-col (lg)
+- Responsive: 2-col → 3-col (lg)
 
 ### Photo Gallery
-- 12 items from `constants/wedding.ts` → `GALLERY_ITEMS`
+- URLs from `wedding.gallery` (Firestore), layout from `getGalleryLayout(index)`
 - Horizontal scroll with right-edge fade gradient
 - Organic rounded shapes, `transform-gpu`, lazy loading
 - Stagger delay capped at 300ms
@@ -454,28 +533,30 @@ interface GuestWishes {
 
 **Test structure:** Co-located with source files (e.g., `App.tsx` → `App.test.tsx`)
 
-**Stats:** 29 test files · 2,017 tests · 15,324 test LOC · 100% passing
+**Stats:** 34 test files · 2,029 tests · 16,081 test LOC · 100% passing
 
 | Category | Files | Tests |
 |----------|-------|-------|
 | types | 1 | ~100 |
-| constants | 2 | ~200 |
-| utils | 3 | ~170 |
-| hooks | 1 | ~90 |
-| components/ui | 8 | ~420 |
+| context | 1 | ~14 |
+| lib | 1 | ~40 |
+| utils | 5 | ~280 |
+| hooks | 3 | ~130 |
+| components/ui | 9 | ~450 |
 | components/features | 3 | ~230 |
-| components/sections | 10 | ~710 |
+| components/sections | 10 | ~690 |
 | App | 1 | ~95 |
 
-**Test coverage includes:**
-- Rendering (no crash, correct structure, no duplicate elements)
-- Visual integrity (pointer-events-none, overflow-hidden, lazy loading, fixed positioning, responsive classes, z-index)
-- Animation safety (transform-gpu, blur, overflow containment, prefers-reduced-motion)
-- Logical behavior (click handlers, form submission, pagination, copy feedback, timer ticks)
-- Edge cases (empty states, past dates, long strings, unicode, HTML injection, special characters)
-- Accessibility (aria-labels, label associations, noopener links)
-- Re-render stability (no duplication, consistent DOM across re-renders)
-- Snapshot tests for ambient components
+**Test patterns:**
+- **Firestore mocks:** `vi.mock('firebase/firestore')` + `vi.mock('../lib/firebase')` for hook tests
+- **Context mocks:** `vi.mock('../../context/WeddingContext')` in all section/feature tests
+- **Rendering:** no crash, correct structure, no duplicate elements
+- **Visual integrity:** pointer-events-none, overflow-hidden, lazy loading, responsive classes, z-index
+- **Animation safety:** transform-gpu, blur, overflow containment, prefers-reduced-motion
+- **Logical behavior:** click handlers, form submission, pagination, copy feedback, timer ticks
+- **Edge cases:** empty states, past dates, long strings, unicode, HTML injection, special characters
+- **Accessibility:** aria-labels, label associations, noopener links
+- **Re-render stability:** no duplication, consistent DOM across re-renders
 
 **Run tests:**
 ```bash
@@ -491,9 +572,11 @@ npx vitest run src/components/sections/Footer.test.tsx  # Single file
 ### Adding a New Section
 
 1. Create `src/components/sections/YourSection.tsx` (max 500 LOC)
-2. Create co-located `src/components/sections/YourSection.test.tsx` (min 300 LOC)
-3. Import and add to `App.tsx` inside the `<main>` block
-4. If navigable from floating controller, add to the tools array in `FloatingController.tsx`
+2. Read wedding data via `const wedding = useWeddingContext()`
+3. Create co-located `src/components/sections/YourSection.test.tsx` (min 300 LOC)
+4. Add `vi.mock('../../context/WeddingContext')` in the test file
+5. Import and add to `App.tsx` inside the `<main>` block
+6. If navigable from floating controller, add to the tools array in `FloatingController.tsx`
 
 ### Adding a New UI Component
 
@@ -501,11 +584,14 @@ npx vitest run src/components/sections/Footer.test.tsx  # Single file
 2. Create co-located test file
 3. Import where needed
 
-### Modifying Constants
+### Modifying Wedding Data
 
-All static data lives in `src/constants/`:
-- `wedding.ts` — dates, venue, bank accounts, story slides, gallery items
-- `wishes.ts` — seed wish data
+All wedding content is stored in Firestore (`weddings/dani-marini`). To update:
+1. Edit `scripts/seed-firestore.mjs` with new data
+2. Delete the existing Firestore document
+3. Re-run `node scripts/seed-firestore.mjs`
+
+Or edit directly in the Firebase Console.
 
 ### Animation Presets (`src/utils/animations.ts`)
 
@@ -518,17 +604,19 @@ const fadeUp = { initial: { opacity: 0, y: 20, filter: 'blur(10px)' }, animate: 
 ### Performance Considerations
 
 - Opening background image is preloaded via `<link rel="preload">`
+- Sections lazy-loaded via `React.lazy` + `Suspense`
 - `AmbientSocialLayer` and `PetalEffect` only render on the active story slide
-- Twibbon canvas draws lazily via `IntersectionObserver`
 - `wishPages` pagination uses `useMemo`
 - `formatDate` uses a cached `Intl.DateTimeFormat` instance
+- `weddingDerived.ts` formatters are module-level singletons
 - All below-fold images use `loading="lazy"`
-- Font loading via `<link>` in HTML (not CSS `@import`)
+- Fonts loaded locally (TTF in `public/fonts/`) with Google Fonts fallback
 - Local textures (no external CDN dependencies)
 - `prefers-reduced-motion` respected
+- Firestore: `useWedding` is one-time `getDoc`; `useWishes` is `onSnapshot` with `limit(50)`
 
 ### File Size Limits
 
 - **Source files:** max 500 LOC per file
 - **Test files:** min 300 LOC, max 1500 LOC per file
-- **Current largest source file:** `twibbonOverlay.ts` at 253 lines
+- **Current largest source file:** `TwibbonCreator.tsx` at 303 lines

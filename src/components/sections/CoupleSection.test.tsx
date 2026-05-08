@@ -1,5 +1,19 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+
+vi.mock('../../context/WeddingContext', () => ({
+  useWeddingContext: () => ({
+    groomNickname: 'Dani',
+    groomName: 'M. Daniansyah Chusyaidin, S.Kom',
+    groomParents: 'Putra Bapak M. Safiudin Sukri & Ibu Indiarti',
+    groomPhoto: '/images/groom_face_potrait.jpeg',
+    brideNickname: 'Marini',
+    brideName: 'Siti Nur Marini, A.Md.M',
+    brideParents: 'Putri Bapak Margono & Ibu (Almh) Sulami',
+    bridePhoto: '/images/bride_face_potrait.jpeg',
+  }),
+}));
+
 import { CoupleSection } from './CoupleSection';
 
 // ---------------------------------------------------------------------------
@@ -27,9 +41,9 @@ describe('CoupleSection', () => {
       expect(container.querySelector('#couple-section')).toBeInTheDocument();
     });
 
-    it('section has min-h-screen for full viewport height', () => {
+    it('section has content-driven height with vertical padding', () => {
       const { container } = renderComponent();
-      expect(container.querySelector('section')!.className).toContain('h-screen-safe');
+      expect(container.querySelector('section')!.className).toContain('py-[5vh]');
     });
 
     it('section has bg-ivory background', () => {
@@ -399,9 +413,9 @@ describe('CoupleSection', () => {
       expect(brideContainer).toBeInTheDocument();
     });
 
-    it('portrait container fills available height (h-full with 1fr grid row)', () => {
+    it('portrait container has explicit viewport height', () => {
       const { container } = renderComponent();
-      const portraitArea = container.querySelector('[class*="h-full"][class*="min-h-0"]');
+      const portraitArea = container.querySelector('[class*="h-[50vh]"]');
       expect(portraitArea).toBeInTheDocument();
     });
 

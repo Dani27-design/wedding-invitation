@@ -1,5 +1,14 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+
+vi.mock('../../context/WeddingContext', () => ({
+  useWeddingContext: () => ({
+    twibbonOverlay: '/images/twibbon-overlay.png',
+    groomNickname: 'Dani',
+    brideNickname: 'Marini',
+  }),
+}));
+
 import { TwibbonSection } from './TwibbonSection';
 
 // ---------------------------------------------------------------------------

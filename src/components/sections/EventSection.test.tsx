@@ -1,5 +1,25 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+
+vi.mock('../../context/WeddingContext', () => ({
+  useWeddingContext: () => ({
+    eventDate: '2026-08-29',
+    ceremonies: [
+      { name: 'Akad Nikah', start: '09:00', end: '10:00' },
+      { name: 'Resepsi', start: '10:00', end: '13:00' },
+    ],
+    venueName: 'Gedung Wanita Candra Kencana',
+    venueAddress: 'Jl. Kalibokor Selatan No.2, Baratajaya, Gubeng, Surabaya',
+    venueMapsUrl: 'https://www.google.com/maps/dir//GEDUNG+WANITA+Candra+Kencana,+Pucang+Sewu,+Jl.+Kalibokor+Selatan+No.2,+Baratajaya,+Kec.+Gubeng,+Surabaya,+Jawa+Timur+60284/@-7.3571367,112.7509655,15z/data=!4m8!4m7!1m0!1m5!1m1!1s0x2dd7fbb53b29cbb7:0xee33be91a97dbb70!2m2!1d112.7618051!2d-7.2878229?entry=ttu&g_ep=EgoyMDI2MDQyOC4wIKXMDSoASAFQAw%3D%3D',
+    quranArabic: '\u0648\u064E\u0645\u0650\u0646\u0652 \u0622\u064A\u064E\u0627\u062A\u0650\u0647\u0650 \u0623\u064E\u0646\u0652 \u062E\u064E\u0644\u064E\u0642\u064E \u0644\u064E\u0643\u064F\u0645 \u0645\u0651\u0650\u0646\u0652 \u0623\u064E\u0646\u0641\u064F\u0633\u0650\u0643\u064F\u0645\u0652 \u0623\u064E\u0632\u0652\u0648\u064E\u0627\u062C\u064B\u0627 \u0644\u0651\u0650\u062A\u064E\u0633\u0652\u0643\u064F\u0646\u064F\u0648\u0627 \u0625\u0650\u0644\u064E\u064A\u0652\u0647\u064E\u0627 \u0648\u064E\u062C\u064E\u0639\u064E\u0644\u064E \u0628\u064E\u064A\u0652\u0646\u064E\u0643\u064F\u0645 \u0645\u0651\u064E\u0648\u064E\u062F\u0651\u064E\u0629\u064B \u0648\u064E\u0631\u064E\u062D\u0652\u0645\u064E\u0629\u064B \u06DA \u0625\u0650\u0646\u0651\u064E \u0641\u0650\u064A \u0630\u064E\u0670\u0644\u0650\u0643\u064E \u0644\u064E\u0622\u064A\u064E\u0627\u062A\u064D \u0644\u0651\u0650\u0642\u064E\u0648\u0652\u0645\u064D \u064A\u064E\u062A\u064E\u0641\u064E\u0643\u0651\u064E\u0631\u064F\u0648\u0646\u064E',
+    quranTranslation: 'Dan di antara tanda-tanda kekuasaan-Nya ialah Dia menciptakan untukmu pasangan hidup dari jenismu sendiri, supaya kamu merasa tenteram kepadanya, dan dijadikan-Nya di antaramu rasa kasih dan sayang. Sesungguhnya pada yang demikian itu benar-benar terdapat tanda-tanda bagi kaum yang berpikir.',
+    quranReference: 'QS. Ar-Rum: 21',
+    groomNickname: 'Dani',
+    brideNickname: 'Marini',
+    eventCity: 'Surabaya',
+  }),
+}));
+
 import { EventSection } from './EventSection';
 
 // ---------------------------------------------------------------------------

@@ -4,7 +4,9 @@ window.HTMLMediaElement.prototype.play = vi.fn(() => Promise.resolve());
 window.HTMLMediaElement.prototype.pause = vi.fn();
 
 class IntersectionObserverMock {
-  observe = vi.fn();
+  observe = vi.fn((target: Element) => {
+    this.callback([{ isIntersecting: true, target } as IntersectionObserverEntry], this as unknown as IntersectionObserver);
+  });
   disconnect = vi.fn();
   unobserve = vi.fn();
   constructor(private callback: IntersectionObserverCallback) {}

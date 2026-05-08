@@ -1,5 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
-import { drawOverlay } from './twibbonOverlay';
+import { drawOverlay, OverlayData } from './twibbonOverlay';
+
+const DEFAULT_DATA: OverlayData = {
+  groomNickname: 'Dani',
+  brideNickname: 'Marini',
+  locationDate: 'Surabaya 29 Agustus 2026',
+};
 
 /**
  * Creates a fully mocked CanvasRenderingContext2D with all methods as vi.fn().
@@ -113,8 +119,8 @@ describe('utils/twibbonOverlay', () => {
       expect(typeof drawOverlay).toBe('function');
     });
 
-    it('drawOverlay has arity of 3 (ctx, w, h)', () => {
-      expect(drawOverlay.length).toBe(3);
+    it('drawOverlay has arity of 4 (ctx, w, h, data)', () => {
+      expect(drawOverlay.length).toBe(4);
     });
   });
 
@@ -124,25 +130,25 @@ describe('utils/twibbonOverlay', () => {
   describe('basic canvas operations', () => {
     it('calls clearRect with correct dimensions (1080x1920)', () => {
       const { ctx } = createMockContext();
-      drawOverlay(ctx, 1080, 1920);
+      drawOverlay(ctx, 1080, 1920, DEFAULT_DATA);
       expect(ctx.clearRect).toHaveBeenCalledWith(0, 0, 1080, 1920);
     });
 
     it('calls clearRect exactly once', () => {
       const { ctx } = createMockContext();
-      drawOverlay(ctx, 1080, 1920);
+      drawOverlay(ctx, 1080, 1920, DEFAULT_DATA);
       expect(ctx.clearRect).toHaveBeenCalledTimes(1);
     });
 
     it('calls fillRect for background', () => {
       const { ctx } = createMockContext();
-      drawOverlay(ctx, 1080, 1920);
+      drawOverlay(ctx, 1080, 1920, DEFAULT_DATA);
       expect(ctx.fillRect).toHaveBeenCalled();
     });
 
     it('calls fillRect at least once with full canvas dimensions', () => {
       const { ctx } = createMockContext();
-      drawOverlay(ctx, 1080, 1920);
+      drawOverlay(ctx, 1080, 1920, DEFAULT_DATA);
       const calls = (ctx.fillRect as ReturnType<typeof vi.fn>).mock.calls;
       const hasFullRect = calls.some(
         (c: number[]) => c[0] === 0 && c[1] === 0 && c[2] === 1080 && c[3] === 1920
@@ -152,7 +158,7 @@ describe('utils/twibbonOverlay', () => {
 
     it('calls fillRect multiple times (background + sun gradient + dots)', () => {
       const { ctx } = createMockContext();
-      drawOverlay(ctx, 1080, 1920);
+      drawOverlay(ctx, 1080, 1920, DEFAULT_DATA);
       const callCount = (ctx.fillRect as ReturnType<typeof vi.fn>).mock.calls.length;
       expect(callCount).toBeGreaterThan(1);
     });
@@ -167,45 +173,45 @@ describe('utils/twibbonOverlay', () => {
       const { ctx } = createMockContext();
       // We need to use the same context to capture texts
       const mockCtx = createMockContext();
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       expect(mockCtx.texts).toContain('Dani');
     });
 
     it('calls fillText with "Marini"', () => {
       const mockCtx = createMockContext();
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       expect(mockCtx.texts).toContain('Marini');
     });
 
     it('calls fillText with "&"', () => {
       const mockCtx = createMockContext();
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       expect(mockCtx.texts).toContain('&');
     });
 
     it('calls fillText with "Turut Menyertai Hari Bahagia"', () => {
       const mockCtx = createMockContext();
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       const hasTurut = mockCtx.texts.some((t) => t.includes('Turut Menyertai Hari Bahagia'));
       expect(hasTurut).toBe(true);
     });
 
     it('calls fillText with "Surabaya 29 Agustus 2026"', () => {
       const mockCtx = createMockContext();
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       const hasSurabaya = mockCtx.texts.some((t) => t.includes('Surabaya 29 Agustus 2026'));
       expect(hasSurabaya).toBe(true);
     });
 
     it('renders exactly 5 text elements', () => {
       const mockCtx = createMockContext();
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       expect(mockCtx.ctx.fillText).toHaveBeenCalledTimes(5);
     });
 
     it('text elements appear in the correct order', () => {
       const mockCtx = createMockContext();
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       // Order: Turut Menyertai, Dani, &, Marini, Surabaya
       expect(mockCtx.texts[0]).toBe('Turut Menyertai Hari Bahagia');
       expect(mockCtx.texts[1]).toBe('Dani');
@@ -216,7 +222,7 @@ describe('utils/twibbonOverlay', () => {
 
     it('calls measureText to calculate name widths', () => {
       const mockCtx = createMockContext();
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       expect(mockCtx.ctx.measureText).toHaveBeenCalled();
       const calls = (mockCtx.ctx.measureText as ReturnType<typeof vi.fn>).mock.calls;
       const measuredTexts = calls.map((c: string[]) => c[0]);
@@ -232,19 +238,19 @@ describe('utils/twibbonOverlay', () => {
   describe('canvas state management', () => {
     it('calls save at least once', () => {
       const mockCtx = createMockContext();
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       expect(mockCtx.ctx.save).toHaveBeenCalled();
     });
 
     it('calls restore at least once', () => {
       const mockCtx = createMockContext();
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       expect(mockCtx.ctx.restore).toHaveBeenCalled();
     });
 
     it('save and restore are called the same number of times (balanced)', () => {
       const mockCtx = createMockContext();
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       const saveCount = (mockCtx.ctx.save as ReturnType<typeof vi.fn>).mock.calls.length;
       const restoreCount = (mockCtx.ctx.restore as ReturnType<typeof vi.fn>).mock.calls.length;
       expect(saveCount).toBe(restoreCount);
@@ -252,7 +258,7 @@ describe('utils/twibbonOverlay', () => {
 
     it('save is called many times for flower drawing', () => {
       const mockCtx = createMockContext();
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       const saveCount = (mockCtx.ctx.save as ReturnType<typeof vi.fn>).mock.calls.length;
       // At minimum: 1 for destination-out mask + many for drawPetal/drawArtisticFlower
       expect(saveCount).toBeGreaterThan(10);
@@ -265,44 +271,44 @@ describe('utils/twibbonOverlay', () => {
   describe('path operations', () => {
     it('calls beginPath multiple times', () => {
       const mockCtx = createMockContext();
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       const callCount = (mockCtx.ctx.beginPath as ReturnType<typeof vi.fn>).mock.calls.length;
       expect(callCount).toBeGreaterThan(5);
     });
 
     it('calls closePath for arch paths', () => {
       const mockCtx = createMockContext();
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       expect(mockCtx.ctx.closePath).toHaveBeenCalled();
     });
 
     it('calls arcTo for arch drawing', () => {
       const mockCtx = createMockContext();
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       expect(mockCtx.ctx.arcTo).toHaveBeenCalled();
     });
 
     it('calls moveTo for path starting points', () => {
       const mockCtx = createMockContext();
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       expect(mockCtx.ctx.moveTo).toHaveBeenCalled();
     });
 
     it('calls lineTo for path segments', () => {
       const mockCtx = createMockContext();
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       expect(mockCtx.ctx.lineTo).toHaveBeenCalled();
     });
 
     it('calls ellipse for flower petals', () => {
       const mockCtx = createMockContext();
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       expect(mockCtx.ctx.ellipse).toHaveBeenCalled();
     });
 
     it('calls arc for flower centers and dots', () => {
       const mockCtx = createMockContext();
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       expect(mockCtx.ctx.arc).toHaveBeenCalled();
     });
 
@@ -312,7 +318,7 @@ describe('utils/twibbonOverlay', () => {
       // plus many flowers, so statistically this should be called.
       // If random doesn't hit shapeType===5, we still have 65 dot arcs.
       const mockCtx = createMockContext();
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       // bezierCurveTo may or may not be called depending on random values
       // so we just verify it doesn't throw
       expect(true).toBe(true);
@@ -320,13 +326,13 @@ describe('utils/twibbonOverlay', () => {
 
     it('calls fill for filled shapes', () => {
       const mockCtx = createMockContext();
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       expect(mockCtx.ctx.fill).toHaveBeenCalled();
     });
 
     it('calls stroke for outlined shapes', () => {
       const mockCtx = createMockContext();
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       expect(mockCtx.ctx.stroke).toHaveBeenCalled();
     });
   });
@@ -337,13 +343,13 @@ describe('utils/twibbonOverlay', () => {
   describe('gradient operations', () => {
     it('calls createRadialGradient for sun glow', () => {
       const mockCtx = createMockContext();
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       expect(mockCtx.ctx.createRadialGradient).toHaveBeenCalled();
     });
 
     it('createRadialGradient is called with correct parameters', () => {
       const mockCtx = createMockContext();
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       const calls = (mockCtx.ctx.createRadialGradient as ReturnType<typeof vi.fn>).mock.calls;
       expect(calls.length).toBeGreaterThanOrEqual(1);
       // First call: ctx.createRadialGradient(w * 0.9, 0, 0, w * 0.9, 0, w * 0.7)
@@ -355,13 +361,13 @@ describe('utils/twibbonOverlay', () => {
 
     it('gradient addColorStop is called', () => {
       const mockCtx = createMockContext();
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       expect(mockCtx.gradientMock.addColorStop).toHaveBeenCalled();
     });
 
     it('gradient has two color stops (0 and 1)', () => {
       const mockCtx = createMockContext();
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       const calls = mockCtx.gradientMock.addColorStop.mock.calls;
       const stops = calls.map((c: [number, string]) => c[0]);
       expect(stops).toContain(0);
@@ -385,7 +391,7 @@ describe('utils/twibbonOverlay', () => {
           compositeOps.push(value);
         },
       });
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       expect(compositeOps).toContain('destination-out');
     });
   });
@@ -406,7 +412,7 @@ describe('utils/twibbonOverlay', () => {
           alignments.push(value);
         },
       });
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       expect(alignments).toContain('center');
     });
 
@@ -422,7 +428,7 @@ describe('utils/twibbonOverlay', () => {
           alignments.push(value);
         },
       });
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       expect(alignments).toContain('left');
     });
 
@@ -438,7 +444,7 @@ describe('utils/twibbonOverlay', () => {
           baselines.push(value);
         },
       });
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       expect(baselines).toContain('middle');
     });
   });
@@ -449,19 +455,19 @@ describe('utils/twibbonOverlay', () => {
   describe('transform operations', () => {
     it('calls translate for positioning flowers', () => {
       const mockCtx = createMockContext();
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       expect(mockCtx.ctx.translate).toHaveBeenCalled();
     });
 
     it('calls rotate for petal rotation', () => {
       const mockCtx = createMockContext();
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       expect(mockCtx.ctx.rotate).toHaveBeenCalled();
     });
 
     it('calls scale for flower sizing', () => {
       const mockCtx = createMockContext();
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       expect(mockCtx.ctx.scale).toHaveBeenCalled();
     });
   });
@@ -472,35 +478,35 @@ describe('utils/twibbonOverlay', () => {
   describe('edge: different canvas sizes', () => {
     it('works with a small canvas (200x300)', () => {
       const mockCtx = createMockContext();
-      expect(() => drawOverlay(mockCtx.ctx, 200, 300)).not.toThrow();
+      expect(() => drawOverlay(mockCtx.ctx, 200, 300, DEFAULT_DATA)).not.toThrow();
       expect(mockCtx.ctx.clearRect).toHaveBeenCalledWith(0, 0, 200, 300);
     });
 
     it('works with a large canvas (4000x6000)', () => {
       const mockCtx = createMockContext();
-      expect(() => drawOverlay(mockCtx.ctx, 4000, 6000)).not.toThrow();
+      expect(() => drawOverlay(mockCtx.ctx, 4000, 6000, DEFAULT_DATA)).not.toThrow();
       expect(mockCtx.ctx.clearRect).toHaveBeenCalledWith(0, 0, 4000, 6000);
     });
 
     it('works with a square canvas (1000x1000)', () => {
       const mockCtx = createMockContext();
-      expect(() => drawOverlay(mockCtx.ctx, 1000, 1000)).not.toThrow();
+      expect(() => drawOverlay(mockCtx.ctx, 1000, 1000, DEFAULT_DATA)).not.toThrow();
       expect(mockCtx.ctx.clearRect).toHaveBeenCalledWith(0, 0, 1000, 1000);
     });
 
     it('works with minimum dimensions (1x1)', () => {
       const mockCtx = createMockContext();
-      expect(() => drawOverlay(mockCtx.ctx, 1, 1)).not.toThrow();
+      expect(() => drawOverlay(mockCtx.ctx, 1, 1, DEFAULT_DATA)).not.toThrow();
     });
 
     it('works with a wide canvas (3000x500)', () => {
       const mockCtx = createMockContext();
-      expect(() => drawOverlay(mockCtx.ctx, 3000, 500)).not.toThrow();
+      expect(() => drawOverlay(mockCtx.ctx, 3000, 500, DEFAULT_DATA)).not.toThrow();
     });
 
     it('still renders text with different canvas sizes', () => {
       const mockCtx = createMockContext();
-      drawOverlay(mockCtx.ctx, 500, 800);
+      drawOverlay(mockCtx.ctx, 500, 800, DEFAULT_DATA);
       expect(mockCtx.texts).toContain('Dani');
       expect(mockCtx.texts).toContain('Marini');
     });
@@ -513,23 +519,23 @@ describe('utils/twibbonOverlay', () => {
     it('calling drawOverlay twice does not throw', () => {
       const mockCtx = createMockContext();
       expect(() => {
-        drawOverlay(mockCtx.ctx, 1080, 1920);
-        drawOverlay(mockCtx.ctx, 1080, 1920);
+        drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
+        drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       }).not.toThrow();
     });
 
     it('second call doubles the clearRect call count', () => {
       const mockCtx = createMockContext();
-      drawOverlay(mockCtx.ctx, 1080, 1920);
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       expect(mockCtx.ctx.clearRect).toHaveBeenCalledTimes(2);
     });
 
     it('second call adds more text entries', () => {
       const mockCtx = createMockContext();
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       const firstCallTexts = mockCtx.texts.length;
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       expect(mockCtx.texts.length).toBe(firstCallTexts * 2);
     });
   });
@@ -550,7 +556,7 @@ describe('utils/twibbonOverlay', () => {
           fonts.push(value);
         },
       });
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       expect(fonts.length).toBeGreaterThan(0);
     });
 
@@ -566,7 +572,7 @@ describe('utils/twibbonOverlay', () => {
           fonts.push(value);
         },
       });
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       const hasPlayfair = fonts.some((f) => f.includes('Playfair Display'));
       expect(hasPlayfair).toBe(true);
     });
@@ -583,7 +589,7 @@ describe('utils/twibbonOverlay', () => {
           fonts.push(value);
         },
       });
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       const hasDayland = fonts.some((f) => f.includes('Dayland'));
       expect(hasDayland).toBe(true);
     });
@@ -605,7 +611,7 @@ describe('utils/twibbonOverlay', () => {
           if (typeof value === 'string') fillStyles.push(value);
         },
       });
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       expect(fillStyles).toContain('#F2EEE9');
     });
 
@@ -621,7 +627,7 @@ describe('utils/twibbonOverlay', () => {
           if (typeof value === 'string') strokeStyles.push(value);
         },
       });
-      drawOverlay(mockCtx.ctx, 1080, 1920);
+      drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
       expect(strokeStyles.length).toBeGreaterThan(0);
     });
   });
@@ -634,7 +640,7 @@ describe('utils/twibbonOverlay', () => {
       expect(() => {
         for (let i = 0; i < 10; i++) {
           const mockCtx = createMockContext();
-          drawOverlay(mockCtx.ctx, 1080, 1920);
+          drawOverlay(mockCtx.ctx, 1080, 1920, DEFAULT_DATA);
         }
       }).not.toThrow();
     });
@@ -643,7 +649,7 @@ describe('utils/twibbonOverlay', () => {
       expect(() => {
         for (let i = 1; i <= 20; i++) {
           const mockCtx = createMockContext();
-          drawOverlay(mockCtx.ctx, i * 100, i * 150);
+          drawOverlay(mockCtx.ctx, i * 100, i * 150, DEFAULT_DATA);
         }
       }).not.toThrow();
     });

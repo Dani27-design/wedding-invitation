@@ -137,59 +137,59 @@ describe('ErrorBoundary', () => {
   // 3. Fallback content — couple names, date, venue, refresh message
   // ---------------------------------------------------------------------------
   describe('fallback content', () => {
-    it('shows "Dani & Marini" couple names', () => {
+    it('shows generic "Undangan Pernikahan" when no props provided', () => {
       const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
       render(
         <ErrorBoundary>
           <ThrowingComponent />
         </ErrorBoundary>
       );
-      expect(screen.getByText('Dani & Marini')).toBeInTheDocument();
+      expect(screen.getByText('Undangan Pernikahan')).toBeInTheDocument();
       spy.mockRestore();
     });
 
-    it('couple names use font-dayland', () => {
+    it('heading uses font-dayland', () => {
       const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
       render(
         <ErrorBoundary>
           <ThrowingComponent />
         </ErrorBoundary>
       );
-      const heading = screen.getByText('Dani & Marini');
+      const heading = screen.getByText('Undangan Pernikahan');
       expect(heading).toHaveClass('font-dayland');
       spy.mockRestore();
     });
 
-    it('couple names are in h1 element', () => {
+    it('heading is in h1 element', () => {
       const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
       render(
         <ErrorBoundary>
           <ThrowingComponent />
         </ErrorBoundary>
       );
-      expect(screen.getByText('Dani & Marini').tagName).toBe('H1');
+      expect(screen.getByText('Undangan Pernikahan').tagName).toBe('H1');
       spy.mockRestore();
     });
 
-    it('shows wedding date', () => {
+    it('hides date when no props provided', () => {
       const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
       render(
         <ErrorBoundary>
           <ThrowingComponent />
         </ErrorBoundary>
       );
-      expect(screen.getByText(/29 Agustus 2026/)).toBeInTheDocument();
+      expect(screen.queryByText(/Agustus/)).not.toBeInTheDocument();
       spy.mockRestore();
     });
 
-    it('shows venue name', () => {
+    it('hides venue when no props provided', () => {
       const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
       render(
         <ErrorBoundary>
           <ThrowingComponent />
         </ErrorBoundary>
       );
-      expect(screen.getByText(/Candra Kencana/)).toBeInTheDocument();
+      expect(screen.queryByText(/Candra Kencana/)).not.toBeInTheDocument();
       spy.mockRestore();
     });
 
@@ -337,7 +337,7 @@ describe('ErrorBoundary', () => {
           <ThrowingComponent />
         </ErrorBoundary>
       );
-      expect(screen.getByText('Dani & Marini')).toBeInTheDocument();
+      expect(screen.getByText('Undangan Pernikahan')).toBeInTheDocument();
 
       // Re-render with same throwing child — should still show fallback
       rerender(
@@ -345,7 +345,7 @@ describe('ErrorBoundary', () => {
           <ThrowingComponent />
         </ErrorBoundary>
       );
-      expect(screen.getByText('Dani & Marini')).toBeInTheDocument();
+      expect(screen.getByText('Undangan Pernikahan')).toBeInTheDocument();
       spy.mockRestore();
     });
 
@@ -374,7 +374,7 @@ describe('ErrorBoundary', () => {
           <ThrowingComponent />
         </ErrorBoundary>
       );
-      const h1 = screen.getByText('Dani & Marini');
+      const h1 = screen.getByText('Undangan Pernikahan');
       expect(h1.tagName).toBe('H1');
       spy.mockRestore();
     });

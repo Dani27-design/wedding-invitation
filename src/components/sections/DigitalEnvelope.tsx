@@ -1,13 +1,19 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { Check } from 'lucide-react';
-import { BANK_ACCOUNTS } from '../../constants/wedding';
+import { useWeddingContext } from '../../context/WeddingContext';
 
 interface DigitalEnvelopeProps {
   copiedIndex: number | null;
   onCopy: (text: string, index: number) => void;
 }
 
-export const DigitalEnvelope = ({ copiedIndex, onCopy }: DigitalEnvelopeProps) => (
+export const DigitalEnvelope = ({ copiedIndex, onCopy }: DigitalEnvelopeProps) => {
+  const wedding = useWeddingContext();
+  const giftAccounts = wedding?.giftAccounts ?? [];
+
+  if (giftAccounts.length === 0) return null;
+
+  return (
   <section id="gift-section" className="relative py-[2vh] h-fit bg-ivory overflow-hidden">
     <div className="absolute inset-0 pointer-events-none opacity-[0.4]">
       <motion.div animate={{ rotate: [0, 360], scale: [1, 1.2, 1] }} transition={{ duration: 40, repeat: Infinity, ease: 'linear' }} className="absolute -top-1/4 -left-1/4 w-full h-full border border-gold/5 rounded-full" />
@@ -15,15 +21,15 @@ export const DigitalEnvelope = ({ copiedIndex, onCopy }: DigitalEnvelopeProps) =
     </div>
 
     <div className="container mx-auto px-6 max-w-4xl relative z-10">
-      <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mb-[3vh]">
+      <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center">
         <p className="text-xs uppercase tracking-[0.4em] text-gold font-black mb-2">Tanda Kasih</p>
         <p className="font-serif italic text-sm leading-relaxed text-ink/70 max-w-[300px] mx-auto mb-[3vh]">
           Kehadiran dan Doa Anda adalah hadiah terindah bagi kami. Namun jika berkenan memberi tanda kasih, kami menerimanya dengan penuh rasa terima kasih.
         </p>
 
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 md:gap-3 max-w-5xl mx-auto">
-          {BANK_ACCOUNTS.map((gift, i) => (
-            <motion.div key={i} role="button" tabIndex={0} aria-label={`Salin nomor ${gift.bank} ${gift.account}`} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onCopy(gift.account, i); } }} whileHover={{ y: -3, scale: 1.01 }} onClick={() => onCopy(gift.account, i)} className="bg-white/60 backdrop-blur-md p-3 md:p-4 rounded-xl border border-white/60 flex flex-col items-center gap-1 group cursor-pointer shadow-sm transition-all relative overflow-hidden">
+          {giftAccounts.map((gift, i) => (
+            <motion.div key={i} role="button" tabIndex={0} aria-label={`Salin nomor ${gift.bank} ${gift.account}`} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onCopy(gift.account, i); } }} whileHover={{ y: -3, scale: 1.01 }} onClick={() => onCopy(gift.account, i)} className="bg-white/60 backdrop-blur-md p-3 md:p-4 rounded-xl border border-white/60 flex flex-col items-center gap-1 group cursor-pointer shadow-sm transition-all relative overflow-hidden focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2">
               <div className="absolute -top-4 -right-4 w-12 h-12 bg-gold/5 rounded-full blur-xl group-hover:scale-150 transition-transform duration-700" />
               <div className="relative z-10 w-full flex flex-col items-center text-center">
                 <p className="text-xs uppercase tracking-widest text-gold/70 font-bold mb-1">{gift.bank}</p>
@@ -53,4 +59,5 @@ export const DigitalEnvelope = ({ copiedIndex, onCopy }: DigitalEnvelopeProps) =
       </motion.div>
     </div>
   </section>
-);
+  );
+};

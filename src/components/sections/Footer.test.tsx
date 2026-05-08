@@ -1,5 +1,22 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+
+vi.mock('../../context/WeddingContext', () => ({
+  useWeddingContext: () => ({
+    credits: [
+      { name: 'M. Daniansyah C.', role: 'developer', description: 'Menulis setiap baris code di balik halaman ini, merangkainya satu per satu sampai akhirnya bisa bercerita tentang kami.' },
+      { name: 'Siti Nur Marini', role: 'designer', description: 'Memperindah setiap bagian di balik halaman ini, menyusunnya satu per satu sampai akhirnya benar-benar terasa seperti kami.' },
+    ],
+    groomInstagram: 'https://instagram.com/danichusyaidin',
+    groomLinkedin: 'https://id.linkedin.com/in/daniansyahchusyaidin',
+    groomWhatsapp: '6285790428078',
+    brideInstagram: 'https://instagram.com/mariniw_',
+    brideThreads: 'https://threads.com/@mariniw_',
+    brideWhatsapp: '628883816403',
+    eventDate: '2026-08-29',
+  }),
+}));
+
 import { Footer } from './Footer';
 
 function renderFooter() {

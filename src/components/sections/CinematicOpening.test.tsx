@@ -1,5 +1,16 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+
+vi.mock('../../context/WeddingContext', () => ({
+  useWeddingContext: () => ({
+    groomNickname: 'Dani',
+    brideNickname: 'Marini',
+    eventCity: 'Surabaya',
+    eventDate: '2026-08-29',
+    openingImage: '/images/bride_and_groom_full_body_potrait.jpeg',
+  }),
+}));
+
 import { CinematicOpening } from './CinematicOpening';
 
 // ---------------------------------------------------------------------------

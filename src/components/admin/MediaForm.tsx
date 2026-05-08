@@ -1,0 +1,125 @@
+import { useState } from 'react';
+import { WeddingDocument } from '../../types/firestore';
+
+interface MediaFormProps {
+  data: WeddingDocument | null;
+  onSave: (fields: Partial<WeddingDocument>, files?: Record<string, File>) => void;
+  isSaving?: boolean;
+}
+
+interface MediaItem {
+  label: string;
+  field: 'musicUrl' | 'heroImage' | 'openingImage' | 'twibbonOverlay';
+  accept: string;
+}
+
+const MEDIA_ITEMS: MediaItem[] = [
+  { label: 'Musik Latar', field: 'musicUrl', accept: 'audio/*' },
+  { label: 'Foto Hero (Pembuka)', field: 'heroImage', accept: 'image/*' },
+  { label: 'Foto Opening', field: 'openingImage', accept: 'image/*' },
+  { label: 'Twibbon Overlay', field: 'twibbonOverlay', accept: 'image/png' },
+];
+
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+const MAX_AUDIO_SIZE = 10 * 1024 * 1024;
+
+export function MediaForm({ data, onSave, isSaving }: MediaFormProps) {
+  const [error, setError] = useState('');
+  const [previews, setPreviews] = useState<Record<string, string>>({
+    musicUrl: data?.musicUrl ?? '',
+    heroImage: data?.heroImage ?? '',
+    openingImage: data?.openingImage ?? '',
+    twibbonOverlay: data?.twibbonOverlay ?? '',
+  });
+  const [files, setFiles] = useState<Record<string, File>>({});
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const handleFileChange = (field: string, file: File | undefined, accept: string) => {
+    if (!file) return;
+    const maxSize = accept.startsWith('audio') ? MAX_AUDIO_SIZE : MAX_IMAGE_SIZE;
+    const label = accept.startsWith('audio') ? '10MB' : '5MB';
+    if (file.size > maxSize) { setError(`Ukuran file maksimal ${label}`); return; }
+    setError('');
+    const url = URL.createObjectURL(file);
+    setPreviews(prev => ({ ...prev, [field]: url }));
+    setFiles(prev => ({ ...prev, [field]: file }));
+  };
+
+  const handleGenerateOverlay = async () => {
+    if (!data) return;
+    setIsGenerating(true);
+    try {
+      const { drawOverlay } = await import('../../utils/twibbonOverlay');
+      const { deriveDateDisplay } = await import('../../utils/weddingDerived');
+      const canvas = document.createElement('canvas');
+      canvas.width = 1080;
+      canvas.height = 1920;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      const locationDate = `${data.eventCity} ${deriveDateDisplay(data.eventDate)}`;
+      drawOverlay(ctx, 1080, 1920, {
+        groomNickname: data.groomNickname,
+        brideNickname: data.brideNickname,
+        locationDate,
+        fonts: data.theme ? { decorative: data.theme.fonts.decorative, script: data.theme.fonts.script } : undefined,
+      });
+
+      const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
+      if (blob) {
+        const url = URL.createObjectURL(blob);
+        const file = new File([blob], 'twibbon-overlay.png', { type: 'image/png' });
+        setPreviews(prev => ({ ...prev, twibbonOverlay: url }));
+        setFiles(prev => ({ ...prev, twibbonOverlay: file }));
+      }
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave(
+      {
+        musicUrl: previews.musicUrl,
+        heroImage: previews.heroImage,
+        openingImage: previews.openingImage,
+        twibbonOverlay: previews.twibbonOverlay,
+      },
+      Object.keys(files).length > 0 ? files : undefined,
+    );
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <label className="text-xs uppercase tracking-[0.3em] text-gold font-black block">Media</label>
+
+      {MEDIA_ITEMS.map(({ label, field, accept }) => (
+        <div key={field} className="p-4 border border-gold/10 rounded-2xl space-y-3">
+          <span className="text-xs text-ink/60 font-bold">{label}</span>
+          {previews[field] && accept.startsWith('image') && (
+            <img src={previews[field]} alt={label} className="w-full max-h-40 object-contain rounded-xl" />
+          )}
+          {previews[field] && accept.startsWith('audio') && (
+            <audio src={previews[field]} controls className="w-full" />
+          )}
+          <input type="file" accept={accept} onChange={(e) => handleFileChange(field, e.target.files?.[0], accept)} aria-label={`Upload ${label}`} className="text-xs text-ink/60" />
+
+          {field === 'twibbonOverlay' && (
+            <button
+              type="button"
+              onClick={handleGenerateOverlay}
+              disabled={isGenerating || !data?.groomNickname}
+              className="w-full py-2 border border-gold/30 rounded-full text-xs tracking-widest uppercase text-gold font-bold hover:bg-gold/5 transition-all disabled:opacity-30"
+            >
+              {isGenerating ? 'Membuat...' : 'Buat Otomatis'}
+            </button>
+          )}
+        </div>
+      ))}
+
+      {error && <p className="text-xs text-red-500 text-center">{error}</p>}
+      <button type="submit" disabled={isSaving} className="w-full py-3 bg-gold text-ivory rounded-full text-xs tracking-[0.3em] font-black uppercase disabled:opacity-50">{isSaving ? 'Menyimpan...' : 'Simpan'}</button>
+    </form>
+  );
+}

@@ -1,8 +1,19 @@
+export interface OverlayData {
+  groomNickname: string;
+  brideNickname: string;
+  locationDate: string;
+  tagline?: string;
+  fonts?: {
+    decorative: string;
+    script: string;
+  };
+}
+
 const FRAME_MARGIN = 100;
 const FRAME_TOP = 140;
 const FRAME_BOTTOM = 280;
 
-export function drawOverlay(ctx: CanvasRenderingContext2D, w: number, h: number) {
+export function drawOverlay(ctx: CanvasRenderingContext2D, w: number, h: number, data: OverlayData) {
   ctx.clearRect(0, 0, w, h);
 
   const margin = FRAME_MARGIN;
@@ -206,43 +217,47 @@ export function drawOverlay(ctx: CanvasRenderingContext2D, w: number, h: number)
     drawPetal(px, py, 11, 5, Math.random() * Math.PI, 'rgba(219, 140, 160, 0.08)');
   }
 
+  const fontDecorative = data.fonts?.decorative ?? 'Playfair Display';
+  const fontScript = data.fonts?.script ?? 'Dayland';
+  const tagline = data.tagline ?? 'Turut Menyertai Hari Bahagia';
+
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
-  ctx.font = "italic 32px 'Playfair Display', serif";
+  ctx.font = `italic 32px '${fontDecorative}', serif`;
   ctx.fillStyle = 'rgba(26, 26, 26, 0.45)';
-  ctx.fillText('Turut Menyertai Hari Bahagia', w / 2, h - 255);
+  ctx.fillText(tagline, w / 2, h - 255);
 
-  const fontMain = "110px 'Dayland', cursive";
-  const fontAmp = "65px 'Dayland', cursive";
+  const fontMain = `110px '${fontScript}', cursive`;
+  const fontAmp = `65px '${fontScript}', cursive`;
   ctx.font = fontMain;
-  const wDani = ctx.measureText('Dani').width;
-  const wMarini = ctx.measureText('Marini').width;
+  const wGroom = ctx.measureText(data.groomNickname).width;
+  const wBride = ctx.measureText(data.brideNickname).width;
   ctx.font = fontAmp;
   const wAmp = ctx.measureText('&').width;
 
   const spacing = 30;
-  const totalW = wDani + wMarini + wAmp + spacing * 2;
+  const totalW = wGroom + wBride + wAmp + spacing * 2;
   let currentX = (w - totalW) / 2;
   const nameY = h - 140;
 
   ctx.textAlign = 'left';
   ctx.fillStyle = 'rgba(26, 26, 26, 0.9)';
   ctx.font = fontMain;
-  ctx.fillText('Dani', currentX, nameY);
-  currentX += wDani + spacing;
+  ctx.fillText(data.groomNickname, currentX, nameY);
+  currentX += wGroom + spacing;
 
   ctx.font = fontAmp;
   ctx.fillText('&', currentX, nameY + 2);
   currentX += wAmp + spacing;
 
   ctx.font = fontMain;
-  ctx.fillText('Marini', currentX, nameY);
+  ctx.fillText(data.brideNickname, currentX, nameY);
 
   ctx.textAlign = 'center';
-  ctx.font = "italic 28px 'Playfair Display', serif";
+  ctx.font = `italic 28px '${fontDecorative}', serif`;
   ctx.fillStyle = 'rgba(163, 143, 106, 0.7)';
-  ctx.fillText('Surabaya 29 Agustus 2026', w / 2, h - 40);
+  ctx.fillText(data.locationDate, w / 2, h - 40);
 
   for (let i = 0; i < 65; i++) {
     ctx.beginPath();

@@ -1,15 +1,20 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 interface PhotoZoomModalProps {
   selectedPhoto: string | null;
   onClose: () => void;
 }
 
-export const PhotoZoomModal = ({ selectedPhoto, onClose }: PhotoZoomModalProps) => (
+export const PhotoZoomModal = ({ selectedPhoto, onClose }: PhotoZoomModalProps) => {
+  const trapRef = useFocusTrap(!!selectedPhoto);
+
+  return (
   <AnimatePresence>
     {selectedPhoto && (
       <motion.div
+        ref={trapRef}
         role="dialog"
         aria-modal="true"
         aria-label="Lihat Foto"
@@ -31,6 +36,7 @@ export const PhotoZoomModal = ({ selectedPhoto, onClose }: PhotoZoomModalProps) 
           <img
             src={selectedPhoto}
             alt="Zoomed Moment"
+            sizes="100vw"
             onError={(e) => { e.currentTarget.style.display = 'none'; }}
             className="max-w-full max-h-[85vh] object-contain rounded-[1.5rem]"
           />
@@ -45,4 +51,5 @@ export const PhotoZoomModal = ({ selectedPhoto, onClose }: PhotoZoomModalProps) 
       </motion.div>
     )}
   </AnimatePresence>
-);
+  );
+};

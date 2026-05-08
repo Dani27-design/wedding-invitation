@@ -15,7 +15,7 @@ interface RSVPSectionProps {
 export const RSVPSection = ({ wishes, currentWishes, currentPage, totalPages, setCurrentPage, onOpenRSVP }: RSVPSectionProps) => (
   <section id="rsvp-section" className="relative py-[2vh] h-fit bg-paper overflow-hidden">
     <div className="absolute inset-0 pointer-events-none">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(180,141,62,0.03)_0%,_transparent_70%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_color-mix(in_srgb,var(--color-gold)_3%,transparent)_0%,_transparent_70%)]" />
     </div>
 
     <div className="container h-full mx-auto px-6 max-w-4xl relative z-10 flex flex-col items-center">
@@ -32,7 +32,7 @@ export const RSVPSection = ({ wishes, currentWishes, currentPage, totalPages, se
         whileHover={{ scale: 1.1, y: -2 }}
         whileTap={{ scale: 0.9 }}
         onClick={onOpenRSVP}
-        className="absolute right-6 top-[7vh] z-20 w-11 h-11 bg-gradient-to-br from-gold via-gold/80 to-gold text-white rounded-full transition-all duration-500 flex items-center justify-center shadow-[0_8px_30px_rgba(212,175,55,0.35)] group border border-white/20"
+        className="absolute right-6 top-[7vh] z-20 w-11 h-11 bg-gradient-to-br from-gold via-gold/80 to-gold text-white rounded-full transition-all duration-500 flex items-center justify-center shadow-[0_8px_30px_color-mix(in_srgb,var(--color-gold)_35%,transparent)] group border border-white/20"
         title="Kirim Doa"
         aria-label="Kirim Doa"
       >
@@ -75,13 +75,13 @@ export const RSVPSection = ({ wishes, currentWishes, currentPage, totalPages, se
         {totalPages > 1 && (
           <div className="h-fit flex flex-col items-center shrink-0 border-t border-gold/10 py-[1.5vh] mt-[1vh]">
             <div className="flex items-center gap-4 mb-1">
-              <motion.button whileHover={{ scale: 1.1, backgroundColor: 'rgba(212, 175, 55, 0.05)' }} whileTap={{ scale: 0.9 }} aria-label="Halaman sebelumnya" disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)} className="w-10 h-10 flex items-center justify-center rounded-full border border-gold/20 text-gold disabled:opacity-10 transition-all bubble-glow">
+              <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} aria-label="Halaman sebelumnya" disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)} className="w-10 h-10 flex items-center justify-center rounded-full border border-gold/20 text-gold disabled:opacity-10 transition-all bubble-glow hover:bg-gold/5">
                 <ArrowRight className="w-3 h-3 rotate-180" />
               </motion.button>
               <div className="text-center">
                 <span className="text-xs font-black uppercase tracking-[0.2em] text-gold/70">Bab {currentPage} dari {totalPages}</span>
               </div>
-              <motion.button whileHover={{ scale: 1.1, backgroundColor: 'rgba(212, 175, 55, 0.05)' }} whileTap={{ scale: 0.9 }} aria-label="Halaman selanjutnya" disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)} className="w-10 h-10 flex items-center justify-center rounded-full border border-gold/20 text-gold disabled:opacity-10 transition-all bubble-glow">
+              <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} aria-label="Halaman selanjutnya" disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)} className="w-10 h-10 flex items-center justify-center rounded-full border border-gold/20 text-gold disabled:opacity-10 transition-all bubble-glow hover:bg-gold/5">
                 <ArrowRight className="w-3 h-3" />
               </motion.button>
             </div>

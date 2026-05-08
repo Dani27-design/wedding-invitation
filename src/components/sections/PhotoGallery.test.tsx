@@ -1,7 +1,31 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { getGalleryLayout } from '../../utils/galleryLayout';
+
+const GALLERY_URLS = [
+  '/images/bride_face_potrait.jpeg',
+  '/images/bride_and_groom_full_body_potrait.jpeg',
+  '/images/groom_face_potrait.jpeg',
+  '/images/bride_and_groom_half_body_potrait.png',
+  '/images/bride_face_potrait.jpeg',
+  '/images/groom_face_potrait.jpeg',
+  '/images/bride_and_groom_half_body_potrait.png',
+  '/images/bride_and_groom_full_body_potrait.jpeg',
+  '/images/bride_face_potrait.jpeg',
+  '/images/groom_face_potrait.jpeg',
+  '/images/bride_and_groom_half_body_potrait.png',
+  '/images/bride_and_groom_full_body_potrait.jpeg',
+];
+
+const GALLERY_ITEMS = GALLERY_URLS.map((src, i) => ({ src, ...getGalleryLayout(i) }));
+
+vi.mock('../../context/WeddingContext', () => ({
+  useWeddingContext: () => ({
+    gallery: GALLERY_URLS,
+  }),
+}));
+
 import { PhotoGallery } from './PhotoGallery';
-import { GALLERY_ITEMS } from '../../constants/wedding';
 
 function renderGallery(onSelectPhoto = vi.fn()) {
   return render(<PhotoGallery onSelectPhoto={onSelectPhoto} />);

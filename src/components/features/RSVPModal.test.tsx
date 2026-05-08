@@ -58,11 +58,12 @@ describe('RSVPModal', () => {
       expect(backdrop).toBeInTheDocument();
     });
 
-    it('modal does not have scroll (no max-h or overflow-y-auto)', () => {
+    it('modal has scroll support for short devices (overflow-y-auto + max-h)', () => {
       render(<RSVPModal {...createProps()} />);
       const modal = document.querySelector('.rounded-\\[2\\.5rem\\]');
       expect(modal).toBeInTheDocument();
-      expect(modal).not.toHaveClass('overflow-y-auto');
+      expect(modal).toHaveClass('overflow-y-auto');
+      expect(modal).toHaveClass('max-h-[90vh]');
     });
 
     it('modal has max-w-md constraint', () => {
@@ -170,11 +171,11 @@ describe('RSVPModal', () => {
       expect(absenRadio.defaultChecked).toBe(false);
     });
 
-    it('radio buttons have hidden class for custom styling', () => {
+    it('radio buttons have sr-only class for accessible custom styling', () => {
       render(<RSVPModal {...createProps()} />);
       const radios = document.querySelectorAll('input[type="radio"][name="attendance"]');
       radios.forEach((radio) => {
-        expect(radio).toHaveClass('hidden');
+        expect(radio).toHaveClass('sr-only');
       });
     });
 

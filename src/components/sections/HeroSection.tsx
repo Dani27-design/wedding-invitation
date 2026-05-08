@@ -1,7 +1,11 @@
 import { motion } from "motion/react";
-import { WEDDING_DATE_DISPLAY } from "../../constants/wedding";
+import { useWeddingContext } from '../../context/WeddingContext';
+import { deriveDateDisplay } from '../../utils/weddingDerived';
 
-export const HeroSection = () => (
+export const HeroSection = () => {
+  const wedding = useWeddingContext();
+
+  return (
   <section className="relative h-screen-safe flex flex-col items-center justify-between px-6 py-[5vh] overflow-hidden bg-ivory">
     <div className="absolute inset-0 z-0">
       <motion.div
@@ -10,11 +14,12 @@ export const HeroSection = () => (
         className="w-full h-full transform-gpu"
       >
         <img
-          src="/images/bride_and_groom_full_body_potrait.jpeg"
+          src={wedding?.heroImage ?? ''}
           fetchPriority="high"
+          sizes="100vw"
           onError={(e) => { e.currentTarget.style.display = 'none'; }}
           className="w-full h-full object-cover brightness-[0.85] contrast-[1.05]"
-          alt="Hero Portrait"
+          alt={`${wedding?.groomNickname ?? ''} & ${wedding?.brideNickname ?? ''}`}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-ivory/20 to-ivory" />
       </motion.div>
@@ -28,13 +33,13 @@ export const HeroSection = () => (
         className="space-y-4 text-center"
       >
         <h1 className="font-dayland text-5xl sm:text-7xl md:text-9xl text-ivory drop-shadow-2xl">
-          Dani
+          {wedding?.groomNickname}
         </h1>
         <h2 className="font-dayland text-2xl sm:text-4xl md:text-6xl text-gold/70 drop-shadow-2xl">
           &
         </h2>
         <h1 className="font-dayland text-5xl sm:text-7xl md:text-9xl text-ivory drop-shadow-2xl">
-          Marini
+          {wedding?.brideNickname}
         </h1>
       </motion.div>
     </div>
@@ -49,13 +54,14 @@ export const HeroSection = () => (
         <div className="w-12 h-px bg-gold/30 mx-auto" />
         <div className="space-y-3">
           <p className="font-display italic text-2xl sm:text-3xl md:text-5xl text-ink/70">
-            {WEDDING_DATE_DISPLAY}
+            {wedding ? deriveDateDisplay(wedding.eventDate) : ''}
           </p>
           <p className="font-display italic text-xs tracking-[0.6rem] uppercase text-gold font-medium">
-            Surabaya . Indonesia
+            {wedding?.eventCity} . Indonesia
           </p>
         </div>
       </motion.div>
     </div>
   </section>
-);
+  );
+};

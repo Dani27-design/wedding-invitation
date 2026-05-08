@@ -1,5 +1,16 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+
+vi.mock('../../context/WeddingContext', () => ({
+  useWeddingContext: () => ({
+    groomNickname: 'Dani',
+    brideNickname: 'Marini',
+    eventDate: '2026-08-29',
+    eventCity: 'Surabaya',
+    heroImage: '/images/bride_and_groom_full_body_potrait.jpeg',
+  }),
+}));
+
 import { HeroSection } from './HeroSection';
 
 // ---------------------------------------------------------------------------
@@ -121,41 +132,41 @@ describe('HeroSection', () => {
   describe('Images', () => {
     it('renders hero portrait image with correct alt text', () => {
       renderComponent();
-      const img = screen.getByAltText('Hero Portrait');
+      const img = screen.getByAltText('Dani & Marini');
       expect(img).toBeInTheDocument();
     });
 
     it('hero image has correct src path', () => {
       renderComponent();
-      const img = screen.getByAltText('Hero Portrait');
+      const img = screen.getByAltText('Dani & Marini');
       expect(img).toHaveAttribute('src', '/images/bride_and_groom_full_body_potrait.jpeg');
     });
 
     it('hero image has object-cover class', () => {
       renderComponent();
-      expect(screen.getByAltText('Hero Portrait')).toHaveClass('object-cover');
+      expect(screen.getByAltText('Dani & Marini')).toHaveClass('object-cover');
     });
 
     it('hero image uses default center positioning (no object-top)', () => {
       renderComponent();
-      expect(screen.getByAltText('Hero Portrait')).not.toHaveClass('object-top');
+      expect(screen.getByAltText('Dani & Marini')).not.toHaveClass('object-top');
     });
 
     it('hero image has brightness filter', () => {
       renderComponent();
-      const img = screen.getByAltText('Hero Portrait');
+      const img = screen.getByAltText('Dani & Marini');
       expect(img).toHaveClass('brightness-[0.85]');
     });
 
     it('hero image has contrast filter', () => {
       renderComponent();
-      const img = screen.getByAltText('Hero Portrait');
+      const img = screen.getByAltText('Dani & Marini');
       expect(img).toHaveClass('contrast-[1.05]');
     });
 
     it('hero image fills container (w-full h-full)', () => {
       renderComponent();
-      const img = screen.getByAltText('Hero Portrait');
+      const img = screen.getByAltText('Dani & Marini');
       expect(img).toHaveClass('w-full');
       expect(img).toHaveClass('h-full');
     });

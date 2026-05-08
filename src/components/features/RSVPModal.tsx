@@ -1,6 +1,7 @@
 import { FormEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Heart, X } from 'lucide-react';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 interface RSVPModalProps {
   isOpen: boolean;
@@ -10,10 +11,13 @@ interface RSVPModalProps {
   onSubmit: (e: FormEvent<HTMLFormElement>) => void;
 }
 
-export const RSVPModal = ({ isOpen, isSubmitSuccess, guestName, onClose, onSubmit }: RSVPModalProps) => (
+export const RSVPModal = ({ isOpen, isSubmitSuccess, guestName, onClose, onSubmit }: RSVPModalProps) => {
+  const trapRef = useFocusTrap(isOpen);
+
+  return (
   <AnimatePresence>
     {isOpen && (
-      <div role="dialog" aria-modal="true" aria-label="Kirim Doa" onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }} className="fixed inset-0 z-[200] flex items-center justify-center px-6 py-6">
+      <div ref={trapRef} role="dialog" aria-modal="true" aria-label="Kirim Doa" onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }} className="fixed inset-0 z-[200] flex items-center justify-center px-6 py-6">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -26,7 +30,7 @@ export const RSVPModal = ({ isOpen, isSubmitSuccess, guestName, onClose, onSubmi
           initial={{ opacity: 0, scale: 0.95, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
-          className="relative w-full max-w-md bg-ivory p-6 md:p-6 rounded-[2.5rem] border border-gold/20 shadow-2xl"
+          className="relative w-full max-w-md max-h-[90vh] overflow-y-auto bg-ivory p-6 md:p-6 rounded-[2.5rem] border border-gold/20 shadow-2xl"
         >
           <div className="absolute -top-10 -right-10 pointer-events-none opacity-[0.03]">
             <Heart className="w-48 h-48 text-gold" fill="currentColor" />
@@ -73,13 +77,13 @@ export const RSVPModal = ({ isOpen, isSubmitSuccess, guestName, onClose, onSubmi
                     <legend className="text-xs uppercase tracking-[0.2em] text-gold font-bold mb-1.5 block">Konfirmasi Kehadiran</legend>
                     <div className="flex gap-3">
                       <label className="flex-1 cursor-pointer">
-                        <input type="radio" name="attendance" value="yes" defaultChecked className="hidden peer" />
+                        <input type="radio" name="attendance" value="yes" defaultChecked className="sr-only peer" />
                         <div className="w-full py-2.5 text-center border border-gold/20 rounded-xl peer-checked:border-gold peer-checked:bg-gold/5 transition-all text-ink/70 peer-checked:text-gold uppercase text-xs font-black tracking-widest leading-none">
                           Hadir
                         </div>
                       </label>
                       <label className="flex-1 cursor-pointer">
-                        <input type="radio" name="attendance" value="no" className="hidden peer" />
+                        <input type="radio" name="attendance" value="no" className="sr-only peer" />
                         <div className="w-full py-2.5 text-center border border-gold/20 rounded-xl peer-checked:border-gold peer-checked:bg-gold/5 transition-all text-ink/70 peer-checked:text-gold uppercase text-xs font-black tracking-widest leading-none">
                           Berhalangan
                         </div>
@@ -96,7 +100,7 @@ export const RSVPModal = ({ isOpen, isSubmitSuccess, guestName, onClose, onSubmi
                   </div>
 
                   <motion.button
-                    whileHover={{ scale: 1.01, backgroundColor: '#a07a2e', color: '#FDFCF8' }}
+                    whileHover={{ scale: 1.01, backgroundColor: 'color-mix(in srgb, var(--color-gold) 85%, black)', color: 'var(--color-ivory)' }}
                     whileTap={{ scale: 0.98 }}
                     type="submit"
                     className="w-full py-4 bg-gold text-ivory rounded-full text-xs tracking-[0.35em] font-black uppercase transition-all duration-500 shadow-xl mt-2"
@@ -111,4 +115,5 @@ export const RSVPModal = ({ isOpen, isSubmitSuccess, guestName, onClose, onSubmi
       </div>
     )}
   </AnimatePresence>
-);
+  );
+};

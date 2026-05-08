@@ -1,13 +1,15 @@
 import { useState, useRef, useEffect, useCallback, ChangeEvent, MouseEvent, TouchEvent } from 'react';
 import { motion } from 'motion/react';
 import { Camera, RefreshCw } from 'lucide-react';
+import { useWeddingContext } from '../../context/WeddingContext';
+import { deriveTwibbonFilename } from '../../utils/weddingDerived';
 
 const CANVAS_W = 1080;
 const CANVAS_H = 1920;
 const MAX_PREVIEW_DIM = 2000;
-const OVERLAY_SRC = '/images/twibbon-overlay.png';
 
 export function TwibbonCreator() {
+  const wedding = useWeddingContext();
   const [image, setImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isReady, setIsReady] = useState(false);
@@ -23,6 +25,7 @@ export function TwibbonCreator() {
   const isDragging = useRef(false);
   const lastPos = useRef({ x: 0, y: 0 });
   const lastTouchDistance = useRef<number | null>(null);
+  const shareErrorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const updateImageTransform = useCallback(() => {
     if (!imgElementRef.current) return;
@@ -141,6 +144,10 @@ export function TwibbonCreator() {
     };
   });
 
+  useEffect(() => {
+    return () => { if (shareErrorTimerRef.current) clearTimeout(shareErrorTimerRef.current); };
+  }, []);
+
   const handleCanvasClick = () => {
     if (image) return;
     fileInputRef.current?.click();
@@ -192,11 +199,12 @@ export function TwibbonCreator() {
     const blob = await generateTwibbonBlob();
     if (!blob) {
       setShareError(true);
-      setTimeout(() => setShareError(false), 3000);
+      shareErrorTimerRef.current = setTimeout(() => setShareError(false), 3000);
       return;
     }
 
-    const file = new File([blob], 'Memori-Dani-Marini.png', { type: 'image/png' });
+    const filename = deriveTwibbonFilename(wedding?.groomNickname ?? '', wedding?.brideNickname ?? '');
+    const file = new File([blob], filename, { type: 'image/png' });
 
     if (navigator.share && navigator.canShare?.({ files: [file] })) {
       try {
@@ -206,7 +214,7 @@ export function TwibbonCreator() {
     }
 
     const link = document.createElement('a');
-    link.download = 'Memori-Dani-Marini.png';
+    link.download = filename;
     link.href = URL.createObjectURL(blob);
     link.click();
     setTimeout(() => URL.revokeObjectURL(link.href), 1000);
@@ -269,7 +277,7 @@ export function TwibbonCreator() {
               )}
             </div>
 
-            <img ref={overlayImgRef} src={OVERLAY_SRC} onLoad={() => setIsReady(true)} className="absolute inset-0 z-10 w-full h-full pointer-events-none" alt="" />
+            <img ref={overlayImgRef} src={wedding?.twibbonOverlay ?? ''} onLoad={() => setIsReady(true)} className="absolute inset-0 z-10 w-full h-full pointer-events-none" alt="" />
           </div>
         </motion.div>
 

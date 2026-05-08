@@ -1,5 +1,19 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+
+vi.mock('../../context/WeddingContext', () => ({
+  useWeddingContext: () => ({
+    giftAccounts: [
+      { bank: 'BCA', account: '1234567890', owner: 'M. Daniansyah Chusyaidin' },
+      { bank: 'BRI', account: '0987654321', owner: 'Siti Nur Marini' },
+      { bank: 'Jenius', account: '111222333444', owner: 'M. Daniansyah Chusyaidin' },
+      { bank: 'BTN', account: '777888999000', owner: 'Siti Nur Marini' },
+      { bank: 'Gopay', account: '08123456789', owner: 'M. Daniansyah Chusyaidin' },
+      { bank: 'Seabank', account: '08987654321', owner: 'Siti Nur Marini' },
+    ],
+  }),
+}));
+
 import { DigitalEnvelope } from './DigitalEnvelope';
 
 const defaultProps = {

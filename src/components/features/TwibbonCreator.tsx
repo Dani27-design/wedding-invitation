@@ -188,7 +188,8 @@ export function TwibbonCreator() {
           ctx.drawImage(img, (CANVAS_W - dw) / 2, (CANVAS_H - dh) / 2, dw, dh);
           ctx.restore();
 
-          // We need to load the overlay image with CORS separately to avoid tainting
+          // We use a proxy to fetch the overlay image with CORS permission
+          // This allows us to export the canvas even if the source bucket isn't configured for CORS
           const overlayImg = new Image();
           overlayImg.crossOrigin = 'anonymous';
           overlayImg.onload = () => {
@@ -196,12 +197,15 @@ export function TwibbonCreator() {
             canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0);
           };
           overlayImg.onerror = () => {
-            // If overlay fails to load with CORS, we draw the photo without the frame 
-            // at least the user gets their photo, but we log the error
-            console.error('Overlay CORS load failed during export');
+            // Fallback: if proxy fails, try using the direct image (might taint canvas)
+            console.warn('Proxy load failed, attempting direct load');
+            ctx.drawImage(overlayImgRef.current!, 0, 0, CANVAS_W, CANVAS_H);
             canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0);
           };
-          overlayImg.src = overlayUrl;
+          
+          // Using weserv.nl as a reliable, free image proxy
+          const cleanOverlayUrl = wedding?.twibbonOverlay ?? '';
+          overlayImg.src = `https://images.weserv.nl/?url=${encodeURIComponent(cleanOverlayUrl)}&v=${Date.now()}`;
         } catch (error) {
           console.error('Canvas export failed. This is usually due to CORS/Tainted Canvas.', error);
           resolve(null);

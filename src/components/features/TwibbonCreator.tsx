@@ -188,9 +188,20 @@ export function TwibbonCreator() {
           ctx.drawImage(img, (CANVAS_W - dw) / 2, (CANVAS_H - dh) / 2, dw, dh);
           ctx.restore();
 
-          ctx.drawImage(overlayImgRef.current!, 0, 0, CANVAS_W, CANVAS_H);
-
-          canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0);
+          // We need to load the overlay image with CORS separately to avoid tainting
+          const overlayImg = new Image();
+          overlayImg.crossOrigin = 'anonymous';
+          overlayImg.onload = () => {
+            ctx.drawImage(overlayImg, 0, 0, CANVAS_W, CANVAS_H);
+            canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0);
+          };
+          overlayImg.onerror = () => {
+            // If overlay fails to load with CORS, we draw the photo without the frame 
+            // at least the user gets their photo, but we log the error
+            console.error('Overlay CORS load failed during export');
+            canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0);
+          };
+          overlayImg.src = overlayUrl;
         } catch (error) {
           console.error('Canvas export failed. This is usually due to CORS/Tainted Canvas.', error);
           resolve(null);
@@ -293,7 +304,6 @@ export function TwibbonCreator() {
             <img 
               ref={overlayImgRef} 
               src={overlayUrl} 
-              crossOrigin={isRemoteOverlay ? 'anonymous' : undefined} 
               onLoad={() => setIsReady(true)} 
               onError={() => {
                 console.error('Twibbon overlay failed to load:', overlayUrl);

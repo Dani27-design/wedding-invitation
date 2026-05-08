@@ -14,6 +14,8 @@ import { GiftForm } from '../components/admin/GiftForm';
 import { MediaForm } from '../components/admin/MediaForm';
 import { SocialForm } from '../components/admin/SocialForm';
 import { CustomizeForm } from '../components/admin/CustomizeForm';
+import { motion, AnimatePresence } from 'motion/react';
+import { CheckCircle2, AlertCircle, Loader2, X } from 'lucide-react';
 
 const STEPS = [
   'Pasangan',
@@ -26,6 +28,76 @@ const STEPS = [
   'Kustom',
 ] as const;
 
+interface SaveStatusModalProps {
+  status: 'saving' | 'success' | 'error';
+  onClose: () => void;
+}
+
+function SaveStatusModal({ status, onClose }: SaveStatusModalProps) {
+  return (
+    <AnimatePresence>
+      <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={status !== 'saving' ? onClose : undefined}
+          className="absolute inset-0 bg-ink/40 backdrop-blur-sm"
+        />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.9, y: 20 }}
+          className="relative bg-white rounded-[2rem] p-8 shadow-2xl border border-gold/10 w-full max-w-xs text-center"
+        >
+          {status !== 'saving' && (
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 p-2 text-ink/20 hover:text-ink/40 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
+
+          <div className="flex flex-col items-center gap-4 py-4">
+            {status === 'saving' && (
+              <Loader2 className="w-12 h-12 text-gold animate-spin" />
+            )}
+            {status === 'success' && (
+              <CheckCircle2 className="w-12 h-12 text-green-500" />
+            )}
+            {status === 'error' && (
+              <AlertCircle className="w-12 h-12 text-red-500" />
+            )}
+
+            <div className="space-y-1">
+              <h3 className="font-serif italic text-xl text-ink">
+                {status === 'saving' && 'Sedang Menyimpan...'}
+                {status === 'success' && 'Berhasil Disimpan'}
+                {status === 'error' && 'Gagal Menyimpan'}
+              </h3>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-black">
+                {status === 'saving' && 'Harap tunggu sebentar'}
+                {status === 'success' && 'Semua perubahan telah diperbarui'}
+                {status === 'error' && 'Terjadi kesalahan, silakan coba lagi'}
+              </p>
+            </div>
+
+            {status !== 'saving' && (
+              <button
+                onClick={onClose}
+                className="mt-4 px-8 py-2.5 bg-gold text-ivory rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-gold/20 hover:scale-105 transition-transform"
+              >
+                Oke
+              </button>
+            )}
+          </div>
+        </motion.div>
+      </div>
+    </AnimatePresence>
+  );
+}
+
 export default function Admin() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
@@ -36,7 +108,7 @@ export default function Admin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
 
   const { wedding, isLoading: isWeddingLoading } = useWedding(slug ?? '');
 
@@ -46,10 +118,6 @@ export default function Admin() {
       setIsAuthLoading(false);
     });
     return unsubscribe;
-  }, []);
-
-  useEffect(() => {
-    return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current); };
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -78,7 +146,6 @@ export default function Admin() {
   };
 
   const [isSaving, setIsSaving] = useState(false);
-  const [saveMessage, setSaveMessage] = useState('');
 
   const handleSave = useCallback(async (
     fields: Partial<WeddingDocument>,
@@ -86,7 +153,7 @@ export default function Admin() {
   ) => {
     if (!slug) return;
     setIsSaving(true);
-    setSaveMessage('');
+    setSaveStatus('saving');
     try {
       const updates: Record<string, unknown> = { ...fields, updatedAt: serverTimestamp() };
 
@@ -117,16 +184,15 @@ export default function Admin() {
       }
 
       await updateDoc(doc(db, 'weddings', slug), updates);
-      setSaveMessage('Tersimpan!');
+      setSaveStatus('success');
       setHasSaved(true);
-      saveTimerRef.current = setTimeout(() => setSaveMessage(''), 2000);
     } catch (error) {
       console.error('[Admin] Save error:', (error as Error).message);
-      setSaveMessage('Gagal menyimpan');
+      setSaveStatus('error');
     } finally {
       setIsSaving(false);
     }
-  }, [slug]);
+  }, [slug, user, wedding]);
 
   if (isAuthLoading) {
     return (
@@ -242,14 +308,15 @@ export default function Admin() {
       </nav>
 
       <main role="tabpanel" className="max-w-lg mx-auto px-4 py-6">
-        {(isSaving || saveMessage) && (
-          <div className="mb-4 text-center">
-            {isSaving && <p className="text-xs text-ink/40 tracking-widest uppercase">Menyimpan...</p>}
-            {saveMessage && <p className={`text-xs tracking-widest uppercase ${saveMessage === 'Tersimpan!' ? 'text-green-600' : 'text-red-500'}`}>{saveMessage}</p>}
-          </div>
-        )}
         {renderForm()}
       </main>
+
+      {saveStatus !== 'idle' && (
+        <SaveStatusModal 
+          status={saveStatus} 
+          onClose={() => setSaveStatus('idle')} 
+        />
+      )}
     </div>
   );
 }

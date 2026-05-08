@@ -1,9 +1,8 @@
-import { useState, useRef, useEffect, useCallback, ChangeEvent, MouseEvent, TouchEvent } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo, ChangeEvent, MouseEvent, TouchEvent } from 'react';
 import { motion } from 'motion/react';
 import { Camera, RefreshCw } from 'lucide-react';
 import { useWeddingContext } from '../../context/WeddingContext';
 import { deriveTwibbonFilename } from '../../utils/weddingDerived';
-import { c } from '../../../dist/assets/themeDefaults-BjuvZABj';
 
 const CANVAS_W = 1080;
 const CANVAS_H = 1920;
@@ -227,7 +226,9 @@ export function TwibbonCreator() {
     setTimeout(() => URL.revokeObjectURL(link.href), 1000);
   };
 
-  const overlayUrl = wedding?.twibbonOverlay ? `${wedding.twibbonOverlay}${wedding.twibbonOverlay.includes('?') ? '&' : '?'}v=${Date.now()}` : '';
+  const overlayUrl = useMemo(() => 
+    wedding?.twibbonOverlay ? `${wedding.twibbonOverlay}${wedding.twibbonOverlay.includes('?') ? '&' : '?'}v=${Date.now()}` : ''
+  , [wedding?.twibbonOverlay]);
 
   return (
     <div ref={wrapperRef} className="flex flex-col h-fit w-full items-center justify-start gap-[3vh] px-4">

@@ -107,7 +107,7 @@ export function MediaForm({ data, onSave, isSaving }: MediaFormProps) {
             {previews[field] && (
               <div className="relative rounded-xl overflow-hidden border border-gold/10 bg-ivory/50">
                 {accept.startsWith('image') ? (
-                  <img src={previews[field]} alt={label} className="w-full max-h-40 object-contain mx-auto" />
+                  <img src={previews[field]} alt={label} crossOrigin="anonymous" className="w-full max-h-40 object-contain mx-auto" />
                 ) : (
                   <div className="p-4 flex items-center justify-center">
                     <audio src={previews[field]} controls className="w-full h-8" />

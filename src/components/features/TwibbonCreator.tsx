@@ -230,6 +230,8 @@ export function TwibbonCreator() {
     wedding?.twibbonOverlay ? `${wedding.twibbonOverlay}${wedding.twibbonOverlay.includes('?') ? '&' : '?'}v=${Date.now()}` : ''
   , [wedding?.twibbonOverlay]);
 
+  const isRemoteOverlay = overlayUrl.startsWith('http');
+
   return (
     <div ref={wrapperRef} className="flex flex-col h-fit w-full items-center justify-start gap-[3vh] px-4">
       <div className="text-center shrink-0">
@@ -237,9 +239,10 @@ export function TwibbonCreator() {
         <p className="font-serif italic text-[13px] leading-relaxed text-ink/70 max-w-[300px] mx-auto">rayakan momen bahagia ini bersama kami.</p>
       </div>
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          viewport={{ once: true, amount: 0.05 }}
+          transition={{ duration: 0.8 }}
           className="relative h-[55vh] w-auto max-w-[82%] md:max-w-[380px] lg:max-w-[420px] aspect-[9/16] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] border border-gold/10 bg-[#F2EEE9] group/result"
         >
           <div
@@ -287,7 +290,17 @@ export function TwibbonCreator() {
               )}
             </div>
 
-            <img ref={overlayImgRef} src={overlayUrl} crossOrigin="anonymous" onLoad={() => setIsReady(true)} className="absolute inset-0 z-10 w-full h-full pointer-events-none" alt="" />
+            <img 
+              ref={overlayImgRef} 
+              src={overlayUrl} 
+              crossOrigin={isRemoteOverlay ? 'anonymous' : undefined} 
+              onLoad={() => setIsReady(true)} 
+              onError={() => {
+                console.error('Twibbon overlay failed to load:', overlayUrl);
+              }}
+              className="absolute inset-0 z-10 w-full h-full pointer-events-none" 
+              alt="" 
+            />
           </div>
         </motion.div>
 

@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { AnimatePresence } from 'motion/react';
 import { BackgroundLayers } from '../components/ui/BackgroundLayers';
 import { CinematicOpening } from '../components/sections/CinematicOpening';
+import { HeroSection } from '../components/sections/HeroSection';
 import { useWishes } from '../hooks/useWishes';
 import { useWedding } from '../hooks/useWedding';
 import { WeddingContext } from '../context/WeddingContext';
@@ -10,7 +11,8 @@ import { addWish } from '../lib/wishes';
 import { deriveMetaTitle, deriveDateShort, deriveDateDisplay } from '../utils/weddingDerived';
 import { THEME_DEFAULTS } from '../constants/themeDefaults';
 
-const HeroSection = lazy(() => import('../components/sections/HeroSection').then(m => ({ default: m.HeroSection })));
+// ... (keep the rest of the imports for lazy components)
+
 const CoupleSection = lazy(() => import('../components/sections/CoupleSection').then(m => ({ default: m.CoupleSection })));
 const CinematicStory = lazy(() => import('../components/sections/CinematicStory').then(m => ({ default: m.CinematicStory })));
 const EventSection = lazy(() => import('../components/sections/EventSection').then(m => ({ default: m.EventSection })));
@@ -79,6 +81,12 @@ export default function Wedding() {
   useEffect(() => {
     setCurrentPage(p => Math.min(p, Math.max(1, totalPages)));
   }, [totalPages]);
+
+  useEffect(() => {
+    if (!wedding?.heroImage) return;
+    const img = new Image();
+    img.src = wedding.heroImage;
+  }, [wedding?.heroImage]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);

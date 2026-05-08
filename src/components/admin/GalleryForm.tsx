@@ -8,8 +8,8 @@ interface GalleryFormProps {
   isSaving?: boolean;
 }
 
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
-const MAX_IMAGES = 20;
+const MAX_IMAGE_SIZE = 100 * 1024 * 1024;
+const MAX_IMAGES = 30;
 
 export function GalleryForm({ data, onSave, isSaving }: GalleryFormProps) {
   const [error, setError] = useState('');
@@ -22,7 +22,7 @@ export function GalleryForm({ data, onSave, isSaving }: GalleryFormProps) {
     if (!files) return;
     const arr = Array.from(files);
     const oversized = arr.find(f => f.size > MAX_IMAGE_SIZE);
-    if (oversized) { setError('Ukuran foto maksimal 5MB per file'); return; }
+    if (oversized) { setError('Ukuran foto maksimal 100MB per file'); return; }
     if (images.length + arr.length > MAX_IMAGES) { setError(`Maksimal ${MAX_IMAGES} foto`); return; }
     setError('');
     const newImages = arr.map(file => ({ url: URL.createObjectURL(file), file }));

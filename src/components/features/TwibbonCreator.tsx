@@ -126,8 +126,8 @@ export function TwibbonCreator() {
     const el = containerRef.current;
     if (!el) return;
 
-    const onTouchStart = (e: globalThis.TouchEvent) => handleStart(e as unknown as TouchEvent);
-    const onTouchMove = (e: globalThis.TouchEvent) => handleMove(e as unknown as TouchEvent);
+    const onTouchStart = (e: TouchEvent) => handleStart(e);
+    const onTouchMove = (e: TouchEvent) => handleMove(e);
     const onTouchEnd = () => handleEnd();
 
     el.addEventListener('touchstart', onTouchStart, { passive: false });
@@ -139,7 +139,7 @@ export function TwibbonCreator() {
       el.removeEventListener('touchmove', onTouchMove);
       el.removeEventListener('touchend', onTouchEnd);
     };
-  });
+  }, [image]);
 
   useEffect(() => {
     return () => { if (shareErrorTimerRef.current) clearTimeout(shareErrorTimerRef.current); };

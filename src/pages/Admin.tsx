@@ -118,6 +118,12 @@ export default function Admin() {
   const { wedding, isLoading: isWeddingLoading } = useWedding(slug ?? '');
 
   useEffect(() => {
+    const loader = document.getElementById('loading-screen');
+    if (loader) {
+      loader.style.opacity = '0';
+      setTimeout(() => loader.remove(), 500);
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (u) => {
       setUser(u);
       setIsAuthLoading(false);

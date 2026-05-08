@@ -126,18 +126,34 @@ export function TwibbonCreator() {
     const el = containerRef.current;
     if (!el) return;
 
+    // Unified handler bridge
     const onTouchStart = (e: TouchEvent) => handleStart(e);
     const onTouchMove = (e: TouchEvent) => handleMove(e);
     const onTouchEnd = () => handleEnd();
+    
+    const onMouseDown = (e: MouseEvent) => handleStart(e);
+    const onMouseMove = (e: MouseEvent) => handleMove(e);
+    const onMouseUp = () => handleEnd();
+    const onMouseLeave = () => handleEnd();
 
     el.addEventListener('touchstart', onTouchStart, { passive: false });
     el.addEventListener('touchmove', onTouchMove, { passive: false });
     el.addEventListener('touchend', onTouchEnd);
+    
+    el.addEventListener('mousedown', onMouseDown);
+    el.addEventListener('mousemove', onMouseMove);
+    el.addEventListener('mouseup', onMouseUp);
+    el.addEventListener('mouseleave', onMouseLeave);
 
     return () => {
       el.removeEventListener('touchstart', onTouchStart);
       el.removeEventListener('touchmove', onTouchMove);
       el.removeEventListener('touchend', onTouchEnd);
+      
+      el.removeEventListener('mousedown', onMouseDown);
+      el.removeEventListener('mousemove', onMouseMove);
+      el.removeEventListener('mouseup', onMouseUp);
+      el.removeEventListener('mouseleave', onMouseLeave);
     };
   }, [image]);
 
@@ -283,10 +299,6 @@ export function TwibbonCreator() {
             ref={containerRef}
             onClick={handleCanvasClick}
             className={`absolute inset-0 select-none overflow-hidden ${image ? 'cursor-move touch-none' : 'cursor-pointer'}`}
-            onMouseDown={(e: any) => handleStart(e)}
-            onMouseMove={(e: any) => handleMove(e)}
-            onMouseUp={handleEnd}
-            onMouseLeave={handleEnd}
           >
             <div className="absolute inset-0 z-0 bg-[#8E8A85] flex items-center justify-center">
               {isLoading ? (

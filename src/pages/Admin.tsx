@@ -269,14 +269,14 @@ export default function Admin() {
               onClick={handleToggleStatus}
               className={`text-xs uppercase tracking-widest font-bold px-2 py-1 rounded-full border transition-colors ${wedding?.status === 'published' ? 'text-green-600 border-green-600/30 bg-green-50' : 'text-ink/40 border-ink/10 bg-ink/5'}`}
             >
-              {wedding?.status === 'published' ? 'Published' : 'Archived'}
+              {wedding?.status === 'published' ? 'Aktif' : 'Diarsipkan'}
             </button>
-            <button
+            {/* <button
               onClick={handleLogout}
               className="text-xs uppercase tracking-widest text-ink/40 hover:text-ink transition-colors"
             >
               Keluar
-            </button>
+            </button> */}
           </div>
         </div>
       </header>

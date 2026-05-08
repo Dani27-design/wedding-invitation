@@ -12,7 +12,7 @@ interface CoupleFormProps {
   isSaving?: boolean;
 }
 
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+const MAX_IMAGE_SIZE = 100 * 1024 * 1024;
 
 export function CoupleForm({ data, onSave, isSaving }: CoupleFormProps) {
   const [error, setError] = useState("");
@@ -140,7 +140,7 @@ export function CoupleForm({ data, onSave, isSaving }: CoupleFormProps) {
   ) => {
     if (!file) return;
     if (file.size > MAX_IMAGE_SIZE) {
-      setError("Ukuran foto maksimal 5MB");
+      setError("Ukuran foto maksimal 100MB");
       return;
     }
     setError("");

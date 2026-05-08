@@ -8,7 +8,7 @@ interface StoryFormProps {
   isSaving?: boolean;
 }
 
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+const MAX_IMAGE_SIZE = 100 * 1024 * 1024;
 
 export function StoryForm({ data, onSave, isSaving }: StoryFormProps) {
   const [error, setError] = useState('');
@@ -31,7 +31,7 @@ export function StoryForm({ data, onSave, isSaving }: StoryFormProps) {
 
   const handleImageChange = (i: number, file: File | undefined) => {
     if (!file) return;
-    if (file.size > MAX_IMAGE_SIZE) { setError('Ukuran foto maksimal 5MB'); return; }
+    if (file.size > MAX_IMAGE_SIZE) { setError('Ukuran foto maksimal 100MB'); return; }
     setError('');
     const url = URL.createObjectURL(file);
     setSlides(slides.map((s, idx) => idx === i ? { ...s, bgImage: url, file } : s));

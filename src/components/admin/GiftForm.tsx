@@ -28,18 +28,23 @@ export function GiftForm({ data, onSave, isSaving }: GiftFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="flex items-center justify-between">
-        <label className="text-xs uppercase tracking-[0.3em] text-gold font-black">Rekening / E-Wallet</label>
-        <button type="button" onClick={addAccount} className="text-gold" aria-label="Tambah rekening"><Plus className="w-4 h-4" /></button>
-      </div>
-
+      <h2 className="text-xs uppercase tracking-[0.3em] text-gold font-black mb-6">Data Rekening</h2>
       {accounts.map((acc, i) => (
-        <div key={i} className="p-4 border border-gold/10 rounded-2xl space-y-3">
+        <div key={i} className="p-4 border border-gold/10 rounded-2xl space-y-3 bg-white/50">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-ink/60 font-bold">Rekening {i + 1}</span>
-            {accounts.length > 1 && (
-              <button type="button" onClick={() => removeAccount(i)} className="text-red-400" aria-label="Hapus rekening"><Trash2 className="w-4 h-4" /></button>
-            )}
+            <span className="text-[10px] uppercase tracking-widest text-ink/60 font-black">Rekening {i + 1}</span>
+            <button 
+              type="button" 
+              onClick={() => {
+                if (confirm('Apakah Anda yakin ingin menghapus rekening ini?')) {
+                  removeAccount(i);
+                }
+              }} 
+              className="text-red-400 p-1 hover:scale-110 transition-transform" 
+              aria-label="Hapus rekening"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
           </div>
           <input value={acc.bank} onChange={(e) => updateAccount(i, 'bank', e.target.value)} placeholder="Nama Bank / E-Wallet" maxLength={30} aria-label={`Nama Bank Rekening ${i + 1}`} className={inputClass} />
           <input value={acc.account} onChange={(e) => updateAccount(i, 'account', e.target.value)} placeholder="Nomor Rekening" maxLength={30} aria-label={`Nomor Rekening ${i + 1}`} className={inputClass} />
@@ -47,7 +52,18 @@ export function GiftForm({ data, onSave, isSaving }: GiftFormProps) {
         </div>
       ))}
 
-      <button type="submit" disabled={isSaving} className="w-full py-3 bg-gold text-ivory rounded-full text-xs tracking-[0.3em] font-black uppercase disabled:opacity-50">{isSaving ? 'Menyimpan...' : 'Simpan'}</button>
+      <button
+        type="button"
+        onClick={addAccount}
+        className="w-full py-4 border-2 border-dashed border-gold/30 rounded-3xl flex flex-col items-center justify-center gap-2 hover:bg-gold/5 transition-all group"
+      >
+        <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+          <Plus className="w-5 h-5 text-gold" />
+        </div>
+        <span className="text-[10px] font-black text-gold uppercase tracking-widest">Tambah Rekening</span>
+      </button>
+
+      <button type="submit" disabled={isSaving} className="w-full py-3 bg-gold text-ivory rounded-full text-xs tracking-[0.3em] font-black uppercase disabled:opacity-50 shadow-lg shadow-gold/20">{isSaving ? 'Menyimpan...' : 'Simpan'}</button>
     </form>
   );
 }

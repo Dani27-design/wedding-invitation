@@ -12,8 +12,10 @@ import { StoryForm } from '../components/admin/StoryForm';
 import { GalleryForm } from '../components/admin/GalleryForm';
 import { GiftForm } from '../components/admin/GiftForm';
 import { MediaForm } from '../components/admin/MediaForm';
-import { SocialForm } from '../components/admin/SocialForm';
 import { CustomizeForm } from '../components/admin/CustomizeForm';
+import { CreditForm } from '../components/admin/CreditForm';
+import { StoryInteractionsForm } from '../components/admin/StoryInteractionsForm';
+import { WishesForm } from '../components/admin/WishesForm';
 import { motion, AnimatePresence } from 'motion/react';
 import { CheckCircle2, AlertCircle, Loader2, X } from 'lucide-react';
 
@@ -21,12 +23,15 @@ const STEPS = [
   'Pasangan',
   'Acara',
   'Cerita',
-  'Galeri',
-  'Amplop',
   'Media',
-  'Sosial',
+  'Amplop',
+  'Galeri',
+  'Kredit',
   'Kustom',
+  'Interaksi',
+  'Ucapan',
 ] as const;
+
 
 interface SaveStatusModalProps {
   status: 'saving' | 'success' | 'error';
@@ -273,13 +278,16 @@ export default function Admin() {
       case 0: return <CoupleForm data={wedding} onSave={handleSave} isSaving={isSaving} />;
       case 1: return <EventForm data={wedding} onSave={handleSave} isSaving={isSaving} />;
       case 2: return <StoryForm data={wedding} onSave={handleSave} isSaving={isSaving} />;
-      case 3: return <GalleryForm data={wedding} onSave={handleSave} isSaving={isSaving} />;
+      case 3: return <MediaForm data={wedding} onSave={handleSave} isSaving={isSaving} />;
       case 4: return <GiftForm data={wedding} onSave={handleSave} isSaving={isSaving} />;
-      case 5: return <MediaForm data={wedding} onSave={handleSave} isSaving={isSaving} />;
-      case 6: return <SocialForm data={wedding} onSave={handleSave} isSaving={isSaving} />;
+      case 5: return <GalleryForm data={wedding} onSave={handleSave} isSaving={isSaving} />;
+      case 6: return <CreditForm data={wedding} onSave={handleSave} isSaving={isSaving} />;
       case 7: return <CustomizeForm data={wedding} onSave={handleSave} isSaving={isSaving} />;
+      case 8: return <StoryInteractionsForm data={wedding} slug={slug ?? ''} />;
+      case 9: return <WishesForm slug={slug ?? ''} />;
       default: return null;
     }
+
   };
 
   return (

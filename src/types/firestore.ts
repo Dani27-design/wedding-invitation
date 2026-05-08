@@ -10,17 +10,13 @@ export interface WeddingDocument {
   groomName: string;
   groomParents: string;
   groomPhoto: string;
-  groomInstagram: string;
-  groomLinkedin: string;
-  groomWhatsapp: string;
+  groomSocialLinks: { label: string; url: string }[];
 
   brideNickname: string;
   brideName: string;
   brideParents: string;
   bridePhoto: string;
-  brideInstagram: string;
-  brideThreads: string;
-  brideWhatsapp: string;
+  brideSocialLinks: { label: string; url: string }[];
 
   defaultGuest: string;
 

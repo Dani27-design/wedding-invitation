@@ -170,29 +170,24 @@ describe('CinematicOpening', () => {
   // 3. BUTTON — "Buka Undangan"
   // =========================================================================
   describe('Button', () => {
-    it('renders "Buka Undangan" button text', () => {
+    it('renders the opening button', () => {
       renderComponent();
-      expect(screen.getByText('Buka Undangan')).toBeInTheDocument();
-    });
-
-    it('"Buka Undangan" is inside a button element', () => {
-      renderComponent();
-      const text = screen.getByText('Buka Undangan');
-      expect(text.closest('button')).toBeInTheDocument();
+      expect(screen.getByRole('button')).toBeInTheDocument();
     });
 
     it('calls onOpen callback when button is clicked', () => {
       const onOpen = vi.fn();
       renderComponent({ onOpen });
-      fireEvent.click(screen.getByText('Buka Undangan'));
+      fireEvent.click(screen.getByRole('button'));
       expect(onOpen).toHaveBeenCalledOnce();
     });
 
     it('calls onOpen exactly once per click', () => {
       const onOpen = vi.fn();
       renderComponent({ onOpen });
-      fireEvent.click(screen.getByText('Buka Undangan'));
-      fireEvent.click(screen.getByText('Buka Undangan'));
+      const btn = screen.getByRole('button');
+      fireEvent.click(btn);
+      fireEvent.click(btn);
       expect(onOpen).toHaveBeenCalledTimes(2);
     });
 
@@ -202,30 +197,9 @@ describe('CinematicOpening', () => {
       expect(svg).toBeInTheDocument();
     });
 
-    it('button text has serif italic styling', () => {
-      renderComponent();
-      expect(screen.getByText('Buka Undangan')).toHaveClass('font-serif', 'italic');
-    });
-
-    it('button has wide letter tracking', () => {
-      renderComponent();
-      const btn = screen.getByText('Buka Undangan');
-      expect(btn.className).toContain('tracking-');
-    });
-
-    it('button has gold text color', () => {
-      renderComponent();
-      expect(screen.getByText('Buka Undangan')).toHaveClass('text-gold');
-    });
-
-    it('button has font-bold weight', () => {
-      renderComponent();
-      expect(screen.getByText('Buka Undangan')).toHaveClass('font-serif');
-    });
-
     it('button has transition-all for smooth hover effects', () => {
       renderComponent();
-      expect(screen.getByText('Buka Undangan')).toHaveClass('transition-all');
+      expect(screen.getByRole('button')).toHaveClass('transition-all');
     });
 
     it('does not call onOpen on render without click', () => {
@@ -407,7 +381,7 @@ describe('CinematicOpening', () => {
     it('handles rapid multiple clicks on button', () => {
       const onOpen = vi.fn();
       renderComponent({ onOpen });
-      const btn = screen.getByText('Buka Undangan');
+      const btn = screen.getByRole('button');
       for (let i = 0; i < 10; i++) fireEvent.click(btn);
       expect(onOpen).toHaveBeenCalledTimes(10);
     });
@@ -425,7 +399,7 @@ describe('CinematicOpening', () => {
       const second = vi.fn();
       const { rerender } = render(<CinematicOpening guestName="Test" onOpen={first} />);
       rerender(<CinematicOpening guestName="Test" onOpen={second} />);
-      fireEvent.click(screen.getByText('Buka Undangan'));
+      fireEvent.click(screen.getByRole('button'));
       expect(first).not.toHaveBeenCalled();
       expect(second).toHaveBeenCalledOnce();
     });

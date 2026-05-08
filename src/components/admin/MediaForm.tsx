@@ -17,9 +17,9 @@ interface MediaItem {
 
 const MEDIA_ITEMS: MediaItem[] = [
   { label: 'Musik Latar', field: 'musicUrl', accept: 'audio/*', icon: Music },
-  { label: 'Foto Hero (Pembuka)', field: 'heroImage', accept: 'image/*', icon: ImageIcon },
-  { label: 'Foto Opening', field: 'openingImage', accept: 'image/*', icon: ImageIcon },
-  { label: 'Twibbon Overlay', field: 'twibbonOverlay', accept: 'image/png', icon: Sparkles },
+  { label: 'Foto Sampul Undangan', field: 'openingImage', accept: 'image/*', icon: ImageIcon },
+  { label: 'Foto Pembuka Undangan', field: 'heroImage', accept: 'image/*', icon: ImageIcon },
+  { label: 'Twibbon Frame', field: 'twibbonOverlay', accept: 'image/png', icon: Sparkles },
 ];
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
@@ -33,8 +33,9 @@ export function MediaForm({ data, onSave, isSaving }: MediaFormProps) {
     openingImage: data?.openingImage ?? '',
     twibbonOverlay: data?.twibbonOverlay ?? '',
   });
+
+  console.log('MediaForm Previews state:', previews);
   const [files, setFiles] = useState<Record<string, File>>({});
-  const [urlsToDelete, setUrlsToDelete] = useState<string[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handleFileChange = (field: string, file: File | undefined, accept: string) => {
@@ -46,19 +47,6 @@ export function MediaForm({ data, onSave, isSaving }: MediaFormProps) {
     const url = URL.createObjectURL(file);
     setPreviews(prev => ({ ...prev, [field]: url }));
     setFiles(prev => ({ ...prev, [field]: file }));
-  };
-
-  const handleDelete = (field: string) => {
-    const currentUrl = previews[field];
-    if (currentUrl && currentUrl.includes('firebasestorage.googleapis.com')) {
-      setUrlsToDelete(prev => [...prev, currentUrl]);
-    }
-    setPreviews(prev => ({ ...prev, [field]: '' }));
-    setFiles(prev => {
-      const next = { ...prev };
-      delete next[field];
-      return next;
-    });
   };
 
   const handleGenerateOverlay = async () => {
@@ -103,7 +91,6 @@ export function MediaForm({ data, onSave, isSaving }: MediaFormProps) {
         twibbonOverlay: previews.twibbonOverlay,
       },
       Object.keys(files).length > 0 ? files : undefined,
-      urlsToDelete.length > 0 ? urlsToDelete : undefined,
     );
   };
 
@@ -118,16 +105,6 @@ export function MediaForm({ data, onSave, isSaving }: MediaFormProps) {
               <Icon className="w-3.5 h-3.5 text-gold" />
               <span className="text-xs text-ink/80 font-black uppercase tracking-wider">{label}</span>
             </div>
-            {previews[field] && (
-              <button 
-                type="button" 
-                onClick={() => handleDelete(field)}
-                className="p-1.5 text-red-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                title="Hapus media"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            )}
           </div>
 
           <div className="space-y-3">

@@ -2,13 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Heart } from 'lucide-react';
 
-const DEFAULT_COMMENTS = [
-  'Tamu: MasyaAllah',
-  'Tamu: So sweet',
-  'Tamu: Akhirnya',
-  'Tamu: Bahagia selalu',
-  'Tamu: Lancar ya',
-];
 
 interface AmbientSocialLayerProps {
   customComments?: { name: string; text: string }[];
@@ -34,7 +27,7 @@ export const AmbientSocialLayer = ({
   const [elements, setElements] = useState<SocialElement[]>([]);
   const [isVisible, setIsVisible] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
-  const pool = [...DEFAULT_COMMENTS, ...customComments.map((c) => `${c.name}: ${c.text}`)];
+  const pool = [...customComments.map((c) => `${c.name}: ${c.text}`)];
   const poolRef = useRef(pool);
   poolRef.current = pool;
 

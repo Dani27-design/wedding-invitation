@@ -7,12 +7,16 @@ vi.mock('../../context/WeddingContext', () => ({
       { name: 'M. Daniansyah C.', role: 'developer', description: 'Menulis setiap baris code di balik halaman ini, merangkainya satu per satu sampai akhirnya bisa bercerita tentang kami.' },
       { name: 'Siti Nur Marini', role: 'designer', description: 'Memperindah setiap bagian di balik halaman ini, menyusunnya satu per satu sampai akhirnya benar-benar terasa seperti kami.' },
     ],
-    groomInstagram: 'https://instagram.com/danichusyaidin',
-    groomLinkedin: 'https://id.linkedin.com/in/daniansyahchusyaidin',
-    groomWhatsapp: '6285790428078',
-    brideInstagram: 'https://instagram.com/mariniw_',
-    brideThreads: 'https://threads.com/@mariniw_',
-    brideWhatsapp: '628883816403',
+    groomSocialLinks: [
+      { label: 'Instagram', url: 'https://instagram.com/danichusyaidin' },
+      { label: 'LinkedIn', url: 'https://id.linkedin.com/in/daniansyahchusyaidin' },
+      { label: 'WhatsApp', url: '6285790428078' },
+    ],
+    brideSocialLinks: [
+      { label: 'Instagram', url: 'https://instagram.com/mariniw_' },
+      { label: 'Threads', url: 'https://threads.com/@mariniw_' },
+      { label: 'WhatsApp', url: '628883816403' },
+    ],
     eventDate: '2026-08-29',
   }),
 }));

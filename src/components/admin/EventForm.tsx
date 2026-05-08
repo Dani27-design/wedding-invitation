@@ -50,28 +50,46 @@ export function EventForm({ data, onSave, isSaving }: EventFormProps) {
         <input value={defaultGuest} onChange={(e) => setDefaultGuest(e.target.value)} placeholder="Nama Tamu Default (jika tanpa ?to=)" maxLength={50} aria-label="Nama Tamu Default" className={inputClass} />
       </div>
 
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <label className="text-xs uppercase tracking-[0.3em] text-gold font-black">Rangkaian Acara</label>
-          <button type="button" onClick={addCeremony} className="text-gold" aria-label="Tambah acara"><Plus className="w-4 h-4" /></button>
-        </div>
+      <fieldset className="space-y-4">
+        <legend className="text-xs uppercase tracking-[0.3em] text-gold font-black mb-3">Rangkaian Acara</legend>
         {ceremonies.map((c, i) => (
-          <div key={i} className="flex gap-2 items-start">
-            <div className="flex-1 space-y-2">
-              <input value={c.name} onChange={(e) => updateCeremony(i, 'name', e.target.value)} placeholder="Nama Acara" maxLength={50} aria-label={`Nama Acara ${i + 1}`} className={inputClass} />
-              <div className="flex gap-2">
-                <input type="time" value={c.start} onChange={(e) => updateCeremony(i, 'start', e.target.value)} aria-label={`Jam Mulai Acara ${i + 1}`} className={inputClass} />
-                <input type="time" value={c.end} onChange={(e) => updateCeremony(i, 'end', e.target.value)} aria-label={`Jam Selesai Acara ${i + 1}`} className={inputClass} />
-              </div>
+          <div key={i} className="p-4 border border-gold/10 rounded-2xl space-y-3 bg-white/50">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] uppercase tracking-widest text-ink/60 font-black">Acara {i + 1}</span>
+              <button 
+                type="button" 
+                onClick={() => {
+                  if (confirm('Apakah Anda yakin ingin menghapus acara ini?')) {
+                    removeCeremony(i);
+                  }
+                }} 
+                className="text-red-400 p-1 hover:scale-110 transition-transform" 
+                aria-label="Hapus acara"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
             </div>
-            {ceremonies.length > 1 && (
-              <button type="button" onClick={() => removeCeremony(i)} className="text-red-400 mt-3" aria-label="Hapus acara"><Trash2 className="w-4 h-4" /></button>
-            )}
+            <input value={c.name} onChange={(e) => updateCeremony(i, 'name', e.target.value)} placeholder="Nama Acara" maxLength={50} aria-label={`Nama Acara ${i + 1}`} className={inputClass} />
+            <div className="flex gap-2">
+              <input type="time" value={c.start} onChange={(e) => updateCeremony(i, 'start', e.target.value)} aria-label={`Jam Mulai Acara ${i + 1}`} className={inputClass} />
+              <input type="time" value={c.end} onChange={(e) => updateCeremony(i, 'end', e.target.value)} aria-label={`Jam Selesai Acara ${i + 1}`} className={inputClass} />
+            </div>
           </div>
         ))}
-      </div>
+      </fieldset>
 
-      <button type="submit" disabled={isSaving} className="w-full py-3 bg-gold text-ivory rounded-full text-xs tracking-[0.3em] font-black uppercase disabled:opacity-50">{isSaving ? 'Menyimpan...' : 'Simpan'}</button>
+      <button
+        type="button"
+        onClick={addCeremony}
+        className="w-full py-4 border-2 border-dashed border-gold/30 rounded-3xl flex flex-col items-center justify-center gap-2 hover:bg-gold/5 transition-all group"
+      >
+        <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+          <Plus className="w-5 h-5 text-gold" />
+        </div>
+        <span className="text-[10px] font-black text-gold uppercase tracking-widest">Tambah Acara</span>
+      </button>
+
+      <button type="submit" disabled={isSaving} className="w-full py-3 bg-gold text-ivory rounded-full text-xs tracking-[0.3em] font-black uppercase disabled:opacity-50 shadow-lg shadow-gold/20">{isSaving ? 'Menyimpan...' : 'Simpan'}</button>
     </form>
   );
 }

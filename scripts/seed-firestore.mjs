@@ -42,18 +42,20 @@ const weddingData = {
   groomName: 'M. Daniansyah Chusyaidin, S.Kom',
   groomParents: 'Putra Bapak M. Safiudin Sukri & Ibu Indiarti',
   groomPhoto: '/images/groom_face_potrait.jpeg',
-  groomInstagram: 'https://instagram.com/danichusyaidin',
-  groomLinkedin: 'https://id.linkedin.com/in/daniansyahchusyaidin',
-  groomWhatsapp: '6285790428078',
+  groomSocialLinks: [
+    { label: 'Instagram', url: 'https://instagram.com/danichusyaidin' },
+    { label: 'LinkedIn', url: 'https://id.linkedin.com/in/daniansyahchusyaidin' }
+  ],
 
   // Couple — Bride
   brideNickname: 'Marini',
   brideName: 'Siti Nur Marini, A.Md.M',
   brideParents: 'Putri Bapak Margono & Ibu (Almh) Sulami',
   bridePhoto: '/images/bride_face_potrait.jpeg',
-  brideInstagram: 'https://instagram.com/mariniw_',
-  brideThreads: 'https://threads.com/@mariniw_',
-  brideWhatsapp: '628883816403',
+  brideSocialLinks: [
+    { label: 'Instagram', url: 'https://instagram.com/mariniw_' },
+    { label: 'Threads', url: 'https://threads.com/@mariniw_' }
+  ],
 
   defaultGuest: 'Tamu Terkasih Kami',
 
@@ -135,8 +137,18 @@ const weddingData = {
 
   // Credits (from Footer.tsx)
   credits: [
-    { name: 'M. Daniansyah C.', role: 'developer', description: 'Menulis setiap baris code di balik halaman ini, merangkainya satu per satu sampai akhirnya bisa bercerita tentang kami.' },
-    { name: 'Siti Nur Marini', role: 'designer', description: 'Memperindah setiap bagian di balik halaman ini, menyusunnya satu per satu sampai akhirnya benar-benar terasa seperti kami.' },
+    { 
+      name: 'M. Daniansyah C.', 
+      role: 'developer', 
+      description: 'Menulis setiap baris code di balik halaman ini, merangkainya satu per satu sampai akhirnya bisa bercerita tentang kami.',
+      socialLinks: []
+    },
+    { 
+      name: 'Siti Nur Marini', 
+      role: 'designer', 
+      description: 'Memperindah setiap bagian di balik halaman ini, menyusunnya satu per satu sampai akhirnya benar-benar terasa seperti kami.',
+      socialLinks: []
+    },
   ],
 };
 

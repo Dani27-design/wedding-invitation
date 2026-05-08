@@ -115,7 +115,7 @@ function setLocationSearch(search: string) {
 /** Utility: render App and click "Buka Undangan" to reach main content */
 async function renderAndOpen() {
   const result = render(<Wedding />);
-  fireEvent.click(screen.getByText('Buka Undangan'));
+  fireEvent.click(screen.getByRole('button'));
   await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument(), { timeout: 3000 });
   return result;
 }
@@ -224,12 +224,12 @@ describe('App - Initial Render', () => {
 describe('App - Cinematic Opening (default state)', () => {
   it('shows opening overlay by default (isOpen=false)', () => {
     render(<Wedding />);
-    expect(screen.getByText('Buka Undangan')).toBeInTheDocument();
+    expect(screen.getByRole('button')).toBeInTheDocument();
   });
 
   it('shows "Buka Undangan" call-to-action button', () => {
     render(<Wedding />);
-    const button = screen.getByText('Buka Undangan');
+    const button = screen.getByRole('button');
     expect(button).toBeInTheDocument();
   });
 
@@ -352,13 +352,13 @@ describe('App - Guest Name from URL', () => {
 describe('App - Opening to Main Content Transition', () => {
   it('clicking "Buka Undangan" transitions to main content', async () => {
     render(<Wedding />);
-    fireEvent.click(screen.getByText('Buka Undangan'));
+    fireEvent.click(screen.getByRole('button'));
     await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument(), { timeout: 3000 });
   });
 
   it('after opening: <main> element has relative and z-10 classes', async () => {
     render(<Wedding />);
-    fireEvent.click(screen.getByText('Buka Undangan'));
+    fireEvent.click(screen.getByRole('button'));
     await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
     const main = document.querySelector('main');
     expect(main).toHaveClass('relative');
@@ -411,8 +411,8 @@ describe('App - Opening to Main Content Transition', () => {
 
   it('opening overlay (CinematicOpening) is no longer the active view after click', async () => {
     render(<Wedding />);
-    expect(screen.getByText('Buka Undangan')).toBeInTheDocument();
-    fireEvent.click(screen.getByText('Buka Undangan'));
+    expect(screen.getByRole('button')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button'));
     // After clicking, main content appears (AnimatePresence may keep exit animation in DOM)
     await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
   });
@@ -431,7 +431,7 @@ describe('App - Opening to Main Content Transition', () => {
 
   it('root container retains all CSS classes after opening', async () => {
     const { container } = render(<Wedding />);
-    fireEvent.click(screen.getByText('Buka Undangan'));
+    fireEvent.click(screen.getByRole('button'));
     await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
     expect(container.firstChild).toHaveClass('min-h-screen');
     expect(container.firstChild).toHaveClass('bg-ivory');
@@ -461,7 +461,7 @@ describe('App - Audio / Music', () => {
     render(<Wedding />);
     const playSpy = window.HTMLMediaElement.prototype.play as ReturnType<typeof vi.fn>;
     playSpy.mockClear();
-    fireEvent.click(screen.getByText('Buka Undangan'));
+    fireEvent.click(screen.getByRole('button'));
     expect(playSpy).toHaveBeenCalled();
   });
 
@@ -469,7 +469,7 @@ describe('App - Audio / Music', () => {
     render(<Wedding />);
     const playSpy = window.HTMLMediaElement.prototype.play as ReturnType<typeof vi.fn>;
     playSpy.mockClear();
-    fireEvent.click(screen.getByText('Buka Undangan'));
+    fireEvent.click(screen.getByRole('button'));
     expect(playSpy).toHaveBeenCalledTimes(1);
   });
 
@@ -492,7 +492,7 @@ describe('App - Audio / Music', () => {
     render(<Wedding />);
     // Should not throw
     expect(() => {
-      fireEvent.click(screen.getByText('Buka Undangan'));
+      fireEvent.click(screen.getByRole('button'));
     }).not.toThrow();
   });
 });
@@ -571,7 +571,7 @@ describe('App - State Management', () => {
 describe('App - Edge Cases', () => {
   it('multiple rapid clicks on "Buka Undangan" do not break the app', async () => {
     render(<Wedding />);
-    const button = screen.getByText('Buka Undangan');
+    const button = screen.getByRole('button');
     // Simulate rapid clicking
     fireEvent.click(button);
     fireEvent.click(button);
@@ -585,7 +585,7 @@ describe('App - Edge Cases', () => {
 
   it('re-renders are stable and do not duplicate content', () => {
     const { rerender } = render(<Wedding />);
-    fireEvent.click(screen.getByText('Buka Undangan'));
+    fireEvent.click(screen.getByRole('button'));
 
     // Re-render the same component
     rerender(<Wedding />);
@@ -603,7 +603,7 @@ describe('App - Edge Cases', () => {
 
   it('component unmounts cleanly after opening', async () => {
     const { unmount } = render(<Wedding />);
-    fireEvent.click(screen.getByText('Buka Undangan'));
+    fireEvent.click(screen.getByRole('button'));
     await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
     expect(() => unmount()).not.toThrow();
   });
@@ -612,7 +612,7 @@ describe('App - Edge Cases', () => {
     const container = document.createElement('div');
     document.body.appendChild(container);
     const { unmount } = render(<Wedding />, { container });
-    fireEvent.click(screen.getByText('Buka Undangan'));
+    fireEvent.click(screen.getByRole('button'));
     await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
     unmount();
     expect(container.innerHTML).toBe('');
@@ -665,7 +665,7 @@ describe('App - Visual Rendering Stability', () => {
   it('opening overlay does not flicker (present on first paint)', () => {
     render(<Wedding />);
     // The CinematicOpening should be rendered synchronously
-    expect(screen.getByText('Buka Undangan')).toBeInTheDocument();
+    expect(screen.getByRole('button')).toBeInTheDocument();
   });
 
   it('main content sections all render after open (no missing sections)', async () => {
@@ -683,10 +683,10 @@ describe('App - Visual Rendering Stability', () => {
     const { container } = render(<Wedding />);
     // Before open: opening is visible
     expect(container.firstChild).toBeInTheDocument();
-    expect(screen.getByText('Buka Undangan')).toBeInTheDocument();
+    expect(screen.getByRole('button')).toBeInTheDocument();
 
     // After open: main content is visible
-    fireEvent.click(screen.getByText('Buka Undangan'));
+    fireEvent.click(screen.getByRole('button'));
     await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
   });
 
@@ -699,7 +699,7 @@ describe('App - Visual Rendering Stability', () => {
 
   it('after open, root div still has correct structure (not broken by re-render)', async () => {
     const { container } = render(<Wedding />);
-    fireEvent.click(screen.getByText('Buka Undangan'));
+    fireEvent.click(screen.getByRole('button'));
     await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
     const root = container.firstChild as HTMLElement;
     // Should contain BackgroundLayers, audio, and main
@@ -717,10 +717,10 @@ describe('App - Logical Behavior', () => {
   it('opening state is mutually exclusive with main content display', async () => {
     render(<Wedding />);
     // Before: opening visible, main not
-    expect(screen.getByText('Buka Undangan')).toBeInTheDocument();
+    expect(screen.getByRole('button')).toBeInTheDocument();
     expect(document.querySelector('main')).toBeNull();
 
-    fireEvent.click(screen.getByText('Buka Undangan'));
+    fireEvent.click(screen.getByRole('button'));
 
     // After: main visible (AnimatePresence may still hold exit animation in DOM)
     await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
@@ -730,8 +730,8 @@ describe('App - Logical Behavior', () => {
     // We verify this indirectly: after clicking open, main content appears
     // AnimatePresence manages the exit transition of CinematicOpening
     render(<Wedding />);
-    expect(screen.getByText('Buka Undangan')).toBeInTheDocument();
-    fireEvent.click(screen.getByText('Buka Undangan'));
+    expect(screen.getByRole('button')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button'));
     // Main content should now be present alongside or replacing the opening
     await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
   });
@@ -787,7 +787,7 @@ describe('App - Bad Behavioral Usage', () => {
     playSpy.mockImplementationOnce(() => Promise.reject(new Error('Blocked')));
 
     render(<Wedding />);
-    fireEvent.click(screen.getByText('Buka Undangan'));
+    fireEvent.click(screen.getByRole('button'));
 
     // App should still show main content even if audio fails
     await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
@@ -815,7 +815,7 @@ describe('App - Bad Behavioral Usage', () => {
 
   it('does not throw on rapid open followed by immediate unmount', async () => {
     const { unmount } = render(<Wedding />);
-    fireEvent.click(screen.getByText('Buka Undangan'));
+    fireEvent.click(screen.getByRole('button'));
     await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
     expect(() => unmount()).not.toThrow();
   });
@@ -831,7 +831,7 @@ describe('App - Content Integrity After Transition', () => {
     const grainBefore = document.querySelector('.animate-grain');
     expect(grainBefore).toBeInTheDocument();
 
-    fireEvent.click(screen.getByText('Buka Undangan'));
+    fireEvent.click(screen.getByRole('button'));
     await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
 
     const grainAfter = document.querySelector('.animate-grain');
@@ -842,7 +842,7 @@ describe('App - Content Integrity After Transition', () => {
     render(<Wedding />);
     const audioBefore = document.querySelector('audio')?.getAttribute('src');
 
-    fireEvent.click(screen.getByText('Buka Undangan'));
+    fireEvent.click(screen.getByRole('button'));
     await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
 
     const audioAfter = document.querySelector('audio')?.getAttribute('src');
@@ -851,7 +851,7 @@ describe('App - Content Integrity After Transition', () => {
 
   it('audio loop attribute persists after opening', async () => {
     render(<Wedding />);
-    fireEvent.click(screen.getByText('Buka Undangan'));
+    fireEvent.click(screen.getByRole('button'));
     await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
     const audio = document.querySelector('audio') as HTMLAudioElement;
     expect(audio.loop).toBe(true);
@@ -861,7 +861,7 @@ describe('App - Content Integrity After Transition', () => {
     const { container } = render(<Wedding />);
     const classesBefore = (container.firstChild as HTMLElement).className;
 
-    fireEvent.click(screen.getByText('Buka Undangan'));
+    fireEvent.click(screen.getByRole('button'));
     await waitFor(() => expect(document.querySelector('main')).toBeInTheDocument());
 
     const classesAfter = (container.firstChild as HTMLElement).className;

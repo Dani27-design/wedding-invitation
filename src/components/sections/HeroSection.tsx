@@ -25,10 +25,10 @@ export const HeroSection = () => {
       </motion.div>
     </div>
 
-    <div className="flex flex-col items-center justify-center pt-[5vh]">
+    <div className="flex flex-col items-center justify-center pt-[5vh] z-10">
       <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: 30 }} // Start with the hero text slightly below and invisible
+        animate={{ opacity: 1, y: 0 }} // Animate the hero text with a fade-in and slight upward movement
         transition={{ duration: 1.8, delay: 0.5 }}
         className="space-y-4 text-center"
       >

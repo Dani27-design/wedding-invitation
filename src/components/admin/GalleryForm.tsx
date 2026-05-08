@@ -51,10 +51,7 @@ export function GalleryForm({ data, onSave, isSaving }: GalleryFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <ImageIcon className="w-4 h-4 text-gold" />
-          <label className="text-xs uppercase tracking-[0.3em] text-gold font-black">Foto Galeri</label>
-        </div>
+        <label className="text-xs uppercase tracking-[0.3em] text-gold font-black">Galeri Foto</label>
         <span className="text-[10px] text-ink/40 font-mono">{images.length}/{MAX_IMAGES}</span>
       </div>
 
@@ -65,8 +62,12 @@ export function GalleryForm({ data, onSave, isSaving }: GalleryFormProps) {
               <img src={img.url} alt={`Gallery ${i + 1}`} className="w-full h-full object-cover" />
               <button
                 type="button"
-                onClick={() => handleRemove(i)}
-                className="absolute top-2 right-2 w-8 h-8 bg-red-500/90 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:scale-110 shadow-lg"
+                onClick={() => {
+                  if (confirm('Apakah Anda yakin ingin menghapus foto ini?')) {
+                    handleRemove(i);
+                  }
+                }}
+                className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-all hover:scale-110 shadow-lg"
                 aria-label="Hapus foto"
               >
                 <Trash2 className="w-4 h-4" />

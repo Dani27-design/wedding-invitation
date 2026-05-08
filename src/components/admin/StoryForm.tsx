@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { WeddingDocument, StorySlide } from '../../types/firestore';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Upload, History } from 'lucide-react';
 
 interface StoryFormProps {
   data: WeddingDocument | null;
@@ -41,35 +41,62 @@ export function StoryForm({ data, onSave, isSaving }: StoryFormProps) {
     );
   };
 
-  const inputClass = 'w-full px-4 py-3 border border-gold/20 rounded-xl text-sm bg-white focus:outline-none focus:border-gold/50';
+  const inputClass = 'w-full px-4 py-3 border border-gold/20 rounded-xl text-sm bg-white focus:outline-none focus:border-gold/50 transition-all';
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="flex items-center justify-between">
-        <label className="text-xs uppercase tracking-[0.3em] text-gold font-black">Cerita Perjalanan</label>
-        <button type="button" onClick={addSlide} className="text-gold" aria-label="Tambah slide"><Plus className="w-4 h-4" /></button>
+        <div className="flex items-center gap-2">
+          <History className="w-4 h-4 text-gold" />
+          <label className="text-xs uppercase tracking-[0.3em] text-gold font-black">Cerita Perjalanan</label>
+        </div>
+        <button type="button" onClick={addSlide} className="text-gold p-1 hover:scale-110 transition-transform" aria-label="Tambah slide"><Plus className="w-5 h-5" /></button>
       </div>
 
       {slides.map((slide, i) => (
-        <div key={i} className="p-4 border border-gold/10 rounded-2xl space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-ink/60 font-bold">Slide {i + 1}</span>
+        <div key={i} className="p-5 border border-gold/10 rounded-3xl space-y-4 bg-white/50 relative overflow-hidden group">
+          <div className="flex items-center justify-between relative z-10">
+            <span className="text-[10px] uppercase tracking-widest text-gold font-black">Tahap {i + 1}</span>
             {slides.length > 1 && (
-              <button type="button" onClick={() => removeSlide(i)} className="text-red-400" aria-label="Hapus slide"><Trash2 className="w-4 h-4" /></button>
+              <button type="button" onClick={() => removeSlide(i)} className="text-red-400 p-1 hover:scale-110 transition-transform" aria-label="Hapus slide"><Trash2 className="w-4 h-4" /></button>
             )}
           </div>
-          <input value={slide.year} onChange={(e) => updateSlide(i, 'year', e.target.value)} placeholder="Tahun (misal: 2016 — 2017)" maxLength={30} aria-label={`Tahun Slide ${i + 1}`} className={inputClass} />
-          <textarea value={slide.text} onChange={(e) => updateSlide(i, 'text', e.target.value)} placeholder="Cerita..." rows={4} maxLength={500} aria-label={`Cerita Slide ${i + 1}`} className={`${inputClass} resize-none`} />
-          <div>
-            <label htmlFor={`story-photo-${i}`} className="text-xs text-ink/60 mb-1 block">Foto Latar</label>
-            {slide.bgImage && <img src={slide.bgImage} alt={`Slide ${i + 1}`} className="w-20 h-20 object-cover rounded-xl mb-2" />}
-            <input id={`story-photo-${i}`} type="file" accept="image/*" onChange={(e) => handleImageChange(i, e.target.files?.[0])} className="text-xs text-ink/60" />
+          
+          <div className="space-y-3 relative z-10">
+            <input value={slide.year} onChange={(e) => updateSlide(i, 'year', e.target.value)} placeholder="Tahun (misal: 2016 — 2017)" maxLength={30} aria-label={`Tahun Slide ${i + 1}`} className={inputClass} />
+            <textarea value={slide.text} onChange={(e) => updateSlide(i, 'text', e.target.value)} placeholder="Cerita..." rows={3} maxLength={500} aria-label={`Cerita Slide ${i + 1}`} className={`${inputClass} resize-none`} />
+            
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase tracking-widest text-ink/60 font-bold block ml-1">Foto Latar</label>
+              <div className="flex items-center gap-4">
+                {slide.bgImage && (
+                  <div className="w-16 h-16 rounded-xl overflow-hidden border border-gold/20 flex-shrink-0">
+                    <img src={slide.bgImage} alt={`Slide ${i + 1}`} className="w-full h-full object-cover" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <label className="flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-dashed border-gold/30 rounded-xl cursor-pointer hover:bg-gold/5 transition-all group/upload">
+                    <Upload className="w-3.5 h-3.5 text-gold group-hover/upload:scale-110 transition-transform" />
+                    <span className="text-[10px] font-black text-gold uppercase tracking-widest">Pilih Foto</span>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={(e) => handleImageChange(i, e.target.files?.[0])} 
+                      className="hidden" 
+                    />
+                  </label>
+                  {slide.file && (
+                    <p className="mt-1 text-[9px] text-ink/40 truncate font-mono text-center">{slide.file.name}</p>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       ))}
 
       {error && <p className="text-xs text-red-500 text-center">{error}</p>}
-      <button type="submit" disabled={isSaving} className="w-full py-3 bg-gold text-ivory rounded-full text-xs tracking-[0.3em] font-black uppercase disabled:opacity-50">{isSaving ? 'Menyimpan...' : 'Simpan'}</button>
+      <button type="submit" disabled={isSaving} className="w-full py-3 bg-gold text-ivory rounded-full text-xs tracking-[0.3em] font-black uppercase disabled:opacity-50 shadow-lg shadow-gold/20">{isSaving ? 'Menyimpan...' : 'Simpan'}</button>
     </form>
   );
 }

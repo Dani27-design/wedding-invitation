@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { WeddingDocument } from '../../types/firestore';
+import { Upload, Music, Image as ImageIcon, Sparkles } from 'lucide-react';
 
 interface MediaFormProps {
   data: WeddingDocument | null;
@@ -11,13 +12,14 @@ interface MediaItem {
   label: string;
   field: 'musicUrl' | 'heroImage' | 'openingImage' | 'twibbonOverlay';
   accept: string;
+  icon: any;
 }
 
 const MEDIA_ITEMS: MediaItem[] = [
-  { label: 'Musik Latar', field: 'musicUrl', accept: 'audio/*' },
-  { label: 'Foto Hero (Pembuka)', field: 'heroImage', accept: 'image/*' },
-  { label: 'Foto Opening', field: 'openingImage', accept: 'image/*' },
-  { label: 'Twibbon Overlay', field: 'twibbonOverlay', accept: 'image/png' },
+  { label: 'Musik Latar', field: 'musicUrl', accept: 'audio/*', icon: Music },
+  { label: 'Foto Hero (Pembuka)', field: 'heroImage', accept: 'image/*', icon: ImageIcon },
+  { label: 'Foto Opening', field: 'openingImage', accept: 'image/*', icon: ImageIcon },
+  { label: 'Twibbon Overlay', field: 'twibbonOverlay', accept: 'image/png', icon: Sparkles },
 ];
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
@@ -94,32 +96,64 @@ export function MediaForm({ data, onSave, isSaving }: MediaFormProps) {
     <form onSubmit={handleSubmit} className="space-y-6">
       <label className="text-xs uppercase tracking-[0.3em] text-gold font-black block">Media</label>
 
-      {MEDIA_ITEMS.map(({ label, field, accept }) => (
-        <div key={field} className="p-4 border border-gold/10 rounded-2xl space-y-3">
-          <span className="text-xs text-ink/60 font-bold">{label}</span>
-          {previews[field] && accept.startsWith('image') && (
-            <img src={previews[field]} alt={label} className="w-full max-h-40 object-contain rounded-xl" />
-          )}
-          {previews[field] && accept.startsWith('audio') && (
-            <audio src={previews[field]} controls className="w-full" />
-          )}
-          <input type="file" accept={accept} onChange={(e) => handleFileChange(field, e.target.files?.[0], accept)} aria-label={`Upload ${label}`} className="text-xs text-ink/60" />
+      {MEDIA_ITEMS.map(({ label, field, accept, icon: Icon }) => (
+        <div key={field} className="p-4 border border-gold/10 rounded-2xl space-y-4 bg-white/50">
+          <div className="flex items-center gap-2">
+            <Icon className="w-3.5 h-3.5 text-gold" />
+            <span className="text-xs text-ink/80 font-black uppercase tracking-wider">{label}</span>
+          </div>
 
-          {field === 'twibbonOverlay' && (
-            <button
-              type="button"
-              onClick={handleGenerateOverlay}
-              disabled={isGenerating || !data?.groomNickname}
-              className="w-full py-2 border border-gold/30 rounded-full text-xs tracking-widest uppercase text-gold font-bold hover:bg-gold/5 transition-all disabled:opacity-30"
-            >
-              {isGenerating ? 'Membuat...' : 'Buat Otomatis'}
-            </button>
-          )}
+          <div className="space-y-3">
+            {previews[field] && (
+              <div className="relative rounded-xl overflow-hidden border border-gold/10 bg-ivory/50">
+                {accept.startsWith('image') ? (
+                  <img src={previews[field]} alt={label} className="w-full max-h-40 object-contain mx-auto" />
+                ) : (
+                  <div className="p-4 flex items-center justify-center">
+                    <audio src={previews[field]} controls className="w-full h-8" />
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <label className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gold/30 rounded-xl cursor-pointer hover:bg-gold/5 transition-all group">
+                <Upload className="w-4 h-4 text-gold group-hover:scale-110 transition-transform" />
+                <span className="text-[10px] font-black text-gold uppercase tracking-[0.2em]">
+                  {previews[field] ? 'Ganti File' : 'Pilih File'}
+                </span>
+                <input 
+                  type="file" 
+                  accept={accept} 
+                  onChange={(e) => handleFileChange(field, e.target.files?.[0], accept)} 
+                  className="hidden" 
+                />
+              </label>
+              
+              {files[field] && (
+                <p className="text-[10px] text-ink/40 truncate font-mono text-center px-2">
+                  {files[field].name}
+                </p>
+              )}
+
+              {field === 'twibbonOverlay' && (
+                <button
+                  type="button"
+                  onClick={handleGenerateOverlay}
+                  disabled={isGenerating || !data?.groomNickname}
+                  className="w-full py-2.5 bg-gold/5 border border-gold/20 rounded-xl text-[10px] tracking-[0.2em] uppercase text-gold font-black hover:bg-gold/10 transition-all disabled:opacity-30 flex items-center justify-center gap-2"
+                >
+                  <Sparkles className={`w-3 h-3 ${isGenerating ? 'animate-spin' : ''}`} />
+                  {isGenerating ? 'Membuat...' : 'Buat Otomatis'}
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       ))}
 
       {error && <p className="text-xs text-red-500 text-center">{error}</p>}
-      <button type="submit" disabled={isSaving} className="w-full py-3 bg-gold text-ivory rounded-full text-xs tracking-[0.3em] font-black uppercase disabled:opacity-50">{isSaving ? 'Menyimpan...' : 'Simpan'}</button>
+      <button type="submit" disabled={isSaving} className="w-full py-3 bg-gold text-ivory rounded-full text-xs tracking-[0.3em] font-black uppercase disabled:opacity-50 shadow-lg shadow-gold/20">{isSaving ? 'Menyimpan...' : 'Simpan'}</button>
     </form>
   );
 }

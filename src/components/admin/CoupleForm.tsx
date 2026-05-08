@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { WeddingDocument } from '../../types/firestore';
+import { Upload } from 'lucide-react';
 
 interface CoupleFormProps {
   data: WeddingDocument | null;
@@ -46,6 +47,34 @@ export function CoupleForm({ data, onSave, isSaving }: CoupleFormProps) {
     }, Object.keys(files).length > 0 ? files : undefined);
   };
 
+  const renderUploadField = (side: 'groom' | 'bride', preview: string, file: File | null) => (
+    <div className="space-y-2">
+      <label className="text-xs text-ink/60 block">Foto</label>
+      <div className="flex items-center gap-4">
+        {preview && (
+          <div className="relative w-16 h-16 flex-shrink-0">
+            <img src={preview} alt={side} className="w-full h-full object-cover rounded-xl border border-gold/10" />
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <label className="flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-dashed border-gold/30 rounded-xl cursor-pointer hover:bg-gold/5 transition-colors group">
+            <Upload className="w-4 h-4 text-gold group-hover:scale-110 transition-transform" />
+            <span className="text-[10px] font-black text-gold uppercase tracking-widest">Pilih Foto</span>
+            <input 
+              type="file" 
+              accept="image/*" 
+              onChange={(e) => handlePhotoChange(side, e.target.files?.[0])} 
+              className="hidden" 
+            />
+          </label>
+          {file && (
+            <p className="mt-1.5 text-[10px] text-ink/40 truncate font-mono text-center">{file.name}</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <fieldset className="space-y-3">
@@ -53,11 +82,7 @@ export function CoupleForm({ data, onSave, isSaving }: CoupleFormProps) {
         <input value={groomNickname} onChange={(e) => setGroomNickname(e.target.value)} placeholder="Nama Panggilan" required maxLength={30} aria-label="Nama Panggilan Pria" className="w-full px-4 py-3 border border-gold/20 rounded-xl text-sm bg-white focus:outline-none focus:border-gold/50" />
         <input value={groomName} onChange={(e) => setGroomName(e.target.value)} placeholder="Nama Lengkap + Gelar" required maxLength={100} aria-label="Nama Lengkap Pria" className="w-full px-4 py-3 border border-gold/20 rounded-xl text-sm bg-white focus:outline-none focus:border-gold/50" />
         <input value={groomParents} onChange={(e) => setGroomParents(e.target.value)} placeholder="Putra/Putri dari..." required maxLength={150} aria-label="Orang Tua Pria" className="w-full px-4 py-3 border border-gold/20 rounded-xl text-sm bg-white focus:outline-none focus:border-gold/50" />
-        <div>
-          <label htmlFor="groom-photo" className="text-xs text-ink/60 mb-1 block">Foto</label>
-          {groomPhotoPreview && <img src={groomPhotoPreview} alt="Groom" className="w-20 h-20 object-cover rounded-xl mb-2" />}
-          <input id="groom-photo" type="file" accept="image/*" onChange={(e) => handlePhotoChange('groom', e.target.files?.[0])} className="text-xs text-ink/60" />
-        </div>
+        {renderUploadField('groom', groomPhotoPreview, groomPhotoFile)}
       </fieldset>
 
       <fieldset className="space-y-3">
@@ -65,11 +90,7 @@ export function CoupleForm({ data, onSave, isSaving }: CoupleFormProps) {
         <input value={brideNickname} onChange={(e) => setBrideNickname(e.target.value)} placeholder="Nama Panggilan" required maxLength={30} aria-label="Nama Panggilan Wanita" className="w-full px-4 py-3 border border-gold/20 rounded-xl text-sm bg-white focus:outline-none focus:border-gold/50" />
         <input value={brideName} onChange={(e) => setBrideName(e.target.value)} placeholder="Nama Lengkap + Gelar" required maxLength={100} aria-label="Nama Lengkap Wanita" className="w-full px-4 py-3 border border-gold/20 rounded-xl text-sm bg-white focus:outline-none focus:border-gold/50" />
         <input value={brideParents} onChange={(e) => setBrideParents(e.target.value)} placeholder="Putra/Putri dari..." required maxLength={150} aria-label="Orang Tua Wanita" className="w-full px-4 py-3 border border-gold/20 rounded-xl text-sm bg-white focus:outline-none focus:border-gold/50" />
-        <div>
-          <label htmlFor="bride-photo" className="text-xs text-ink/60 mb-1 block">Foto</label>
-          {bridePhotoPreview && <img src={bridePhotoPreview} alt="Bride" className="w-20 h-20 object-cover rounded-xl mb-2" />}
-          <input id="bride-photo" type="file" accept="image/*" onChange={(e) => handlePhotoChange('bride', e.target.files?.[0])} className="text-xs text-ink/60" />
-        </div>
+        {renderUploadField('bride', bridePhotoPreview, bridePhotoFile)}
       </fieldset>
 
       {error && <p className="text-xs text-red-500 text-center">{error}</p>}

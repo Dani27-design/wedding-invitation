@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Camera, RefreshCw } from 'lucide-react';
 import { useWeddingContext } from '../../context/WeddingContext';
 import { deriveTwibbonFilename } from '../../utils/weddingDerived';
+import { c } from '../../../dist/assets/themeDefaults-BjuvZABj';
 
 const CANVAS_W = 1080;
 const CANVAS_H = 1920;
@@ -163,7 +164,11 @@ export function TwibbonCreator() {
       if (!ctx) return resolve(null);
 
       const img = new Image();
-      img.onerror = () => resolve(null);
+      img.crossOrigin = 'anonymous';
+      img.onerror = (error) => {
+        console.error('Error loading image.', error);
+        resolve(null);
+      };
       img.onload = () => {
         try {
           ctx.fillStyle = '#F2EEE9';
@@ -187,7 +192,8 @@ export function TwibbonCreator() {
           ctx.drawImage(overlayImgRef.current!, 0, 0, CANVAS_W, CANVAS_H);
 
           canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0);
-        } catch {
+        } catch (error) {
+          console.error('Canvas export failed. This is usually due to CORS/Tainted Canvas.', error);
           resolve(null);
         }
       };
@@ -200,6 +206,7 @@ export function TwibbonCreator() {
     if (!blob) {
       setShareError(true);
       shareErrorTimerRef.current = setTimeout(() => setShareError(false), 3000);
+      console.error('Failed to generate twibbon image.', { image, overlay: overlayImgRef.current?.src });
       return;
     }
 
@@ -219,6 +226,8 @@ export function TwibbonCreator() {
     link.click();
     setTimeout(() => URL.revokeObjectURL(link.href), 1000);
   };
+
+  const overlayUrl = wedding?.twibbonOverlay ? `${wedding.twibbonOverlay}${wedding.twibbonOverlay.includes('?') ? '&' : '?'}v=${Date.now()}` : '';
 
   return (
     <div ref={wrapperRef} className="flex flex-col h-fit w-full items-center justify-start gap-[3vh] px-4">
@@ -277,7 +286,7 @@ export function TwibbonCreator() {
               )}
             </div>
 
-            <img ref={overlayImgRef} src={wedding?.twibbonOverlay ?? ''} onLoad={() => setIsReady(true)} className="absolute inset-0 z-10 w-full h-full pointer-events-none" alt="" />
+            <img ref={overlayImgRef} src={overlayUrl} crossOrigin="anonymous" onLoad={() => setIsReady(true)} className="absolute inset-0 z-10 w-full h-full pointer-events-none" alt="" />
           </div>
         </motion.div>
 

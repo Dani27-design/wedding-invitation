@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut, User } from 'firebase/auth';
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
-import { uploadFile } from '../lib/storage';
+import { uploadFile, deleteFile } from '../lib/storage';
 import { useWedding } from '../hooks/useWedding';
 import { WeddingDocument, StorySlide } from '../types/firestore';
 import { CoupleForm } from '../components/admin/CoupleForm';
@@ -150,6 +150,7 @@ export default function Admin() {
   const handleSave = useCallback(async (
     fields: Partial<WeddingDocument>,
     files?: Record<string, File>,
+    urlsToDelete?: string[],
   ) => {
     if (!slug) return;
     setIsSaving(true);
@@ -161,8 +162,22 @@ export default function Admin() {
         updates.ownerId = user.uid;
       }
 
+      // 1. Delete explicitly removed files
+      if (urlsToDelete) {
+        for (const url of urlsToDelete) {
+          await deleteFile(url);
+        }
+      }
+
+      // 2. Upload new files and cleanup replaced orphans
       if (files) {
         for (const [key, file] of Object.entries(files)) {
+          // Orphan cleanup for top-level fields
+          if (['groomPhoto', 'bridePhoto', 'musicUrl', 'heroImage', 'openingImage', 'twibbonOverlay'].includes(key)) {
+            const oldUrl = (wedding as any)?.[key];
+            if (oldUrl) await deleteFile(oldUrl);
+          }
+
           const ext = file.name.split('.').pop() ?? 'bin';
           const path = `weddings/${slug}/${key}-${Date.now()}.${ext}`;
           const url = await uploadFile(path, file);
@@ -171,12 +186,22 @@ export default function Admin() {
             updates[key] = url;
           } else if (key.startsWith('storyBg-')) {
             const idx = parseInt(key.split('-')[1], 10);
-            const story = (updates.story as StorySlide[] | undefined) ?? [];
+            const story = (updates.story as StorySlide[] | undefined) ?? [...(wedding?.story ?? [])];
+            
+            // Orphan cleanup for story slide
+            const oldBg = wedding?.story?.[idx]?.bgImage;
+            if (oldBg) await deleteFile(oldBg);
+            
             if (story[idx]) story[idx] = { ...story[idx], bgImage: url };
             updates.story = story;
           } else if (key.startsWith('gallery-')) {
             const idx = parseInt(key.split('-')[1], 10);
-            const gallery = (updates.gallery as string[] | undefined) ?? [];
+            const gallery = (updates.gallery as string[] | undefined) ?? [...(wedding?.gallery ?? [])];
+            
+            // Orphan cleanup for gallery item
+            const oldImg = wedding?.gallery?.[idx];
+            if (oldImg) await deleteFile(oldImg);
+
             if (idx < gallery.length) gallery[idx] = url;
             updates.gallery = gallery;
           }

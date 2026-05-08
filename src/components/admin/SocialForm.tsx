@@ -3,7 +3,7 @@ import { WeddingDocument } from '../../types/firestore';
 
 interface SocialFormProps {
   data: WeddingDocument | null;
-  onSave: (fields: Partial<WeddingDocument>) => void;
+  onSave: (fields: Partial<WeddingDocument>, files?: Record<string, File>, urlsToDelete?: string[]) => void;
   isSaving?: boolean;
 }
 

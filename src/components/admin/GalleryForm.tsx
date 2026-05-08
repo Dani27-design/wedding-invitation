@@ -4,7 +4,7 @@ import { Plus, Trash2, Upload, Image as ImageIcon } from 'lucide-react';
 
 interface GalleryFormProps {
   data: WeddingDocument | null;
-  onSave: (fields: Partial<WeddingDocument>, files?: Record<string, File>) => void;
+  onSave: (fields: Partial<WeddingDocument>, files?: Record<string, File>, urlsToDelete?: string[]) => void;
   isSaving?: boolean;
 }
 
@@ -16,6 +16,7 @@ export function GalleryForm({ data, onSave, isSaving }: GalleryFormProps) {
   const [images, setImages] = useState<{ url: string; file?: File }[]>(
     data?.gallery?.map(url => ({ url })) ?? []
   );
+  const [urlsToDelete, setUrlsToDelete] = useState<string[]>([]);
 
   const handleAdd = (files: FileList | null) => {
     if (!files) return;
@@ -28,7 +29,13 @@ export function GalleryForm({ data, onSave, isSaving }: GalleryFormProps) {
     setImages([...images, ...newImages]);
   };
 
-  const handleRemove = (i: number) => setImages(images.filter((_, idx) => idx !== i));
+  const handleRemove = (i: number) => {
+    const img = images[i];
+    if (img.url.includes('firebasestorage.googleapis.com')) {
+      setUrlsToDelete(prev => [...prev, img.url]);
+    }
+    setImages(images.filter((_, idx) => idx !== i));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,6 +44,7 @@ export function GalleryForm({ data, onSave, isSaving }: GalleryFormProps) {
     onSave(
       { gallery: images.map(img => img.url) },
       Object.keys(files).length > 0 ? files : undefined,
+      urlsToDelete.length > 0 ? urlsToDelete : undefined,
     );
   };
 

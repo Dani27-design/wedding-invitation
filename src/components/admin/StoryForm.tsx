@@ -4,7 +4,7 @@ import { Plus, Trash2, Upload, History } from 'lucide-react';
 
 interface StoryFormProps {
   data: WeddingDocument | null;
-  onSave: (fields: Partial<WeddingDocument>, files?: Record<string, File>) => void;
+  onSave: (fields: Partial<WeddingDocument>, files?: Record<string, File>, urlsToDelete?: string[]) => void;
   isSaving?: boolean;
 }
 
@@ -15,9 +15,16 @@ export function StoryForm({ data, onSave, isSaving }: StoryFormProps) {
   const [slides, setSlides] = useState<(StorySlide & { file?: File })[]>(
     data?.story?.map(s => ({ ...s })) ?? [{ year: '', text: '', bgImage: '' }]
   );
+  const [urlsToDelete, setUrlsToDelete] = useState<string[]>([]);
 
   const addSlide = () => setSlides([...slides, { year: '', text: '', bgImage: '' }]);
-  const removeSlide = (i: number) => setSlides(slides.filter((_, idx) => idx !== i));
+  const removeSlide = (i: number) => {
+    const slide = slides[i];
+    if (slide.bgImage && slide.bgImage.includes('firebasestorage.googleapis.com')) {
+      setUrlsToDelete(prev => [...prev, slide.bgImage]);
+    }
+    setSlides(slides.filter((_, idx) => idx !== i));
+  };
   const updateSlide = (i: number, field: keyof StorySlide, value: string) => {
     setSlides(slides.map((s, idx) => idx === i ? { ...s, [field]: value } : s));
   };
@@ -30,6 +37,14 @@ export function StoryForm({ data, onSave, isSaving }: StoryFormProps) {
     setSlides(slides.map((s, idx) => idx === i ? { ...s, bgImage: url, file } : s));
   };
 
+  const handleDeleteImage = (i: number) => {
+    const currentUrl = slides[i].bgImage;
+    if (currentUrl && currentUrl.includes('firebasestorage.googleapis.com')) {
+      setUrlsToDelete(prev => [...prev, currentUrl]);
+    }
+    setSlides(slides.map((s, idx) => idx === i ? { ...s, bgImage: '', file: undefined } : s));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const files: Record<string, File> = {};
@@ -38,6 +53,7 @@ export function StoryForm({ data, onSave, isSaving }: StoryFormProps) {
     onSave(
       { story: filtered.map(({ file: _, ...s }) => s) },
       Object.keys(files).length > 0 ? files : undefined,
+      urlsToDelete.length > 0 ? urlsToDelete : undefined,
     );
   };
 
@@ -70,8 +86,15 @@ export function StoryForm({ data, onSave, isSaving }: StoryFormProps) {
               <label className="text-[10px] uppercase tracking-widest text-ink/60 font-bold block ml-1">Foto Latar</label>
               <div className="flex items-center gap-4">
                 {slide.bgImage && (
-                  <div className="w-16 h-16 rounded-xl overflow-hidden border border-gold/20 flex-shrink-0">
+                  <div className="relative w-16 h-16 rounded-xl overflow-hidden border border-gold/20 flex-shrink-0 group/img">
                     <img src={slide.bgImage} alt={`Slide ${i + 1}`} className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteImage(i)}
+                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity shadow-lg z-20"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
                   </div>
                 )}
                 <div className="flex-1 min-w-0">

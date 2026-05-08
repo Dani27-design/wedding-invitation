@@ -12,6 +12,7 @@ export function TwibbonCreator() {
   const wedding = useWeddingContext();
   const [image, setImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [shareError, setShareError] = useState(false);
 
@@ -173,41 +174,57 @@ export function TwibbonCreator() {
           ctx.fillStyle = '#F2EEE9';
           ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
 
-          const { x, y, zoom } = transformRef.current;
-          const scale = Math.max(CANVAS_W / img.width, CANVAS_H / img.height) * zoom;
-          const dw = img.width * scale;
-          const dh = img.height * scale;
-
-          ctx.save();
-          const previewEl = containerRef.current;
-          if (previewEl && previewEl.clientWidth > 0) {
-            const scaleX = CANVAS_W / previewEl.clientWidth;
-            const scaleY = CANVAS_H / previewEl.clientHeight;
-            ctx.translate(x * scaleX, y * scaleY);
+          // 1. Offscreen Downscaling: 
+          // Create a temporary canvas for the user photo to handle downscaling before compositing
+          const tempCanvas = document.createElement('canvas');
+          tempCanvas.width = CANVAS_W;
+          tempCanvas.height = CANVAS_H;
+          const tempCtx = tempCanvas.getContext('2d');
+          
+          if (tempCtx) {
+            const { x, y, zoom } = transformRef.current;
+            const scale = Math.max(CANVAS_W / img.width, CANVAS_H / img.height) * zoom;
+            const dw = img.width * scale;
+            const dh = img.height * scale;
+            
+            const previewEl = containerRef.current;
+            let tx = 0, ty = 0;
+            if (previewEl && previewEl.clientWidth > 0) {
+              tx = x * (CANVAS_W / previewEl.clientWidth);
+              ty = y * (CANVAS_H / previewEl.clientHeight);
+            }
+            
+            tempCtx.drawImage(img, (CANVAS_W - dw) / 2 + tx, (CANVAS_H - dh) / 2 + ty, dw, dh);
           }
-          ctx.drawImage(img, (CANVAS_W - dw) / 2, (CANVAS_H - dh) / 2, dw, dh);
-          ctx.restore();
+          ctx.drawImage(tempCanvas, 0, 0);
 
-          // We use a proxy to fetch the overlay image with CORS permission
-          // This allows us to export the canvas even if the source bucket isn't configured for CORS
+          // 2. Direct Overlay Loading with proxy fallback
           const overlayImg = new Image();
           overlayImg.crossOrigin = 'anonymous';
+          
+          const loadOverlay = (url: string) => {
+            overlayImg.src = url;
+          };
+
           overlayImg.onload = () => {
             ctx.drawImage(overlayImg, 0, 0, CANVAS_W, CANVAS_H);
-            canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0);
+            canvas.toBlob((blob) => resolve(blob), 'image/png', 0.9);
           };
+
           overlayImg.onerror = () => {
-            // Fallback: if proxy fails, try using the direct image (might taint canvas)
-            console.warn('Proxy load failed, attempting direct load');
-            ctx.drawImage(overlayImgRef.current!, 0, 0, CANVAS_W, CANVAS_H);
-            canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0);
+            if (!overlayImg.src.includes('weserv.nl')) {
+              console.warn('Direct load failed, attempting proxy...');
+              const cleanOverlayUrl = wedding?.twibbonOverlay ?? '';
+              loadOverlay(`https://images.weserv.nl/?url=${encodeURIComponent(cleanOverlayUrl)}&v=${Date.now()}`);
+            } else {
+              console.error('Proxy load also failed.');
+              resolve(null);
+            }
           };
           
-          // Using weserv.nl as a reliable, free image proxy
-          const cleanOverlayUrl = wedding?.twibbonOverlay ?? '';
-          overlayImg.src = `https://images.weserv.nl/?url=${encodeURIComponent(cleanOverlayUrl)}&v=${Date.now()}`;
+          loadOverlay(wedding?.twibbonOverlay ?? '');
         } catch (error) {
-          console.error('Canvas export failed. This is usually due to CORS/Tainted Canvas.', error);
+          console.error('Canvas export failed.', error);
           resolve(null);
         }
       };
@@ -216,24 +233,40 @@ export function TwibbonCreator() {
   };
 
   const handleShare = async () => {
-    const blob = await generateTwibbonBlob();
-    if (!blob) {
+    setIsGenerating(true);
+    setShareError(false);
+
+    // Yield control to UI thread to allow loading spinner to render
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    try {
+      const blob = await generateTwibbonBlob();
+      if (!blob) throw new Error('Generation failed');
+
+      const filename = deriveTwibbonFilename(wedding?.groomNickname ?? '', wedding?.brideNickname ?? '');
+      const file = new File([blob], filename, { type: 'image/png' });
+
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file] });
+        } catch (err) {
+          console.error('Share failed', err);
+          // Fallback to download on share cancel/fail
+          triggerDownload(blob, filename);
+        }
+      } else {
+        triggerDownload(blob, filename);
+      }
+    } catch (err) {
+      console.error('Failed to generate twibbon image.', err);
       setShareError(true);
       shareErrorTimerRef.current = setTimeout(() => setShareError(false), 3000);
-      console.error('Failed to generate twibbon image.', { image, overlay: overlayImgRef.current?.src });
-      return;
+    } finally {
+      setIsGenerating(false);
     }
+  };
 
-    const filename = deriveTwibbonFilename(wedding?.groomNickname ?? '', wedding?.brideNickname ?? '');
-    const file = new File([blob], filename, { type: 'image/png' });
-
-    if (navigator.share && navigator.canShare?.({ files: [file] })) {
-      try {
-        await navigator.share({ files: [file] });
-        return;
-      } catch { /* user cancelled or error — fall through to download */ }
-    }
-
+  const triggerDownload = (blob: Blob, filename: string) => {
     const link = document.createElement('a');
     link.download = filename;
     link.href = URL.createObjectURL(blob);
@@ -330,10 +363,21 @@ export function TwibbonCreator() {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleShare}
-            disabled={!isReady}
-            className="w-full py-2 bg-gold text-ivory rounded-full font-black uppercase text-xs tracking-[0.4em] shadow-xl disabled:opacity-50 disabled:pointer-events-none transition-all"
+            disabled={!isReady || isGenerating}
+            className="w-full py-2 bg-gold text-ivory rounded-full font-black uppercase text-xs tracking-[0.4em] shadow-xl disabled:opacity-50 disabled:pointer-events-none transition-all flex items-center justify-center gap-2"
           >
-            Bagikan Momen
+            {isGenerating ? (
+              <>
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                  className="w-3 h-3 border-2 border-ivory/30 border-t-ivory rounded-full"
+                />
+                Memproses...
+              </>
+            ) : (
+              'Bagikan Momen'
+            )}
           </motion.button>
           {shareError && <p className="text-xs text-red-400 mt-2 font-serif italic">Gagal membuat gambar. Coba lagi.</p>}
         </motion.div>

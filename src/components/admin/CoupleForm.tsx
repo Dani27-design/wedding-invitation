@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { WeddingDocument } from '../../types/firestore';
-import { Upload } from 'lucide-react';
+import { Upload, Trash2 } from 'lucide-react';
 
 interface CoupleFormProps {
   data: WeddingDocument | null;
-  onSave: (fields: Partial<WeddingDocument>, files?: Record<string, File>) => void;
+  onSave: (fields: Partial<WeddingDocument>, files?: Record<string, File>, urlsToDelete?: string[]) => void;
   isSaving?: boolean;
 }
 
@@ -22,6 +22,7 @@ export function CoupleForm({ data, onSave, isSaving }: CoupleFormProps) {
   const [bridePhotoPreview, setBridePhotoPreview] = useState(data?.bridePhoto ?? '');
   const [groomPhotoFile, setGroomPhotoFile] = useState<File | null>(null);
   const [bridePhotoFile, setBridePhotoFile] = useState<File | null>(null);
+  const [urlsToDelete, setUrlsToDelete] = useState<string[]>([]);
 
   const handlePhotoChange = (side: 'groom' | 'bride', file: File | undefined) => {
     if (!file) return;
@@ -30,6 +31,20 @@ export function CoupleForm({ data, onSave, isSaving }: CoupleFormProps) {
     const url = URL.createObjectURL(file);
     if (side === 'groom') { setGroomPhotoFile(file); setGroomPhotoPreview(url); }
     else { setBridePhotoFile(file); setBridePhotoPreview(url); }
+  };
+
+  const handleDeletePhoto = (side: 'groom' | 'bride') => {
+    const currentUrl = side === 'groom' ? groomPhotoPreview : bridePhotoPreview;
+    if (currentUrl && currentUrl.includes('firebasestorage.googleapis.com')) {
+      setUrlsToDelete(prev => [...prev, currentUrl]);
+    }
+    if (side === 'groom') {
+      setGroomPhotoFile(null);
+      setGroomPhotoPreview('');
+    } else {
+      setBridePhotoFile(null);
+      setBridePhotoPreview('');
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -44,7 +59,12 @@ export function CoupleForm({ data, onSave, isSaving }: CoupleFormProps) {
       brideNickname: brideNickname.trim(),
       brideName: brideName.trim(),
       brideParents: brideParents.trim(),
-    }, Object.keys(files).length > 0 ? files : undefined);
+      groomPhoto: groomPhotoPreview,
+      bridePhoto: bridePhotoPreview,
+    }, 
+    Object.keys(files).length > 0 ? files : undefined,
+    urlsToDelete.length > 0 ? urlsToDelete : undefined
+    );
   };
 
   const renderUploadField = (side: 'groom' | 'bride', preview: string, file: File | null) => (
@@ -52,8 +72,15 @@ export function CoupleForm({ data, onSave, isSaving }: CoupleFormProps) {
       <label className="text-xs text-ink/60 block">Foto</label>
       <div className="flex items-center gap-4">
         {preview && (
-          <div className="relative w-16 h-16 flex-shrink-0">
+          <div className="relative w-16 h-16 flex-shrink-0 group">
             <img src={preview} alt={side} className="w-full h-full object-cover rounded-xl border border-gold/10" />
+            <button
+              type="button"
+              onClick={() => handleDeletePhoto(side)}
+              className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+            >
+              <Trash2 className="w-3 h-3" />
+            </button>
           </div>
         )}
         <div className="flex-1 min-w-0">

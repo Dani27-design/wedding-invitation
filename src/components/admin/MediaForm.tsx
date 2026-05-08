@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { WeddingDocument } from '../../types/firestore';
-import { Upload, Music, Image as ImageIcon, Sparkles } from 'lucide-react';
+import { Upload, Music, Image as ImageIcon, Sparkles, Trash2 } from 'lucide-react';
 
 interface MediaFormProps {
   data: WeddingDocument | null;
-  onSave: (fields: Partial<WeddingDocument>, files?: Record<string, File>) => void;
+  onSave: (fields: Partial<WeddingDocument>, files?: Record<string, File>, urlsToDelete?: string[]) => void;
   isSaving?: boolean;
 }
 
@@ -34,6 +34,7 @@ export function MediaForm({ data, onSave, isSaving }: MediaFormProps) {
     twibbonOverlay: data?.twibbonOverlay ?? '',
   });
   const [files, setFiles] = useState<Record<string, File>>({});
+  const [urlsToDelete, setUrlsToDelete] = useState<string[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handleFileChange = (field: string, file: File | undefined, accept: string) => {
@@ -45,6 +46,19 @@ export function MediaForm({ data, onSave, isSaving }: MediaFormProps) {
     const url = URL.createObjectURL(file);
     setPreviews(prev => ({ ...prev, [field]: url }));
     setFiles(prev => ({ ...prev, [field]: file }));
+  };
+
+  const handleDelete = (field: string) => {
+    const currentUrl = previews[field];
+    if (currentUrl && currentUrl.includes('firebasestorage.googleapis.com')) {
+      setUrlsToDelete(prev => [...prev, currentUrl]);
+    }
+    setPreviews(prev => ({ ...prev, [field]: '' }));
+    setFiles(prev => {
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
   };
 
   const handleGenerateOverlay = async () => {
@@ -89,6 +103,7 @@ export function MediaForm({ data, onSave, isSaving }: MediaFormProps) {
         twibbonOverlay: previews.twibbonOverlay,
       },
       Object.keys(files).length > 0 ? files : undefined,
+      urlsToDelete.length > 0 ? urlsToDelete : undefined,
     );
   };
 
@@ -98,9 +113,21 @@ export function MediaForm({ data, onSave, isSaving }: MediaFormProps) {
 
       {MEDIA_ITEMS.map(({ label, field, accept, icon: Icon }) => (
         <div key={field} className="p-4 border border-gold/10 rounded-2xl space-y-4 bg-white/50">
-          <div className="flex items-center gap-2">
-            <Icon className="w-3.5 h-3.5 text-gold" />
-            <span className="text-xs text-ink/80 font-black uppercase tracking-wider">{label}</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Icon className="w-3.5 h-3.5 text-gold" />
+              <span className="text-xs text-ink/80 font-black uppercase tracking-wider">{label}</span>
+            </div>
+            {previews[field] && (
+              <button 
+                type="button" 
+                onClick={() => handleDelete(field)}
+                className="p-1.5 text-red-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                title="Hapus media"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
 
           <div className="space-y-3">

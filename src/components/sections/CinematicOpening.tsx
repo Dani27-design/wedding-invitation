@@ -19,18 +19,24 @@ export const CinematicOpening = ({
   const wedding = useWeddingContext();
 
   useEffect(() => {
+    // Remove the static HTML loader once this cinematic opening is ready to display
+    const loader = document.getElementById('loading-screen');
+    if (loader) {
+      loader.style.opacity = '0';
+      setTimeout(() => loader.remove(), 500);
+    }
+
     const handleAction = () => {
       onOpen();
     };
-
-    window.addEventListener("wheel", handleAction, { passive: false });
-    window.addEventListener("touchmove", handleAction, { passive: false });
-    window.addEventListener("keydown", handleAction);
+    window.addEventListener('wheel', handleAction, { passive: false });
+    window.addEventListener('touchmove', handleAction, { passive: false });
+    window.addEventListener('keydown', handleAction);
 
     return () => {
-      window.removeEventListener("wheel", handleAction);
-      window.removeEventListener("touchmove", handleAction);
-      window.removeEventListener("keydown", handleAction);
+      window.removeEventListener('wheel', handleAction);
+      window.removeEventListener('touchmove', handleAction);
+      window.removeEventListener('keydown', handleAction);
     };
   }, [onOpen]);
 

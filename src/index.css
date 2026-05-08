@@ -1,5 +1,16 @@
 @import "tailwindcss";
 
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  background-color: #FDFCF8;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
 @font-face {
   font-family: 'Dayland';
   font-style: normal;

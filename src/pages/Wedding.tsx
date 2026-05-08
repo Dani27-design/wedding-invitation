@@ -10,6 +10,7 @@ import { WeddingContext } from '../context/WeddingContext';
 import { addWish } from '../lib/wishes';
 import { deriveMetaTitle, deriveDateShort, deriveDateDisplay } from '../utils/weddingDerived';
 import { THEME_DEFAULTS } from '../constants/themeDefaults';
+import { GuestWishes } from '../types';
 
 // ... (keep the rest of the imports for lazy components)
 
@@ -217,7 +218,7 @@ export default function Wedding() {
   }, [weddingSlug]);
 
   if (isWeddingLoading) {
-    return <div className="min-h-screen bg-ivory" />;
+    return null;
   }
 
   if (!wedding) {

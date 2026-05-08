@@ -11,12 +11,12 @@ const MAX_PREVIEW_DIM = 2000;
 export function TwibbonCreator() {
   const wedding = useWeddingContext();
   const [image, setImage] = useState<string | null>(null);
+  const [transform, setTransform] = useState({ x: 0, y: 0, zoom: 1 });
   const [isLoading, setIsLoading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [shareError, setShareError] = useState(false);
 
-  const transformRef = useRef({ x: 0, y: 0, zoom: 1 });
   const wrapperRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const imgElementRef = useRef<HTMLImageElement>(null);
@@ -27,12 +27,6 @@ export function TwibbonCreator() {
   const lastPos = useRef({ x: 0, y: 0 });
   const lastTouchDistance = useRef<number | null>(null);
   const shareErrorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const updateImageTransform = useCallback(() => {
-    if (!imgElementRef.current) return;
-    const { x, y, zoom } = transformRef.current;
-    imgElementRef.current.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${zoom})`;
-  }, []);
 
   const clearImage = useCallback(() => {
     if (image) URL.revokeObjectURL(image);
@@ -79,8 +73,7 @@ export function TwibbonCreator() {
         }
       }
 
-      transformRef.current = { x: 0, y: 0, zoom: 1 };
-      setTimeout(updateImageTransform, 0);
+      setTransform({ x: 0, y: 0, zoom: 1 });
     };
     img.src = originalUrl;
   };
@@ -106,19 +99,22 @@ export function TwibbonCreator() {
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
     const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
 
-    if ('touches' in e && e.touches.length === 2) {
-      const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-      if (lastTouchDistance.current) {
-        transformRef.current.zoom = Math.min(5, Math.max(0.1, transformRef.current.zoom * (dist / lastTouchDistance.current)));
+    setTransform(prev => {
+      let { x, y, zoom } = prev;
+      if ('touches' in e && e.touches.length === 2) {
+        const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+        if (lastTouchDistance.current) {
+          zoom = Math.min(5, Math.max(0.1, zoom * (dist / lastTouchDistance.current)));
+        }
+        lastTouchDistance.current = dist;
+        lastPos.current = { x: clientX, y: clientY };
+      } else {
+        x += clientX - lastPos.current.x;
+        y += clientY - lastPos.current.y;
+        lastPos.current = { x: clientX, y: clientY };
       }
-      lastTouchDistance.current = dist;
-      lastPos.current = { x: clientX, y: clientY };
-    } else {
-      transformRef.current.x += clientX - lastPos.current.x;
-      transformRef.current.y += clientY - lastPos.current.y;
-      lastPos.current = { x: clientX, y: clientY };
-    }
-    requestAnimationFrame(updateImageTransform);
+      return { x, y, zoom };
+    });
   };
 
   const handleEnd = () => {
@@ -182,7 +178,7 @@ export function TwibbonCreator() {
           const tempCtx = tempCanvas.getContext('2d');
           
           if (tempCtx) {
-            const { x, y, zoom } = transformRef.current;
+            const { x, y, zoom } = transform;
             const scale = Math.max(CANVAS_W / img.width, CANVAS_H / img.height) * zoom;
             const dw = img.width * scale;
             const dh = img.height * scale;
@@ -198,31 +194,21 @@ export function TwibbonCreator() {
           }
           ctx.drawImage(tempCanvas, 0, 0);
 
-          // 2. Direct Overlay Loading with proxy fallback
+          // Direct Overlay Loading
           const overlayImg = new Image();
           overlayImg.crossOrigin = 'anonymous';
           
-          const loadOverlay = (url: string) => {
-            overlayImg.src = url;
-          };
-
           overlayImg.onload = () => {
             ctx.drawImage(overlayImg, 0, 0, CANVAS_W, CANVAS_H);
             canvas.toBlob((blob) => resolve(blob), 'image/png', 0.9);
           };
 
-          overlayImg.onerror = () => {
-            if (!overlayImg.src.includes('weserv.nl')) {
-              console.warn('Direct load failed, attempting proxy...');
-              const cleanOverlayUrl = wedding?.twibbonOverlay ?? '';
-              loadOverlay(`https://images.weserv.nl/?url=${encodeURIComponent(cleanOverlayUrl)}&v=${Date.now()}`);
-            } else {
-              console.error('Proxy load also failed.');
-              resolve(null);
-            }
+          overlayImg.onerror = (err) => {
+            console.error('Twibbon overlay failed to load directly:', err);
+            resolve(null);
           };
           
-          loadOverlay(wedding?.twibbonOverlay ?? '');
+          overlayImg.src = wedding?.twibbonOverlay ?? '';
         } catch (error) {
           console.error('Canvas export failed.', error);
           resolve(null);
@@ -324,7 +310,7 @@ export function TwibbonCreator() {
                   transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
                   src={image}
                   className="max-w-none w-full h-full object-cover pointer-events-none"
-                  style={{ transform: `scale(${transformRef.current.zoom}) translate3d(${transformRef.current.x}px, ${transformRef.current.y}px, 0)` }}
+                  style={{ transform: `scale(${transform.zoom}) translate3d(${transform.x}px, ${transform.y}px, 0)` }}
                 />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center">

@@ -1,8 +1,17 @@
-import { useState, useRef, useEffect, useCallback, useMemo, ChangeEvent, MouseEvent, TouchEvent } from 'react';
-import { motion } from 'motion/react';
-import { Camera, RefreshCw } from 'lucide-react';
-import { useWeddingContext } from '../../context/WeddingContext';
-import { deriveTwibbonFilename } from '../../utils/weddingDerived';
+import {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+  ChangeEvent,
+  MouseEvent,
+  TouchEvent,
+} from "react";
+import { motion } from "motion/react";
+import { Camera, RefreshCw } from "lucide-react";
+import { useWeddingContext } from "../../context/WeddingContext";
+import { deriveTwibbonFilename } from "../../utils/weddingDerived";
 
 const CANVAS_W = 1080;
 const CANVAS_H = 1920;
@@ -11,12 +20,11 @@ const MAX_PREVIEW_DIM = 2000;
 export function TwibbonCreator() {
   const wedding = useWeddingContext();
   const [image, setImage] = useState<string | null>(null);
-  const [transform, setTransform] = useState({ x: 0, y: 0, zoom: 1 });
   const [isLoading, setIsLoading] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [shareError, setShareError] = useState(false);
 
+  const transformRef = useRef({ x: 0, y: 0, zoom: 1 });
   const wrapperRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const imgElementRef = useRef<HTMLImageElement>(null);
@@ -27,6 +35,12 @@ export function TwibbonCreator() {
   const lastPos = useRef({ x: 0, y: 0 });
   const lastTouchDistance = useRef<number | null>(null);
   const shareErrorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const updateImageTransform = useCallback(() => {
+    if (!imgElementRef.current) return;
+    const { x, y, zoom } = transformRef.current;
+    imgElementRef.current.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${zoom})`;
+  }, []);
 
   const clearImage = useCallback(() => {
     if (image) URL.revokeObjectURL(image);
@@ -41,7 +55,7 @@ export function TwibbonCreator() {
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !file.type.startsWith('image/')) return;
+    if (!file || !file.type.startsWith("image/")) return;
     setIsLoading(true);
 
     const originalUrl = URL.createObjectURL(file);
@@ -56,24 +70,29 @@ export function TwibbonCreator() {
         setIsLoading(false);
       } else {
         const scale = MAX_PREVIEW_DIM / maxDim;
-        const canvas = document.createElement('canvas');
+        const canvas = document.createElement("canvas");
         canvas.width = Math.round(width * scale);
         canvas.height = Math.round(height * scale);
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext("2d");
         if (ctx) {
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          canvas.toBlob((blob) => {
-            URL.revokeObjectURL(originalUrl);
-            if (blob) {
-              if (image) URL.revokeObjectURL(image);
-              setImage(URL.createObjectURL(blob));
-            }
-            setIsLoading(false);
-          }, 'image/jpeg', 0.85);
+          canvas.toBlob(
+            (blob) => {
+              URL.revokeObjectURL(originalUrl);
+              if (blob) {
+                if (image) URL.revokeObjectURL(image);
+                setImage(URL.createObjectURL(blob));
+              }
+              setIsLoading(false);
+            },
+            "image/jpeg",
+            0.85,
+          );
         }
       }
 
-      setTransform({ x: 0, y: 0, zoom: 1 });
+      transformRef.current = { x: 0, y: 0, zoom: 1 };
+      setTimeout(updateImageTransform, 0);
     };
     img.src = originalUrl;
   };
@@ -82,11 +101,14 @@ export function TwibbonCreator() {
     if (!image) return;
     if (e.cancelable) e.preventDefault();
     isDragging.current = true;
-    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+    const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
 
-    if ('touches' in e && e.touches.length === 2) {
-      lastTouchDistance.current = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+    if ("touches" in e && e.touches.length === 2) {
+      lastTouchDistance.current = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY,
+      );
       lastPos.current = { x: clientX, y: clientY };
     } else {
       lastPos.current = { x: clientX, y: clientY };
@@ -96,25 +118,31 @@ export function TwibbonCreator() {
   const handleMove = (e: MouseEvent | TouchEvent) => {
     if (!isDragging.current || !image) return;
     if (e.cancelable) e.preventDefault();
-    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+    const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
 
-    setTransform(prev => {
-      let { x, y, zoom } = prev;
-      if ('touches' in e && e.touches.length === 2) {
-        const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-        if (lastTouchDistance.current) {
-          zoom = Math.min(5, Math.max(0.1, zoom * (dist / lastTouchDistance.current)));
-        }
-        lastTouchDistance.current = dist;
-        lastPos.current = { x: clientX, y: clientY };
-      } else {
-        x += clientX - lastPos.current.x;
-        y += clientY - lastPos.current.y;
-        lastPos.current = { x: clientX, y: clientY };
+    if ("touches" in e && e.touches.length === 2) {
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY,
+      );
+      if (lastTouchDistance.current) {
+        transformRef.current.zoom = Math.min(
+          5,
+          Math.max(
+            0.1,
+            transformRef.current.zoom * (dist / lastTouchDistance.current),
+          ),
+        );
       }
-      return { x, y, zoom };
-    });
+      lastTouchDistance.current = dist;
+      lastPos.current = { x: clientX, y: clientY };
+    } else {
+      transformRef.current.x += clientX - lastPos.current.x;
+      transformRef.current.y += clientY - lastPos.current.y;
+      lastPos.current = { x: clientX, y: clientY };
+    }
+    requestAnimationFrame(updateImageTransform);
   };
 
   const handleEnd = () => {
@@ -126,39 +154,27 @@ export function TwibbonCreator() {
     const el = containerRef.current;
     if (!el) return;
 
-    // Unified handler bridge
-    const onTouchStart = (e: TouchEvent) => handleStart(e);
-    const onTouchMove = (e: TouchEvent) => handleMove(e);
+    const onTouchStart = (e: globalThis.TouchEvent) =>
+      handleStart(e as unknown as TouchEvent);
+    const onTouchMove = (e: globalThis.TouchEvent) =>
+      handleMove(e as unknown as TouchEvent);
     const onTouchEnd = () => handleEnd();
-    
-    const onMouseDown = (e: MouseEvent) => handleStart(e);
-    const onMouseMove = (e: MouseEvent) => handleMove(e);
-    const onMouseUp = () => handleEnd();
-    const onMouseLeave = () => handleEnd();
 
-    el.addEventListener('touchstart', onTouchStart, { passive: false });
-    el.addEventListener('touchmove', onTouchMove, { passive: false });
-    el.addEventListener('touchend', onTouchEnd);
-    
-    el.addEventListener('mousedown', onMouseDown);
-    el.addEventListener('mousemove', onMouseMove);
-    el.addEventListener('mouseup', onMouseUp);
-    el.addEventListener('mouseleave', onMouseLeave);
+    el.addEventListener("touchstart", onTouchStart, { passive: false });
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
+    el.addEventListener("touchend", onTouchEnd);
 
     return () => {
-      el.removeEventListener('touchstart', onTouchStart);
-      el.removeEventListener('touchmove', onTouchMove);
-      el.removeEventListener('touchend', onTouchEnd);
-      
-      el.removeEventListener('mousedown', onMouseDown);
-      el.removeEventListener('mousemove', onMouseMove);
-      el.removeEventListener('mouseup', onMouseUp);
-      el.removeEventListener('mouseleave', onMouseLeave);
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchmove", onTouchMove);
+      el.removeEventListener("touchend", onTouchEnd);
     };
-  }, [image]);
+  });
 
   useEffect(() => {
-    return () => { if (shareErrorTimerRef.current) clearTimeout(shareErrorTimerRef.current); };
+    return () => {
+      if (shareErrorTimerRef.current) clearTimeout(shareErrorTimerRef.current);
+    };
   }, []);
 
   const handleCanvasClick = () => {
@@ -169,64 +185,47 @@ export function TwibbonCreator() {
   const generateTwibbonBlob = (): Promise<Blob | null> => {
     return new Promise((resolve) => {
       if (!overlayImgRef.current || !image) return resolve(null);
-      const canvas = document.createElement('canvas');
+      const canvas = document.createElement("canvas");
       canvas.width = CANVAS_W;
       canvas.height = CANVAS_H;
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext("2d");
       if (!ctx) return resolve(null);
 
       const img = new Image();
-      img.crossOrigin = 'anonymous';
+      img.crossOrigin = "anonymous";
       img.onerror = (error) => {
-        console.error('Error loading image.', error);
+        console.error("Error loading image.", error);
         resolve(null);
       };
       img.onload = () => {
         try {
-          ctx.fillStyle = '#F2EEE9';
+          ctx.fillStyle = "#F2EEE9";
           ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
 
-          // 1. Offscreen Downscaling: 
-          // Create a temporary canvas for the user photo to handle downscaling before compositing
-          const tempCanvas = document.createElement('canvas');
-          tempCanvas.width = CANVAS_W;
-          tempCanvas.height = CANVAS_H;
-          const tempCtx = tempCanvas.getContext('2d');
-          
-          if (tempCtx) {
-            const { x, y, zoom } = transform;
-            const scale = Math.max(CANVAS_W / img.width, CANVAS_H / img.height) * zoom;
-            const dw = img.width * scale;
-            const dh = img.height * scale;
-            
-            const previewEl = containerRef.current;
-            let tx = 0, ty = 0;
-            if (previewEl && previewEl.clientWidth > 0) {
-              tx = x * (CANVAS_W / previewEl.clientWidth);
-              ty = y * (CANVAS_H / previewEl.clientHeight);
-            }
-            
-            tempCtx.drawImage(img, (CANVAS_W - dw) / 2 + tx, (CANVAS_H - dh) / 2 + ty, dw, dh);
+          const { x, y, zoom } = transformRef.current;
+          const scale =
+            Math.max(CANVAS_W / img.width, CANVAS_H / img.height) * zoom;
+          const dw = img.width * scale;
+          const dh = img.height * scale;
+
+          ctx.save();
+          const previewEl = containerRef.current;
+          if (previewEl && previewEl.clientWidth > 0) {
+            const scaleX = CANVAS_W / previewEl.clientWidth;
+            const scaleY = CANVAS_H / previewEl.clientHeight;
+            ctx.translate(x * scaleX, y * scaleY);
           }
-          ctx.drawImage(tempCanvas, 0, 0);
+          ctx.drawImage(img, (CANVAS_W - dw) / 2, (CANVAS_H - dh) / 2, dw, dh);
+          ctx.restore();
 
-          // Direct Overlay Loading
-          const overlayImg = new Image();
-          overlayImg.crossOrigin = 'anonymous';
-          
-          overlayImg.onload = () => {
-            ctx.drawImage(overlayImg, 0, 0, CANVAS_W, CANVAS_H);
-            canvas.toBlob((blob) => resolve(blob), 'image/png', 0.9);
-          };
+          ctx.drawImage(overlayImgRef.current!, 0, 0, CANVAS_W, CANVAS_H);
 
-          overlayImg.onerror = (err) => {
-            console.error('Twibbon overlay failed to load directly:', err);
-            resolve(null);
-          };
-          
-          overlayImg.src = wedding?.twibbonOverlay ?? '';
+          canvas.toBlob((blob) => resolve(blob), "image/png", 1.0);
         } catch (error) {
-          console.error('Canvas export failed.', error);
+          console.error(
+            "Canvas export failed. This is usually due to CORS/Tainted Canvas.",
+            error,
+          );
           resolve(null);
         }
       };
@@ -234,12 +233,27 @@ export function TwibbonCreator() {
     });
   };
 
-  const handleShare = async () => {
-    setIsGenerating(true);
-    setShareError(false);
+  const triggerDownload = (blob: Blob, filename: string) => {
+    const link = document.createElement('a');
+    link.download = filename;
+    link.href = URL.createObjectURL(blob);
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+  };
 
-    // Yield control to UI thread to allow loading spinner to render
-    await new Promise(resolve => setTimeout(resolve, 100));
+  const handleShare = async () => {
+    // Immediate DOM update to show loading state (no React re-render)
+    const btn = document.getElementById('share-button') as HTMLButtonElement;
+    const text = document.getElementById('button-text');
+    const spinner = document.getElementById('loading-spinner');
+    if (btn) btn.disabled = true;
+    if (text) text.innerText = 'Memproses...';
+    if (spinner) {
+      spinner.classList.remove('hidden');
+      spinner.style.display = 'inline-block';
+    }
+
+    setShareError(false);
 
     try {
       const blob = await generateTwibbonBlob();
@@ -253,7 +267,6 @@ export function TwibbonCreator() {
           await navigator.share({ files: [file] });
         } catch (err) {
           console.error('Share failed', err);
-          // Fallback to download on share cancel/fail
           triggerDownload(blob, filename);
         }
       } else {
@@ -264,93 +277,117 @@ export function TwibbonCreator() {
       setShareError(true);
       shareErrorTimerRef.current = setTimeout(() => setShareError(false), 3000);
     } finally {
-      setIsGenerating(false);
+      // Immediate DOM update to restore UI (no React re-render)
+      if (btn) btn.disabled = false;
+      if (text) text.innerText = 'Bagikan Momen';
+      if (spinner) {
+        spinner.classList.add('hidden');
+        spinner.style.display = 'none';
+      }
     }
   };
 
-  const triggerDownload = (blob: Blob, filename: string) => {
-    const link = document.createElement('a');
-    link.download = filename;
-    link.href = URL.createObjectURL(blob);
-    link.click();
-    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
-  };
 
-  const overlayUrl = useMemo(() => 
-    wedding?.twibbonOverlay ? `${wedding.twibbonOverlay}${wedding.twibbonOverlay.includes('?') ? '&' : '?'}v=${Date.now()}` : ''
-  , [wedding?.twibbonOverlay]);
-
-  const isRemoteOverlay = overlayUrl.startsWith('http');
+  const overlayUrl = useMemo(
+    () =>
+      wedding?.twibbonOverlay
+        ? `${wedding.twibbonOverlay}${wedding.twibbonOverlay.includes("?") ? "&" : "?"}v=${Date.now()}`
+        : "",
+    [wedding?.twibbonOverlay],
+  );
 
   return (
-    <div ref={wrapperRef} className="flex flex-col h-fit w-full items-center justify-start gap-[3vh] px-4">
+    <div
+      ref={wrapperRef}
+      className="flex flex-col h-fit w-full items-center justify-start gap-[3vh] px-4"
+    >
       <div className="text-center shrink-0">
-        <p className="text-xs uppercase tracking-[0.4em] text-gold font-black mb-2">Twibbon Pernikahan Kami</p>
-        <p className="font-serif italic text-[13px] leading-relaxed text-ink/70 max-w-[300px] mx-auto">rayakan momen bahagia ini bersama kami.</p>
+        <p className="text-xs uppercase tracking-[0.4em] text-gold font-black mb-2">
+          Twibbon Pernikahan Kami
+        </p>
+        <p className="font-serif italic text-[13px] leading-relaxed text-ink/70 max-w-[300px] mx-auto">
+          rayakan momen bahagia ini bersama kami.
+        </p>
       </div>
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.05 }}
-          transition={{ duration: 0.8 }}
-          className="relative h-[55vh] w-auto max-w-[82%] md:max-w-[380px] lg:max-w-[420px] aspect-[9/16] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] border border-gold/10 bg-[#F2EEE9] group/result"
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        className="relative h-[55vh] w-auto max-w-[82%] md:max-w-[380px] lg:max-w-[420px] aspect-[9/16] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] border border-gold/10 bg-[#F2EEE9] group/result"
+      >
+        <div
+          ref={containerRef}
+          onClick={handleCanvasClick}
+          className={`absolute inset-0 select-none overflow-hidden ${image ? "cursor-move touch-none" : "cursor-pointer"}`}
+          onMouseDown={(e: any) => handleStart(e)}
+          onMouseMove={(e: any) => handleMove(e)}
+          onMouseUp={handleEnd}
+          onMouseLeave={handleEnd}
         >
-          <div
-            ref={containerRef}
-            onClick={handleCanvasClick}
-            className={`absolute inset-0 select-none overflow-hidden ${image ? 'cursor-move touch-none' : 'cursor-pointer'}`}
-          >
-            <div className="absolute inset-0 z-0 bg-[#8E8A85] flex items-center justify-center">
-              {isLoading ? (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="flex items-center gap-2">
-                    {[0, 1, 2].map((i) => (
-                      <motion.div
-                        key={i}
-                        animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
-                        transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2, ease: 'easeInOut' }}
-                        className="w-2 h-2 rounded-full bg-white/60"
-                      />
-                    ))}
-                  </div>
+          <div className="absolute inset-0 z-0 bg-[#8E8A85] flex items-center justify-center">
+            {isLoading ? (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="flex items-center gap-2">
+                  {[0, 1, 2].map((i) => (
+                    <motion.div
+                      key={i}
+                      animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
+                      transition={{
+                        duration: 1.2,
+                        repeat: Infinity,
+                        delay: i * 0.2,
+                        ease: "easeInOut",
+                      }}
+                      className="w-2 h-2 rounded-full bg-white/60"
+                    />
+                  ))}
                 </div>
-              ) : image ? (
-                <motion.img
-                  ref={imgElementRef}
-                  initial={{ opacity: 0, scale: 1.1 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-                  src={image}
-                  className="max-w-none w-full h-full object-cover pointer-events-none"
-                  style={{ transform: `scale(${transform.zoom}) translate3d(${transform.x}px, ${transform.y}px, 0)` }}
+              </div>
+            ) : image ? (
+              <motion.img
+                ref={imgElementRef}
+                initial={{ opacity: 0, scale: 1.1 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+                src={image}
+                className="max-w-none w-full h-full object-cover pointer-events-none"
+                style={{
+                  transform: `scale(${transformRef.current.zoom}) translate3d(${transformRef.current.x}px, ${transformRef.current.y}px, 0)`,
+                }}
+              />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <motion.div
+                  animate={{ x: ["-150%", "150%"] }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                  className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent"
                 />
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <motion.div
-                    animate={{ x: ['-150%', '150%'] }}
-                    transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                    className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent"
-                  />
-                  <Camera className="w-10 h-10 text-white/40 stroke-[1]" />
-                </div>
-              )}
-            </div>
-
-            <img 
-              ref={overlayImgRef} 
-              src={overlayUrl} 
-              onLoad={() => setIsReady(true)} 
-              onError={() => {
-                console.error('Twibbon overlay failed to load:', overlayUrl);
-              }}
-              className="absolute inset-0 z-10 w-full h-full pointer-events-none" 
-              alt="" 
-            />
+                <Camera className="w-10 h-10 text-white/40 stroke-[1]" />
+              </div>
+            )}
           </div>
-        </motion.div>
+
+          <img
+            ref={overlayImgRef}
+            src={overlayUrl}
+            crossOrigin="anonymous"
+            onLoad={() => setIsReady(true)}
+            className="absolute inset-0 z-10 w-full h-full pointer-events-none"
+            alt=""
+          />
+        </div>
+      </motion.div>
 
       {image && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center h-fit w-full max-w-[82%] md:max-w-[380px] lg:max-w-[420px] shrink-0">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col items-center h-fit w-full max-w-[82%] md:max-w-[380px] lg:max-w-[420px] shrink-0"
+        >
           <motion.button
             onClick={clearImage}
             className="mb-4 flex items-center gap-2 text-xs uppercase font-black text-ink/70 hover:text-ink transition-colors"
@@ -358,30 +395,31 @@ export function TwibbonCreator() {
             <RefreshCw className="w-3.5 h-3.5" /> Ganti Foto
           </motion.button>
           <motion.button
+            id="share-button"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleShare}
-            disabled={!isReady || isGenerating}
+            disabled={!isReady}
             className="w-full py-2 bg-gold text-ivory rounded-full font-black uppercase text-xs tracking-[0.4em] shadow-xl disabled:opacity-50 disabled:pointer-events-none transition-all flex items-center justify-center gap-2"
           >
-            {isGenerating ? (
-              <>
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                  className="w-3 h-3 border-2 border-ivory/30 border-t-ivory rounded-full"
-                />
-                Memproses...
-              </>
-            ) : (
-              'Bagikan Momen'
-            )}
+            <span id="button-text">Bagikan Momen</span>
+            <span id="loading-spinner" className="hidden animate-spin w-4 h-4 border-2 border-ivory/30 border-t-ivory rounded-full" />
           </motion.button>
-          {shareError && <p className="text-xs text-red-400 mt-2 font-serif italic">Gagal membuat gambar. Coba lagi.</p>}
+          {shareError && (
+            <p className="text-xs text-red-400 mt-2 font-serif italic">
+              Gagal membuat gambar. Coba lagi.
+            </p>
+          )}
         </motion.div>
       )}
 
-      <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileChange}
+        className="hidden"
+      />
     </div>
   );
 }

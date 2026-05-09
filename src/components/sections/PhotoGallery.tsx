@@ -58,6 +58,9 @@ export const PhotoGallery = ({ onSelectPhoto }: PhotoGalleryProps) => {
         <p className="font-serif italic text-ink/70 text-sm">Setiap foto menyimpan cerita yang tidak selalu mudah, tapi selalu kami pilih untuk dilanjutkan.</p>
       </motion.div>
     </div>
+
+    {/* Gradient Bridge to Footer */}
+    <div className="absolute bottom-0 left-0 right-0 h-5 bg-gradient-to-b from-transparent to-ivory pointer-events-none" />
   </section>
   );
 };

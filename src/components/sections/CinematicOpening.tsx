@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "motion/react";
 import { Heart } from "lucide-react";
 import { LightGlow } from "../ui/LightGlow";
@@ -17,28 +17,68 @@ export const CinematicOpening = ({
   onOpen,
 }: CinematicOpeningProps) => {
   const wedding = useWeddingContext();
+  const [isOpening, setIsOpening] = useState(false);
+
+  const triggerOpen = () => {
+    if (!isOpening) {
+      setIsOpening(true);
+      onOpen();
+    }
+  };
 
   useEffect(() => {
-    // Remove the static HTML loader once this cinematic opening is ready to display
+    // 1. Loader Removal - runs once on mount
     const loader = document.getElementById('loading-screen');
     if (loader) {
-      loader.style.opacity = '0';
-      setTimeout(() => loader.remove(), 500);
+      // Ensure one paint cycle of the component is finished
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          loader.remove();
+        });
+      });
     }
+  }, []);
 
-    const handleAction = () => {
-      onOpen();
+  useEffect(() => {
+    // 3. Interaction Listeners - only attach if not already opening
+    if (isOpening) return;
+
+    let touchStartY = 0;
+    const THRESHOLD = 5;
+
+    const handleWheel = (e: WheelEvent) => {
+      // Trigger only on Scroll Down
+      if (e.deltaY > THRESHOLD) triggerOpen();
     };
-    window.addEventListener('wheel', handleAction, { passive: false });
-    window.addEventListener('touchmove', handleAction, { passive: false });
-    window.addEventListener('keydown', handleAction);
+
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartY = e.touches[0].clientY;
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      const touchY = e.touches[0].clientY;
+      const deltaY = touchStartY - touchY;
+      // Trigger only on Swipe Up
+      if (deltaY > THRESHOLD) triggerOpen();
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Trigger only on Action keys or Scroll Down
+      if (['ArrowDown', ' ', 'Enter'].includes(e.key)) triggerOpen();
+    };
+
+    window.addEventListener('wheel', handleWheel, { passive: true });
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
+    window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      window.removeEventListener('wheel', handleAction);
-      window.removeEventListener('touchmove', handleAction);
-      window.removeEventListener('keydown', handleAction);
+      window.removeEventListener('wheel', handleWheel);
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [onOpen]);
+  }, [isOpening, onOpen]);
 
   return (
     <motion.div
@@ -48,7 +88,14 @@ export const CinematicOpening = ({
         scale: 1.05,
         transition: { duration: 2, ease: [0.76, 0, 0.24, 1] },
       }}
-      className="fixed inset-0 z-[1000] flex flex-col bg-ink py-[3vh] overflow-hidden"
+      className="fixed inset-0 z-[10000] flex flex-col bg-ink py-[2vh] overflow-hidden"
+      style={{ 
+        pointerEvents: isOpening ? 'none' : 'auto',
+        boxShadow: '0 0 0 1.5px #FDFCF8',
+        transform: 'translateZ(0)',
+        WebkitBackfaceVisibility: 'hidden',
+        backfaceVisibility: 'hidden'
+      }}
     >
       <motion.div
         initial={{ opacity: 0.4 }}
@@ -74,14 +121,14 @@ export const CinematicOpening = ({
         <ForegroundOrnaments />
       </motion.div>
 
-      <div className="relative z-10 p-6 md:p-6 flex justify-between items-start w-full">
+      <div className="flex justify-between items-center relative z-10 p-6 md:p-6 w-full">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1 }}
           className="flex flex-col gap-1"
         >
-          <span className="font-sans text-xs tracking-[0.4rem] uppercase text-gold font-bold">
+          <span className="font-serif uppercase text-xs tracking-[0.4rem] text-gold">
             {wedding?.eventCity}
           </span>
           <span className="font-serif italic text-sm text-ivory">
@@ -123,7 +170,7 @@ export const CinematicOpening = ({
       </div>
 
       <div className="relative z-10 px-8 md:px-24 flex-1 flex flex-col justify-between w-full h-full">
-        <div className="pt-0 md:pt-2 flex flex-col items-center justify-center">
+        <div className="pt-5 flex flex-col items-center justify-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -158,7 +205,7 @@ export const CinematicOpening = ({
               </h2>
             </div>
             <motion.button
-              onClick={onOpen}
+              onClick={triggerOpen}
               className="flex flex-col items-center gap-3 pt-4 group cursor-pointer transition-all"
             >
 

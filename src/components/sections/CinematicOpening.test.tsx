@@ -46,9 +46,9 @@ describe('CinematicOpening', () => {
       expect(container.firstChild).toHaveClass('inset-0');
     });
 
-    it('root element has z-[1000] to sit above everything', () => {
+    it('root element has z-[10000] to sit above everything', () => {
       const { container } = renderComponent();
-      expect(container.firstChild).toHaveClass('z-[1000]');
+      expect(container.firstChild).toHaveClass('z-[10000]');
     });
 
     it('root element has bg-ink dark background', () => {
@@ -182,13 +182,13 @@ describe('CinematicOpening', () => {
       expect(onOpen).toHaveBeenCalledOnce();
     });
 
-    it('calls onOpen exactly once per click', () => {
+    it('calls onOpen exactly once regardless of multiple clicks', () => {
       const onOpen = vi.fn();
       renderComponent({ onOpen });
       const btn = screen.getByRole('button');
       fireEvent.click(btn);
       fireEvent.click(btn);
-      expect(onOpen).toHaveBeenCalledTimes(2);
+      expect(onOpen).toHaveBeenCalledTimes(1);
     });
 
     it('button has envelope SVG icon', () => {
@@ -383,7 +383,7 @@ describe('CinematicOpening', () => {
       renderComponent({ onOpen });
       const btn = screen.getByRole('button');
       for (let i = 0; i < 10; i++) fireEvent.click(btn);
-      expect(onOpen).toHaveBeenCalledTimes(10);
+      expect(onOpen).toHaveBeenCalledTimes(1);
     });
 
     it('re-renders with new guest name without errors', () => {
@@ -446,7 +446,7 @@ describe('CinematicOpening', () => {
   describe('Layout Structure', () => {
     it('has top bar with location and date', () => {
       const { container } = renderComponent();
-      const topBar = container.querySelector('.justify-between.items-start');
+      const topBar = container.querySelector('.justify-between.items-center');
       expect(topBar).toBeInTheDocument();
     });
 

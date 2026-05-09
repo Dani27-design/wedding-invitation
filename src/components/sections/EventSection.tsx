@@ -65,6 +65,9 @@ export const EventSection = () => {
           </motion.button>
         </motion.div>
     </div>
+
+    {/* Gradient Bridge to Twibbon Section */}
+    <div className="absolute bottom-0 left-0 right-0 h-5 bg-gradient-to-b from-transparent to-ivory pointer-events-none" />
   </section>
   );
 };

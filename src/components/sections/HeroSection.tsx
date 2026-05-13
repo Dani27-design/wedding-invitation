@@ -9,14 +9,16 @@ export const HeroSection = () => {
   <section className="relative h-screen-safe flex flex-col items-center justify-between px-6 py-[5vh] overflow-hidden bg-ivory">
     <div className="absolute inset-0 z-0">
       <motion.div
-        animate={{ scale: [1, 1.03, 1] }}
-        transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+        animate={{ scale: [1, 1.03, 1] }} // Gentle zoom effect on the hero image
+        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
         className="w-full h-full transform-gpu"
+        style={{ willChange: 'transform' }}
       >
         <img
           src={wedding?.heroImage ?? ''}
           fetchPriority="high"
           sizes="100vw"
+          loading='eager'
           onError={(e) => { e.currentTarget.style.display = 'none'; }}
           className="w-full h-full object-cover brightness-[0.85] contrast-[1.05]"
           alt={`${wedding?.groomNickname ?? ''} & ${wedding?.brideNickname ?? ''}`}

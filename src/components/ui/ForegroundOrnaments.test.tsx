@@ -141,26 +141,9 @@ describe('ForegroundOrnaments', () => {
       expect(root.children[1]).toHaveClass('rounded-full');
     });
   });
+// ---------------------------------------------------------------------------
+// 8. Shadow
 
-  // ---------------------------------------------------------------------------
-  // 7. Z-20 layering
-  // ---------------------------------------------------------------------------
-  describe('z-index layering', () => {
-    it('container has z-20 for proper stacking', () => {
-      const { container } = render(<ForegroundOrnaments />);
-      expect(container.firstChild).toHaveClass('z-20');
-    });
-
-    it('ornament children do not have their own z-index', () => {
-      const { container } = render(<ForegroundOrnaments />);
-      const root = container.firstChild as HTMLElement;
-      Array.from(root.children).forEach((child) => {
-        expect(child.className).not.toMatch(/\bz-\d/);
-      });
-    });
-  });
-
-  // ---------------------------------------------------------------------------
   // 8. Different sizes for each ornament
   // ---------------------------------------------------------------------------
   describe('different sizes for ornaments', () => {
@@ -261,7 +244,7 @@ describe('ForegroundOrnaments', () => {
     it('keeps all required classes on root after re-render', () => {
       const { container, rerender } = render(<ForegroundOrnaments />);
       rerender(<ForegroundOrnaments />);
-      expect(container.firstChild).toHaveClass('absolute', 'inset-0', 'pointer-events-none', 'overflow-hidden', 'z-20');
+      expect(container.firstChild).toHaveClass('absolute', 'inset-0', 'pointer-events-none', 'overflow-hidden');
     });
   });
 

@@ -1,3 +1,3 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`ForegroundOrnaments > snapshot stability > matches snapshot on first render 1`] = `"<div class="absolute inset-0 pointer-events-none z-20 overflow-hidden"><div class="absolute -bottom-20 -left-20 w-80 h-80 bg-ink/10 blur-[60px] rounded-full"></div><div class="absolute -top-20 -right-20 w-96 h-96 bg-gold/5 blur-[80px] rounded-full"></div></div>"`;
+exports[`ForegroundOrnaments > snapshot stability > matches snapshot on first render 1`] = `"<div class="absolute inset-0 pointer-events-none overflow-hidden"><div class="absolute -bottom-20 -left-20 w-80 h-80 bg-ink/10 blur-[60px] rounded-full"></div><div class="absolute -top-20 -right-20 w-96 h-96 bg-gold/5 blur-[80px] rounded-full"></div></div>"`;

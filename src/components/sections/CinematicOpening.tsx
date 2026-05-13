@@ -86,7 +86,7 @@ export const CinematicOpening = ({
       exit={{
         opacity: 0,
         scale: 1.05,
-        transition: { duration: 2, ease: [0.76, 0, 0.24, 1] },
+        transition: { duration: 0.5, ease: [0.76, 0, 0.24, 1] },
       }}
       className="fixed inset-0 z-[10000] flex flex-col bg-ink py-[2vh] overflow-hidden"
       style={{ 
@@ -101,24 +101,33 @@ export const CinematicOpening = ({
         initial={{ opacity: 0.4 }}
         animate={{ scale: [1, 1.05, 1] }}
         transition={{
-          scale: { duration: 20, repeat: Infinity, ease: "easeInOut" },
+          scale: { duration: 20, repeat: Infinity, ease: 'easeInOut' },
         }}
         className="absolute inset-0 z-0"
+        style={{ willChange: 'transform' }}
       >
+        {/* Layer 1: Image (Base) */}
         <img
           src={wedding?.openingImage ?? ""}
           fetchPriority="high"
           sizes="100vw"
+          loading='eager'
           onError={(e) => {
             e.currentTarget.style.display = "none";
           }}
-          className="w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-cover z-0"
           alt="Opening BG"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-ink/60 via-transparent to-ink/90" />
-        <LightGlow />
-        <FloatingPetals />
-        <ForegroundOrnaments />
+        
+        {/* Layer 2: Visual Effects */}
+        <div className="absolute inset-0 z-10">
+          <LightGlow />
+          <FloatingPetals />
+          <ForegroundOrnaments />
+        </div>
+        
+        {/* Layer 3: Gradient Overlay (Top) */}
+        <div className="absolute inset-0 z-20 bg-gradient-to-b from-ink/60 via-transparent to-ink/90" />
       </motion.div>
 
       <div className="flex justify-between items-center relative z-10 p-6 md:p-6 w-full">

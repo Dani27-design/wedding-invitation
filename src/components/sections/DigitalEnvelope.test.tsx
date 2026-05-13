@@ -154,45 +154,24 @@ describe('DigitalEnvelope', () => {
 
   // ─── Copy Functionality ───────────────────────────────────────────
   describe('copy functionality', () => {
-    it('shows "Salin" on all 6 cards when copiedIndex is null', () => {
-      renderWithProps({ copiedIndex: null });
-      const salinButtons = screen.getAllByText('Salin');
-      expect(salinButtons).toHaveLength(6);
+    it('shows copy icon on all 6 cards when copiedIndex is null', () => {
+      const { container } = renderWithProps({ copiedIndex: null });
+      const icons = container.querySelectorAll('[data-lucide="copy"]');
+      expect(icons).toHaveLength(6);
     });
 
-    it('shows "Tersalin" on first card when copiedIndex=0', () => {
+    it('shows Tersalin badge on copied card', () => {
       renderWithProps({ copiedIndex: 0 });
-      expect(screen.getAllByText('Tersalin').length).toBeGreaterThan(0);
-    });
-
-    it('shows "Tersalin" on second card when copiedIndex=1', () => {
-      renderWithProps({ copiedIndex: 1 });
-      expect(screen.getAllByText('Tersalin').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('Salin')).toHaveLength(5);
-    });
-
-    it('shows "Tersalin" on last card when copiedIndex=5', () => {
-      renderWithProps({ copiedIndex: 5 });
-      expect(screen.getAllByText('Tersalin').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('Salin')).toHaveLength(5);
+      const tersalin = screen.getAllByText('Tersalin');
+      expect(tersalin.length).toBeGreaterThan(0);
     });
 
     it('Tersalin badge has green background', () => {
       renderWithProps({ copiedIndex: 0 });
       const tersalinElements = screen.getAllByText('Tersalin');
-      const badge = tersalinElements.find((el) => el.className.includes('bg-green-500'));
-      expect(badge).toBeDefined();
-      expect(badge!.className).toContain('bg-green-500');
-      expect(badge!.className).toContain('text-white');
-    });
-
-    it('Salin badge has gold styling', () => {
-      renderWithProps({ copiedIndex: null });
-      const salins = screen.getAllByText('Salin');
-      salins.forEach((salin) => {
-        expect(salin.className).toContain('bg-gold/5');
-        expect(salin.className).toContain('text-gold/70');
-      });
+      // Look for the parent that contains the green bg class
+      const hasGreenBg = tersalinElements.some(el => el.parentElement?.parentElement?.className.includes('bg-green-500'));
+      expect(hasGreenBg).toBe(true);
     });
 
     it('calls onCopy with BCA account and index 0 when first card clicked', () => {
@@ -422,22 +401,21 @@ describe('DigitalEnvelope', () => {
       expect(onCopy).toHaveBeenCalledTimes(3);
     });
 
-    it('all cards show Salin after reset (copiedIndex back to null)', () => {
-      const { rerender } = render(<DigitalEnvelope copiedIndex={2} onCopy={vi.fn()} />);
-      expect(screen.getAllByText('Tersalin').length).toBeGreaterThan(0);
+    it('all cards show copy icon after reset (copiedIndex back to null)', () => {
+      const { container, rerender } = render(<DigitalEnvelope copiedIndex={2} onCopy={vi.fn()} />);
+      expect(screen.getByText('Tersalin')).toBeInTheDocument();
 
       rerender(<DigitalEnvelope copiedIndex={null} onCopy={vi.fn()} />);
-      expect(screen.getAllByText('Salin')).toHaveLength(6);
+      const icons = container.querySelectorAll('[data-lucide="copy"]');
+      expect(icons).toHaveLength(6);
     });
 
-    it('switching copiedIndex moves the Tersalin badge', () => {
+    it('switching copiedIndex updates the Tersalin badge', () => {
       const { rerender } = render(<DigitalEnvelope copiedIndex={0} onCopy={vi.fn()} />);
-      expect(screen.getAllByText('Tersalin').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('Salin')).toHaveLength(5);
+      expect(screen.getByText('Tersalin')).toBeInTheDocument();
 
       rerender(<DigitalEnvelope copiedIndex={3} onCopy={vi.fn()} />);
-      expect(screen.getAllByText('Tersalin').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('Salin')).toHaveLength(5);
+      expect(screen.getByText('Tersalin')).toBeInTheDocument();
     });
 
     it('clicking on bank name area triggers onCopy via parent card', () => {

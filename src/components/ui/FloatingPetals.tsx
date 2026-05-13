@@ -1,7 +1,7 @@
 import { motion } from 'motion/react';
 
 export const FloatingPetals = () => (
-  <div className="absolute inset-0 pointer-events-none overflow-hidden z-10">
+  <div className="absolute inset-0 pointer-events-none overflow-hidden">
     {[...Array(8)].map((_, i) => (
       <motion.div
         key={i}

@@ -1,7 +1,7 @@
 import { motion } from 'motion/react';
 
 export const ForegroundOrnaments = () => (
-  <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden">
+  <div className="absolute inset-0 pointer-events-none overflow-hidden">
     <motion.div
       animate={{ y: [0, -15, 0], rotate: [-1, 1, -1] }}
       transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }}

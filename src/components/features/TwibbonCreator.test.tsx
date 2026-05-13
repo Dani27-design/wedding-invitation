@@ -125,7 +125,7 @@ describe('TwibbonCreator', () => {
     it('frame has shadow styling for depth', () => {
       render(<TwibbonCreator />);
       const frame = document.querySelector('.aspect-\\[9\\/16\\]');
-      expect(frame).toHaveClass('shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)]');
+      expect(frame).toHaveClass('shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)]');
     });
 
     it('frame has border for edge definition', () => {

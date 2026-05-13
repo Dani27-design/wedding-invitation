@@ -165,17 +165,11 @@ describe('LightGlow', () => {
   // 8. Z-index layering
   // ---------------------------------------------------------------------------
   describe('z-index layering', () => {
-    it('container has z-[5] for proper stacking order', () => {
+    it('container has required layout classes', () => {
       const { container } = render(<LightGlow />);
-      expect(container.firstChild).toHaveClass('z-[5]');
+      expect(container.firstChild).toHaveClass('absolute', 'inset-0', 'pointer-events-none', 'overflow-hidden');
     });
 
-    it('z-index class is present on the root only', () => {
-      const { container } = render(<LightGlow />);
-      const root = container.firstChild as HTMLElement;
-      const glow = root.children[0];
-      expect(glow.className).not.toMatch(/\bz-\[/);
-    });
   });
 
   // ---------------------------------------------------------------------------

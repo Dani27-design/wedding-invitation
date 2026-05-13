@@ -1,7 +1,7 @@
 import { motion } from 'motion/react';
 
 export const LightGlow = () => (
-  <div className="absolute inset-0 pointer-events-none overflow-hidden z-[5]">
+  <div className="absolute inset-0 pointer-events-none overflow-hidden">
     <motion.div
       animate={{
         opacity: [0.05, 0.15, 0.05],

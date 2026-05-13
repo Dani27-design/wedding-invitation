@@ -134,12 +134,7 @@ describe('FloatingPetals', () => {
   // ---------------------------------------------------------------------------
   // 7. Z-10 layering
   // ---------------------------------------------------------------------------
-  describe('z-index layering', () => {
-    it('container has z-10', () => {
-      const { container } = render(<FloatingPetals />);
-      expect(container.firstChild).toHaveClass('z-10');
-    });
-  });
+  // 8. Blur effect on petals
 
   // ---------------------------------------------------------------------------
   // 8. Blur effect on petals
@@ -223,10 +218,10 @@ describe('FloatingPetals', () => {
       expect(container.querySelectorAll('.transform-gpu')).toHaveLength(8);
     });
 
-    it('root keeps all required classes after re-render', () => {
+    it('root container has required classes after re-render', () => {
       const { container, rerender } = render(<FloatingPetals />);
       rerender(<FloatingPetals />);
-      expect(container.firstChild).toHaveClass('absolute', 'inset-0', 'pointer-events-none', 'overflow-hidden', 'z-10');
+      expect(container.firstChild).toHaveClass('absolute', 'inset-0', 'pointer-events-none', 'overflow-hidden');
     });
 
     it('petal count stays consistent across multiple re-renders', () => {

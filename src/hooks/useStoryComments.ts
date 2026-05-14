@@ -1,14 +1,17 @@
+'use client';
 import { useState, useEffect, useCallback } from 'react';
 import { collection, query, where, orderBy, limit, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
 const COMMENTS_LIMIT = 50;
 
-export function useStoryComments(weddingId: string, slideIndex: number) {
+export function useStoryComments(weddingId: string, slideIndex: number, enabled: boolean = true) {
   const [comments, setComments] = useState<{ name: string; text: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (!enabled) return;
+
     const q = query(
       collection(db, 'story-comments'),
       where('weddingId', '==', weddingId),
@@ -34,17 +37,21 @@ export function useStoryComments(weddingId: string, slideIndex: number) {
     );
 
     return unsubscribe;
-  }, [weddingId, slideIndex]);
+  }, [weddingId, slideIndex, enabled]);
 
   const addComment = useCallback(
     async (data: { name: string; text: string }) => {
-      await addDoc(collection(db, 'story-comments'), {
-        weddingId,
-        slideIndex,
-        name: data.name.trim(),
-        text: data.text.trim(),
-        createdAt: serverTimestamp(),
-      });
+      try {
+        await addDoc(collection(db, 'story-comments'), {
+          weddingId,
+          slideIndex,
+          name: data.name.trim(),
+          text: data.text.trim(),
+          createdAt: serverTimestamp(),
+        });
+      } catch (error) {
+        console.error('[useStoryComments] Add comment error:', (error as Error).message);
+      }
     },
     [weddingId, slideIndex]
   );

@@ -1,3 +1,4 @@
+'use client';
 import { useState } from 'react';
 import { WeddingDocument, BankAccount } from '../../types/firestore';
 import { Plus, Trash2 } from 'lucide-react';

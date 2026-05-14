@@ -1,8 +1,11 @@
+'use client';
+import { memo } from "react";
+import Image from "next/image";
 import { motion } from "motion/react";
 import { useWeddingContext } from '../../context/WeddingContext';
 import { deriveDateDisplay } from '../../utils/weddingDerived';
 
-export const HeroSection = () => {
+export const HeroSection = memo(() => {
   const wedding = useWeddingContext();
 
   return (
@@ -11,18 +14,20 @@ export const HeroSection = () => {
       <motion.div
         animate={{ scale: [1, 1.03, 1] }} // Gentle zoom effect on the hero image
         transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-        className="w-full h-full transform-gpu"
+        className="w-full h-full transform-gpu relative"
         style={{ willChange: 'transform' }}
       >
-        <img
-          src={wedding?.heroImage ?? ''}
-          fetchPriority="high"
-          sizes="100vw"
-          loading='eager'
-          onError={(e) => { e.currentTarget.style.display = 'none'; }}
-          className="w-full h-full object-cover brightness-[0.85] contrast-[1.05]"
-          alt={`${wedding?.groomNickname ?? ''} & ${wedding?.brideNickname ?? ''}`}
-        />
+        {wedding?.heroImage && (
+          <Image
+            src={wedding.heroImage}
+            fill
+            priority
+            sizes="100vw"
+            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            className="object-cover brightness-[0.85] contrast-[1.05]"
+            alt={`${wedding?.groomNickname ?? ''} & ${wedding?.brideNickname ?? ''}`}
+          />
+        )}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-ivory/20 to-ivory" />
       </motion.div>
     </div>
@@ -34,14 +39,16 @@ export const HeroSection = () => {
         transition={{ duration: 1.8, delay: 0.5 }}
         className="space-y-4 text-center"
       >
-        <h1 className="font-dayland text-5xl sm:text-7xl md:text-9xl text-ivory drop-shadow-2xl">
-          {wedding?.groomNickname}
-        </h1>
-        <h2 className="font-dayland text-2xl sm:text-4xl md:text-6xl text-gold/70 drop-shadow-2xl">
-          &
-        </h2>
-        <h1 className="font-dayland text-5xl sm:text-7xl md:text-9xl text-ivory drop-shadow-2xl">
-          {wedding?.brideNickname}
+        <h1 className="space-y-4">
+          <span className="block font-dayland text-5xl sm:text-7xl md:text-9xl text-ivory drop-shadow-2xl">
+            {wedding?.groomNickname}
+          </span>
+          <span className="block font-dayland text-2xl sm:text-4xl md:text-6xl text-gold/70 drop-shadow-2xl">
+            &
+          </span>
+          <span className="block font-dayland text-5xl sm:text-7xl md:text-9xl text-ivory drop-shadow-2xl">
+            {wedding?.brideNickname}
+          </span>
         </h1>
       </motion.div>
     </div>
@@ -66,4 +73,4 @@ export const HeroSection = () => {
     </div>
   </section>
   );
-};
+});

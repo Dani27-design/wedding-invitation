@@ -185,11 +185,11 @@ describe('CinematicStory', () => {
       expect(images.length).toBe(STORY_SLIDES.length);
     });
 
-    it('all images have loading="lazy"', () => {
+    it('all images use object-cover', () => {
       renderStory();
       const images = screen.getAllByAltText('Memory');
       images.forEach((img) => {
-        expect(img).toHaveAttribute('loading', 'lazy');
+        expect(img).toHaveClass('object-cover');
       });
     });
 

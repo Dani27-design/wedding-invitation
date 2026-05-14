@@ -1,5 +1,6 @@
+'use client';
 import { useState, useEffect } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { WeddingDocument } from '../types/firestore';
 
@@ -8,17 +9,23 @@ export function useWedding(slug: string) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    getDoc(doc(db, 'weddings', slug))
-      .then((snap) => {
+    const unsubscribe = onSnapshot(
+      doc(db, 'weddings', slug),
+      (snap) => {
         if (snap.exists()) {
           setWedding(snap.data() as WeddingDocument);
+        } else {
+          setWedding(null);
         }
         setIsLoading(false);
-      })
-      .catch((error) => {
+      },
+      (error) => {
         console.error('[useWedding] Firestore error:', error.message);
         setIsLoading(false);
-      });
+      }
+    );
+
+    return unsubscribe;
   }, [slug]);
 
   return { wedding, isLoading };

@@ -1,9 +1,12 @@
+'use client';
+import { memo } from "react";
+import Image from "next/image";
 import { motion } from "motion/react";
 import { Heart } from "lucide-react";
 import { stagger, fadeUp } from "../../utils/animations";
 import { useWeddingContext } from "../../context/WeddingContext";
 
-export const CoupleSection = () => {
+export const CoupleSection = memo(() => {
   const wedding = useWeddingContext();
 
   return (
@@ -30,18 +33,16 @@ export const CoupleSection = () => {
               transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
               className="w-full h-full overflow-hidden shadow-2xl relative group"
             >
-              <img
-                src={wedding?.groomPhoto ?? ""}
-                loading="lazy"
-                decoding="async"
-                sizes="(max-width: 768px) 65vw, 30vw"
-                onError={(e) => {
-                  e.currentTarget.style.display = "none";
-                  console.log("Failed to load groom photo, hiding element.");
-                }}
-                className="w-full h-full object-cover filter saturate-[1.05] contrast-[1.02] hover:scale-105 transition-all duration-1000"
-                alt={wedding?.groomNickname ?? ""}
-              />
+              {wedding?.groomPhoto && (
+                <Image
+                  src={wedding.groomPhoto}
+                  fill
+                  sizes="(max-width: 768px) 65vw, 30vw"
+                  onError={(e) => { e.currentTarget.style.display = "none"; }}
+                  className="object-cover filter saturate-[1.05] contrast-[1.02] hover:scale-105 transition-all duration-1000"
+                  alt={wedding?.groomNickname ?? ""}
+                />
+              )}
               <div className="absolute inset-0 bg-gold/5 mix-blend-soft-light group-hover:bg-transparent transition-colors" />
             </motion.div>
             <motion.div
@@ -69,18 +70,16 @@ export const CoupleSection = () => {
               transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
               className="w-full h-full overflow-hidden shadow-2xl relative group bg-sepia"
             >
-              <img
-                src={wedding?.bridePhoto ?? ""}
-                loading="lazy"
-                decoding="async"
-                sizes="(max-width: 768px) 65vw, 30vw"
-                onError={(e) => {
-                  e.currentTarget.style.display = "none";
-                  console.log("Failed to load bride photo, hiding element.");
-                }}
-                className="w-full h-full object-cover filter saturate-[1.05] contrast-[1.02] scale-110 hover:scale-115 transition-all duration-1000"
-                alt={wedding?.brideNickname ?? ""}
-              />
+              {wedding?.bridePhoto && (
+                <Image
+                  src={wedding.bridePhoto}
+                  fill
+                  sizes="(max-width: 768px) 65vw, 30vw"
+                  onError={(e) => { e.currentTarget.style.display = "none"; }}
+                  className="object-cover filter saturate-[1.05] contrast-[1.02] scale-110 hover:scale-[1.15] transition-all duration-1000"
+                  alt={wedding?.brideNickname ?? ""}
+                />
+              )}
               <div className="absolute inset-0 bg-gold/5 mix-blend-soft-light group-hover:bg-transparent transition-colors" />
             </motion.div>
             <motion.div
@@ -132,4 +131,4 @@ export const CoupleSection = () => {
       </div>
     </section>
   );
-};
+});

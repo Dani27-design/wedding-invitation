@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { deleteFile } from './storage';
 import { deleteObject } from 'firebase/storage';
 
-vi.mock('./firebase', () => ({
+vi.mock('./firebase-storage', () => ({
   storage: {},
 }));
 

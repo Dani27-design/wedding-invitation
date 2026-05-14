@@ -4,38 +4,38 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --port=3000 --host=0.0.0.0",
-    "build": "vite build",
-    "preview": "vite preview",
-    "clean": "rm -rf dist",
+    "dev": "next dev --port 3000",
+    "build": "next build",
+    "start": "next start",
+    "clean": "rm -rf .next",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "loc:code": "find src -name '*.ts' -o -name '*.tsx' | grep -v test | xargs wc -l | sort -rn",
     "loc:test": "find src -name '*.test.*' | xargs wc -l | sort -rn"
   },
   "dependencies": {
-    "@tailwindcss/vite": "^4.1.14",
-    "@vitejs/plugin-react": "^5.0.4",
     "firebase": "^12.12.1",
+    "firebase-admin": "^13.9.0",
     "lucide-react": "^0.546.0",
     "motion": "^12.23.24",
+    "next": "^16.2.6",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "react-router-dom": "^7.15.0"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^16.2.6",
+    "@tailwindcss/postcss": "^4.3.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
     "@types/node": "^22.14.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "@vercel/node": "^5.7.15",
+    "@vitejs/plugin-react": "^5.0.4",
     "dotenv": "^17.4.2",
     "jsdom": "^29.1.1",
     "tailwindcss": "^4.1.14",
     "typescript": "~5.8.2",
-    "vite": "^6.2.0",
     "vitest": "^4.1.5"
   }
 }

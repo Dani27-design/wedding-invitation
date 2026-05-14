@@ -1,15 +1,18 @@
+'use client';
+import { memo } from 'react';
 import { motion } from 'motion/react';
 import { MapPin, Calendar } from 'lucide-react';
 import { CountdownTimer } from '../ui/CountdownTimer';
 import { useWeddingContext } from '../../context/WeddingContext';
 import { deriveDateDisplay, deriveCalendarUrl } from '../../utils/weddingDerived';
+import { safeUrl } from '../../utils/safeUrl';
 
 const CEREMONY_SHAPES = [
   'rounded-[3rem_1rem_3rem_1rem]',
   'rounded-[1rem_3rem_1rem_3rem]',
 ];
 
-export const EventSection = () => {
+export const EventSection = memo(() => {
   const wedding = useWeddingContext();
 
   return (
@@ -50,7 +53,7 @@ export const EventSection = () => {
         </motion.div>
 
         <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.8, delay: 0.5 }} className="flex flex-wrap justify-center gap-3">
-          <motion.a whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} href={wedding?.venueMapsUrl ?? ''} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 py-2 px-5 bg-gold text-ivory rounded-full text-xs uppercase tracking-[0.3em] font-black transition-all shadow-md">
+          <motion.a whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} href={safeUrl(wedding?.venueMapsUrl ?? '')} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 py-2 px-5 bg-gold text-ivory rounded-full text-xs uppercase tracking-[0.3em] font-black transition-all shadow-md">
             <MapPin className="w-3 h-3" />
             <span>Lihat Peta</span>
           </motion.a>
@@ -70,4 +73,4 @@ export const EventSection = () => {
     <div className="absolute bottom-0 left-0 right-0 h-5 bg-gradient-to-b from-transparent to-ivory pointer-events-none" />
   </section>
   );
-};
+});

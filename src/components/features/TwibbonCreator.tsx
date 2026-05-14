@@ -1,3 +1,4 @@
+'use client';
 import {
   useState,
   useRef,
@@ -31,6 +32,8 @@ export function TwibbonCreator() {
   const overlayImgRef = useRef<HTMLImageElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const imageRef = useRef(image);
+  imageRef.current = image;
   const isDragging = useRef(false);
   const lastPos = useRef({ x: 0, y: 0 });
   const lastTouchDistance = useRef<number | null>(null);
@@ -98,7 +101,7 @@ export function TwibbonCreator() {
   };
 
   const handleStart = (e: MouseEvent | TouchEvent) => {
-    if (!image) return;
+    if (!imageRef.current) return;
     if (e.cancelable) e.preventDefault();
     isDragging.current = true;
     const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
@@ -116,7 +119,7 @@ export function TwibbonCreator() {
   };
 
   const handleMove = (e: MouseEvent | TouchEvent) => {
-    if (!isDragging.current || !image) return;
+    if (!isDragging.current || !imageRef.current) return;
     if (e.cancelable) e.preventDefault();
     const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
     const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
@@ -169,7 +172,8 @@ export function TwibbonCreator() {
       el.removeEventListener("touchmove", onTouchMove);
       el.removeEventListener("touchend", onTouchEnd);
     };
-  });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -288,13 +292,26 @@ export function TwibbonCreator() {
   };
 
 
-  const overlayUrl = useMemo(
-    () =>
-      wedding?.twibbonOverlay
-        ? `${wedding.twibbonOverlay}${wedding.twibbonOverlay.includes("?") ? "&" : "?"}v=${Date.now()}`
-        : "",
-    [wedding?.twibbonOverlay],
-  );
+  const [overlayUrl, setOverlayUrl] = useState('');
+  useEffect(() => {
+    if (!wedding?.twibbonOverlay) return;
+    const el = wrapperRef.current;
+    if (!el) {
+      setOverlayUrl(`${wedding.twibbonOverlay}${wedding.twibbonOverlay.includes("?") ? "&" : "?"}v=${Date.now()}`);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setOverlayUrl(`${wedding.twibbonOverlay}${wedding.twibbonOverlay.includes("?") ? "&" : "?"}v=${Date.now()}`);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '200px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [wedding?.twibbonOverlay]);
 
   return (
     <div
@@ -371,14 +388,16 @@ export function TwibbonCreator() {
             )}
           </div>
 
-          <img
-            ref={overlayImgRef}
-            src={overlayUrl}
-            crossOrigin="anonymous"
-            onLoad={() => setIsReady(true)}
-            className="absolute inset-0 z-10 w-full h-full pointer-events-none"
-            alt=""
-          />
+          {overlayUrl && (
+            <img
+              ref={overlayImgRef}
+              src={overlayUrl}
+              crossOrigin="anonymous"
+              onLoad={() => setIsReady(true)}
+              className="absolute inset-0 z-10 w-full h-full pointer-events-none"
+              alt=""
+            />
+          )}
         </div>
       </motion.div>
 

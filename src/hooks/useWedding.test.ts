@@ -5,12 +5,12 @@ import { renderHook, waitFor } from '@testing-library/react';
 // Firestore mocks
 // ---------------------------------------------------------------------------
 
-const mockGetDoc = vi.fn();
+const mockOnSnapshot = vi.fn();
 const mockDoc = vi.fn();
 
 vi.mock('firebase/firestore', () => ({
   doc: (...args: unknown[]) => mockDoc(...args),
-  getDoc: (...args: unknown[]) => mockGetDoc(...args),
+  onSnapshot: (...args: unknown[]) => mockOnSnapshot(...args),
 }));
 
 vi.mock('../lib/firebase', () => ({
@@ -28,6 +28,33 @@ function createMockSnap(exists: boolean, data: Record<string, unknown> = {}) {
     exists: () => exists,
     data: () => data,
   };
+}
+
+/** Simulate onSnapshot calling the success callback immediately */
+function setupOnSnapshot(snap: ReturnType<typeof createMockSnap>) {
+  const unsubscribe = vi.fn();
+  mockOnSnapshot.mockImplementation((_ref: unknown, onNext: (s: unknown) => void) => {
+    onNext(snap);
+    return unsubscribe;
+  });
+  return unsubscribe;
+}
+
+/** Simulate onSnapshot calling the error callback immediately */
+function setupOnSnapshotError(error: Error) {
+  const unsubscribe = vi.fn();
+  mockOnSnapshot.mockImplementation((_ref: unknown, _onNext: unknown, onError: (e: Error) => void) => {
+    onError(error);
+    return unsubscribe;
+  });
+  return unsubscribe;
+}
+
+/** Simulate onSnapshot that never fires (pending) */
+function setupOnSnapshotPending() {
+  const unsubscribe = vi.fn();
+  mockOnSnapshot.mockReturnValue(unsubscribe);
+  return unsubscribe;
 }
 
 const MOCK_WEDDING = {
@@ -50,19 +77,19 @@ describe('hooks/useWedding', () => {
   // ---------------------------------------------------------------------------
   describe('initial state', () => {
     it('starts with wedding as null', () => {
-      mockGetDoc.mockReturnValue(new Promise(() => {}));
+      setupOnSnapshotPending();
       const { result } = renderHook(() => useWedding(SLUG));
       expect(result.current.wedding).toBeNull();
     });
 
     it('starts with isLoading true', () => {
-      mockGetDoc.mockReturnValue(new Promise(() => {}));
+      setupOnSnapshotPending();
       const { result } = renderHook(() => useWedding(SLUG));
       expect(result.current.isLoading).toBe(true);
     });
 
     it('returns an object with wedding and isLoading keys', () => {
-      mockGetDoc.mockReturnValue(new Promise(() => {}));
+      setupOnSnapshotPending();
       const { result } = renderHook(() => useWedding(SLUG));
       expect(result.current).toHaveProperty('wedding');
       expect(result.current).toHaveProperty('isLoading');
@@ -74,33 +101,33 @@ describe('hooks/useWedding', () => {
   // ---------------------------------------------------------------------------
   describe('success — document exists', () => {
     it('populates wedding from snapshot', async () => {
-      mockGetDoc.mockResolvedValue(createMockSnap(true, MOCK_WEDDING));
+      setupOnSnapshot(createMockSnap(true, MOCK_WEDDING));
       const { result } = renderHook(() => useWedding(SLUG));
       await waitFor(() => expect(result.current.isLoading).toBe(false));
       expect(result.current.wedding).toEqual(MOCK_WEDDING);
     });
 
     it('sets isLoading to false', async () => {
-      mockGetDoc.mockResolvedValue(createMockSnap(true, MOCK_WEDDING));
+      setupOnSnapshot(createMockSnap(true, MOCK_WEDDING));
       const { result } = renderHook(() => useWedding(SLUG));
       await waitFor(() => expect(result.current.isLoading).toBe(false));
     });
 
-    it('calls doc with correct collection and slug', async () => {
-      mockGetDoc.mockResolvedValue(createMockSnap(true, MOCK_WEDDING));
+    it('calls doc with correct collection and slug', () => {
+      setupOnSnapshot(createMockSnap(true, MOCK_WEDDING));
       renderHook(() => useWedding(SLUG));
       expect(mockDoc).toHaveBeenCalledWith({ _type: 'mock-db' }, 'weddings', SLUG);
     });
 
-    it('calls getDoc with the doc reference', async () => {
-      mockGetDoc.mockResolvedValue(createMockSnap(true, MOCK_WEDDING));
+    it('calls onSnapshot with the doc reference', () => {
+      setupOnSnapshot(createMockSnap(true, MOCK_WEDDING));
       renderHook(() => useWedding(SLUG));
-      expect(mockGetDoc).toHaveBeenCalledWith('wedding-doc-ref');
+      expect(mockOnSnapshot).toHaveBeenCalledWith('wedding-doc-ref', expect.any(Function), expect.any(Function));
     });
 
     it('maps all fields from snapshot data', async () => {
       const fullData = { ...MOCK_WEDDING, musicUrl: '/music.mp3', defaultGuest: 'Tamu' };
-      mockGetDoc.mockResolvedValue(createMockSnap(true, fullData));
+      setupOnSnapshot(createMockSnap(true, fullData));
       const { result } = renderHook(() => useWedding(SLUG));
       await waitFor(() => expect(result.current.isLoading).toBe(false));
       expect(result.current.wedding).toEqual(fullData);
@@ -112,14 +139,14 @@ describe('hooks/useWedding', () => {
   // ---------------------------------------------------------------------------
   describe('success — document does not exist', () => {
     it('wedding stays null', async () => {
-      mockGetDoc.mockResolvedValue(createMockSnap(false));
+      setupOnSnapshot(createMockSnap(false));
       const { result } = renderHook(() => useWedding(SLUG));
       await waitFor(() => expect(result.current.isLoading).toBe(false));
       expect(result.current.wedding).toBeNull();
     });
 
     it('sets isLoading to false', async () => {
-      mockGetDoc.mockResolvedValue(createMockSnap(false));
+      setupOnSnapshot(createMockSnap(false));
       const { result } = renderHook(() => useWedding(SLUG));
       await waitFor(() => expect(result.current.isLoading).toBe(false));
     });
@@ -130,13 +157,13 @@ describe('hooks/useWedding', () => {
   // ---------------------------------------------------------------------------
   describe('error', () => {
     it('sets isLoading to false on error', async () => {
-      mockGetDoc.mockRejectedValue(new Error('permission-denied'));
+      setupOnSnapshotError(new Error('permission-denied'));
       const { result } = renderHook(() => useWedding(SLUG));
       await waitFor(() => expect(result.current.isLoading).toBe(false));
     });
 
     it('wedding stays null on error', async () => {
-      mockGetDoc.mockRejectedValue(new Error('network error'));
+      setupOnSnapshotError(new Error('network error'));
       const { result } = renderHook(() => useWedding(SLUG));
       await waitFor(() => expect(result.current.isLoading).toBe(false));
       expect(result.current.wedding).toBeNull();
@@ -144,7 +171,7 @@ describe('hooks/useWedding', () => {
 
     it('logs error to console', async () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      mockGetDoc.mockRejectedValue(new Error('test-error'));
+      setupOnSnapshotError(new Error('test-error'));
       renderHook(() => useWedding(SLUG));
       await waitFor(() => {
         expect(consoleSpy).toHaveBeenCalledWith('[useWedding] Firestore error:', 'test-error');
@@ -153,7 +180,7 @@ describe('hooks/useWedding', () => {
     });
 
     it('does not throw on error', () => {
-      mockGetDoc.mockRejectedValue(new Error('some error'));
+      setupOnSnapshotError(new Error('some error'));
       expect(() => renderHook(() => useWedding(SLUG))).not.toThrow();
     });
   });
@@ -162,25 +189,47 @@ describe('hooks/useWedding', () => {
   // Slug changes
   // ---------------------------------------------------------------------------
   describe('slug changes', () => {
-    it('re-fetches when slug changes', async () => {
-      mockGetDoc.mockResolvedValue(createMockSnap(true, MOCK_WEDDING));
+    it('re-subscribes when slug changes', () => {
+      setupOnSnapshot(createMockSnap(true, MOCK_WEDDING));
       const { rerender } = renderHook(
         ({ slug }: { slug: string }) => useWedding(slug),
         { initialProps: { slug: 'wedding-1' } }
       );
-      expect(mockGetDoc).toHaveBeenCalledTimes(1);
+      expect(mockOnSnapshot).toHaveBeenCalledTimes(1);
       rerender({ slug: 'wedding-2' });
-      expect(mockGetDoc).toHaveBeenCalledTimes(2);
+      expect(mockOnSnapshot).toHaveBeenCalledTimes(2);
     });
 
-    it('does not re-fetch when slug stays the same', async () => {
-      mockGetDoc.mockResolvedValue(createMockSnap(true, MOCK_WEDDING));
+    it('does not re-subscribe when slug stays the same', () => {
+      setupOnSnapshot(createMockSnap(true, MOCK_WEDDING));
       const { rerender } = renderHook(
         ({ slug }: { slug: string }) => useWedding(slug),
         { initialProps: { slug: SLUG } }
       );
       rerender({ slug: SLUG });
-      expect(mockGetDoc).toHaveBeenCalledTimes(1);
+      expect(mockOnSnapshot).toHaveBeenCalledTimes(1);
+    });
+
+    it('unsubscribes from previous listener on slug change', () => {
+      const unsubscribe = setupOnSnapshot(createMockSnap(true, MOCK_WEDDING));
+      const { rerender } = renderHook(
+        ({ slug }: { slug: string }) => useWedding(slug),
+        { initialProps: { slug: 'wedding-1' } }
+      );
+      rerender({ slug: 'wedding-2' });
+      expect(unsubscribe).toHaveBeenCalled();
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Cleanup
+  // ---------------------------------------------------------------------------
+  describe('cleanup', () => {
+    it('unsubscribes on unmount', () => {
+      const unsubscribe = setupOnSnapshot(createMockSnap(true, MOCK_WEDDING));
+      const { unmount } = renderHook(() => useWedding(SLUG));
+      unmount();
+      expect(unsubscribe).toHaveBeenCalled();
     });
   });
 
@@ -189,13 +238,36 @@ describe('hooks/useWedding', () => {
   // ---------------------------------------------------------------------------
   describe('edge cases', () => {
     it('handles empty slug', () => {
-      mockGetDoc.mockResolvedValue(createMockSnap(false));
+      setupOnSnapshot(createMockSnap(false));
       expect(() => renderHook(() => useWedding(''))).not.toThrow();
     });
 
     it('handles slug with special characters', () => {
-      mockGetDoc.mockResolvedValue(createMockSnap(false));
+      setupOnSnapshot(createMockSnap(false));
       expect(() => renderHook(() => useWedding('test/special'))).not.toThrow();
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Real-time updates
+  // ---------------------------------------------------------------------------
+  describe('real-time updates', () => {
+    it('updates wedding when snapshot changes', async () => {
+      let capturedOnNext: ((snap: unknown) => void) | null = null;
+      mockOnSnapshot.mockImplementation((_ref: unknown, onNext: (s: unknown) => void) => {
+        capturedOnNext = onNext;
+        onNext(createMockSnap(true, MOCK_WEDDING));
+        return vi.fn();
+      });
+
+      const { result } = renderHook(() => useWedding(SLUG));
+      await waitFor(() => expect(result.current.wedding).toEqual(MOCK_WEDDING));
+
+      // Simulate a Firestore update
+      const updated = { ...MOCK_WEDDING, groomNickname: 'Updated' };
+      capturedOnNext!(createMockSnap(true, updated));
+
+      await waitFor(() => expect(result.current.wedding?.groomNickname).toBe('Updated'));
     });
   });
 
@@ -203,14 +275,14 @@ describe('hooks/useWedding', () => {
   // Consistency
   // ---------------------------------------------------------------------------
   describe('consistency', () => {
-    it('always calls getDoc once per mount', () => {
-      mockGetDoc.mockResolvedValue(createMockSnap(true, MOCK_WEDDING));
+    it('subscribes once per mount', () => {
+      setupOnSnapshot(createMockSnap(true, MOCK_WEDDING));
       renderHook(() => useWedding(SLUG));
-      expect(mockGetDoc).toHaveBeenCalledTimes(1);
+      expect(mockOnSnapshot).toHaveBeenCalledTimes(1);
     });
 
     it('returns consistent data after loading', async () => {
-      mockGetDoc.mockResolvedValue(createMockSnap(true, MOCK_WEDDING));
+      setupOnSnapshot(createMockSnap(true, MOCK_WEDDING));
       const { result } = renderHook(() => useWedding(SLUG));
       await waitFor(() => expect(result.current.isLoading).toBe(false));
       expect(result.current.wedding).toEqual(MOCK_WEDDING);

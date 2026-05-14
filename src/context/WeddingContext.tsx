@@ -1,5 +1,6 @@
+'use client';
 import { createContext, useContext } from 'react';
-import { WeddingDocument } from '../types/firestore';
+import type { SerializedWedding } from '../lib/serialize-wedding';
 
-export const WeddingContext = createContext<WeddingDocument | null>(null);
+export const WeddingContext = createContext<SerializedWedding | null>(null);
 export const useWeddingContext = () => useContext(WeddingContext);

@@ -1,3 +1,5 @@
+'use client';
+import { memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Check, Copy } from 'lucide-react';
 import { useWeddingContext } from '../../context/WeddingContext';
@@ -7,7 +9,7 @@ interface DigitalEnvelopeProps {
   onCopy: (text: string, index: number) => void;
 }
 
-export const DigitalEnvelope = ({ copiedIndex, onCopy }: DigitalEnvelopeProps) => {
+export const DigitalEnvelope = memo(({ copiedIndex, onCopy }: DigitalEnvelopeProps) => {
   const wedding = useWeddingContext();
   const giftAccounts = wedding?.giftAccounts ?? [];
 
@@ -69,4 +71,4 @@ export const DigitalEnvelope = ({ copiedIndex, onCopy }: DigitalEnvelopeProps) =
     <div className="absolute bottom-0 left-0 right-0 h-5 bg-gradient-to-b from-transparent to-paper pointer-events-none" />
   </section>
   );
-};
+});

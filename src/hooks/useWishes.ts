@@ -1,3 +1,4 @@
+'use client';
 import { useState, useEffect } from 'react';
 import { collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -5,11 +6,13 @@ import { GuestWishes } from '../types';
 
 const WISHES_LIMIT = 50;
 
-export function useWishes(weddingId: string) {
+export function useWishes(weddingId: string, enabled: boolean = true) {
   const [wishes, setWishes] = useState<GuestWishes[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (!enabled) return;
+
     const q = query(
       collection(db, 'wishes'),
       where('weddingId', '==', weddingId),
@@ -34,7 +37,7 @@ export function useWishes(weddingId: string) {
     );
 
     return unsubscribe;
-  }, [weddingId]);
+  }, [weddingId, enabled]);
 
   return { wishes, isLoading };
 }

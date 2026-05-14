@@ -1,13 +1,16 @@
+'use client';
 import { useState, useEffect, useCallback } from 'react';
 import { doc, getDoc, runTransaction } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { StoryLikesDocument } from '../types/firestore';
 
-export function useStoryLikes(slug: string) {
+export function useStoryLikes(slug: string, enabled: boolean = true) {
   const [likes, setLikes] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (!enabled) return;
+
     getDoc(doc(db, 'story-likes', slug))
       .then((snap) => {
         if (snap.exists()) {
@@ -20,7 +23,7 @@ export function useStoryLikes(slug: string) {
         console.error('[useStoryLikes] Firestore error:', error.message);
         setIsLoading(false);
       });
-  }, [slug]);
+  }, [slug, enabled]);
 
   const incrementLike = useCallback(
     async (slideIndex: number) => {

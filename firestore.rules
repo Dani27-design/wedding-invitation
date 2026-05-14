@@ -2,8 +2,97 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if true;
+
+    // ─── Users ───────────────────────────────────────────────
+    match /users/{uid} {
+      // Users can read their own document
+      allow read: if request.auth != null && request.auth.uid == uid;
+      // Super admin can read all user documents
+      allow read: if request.auth != null
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'super';
+      // Users can create their own document on registration (must be 'pending')
+      allow create: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.data.role == 'pending';
+      // Only super admin can update user documents (role changes, slug assignment)
+      allow update: if request.auth != null
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'super';
+      // Only super admin can delete user documents
+      allow delete: if request.auth != null
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'super';
+    }
+
+    // ─── Weddings ────────────────────────────────────────────
+    match /weddings/{slug} {
+      // Anyone can read wedding documents (public pages)
+      allow read: if true;
+      // Super admin can update any field
+      allow update: if request.auth != null
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'super';
+      // Customer admin can update content fields only (NOT adminIds, status, createdAt)
+      allow update: if request.auth != null
+        && request.auth.uid in resource.data.adminIds
+        && !request.resource.data.diff(resource.data).affectedKeys()
+            .hasAny(['adminIds', 'status', 'createdAt']);
+      // Only super admin can create or delete wedding documents
+      allow create, delete: if request.auth != null
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'super';
+    }
+
+    // ─── Wishes ──────────────────────────────────────────────
+    match /wishes/{wishId} {
+      // Anyone can read wishes (public wish list)
+      allow read: if true;
+      // Anyone can create a wish (guests submit RSVP without auth)
+      // Field allowlist + type validation + length limits
+      allow create: if true
+        && request.resource.data.keys().hasOnly(['weddingId', 'name', 'message', 'attendance', 'createdAt'])
+        && request.resource.data.weddingId is string
+        && request.resource.data.name is string
+        && request.resource.data.message is string
+        && request.resource.data.attendance in ['yes', 'no']
+        && request.resource.data.name.size() <= 100
+        && request.resource.data.message.size() <= 500;
+      // Wishes cannot be updated
+      allow update: if false;
+      // Only super admin or the wedding's own admins can delete wishes
+      allow delete: if request.auth != null
+        && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'super'
+            || request.auth.uid in get(/databases/$(database)/documents/weddings/$(resource.data.weddingId)).data.adminIds);
+    }
+
+    // ─── Story Likes ─────────────────────────────────────────
+    match /story-likes/{slug} {
+      // Anyone can read likes
+      allow read: if true;
+      // Anyone can update likes (guests increment without auth) — field-restricted
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes'])
+        && request.resource.data.likes is list;
+      // Only super admin can create/delete
+      allow create, delete: if request.auth != null
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'super';
+    }
+
+    // ─── Story Comments ──────────────────────────────────────
+    match /story-comments/{commentId} {
+      // Anyone can read comments
+      allow read: if true;
+      // Anyone can create a comment (guests post without auth)
+      // Field allowlist + type validation + length limits
+      allow create: if true
+        && request.resource.data.keys().hasOnly(['weddingId', 'slideIndex', 'name', 'text', 'createdAt'])
+        && request.resource.data.weddingId is string
+        && request.resource.data.slideIndex is int
+        && request.resource.data.name is string
+        && request.resource.data.text is string
+        && request.resource.data.name.size() <= 100
+        && request.resource.data.text.size() <= 500;
+      // Comments cannot be updated
+      allow update: if false;
+      // Only super admin or the wedding's own admins can delete comments
+      allow delete: if request.auth != null
+        && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'super'
+            || request.auth.uid in get(/databases/$(database)/documents/weddings/$(resource.data.weddingId)).data.adminIds);
     }
   }
 }

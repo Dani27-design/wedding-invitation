@@ -1,6 +1,9 @@
+'use client';
 import { useState } from 'react';
 import { WeddingDocument } from '../../types/firestore';
 import { Plus, Trash2, Upload, Image as ImageIcon } from 'lucide-react';
+import { compressImage, formatFileSize } from '../../utils/compressImage';
+import { CompressionModal } from './CompressionModal';
 
 interface GalleryFormProps {
   data: WeddingDocument | null;
@@ -8,7 +11,7 @@ interface GalleryFormProps {
   isSaving?: boolean;
 }
 
-const MAX_IMAGE_SIZE = 100 * 1024 * 1024;
+const MAX_IMAGE_SIZE = 25 * 1024 * 1024;
 const MAX_IMAGES = 30;
 
 export function GalleryForm({ data, onSave, isSaving }: GalleryFormProps) {
@@ -17,12 +20,15 @@ export function GalleryForm({ data, onSave, isSaving }: GalleryFormProps) {
     data?.gallery?.map(url => ({ url })) ?? []
   );
   const [urlsToDelete, setUrlsToDelete] = useState<string[]>([]);
+  const [isCompressing, setIsCompressing] = useState(false);
+  const [compressionInfo, setCompressionInfo] = useState('');
+  const [compressProgress, setCompressProgress] = useState({ current: 0, total: 0, fileName: '' });
 
   const handleAdd = (files: FileList | null) => {
     if (!files) return;
     const arr = Array.from(files);
     const oversized = arr.find(f => f.size > MAX_IMAGE_SIZE);
-    if (oversized) { setError('Ukuran foto maksimal 100MB per file'); return; }
+    if (oversized) { setError('Ukuran foto maksimal 25MB per file'); return; }
     if (images.length + arr.length > MAX_IMAGES) { setError(`Maksimal ${MAX_IMAGES} foto`); return; }
     setError('');
     const newImages = arr.map(file => ({ url: URL.createObjectURL(file), file }));
@@ -37,10 +43,27 @@ export function GalleryForm({ data, onSave, isSaving }: GalleryFormProps) {
     setImages(images.filter((_, idx) => idx !== i));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const files: Record<string, File> = {};
-    images.forEach((img, i) => { if (img.file) files[`gallery-${i}`] = img.file; });
+    const imageEntries = images.map((img, i) => img.file ? { idx: i, file: img.file } : null).filter(Boolean) as { idx: number; file: File }[];
+    if (imageEntries.length > 0) {
+      setIsCompressing(true);
+      setCompressionInfo('');
+      try {
+        const infos: string[] = [];
+        for (let i = 0; i < imageEntries.length; i++) {
+          const { idx, file } = imageEntries[i];
+          setCompressProgress({ current: i + 1, total: imageEntries.length, fileName: file.name });
+          const result = await compressImage(file);
+          files[`gallery-${idx}`] = result.file;
+          if (result.wasCompressed) infos.push(`Foto ${idx + 1}: ${formatFileSize(result.originalSize)} → ${formatFileSize(result.compressedSize)}`);
+        }
+        if (infos.length > 0) setCompressionInfo(infos.join(' | '));
+      } finally {
+        setIsCompressing(false);
+      }
+    }
     onSave(
       { gallery: images.map(img => img.url) },
       Object.keys(files).length > 0 ? files : undefined,
@@ -103,7 +126,9 @@ export function GalleryForm({ data, onSave, isSaving }: GalleryFormProps) {
       )}
 
       {error && <p className="text-xs text-red-500 text-center">{error}</p>}
-      <button type="submit" disabled={isSaving} className="w-full py-3 bg-gold text-ivory rounded-full text-xs tracking-[0.3em] font-black uppercase disabled:opacity-50 shadow-lg shadow-gold/20">{isSaving ? 'Menyimpan...' : 'Simpan'}</button>
+      {compressionInfo && <p className="text-[10px] text-green-600 text-center">{compressionInfo}</p>}
+      <button type="submit" disabled={isSaving || isCompressing} className="w-full py-3 bg-gold text-ivory rounded-full text-xs tracking-[0.3em] font-black uppercase disabled:opacity-50 shadow-lg shadow-gold/20">{isSaving ? 'Menyimpan...' : 'Simpan'}</button>
+      <CompressionModal isOpen={isCompressing} current={compressProgress.current} total={compressProgress.total} currentFileName={compressProgress.fileName} />
     </form>
   );
 }

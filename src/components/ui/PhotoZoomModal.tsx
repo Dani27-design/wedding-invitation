@@ -1,3 +1,5 @@
+'use client';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
@@ -33,12 +35,15 @@ export const PhotoZoomModal = ({ selectedPhoto, onClose }: PhotoZoomModalProps) 
           className="relative max-w-5xl w-full max-h-full flex items-center justify-center p-2 rounded-[2rem] bg-white/10 border border-white/20 overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
-          <img
+          <Image
             src={selectedPhoto}
-            alt="Zoomed Moment"
+            alt="Foto dalam tampilan penuh"
+            width={1920}
+            height={1080}
             sizes="100vw"
             onError={(e) => { e.currentTarget.style.display = 'none'; }}
-            className="max-w-full max-h-[85vh] object-contain rounded-[1.5rem]"
+            className="object-contain rounded-[1.5rem]"
+            style={{ maxWidth: '100%', maxHeight: '85vh', width: 'auto', height: 'auto' }}
           />
           <button
             aria-label="Tutup"

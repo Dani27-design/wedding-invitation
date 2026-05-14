@@ -1,3 +1,6 @@
+'use client';
+import { memo } from 'react';
+import Image from 'next/image';
 import { motion } from 'motion/react';
 import { Image as ImageIcon } from 'lucide-react';
 import { useWeddingContext } from '../../context/WeddingContext';
@@ -7,7 +10,7 @@ interface PhotoGalleryProps {
   onSelectPhoto: (src: string) => void;
 }
 
-export const PhotoGallery = ({ onSelectPhoto }: PhotoGalleryProps) => {
+export const PhotoGallery = memo(({ onSelectPhoto }: PhotoGalleryProps) => {
   const wedding = useWeddingContext();
   const galleryItems = (wedding?.gallery ?? []).map((src, i) => ({ src, ...getGalleryLayout(i) }));
 
@@ -42,7 +45,7 @@ export const PhotoGallery = ({ onSelectPhoto }: PhotoGalleryProps) => {
                 onClick={() => onSelectPhoto(item.src)}
                 className={`${item.span} relative group overflow-hidden shadow-2xl ${item.shape} cursor-zoom-in isolate transform-gpu [-webkit-mask-image:-webkit-radial-gradient(white,black)] focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2`}
               >
-                <img src={item.src} loading="lazy" decoding="async" sizes="(max-width: 640px) 120px, (max-width: 768px) 150px, 210px" onError={(e) => { e.currentTarget.style.display = 'none'; }} alt={`Gallery ${i}`} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 [backface-visibility:hidden]" referrerPolicy="no-referrer" />
+                <Image src={item.src} fill sizes="(max-width: 640px) 120px, (max-width: 768px) 150px, 210px" onError={(e) => { e.currentTarget.style.display = 'none'; }} alt={`Foto kenangan ${i + 1}`} className="object-cover transition-transform duration-1000 group-hover:scale-110 [backface-visibility:hidden]" referrerPolicy="no-referrer" />
                 <div className="absolute inset-0 bg-ink/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
                   <motion.div initial={{ y: 20, opacity: 0 }} whileHover={{ y: 0, opacity: 1 }} className="bg-white/20 backdrop-blur-md p-4 rounded-full border border-white/30">
                     <ImageIcon className="w-5 h-5 text-white" />
@@ -63,4 +66,4 @@ export const PhotoGallery = ({ onSelectPhoto }: PhotoGalleryProps) => {
     <div className="absolute bottom-0 left-0 right-0 h-5 bg-gradient-to-b from-transparent to-ivory pointer-events-none" />
   </section>
   );
-};
+});

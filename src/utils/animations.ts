@@ -10,6 +10,6 @@ export const stagger = {
 };
 
 export const fadeUp = {
-  initial: { opacity: 0, y: 20, filter: 'blur(10px)' },
-  animate: { opacity: 1, y: 0, filter: 'blur(0px)', transition },
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0, transition },
 };

@@ -1,6 +1,9 @@
+'use client';
 import { useState } from 'react';
 import { WeddingDocument } from '../../types/firestore';
 import { Upload, Music, Image as ImageIcon, Sparkles, Trash2 } from 'lucide-react';
+import { compressImage, formatFileSize } from '../../utils/compressImage';
+import { CompressionModal } from './CompressionModal';
 
 interface MediaFormProps {
   data: WeddingDocument | null;
@@ -34,9 +37,11 @@ export function MediaForm({ data, onSave, isSaving }: MediaFormProps) {
     twibbonOverlay: data?.twibbonOverlay ?? '',
   });
 
-  console.log('MediaForm Previews state:', previews);
   const [files, setFiles] = useState<Record<string, File>>({});
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isCompressing, setIsCompressing] = useState(false);
+  const [compressionInfo, setCompressionInfo] = useState('');
+  const [compressProgress, setCompressProgress] = useState({ current: 0, total: 0, fileName: '' });
 
   const handleFileChange = (field: string, file: File | undefined, accept: string) => {
     if (!file) return;
@@ -81,8 +86,33 @@ export function MediaForm({ data, onSave, isSaving }: MediaFormProps) {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const fileEntries = Object.entries(files);
+    const imageEntries = fileEntries.filter(([, f]) => !f.type.startsWith('audio/'));
+    const compressedFiles: Record<string, File> = {};
+    // Pass through audio files
+    fileEntries.filter(([, f]) => f.type.startsWith('audio/')).forEach(([k, f]) => { compressedFiles[k] = f; });
+    if (imageEntries.length > 0) {
+      setIsCompressing(true);
+      setCompressionInfo('');
+      try {
+        const infos: string[] = [];
+        for (let i = 0; i < imageEntries.length; i++) {
+          const [key, file] = imageEntries[i];
+          setCompressProgress({ current: i + 1, total: imageEntries.length, fileName: file.name });
+          const isPng = key === 'twibbonOverlay';
+          const result = await compressImage(file, isPng ? { maxWidth: 1080, maxHeight: 1920, forcePng: true } : undefined);
+          compressedFiles[key] = result.file;
+          if (result.wasCompressed) infos.push(`${key}: ${formatFileSize(result.originalSize)} → ${formatFileSize(result.compressedSize)}`);
+        }
+        if (infos.length > 0) setCompressionInfo(infos.join(' | '));
+      } finally {
+        setIsCompressing(false);
+      }
+    } else {
+      fileEntries.forEach(([k, f]) => { compressedFiles[k] = f; });
+    }
     onSave(
       {
         musicUrl: previews.musicUrl,
@@ -90,7 +120,7 @@ export function MediaForm({ data, onSave, isSaving }: MediaFormProps) {
         openingImage: previews.openingImage,
         twibbonOverlay: previews.twibbonOverlay,
       },
-      Object.keys(files).length > 0 ? files : undefined,
+      Object.keys(compressedFiles).length > 0 ? compressedFiles : undefined,
     );
   };
 
@@ -157,7 +187,9 @@ export function MediaForm({ data, onSave, isSaving }: MediaFormProps) {
       ))}
 
       {error && <p className="text-xs text-red-500 text-center">{error}</p>}
-      <button type="submit" disabled={isSaving} className="w-full py-3 bg-gold text-ivory rounded-full text-xs tracking-[0.3em] font-black uppercase disabled:opacity-50 shadow-lg shadow-gold/20">{isSaving ? 'Menyimpan...' : 'Simpan'}</button>
+      {compressionInfo && <p className="text-[10px] text-green-600 text-center">{compressionInfo}</p>}
+      <button type="submit" disabled={isSaving || isCompressing} className="w-full py-3 bg-gold text-ivory rounded-full text-xs tracking-[0.3em] font-black uppercase disabled:opacity-50 shadow-lg shadow-gold/20">{isSaving ? 'Menyimpan...' : 'Simpan'}</button>
+      <CompressionModal isOpen={isCompressing} current={compressProgress.current} total={compressProgress.total} currentFileName={compressProgress.fileName} />
     </form>
   );
 }

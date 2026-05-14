@@ -1,6 +1,9 @@
+'use client';
 import { useState } from "react";
 import { WeddingDocument } from "../../types/firestore";
 import { Upload, Trash2, Plus } from "lucide-react";
+import { compressImage, formatFileSize } from "../../utils/compressImage";
+import { CompressionModal } from "./CompressionModal";
 
 interface CoupleFormProps {
   data: WeddingDocument | null;
@@ -12,10 +15,13 @@ interface CoupleFormProps {
   isSaving?: boolean;
 }
 
-const MAX_IMAGE_SIZE = 100 * 1024 * 1024;
+const MAX_IMAGE_SIZE = 25 * 1024 * 1024;
 
 export function CoupleForm({ data, onSave, isSaving }: CoupleFormProps) {
   const [error, setError] = useState("");
+  const [isCompressing, setIsCompressing] = useState(false);
+  const [compressionInfo, setCompressionInfo] = useState("");
+  const [compressProgress, setCompressProgress] = useState({ current: 0, total: 0, fileName: '' });
   const [groomNickname, setGroomNickname] = useState(data?.groomNickname ?? "");
   const [groomName, setGroomName] = useState(data?.groomName ?? "");
   const [groomParents, setGroomParents] = useState(data?.groomParents ?? "");
@@ -29,10 +35,6 @@ export function CoupleForm({ data, onSave, isSaving }: CoupleFormProps) {
     data?.bridePhoto ?? "",
   );
 
-  console.log("CoupleForm previews:", {
-    groom: groomPhotoPreview,
-    bride: bridePhotoPreview,
-  });
   const [groomSocialLinks, setGroomSocialLinks] = useState(
     data?.groomSocialLinks ?? [],
   );
@@ -68,11 +70,30 @@ export function CoupleForm({ data, onSave, isSaving }: CoupleFormProps) {
     setter(current.filter((_, i) => i !== idx));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const files: Record<string, File> = {};
-    if (groomPhotoFile) files.groomPhoto = groomPhotoFile;
-    if (bridePhotoFile) files.bridePhoto = bridePhotoFile;
+    const fileEntries = [
+      groomPhotoFile ? ['groomPhoto', groomPhotoFile] as const : null,
+      bridePhotoFile ? ['bridePhoto', bridePhotoFile] as const : null,
+    ].filter(Boolean) as [string, File][];
+    if (fileEntries.length > 0) {
+      setIsCompressing(true);
+      setCompressionInfo("");
+      try {
+        const infos: string[] = [];
+        for (let i = 0; i < fileEntries.length; i++) {
+          const [key, file] = fileEntries[i];
+          setCompressProgress({ current: i + 1, total: fileEntries.length, fileName: file.name });
+          const result = await compressImage(file);
+          files[key] = result.file;
+          if (result.wasCompressed) infos.push(`${key}: ${formatFileSize(result.originalSize)} → ${formatFileSize(result.compressedSize)}`);
+        }
+        if (infos.length > 0) setCompressionInfo(infos.join(' | '));
+      } finally {
+        setIsCompressing(false);
+      }
+    }
     onSave(
       {
         groomNickname: groomNickname.trim(),
@@ -140,7 +161,7 @@ export function CoupleForm({ data, onSave, isSaving }: CoupleFormProps) {
   ) => {
     if (!file) return;
     if (file.size > MAX_IMAGE_SIZE) {
-      setError("Ukuran foto maksimal 100MB");
+      setError("Ukuran foto maksimal 25MB");
       return;
     }
     setError("");
@@ -209,6 +230,7 @@ export function CoupleForm({ data, onSave, isSaving }: CoupleFormProps) {
                 <option value="Lainnya">Lainnya</option>
               </select>
               <input
+                type="url"
                 value={link.url}
                 onChange={(e) =>
                   updateSocialLink("groom", idx, "url", e.target.value)
@@ -288,6 +310,7 @@ export function CoupleForm({ data, onSave, isSaving }: CoupleFormProps) {
                 <option value="Lainnya">Lainnya</option>
               </select>
               <input
+                type="url"
                 value={link.url}
                 onChange={(e) =>
                   updateSocialLink("bride", idx, "url", e.target.value)
@@ -315,13 +338,17 @@ export function CoupleForm({ data, onSave, isSaving }: CoupleFormProps) {
       </fieldset>
 
       {error && <p className="text-xs text-red-500 text-center">{error}</p>}
+      {compressionInfo && (
+        <p className="text-[10px] text-green-600 text-center">{compressionInfo}</p>
+      )}
       <button
         type="submit"
-        disabled={isSaving}
+        disabled={isSaving || isCompressing}
         className="w-full py-3 bg-gold text-ivory rounded-full text-xs tracking-[0.3em] font-black uppercase disabled:opacity-50"
       >
         {isSaving ? "Menyimpan..." : "Simpan"}
       </button>
+      <CompressionModal isOpen={isCompressing} current={compressProgress.current} total={compressProgress.total} currentFileName={compressProgress.fileName} />
     </form>
   );
 }

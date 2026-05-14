@@ -4,19 +4,11 @@
   box-sizing: border-box;
 }
 
-html, body, #root {
+html, body {
   background-color: #FDFCF8;
   margin: 0;
   padding: 0;
   height: 100%;
-}
-
-@font-face {
-  font-family: 'Dayland';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: local('Dayland'), url('/fonts/Dayland.ttf') format('truetype');
 }
 
 @theme {
@@ -44,7 +36,6 @@ html, body, #root {
 
   .scroll-snap-container {
     scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
   }
 
   .h-screen-safe {

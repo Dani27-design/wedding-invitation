@@ -1,3 +1,4 @@
+'use client';
 import { useState } from 'react';
 import { WeddingDocument, WeddingTheme } from '../../types/firestore';
 import { THEME_DEFAULTS } from '../../constants/themeDefaults';

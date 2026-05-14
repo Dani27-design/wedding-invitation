@@ -197,14 +197,14 @@ describe('CoupleSection', () => {
       expect(screen.getByAltText('Marini')).toBeInTheDocument();
     });
 
-    it('groom image has lazy loading', () => {
+    it('groom image uses object-cover', () => {
       renderComponent();
-      expect(screen.getByAltText('Dani')).toHaveAttribute('loading', 'lazy');
+      expect(screen.getByAltText('Dani')).toHaveClass('object-cover');
     });
 
-    it('bride image has lazy loading', () => {
+    it('bride image uses object-cover', () => {
       renderComponent();
-      expect(screen.getByAltText('Marini')).toHaveAttribute('loading', 'lazy');
+      expect(screen.getByAltText('Marini')).toHaveClass('object-cover');
     });
 
     it('groom image has correct src path', () => {
@@ -247,12 +247,12 @@ describe('CoupleSection', () => {
       expect(screen.getByAltText('Marini')).toHaveClass('contrast-[1.02]');
     });
 
-    it('both images fill their containers (w-full h-full)', () => {
+    it('both images use object-cover for filling containers', () => {
       renderComponent();
       const dani = screen.getByAltText('Dani');
       const marini = screen.getByAltText('Marini');
-      expect(dani).toHaveClass('w-full', 'h-full');
-      expect(marini).toHaveClass('w-full', 'h-full');
+      expect(dani).toHaveClass('object-cover');
+      expect(marini).toHaveClass('object-cover');
     });
   });
 

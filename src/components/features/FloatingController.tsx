@@ -1,3 +1,5 @@
+'use client';
+import { useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Heart, Sparkles, Gift, MapPin, X, Play, Pause } from 'lucide-react';
 
@@ -8,12 +10,20 @@ interface FloatingControllerProps {
   toggleMusic: () => void;
 }
 
-export const FloatingController = ({ isToolsOpen, setIsToolsOpen, isPlaying, toggleMusic }: FloatingControllerProps) => (
+export const FloatingController = ({ isToolsOpen, setIsToolsOpen, isPlaying, toggleMusic }: FloatingControllerProps) => {
+  const constraintsRef = useRef({
+    left: -(window.innerWidth - 80),
+    right: 0,
+    top: -(window.innerHeight - 100),
+    bottom: 0,
+  });
+
+  return (
   <motion.div
     drag
     dragMomentum={false}
     dragElastic={0.1}
-    dragConstraints={{ left: -(window.innerWidth - 80), right: 0, top: -(window.innerHeight - 100), bottom: 0 }}
+    dragConstraints={constraintsRef.current}
     className="fixed bottom-8 right-5 z-[100] flex flex-col items-center gap-4 touch-none cursor-grab active:cursor-grabbing"
   >
     <AnimatePresence>
@@ -103,4 +113,5 @@ export const FloatingController = ({ isToolsOpen, setIsToolsOpen, isPlaying, tog
       </motion.button>
     </motion.div>
   </motion.div>
-);
+  );
+};

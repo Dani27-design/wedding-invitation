@@ -1,3 +1,5 @@
+'use client';
+import { memo } from 'react';
 import { motion, AnimatePresence } from "motion/react";
 import { Heart, MessageSquare, ArrowRight } from "lucide-react";
 import { GuestWishes } from "../../types";
@@ -10,15 +12,17 @@ interface RSVPSectionProps {
   totalPages: number;
   setCurrentPage: (fn: (p: number) => number) => void;
   onOpenRSVP: () => void;
+  isWishesLoading?: boolean;
 }
 
-export const RSVPSection = ({
+export const RSVPSection = memo(({
   wishes,
   currentWishes,
   currentPage,
   totalPages,
   setCurrentPage,
   onOpenRSVP,
+  isWishesLoading = false,
 }: RSVPSectionProps) => (
   <section
     id="rsvp-section"
@@ -68,12 +72,20 @@ export const RSVPSection = ({
           {wishes.length === 0 ? (
             <div className="w-full py-12 flex flex-col items-center justify-center border border-dashed border-gold/20 rounded-2xl bg-gold/5 px-6 text-center">
               <Heart className="w-4 h-4 text-gold/30 mb-3 animate-pulse" />
-              <p className="font-serif italic text-[13px] text-ink/70 leading-relaxed">
-                Ruang ini masih menunggu cerita pertama.
-              </p>
-              <p className="font-serif italic text-xs text-ink/60 mt-1">
-                Jika berkenan, tinggalkan doa untuk kami.
-              </p>
+              {isWishesLoading ? (
+                <p className="font-serif italic text-[13px] text-ink/40 leading-relaxed">
+                  Memuat ucapan...
+                </p>
+              ) : (
+                <>
+                  <p className="font-serif italic text-[13px] text-ink/70 leading-relaxed">
+                    Ruang ini masih menunggu cerita pertama.
+                  </p>
+                  <p className="font-serif italic text-xs text-ink/60 mt-1">
+                    Jika berkenan, tinggalkan doa untuk kami.
+                  </p>
+                </>
+              )}
             </div>
           ) : (
             <div className="w-full h-fit">
@@ -156,4 +168,4 @@ export const RSVPSection = ({
     {/* Gradient Bridge to Gift Section */}
     <div className="absolute bottom-0 left-0 right-0 h-5 bg-gradient-to-b from-transparent to-ivory pointer-events-none" />
   </section>
-);
+));

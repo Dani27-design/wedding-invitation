@@ -1,12 +1,20 @@
 rules_version = '2';
 
-// Craft rules based on data in your Firestore database
-// allow write: if firestore.get(
-//    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
 service firebase.storage {
   match /b/{bucket}/o {
+    // Public read — guests need to see wedding images and hear music
     match /{allPaths=**} {
-      allow read, write: if true;
+      allow read: if true;
+    }
+
+    // Authenticated write — only logged-in admins can upload/delete
+    // Scoped to wedding upload path only
+    // Images: max 10MB (client-side compression reduces DSLR photos to ~1-3MB)
+    // Audio: max 15MB (no client-side compression)
+    match /weddings/{slug}/{fileName} {
+      allow write: if request.auth != null
+        && ((request.resource.contentType.matches('image/.*') && request.resource.size < 10 * 1024 * 1024)
+            || (request.resource.contentType.matches('audio/.*') && request.resource.size < 15 * 1024 * 1024));
     }
   }
 }

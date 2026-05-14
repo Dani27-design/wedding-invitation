@@ -1,6 +1,9 @@
+'use client';
 import { useState } from 'react';
 import { WeddingDocument, StorySlide } from '../../types/firestore';
 import { Plus, Trash2, Upload } from 'lucide-react';
+import { compressImage, formatFileSize } from '../../utils/compressImage';
+import { CompressionModal } from './CompressionModal';
 
 interface StoryFormProps {
   data: WeddingDocument | null;
@@ -8,7 +11,7 @@ interface StoryFormProps {
   isSaving?: boolean;
 }
 
-const MAX_IMAGE_SIZE = 100 * 1024 * 1024;
+const MAX_IMAGE_SIZE = 25 * 1024 * 1024;
 
 export function StoryForm({ data, onSave, isSaving }: StoryFormProps) {
   const [error, setError] = useState('');
@@ -16,6 +19,9 @@ export function StoryForm({ data, onSave, isSaving }: StoryFormProps) {
     data?.story?.map(s => ({ ...s })) ?? [{ year: '', text: '', bgImage: '' }]
   );
   const [urlsToDelete, setUrlsToDelete] = useState<string[]>([]);
+  const [isCompressing, setIsCompressing] = useState(false);
+  const [compressionInfo, setCompressionInfo] = useState('');
+  const [compressProgress, setCompressProgress] = useState({ current: 0, total: 0, fileName: '' });
 
   const addSlide = () => setSlides([...slides, { year: '', text: '', bgImage: '' }]);
   const removeSlide = (i: number) => {
@@ -31,17 +37,38 @@ export function StoryForm({ data, onSave, isSaving }: StoryFormProps) {
 
   const handleImageChange = (i: number, file: File | undefined) => {
     if (!file) return;
-    if (file.size > MAX_IMAGE_SIZE) { setError('Ukuran foto maksimal 100MB'); return; }
+    if (file.size > MAX_IMAGE_SIZE) { setError('Ukuran foto maksimal 25MB'); return; }
     setError('');
     const url = URL.createObjectURL(file);
     setSlides(slides.map((s, idx) => idx === i ? { ...s, bgImage: url, file } : s));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const files: Record<string, File> = {};
     const filtered = slides.filter(s => s.year.trim());
-    filtered.forEach((s, i) => { if (s.file) files[`storyBg-${i}`] = s.file; });
+    const imageSlides = filtered.filter(s => s.file).map((s, _, arr) => ({ slide: s, total: arr.length }));
+    if (imageSlides.length > 0) {
+      setIsCompressing(true);
+      setCompressionInfo('');
+      try {
+        const infos: string[] = [];
+        let idx = 0;
+        for (let i = 0; i < filtered.length; i++) {
+          const s = filtered[i];
+          if (s.file) {
+            idx++;
+            setCompressProgress({ current: idx, total: imageSlides.length, fileName: s.file.name });
+            const result = await compressImage(s.file);
+            files[`storyBg-${i}`] = result.file;
+            if (result.wasCompressed) infos.push(`Slide ${i + 1}: ${formatFileSize(result.originalSize)} → ${formatFileSize(result.compressedSize)}`);
+          }
+        }
+        if (infos.length > 0) setCompressionInfo(infos.join(' | '));
+      } finally {
+        setIsCompressing(false);
+      }
+    }
     onSave(
       { story: filtered.map(({ file: _, ...s }) => s) },
       Object.keys(files).length > 0 ? files : undefined,
@@ -117,8 +144,10 @@ export function StoryForm({ data, onSave, isSaving }: StoryFormProps) {
       </button>
 
       {error && <p className="text-xs text-red-500 text-center">{error}</p>}
+      {compressionInfo && <p className="text-[10px] text-green-600 text-center">{compressionInfo}</p>}
 
-      <button type="submit" disabled={isSaving} className="w-full py-3 bg-gold text-ivory rounded-full text-xs tracking-[0.3em] font-black uppercase disabled:opacity-50 shadow-lg shadow-gold/20">{isSaving ? 'Menyimpan...' : 'Simpan'}</button>
+      <button type="submit" disabled={isSaving || isCompressing} className="w-full py-3 bg-gold text-ivory rounded-full text-xs tracking-[0.3em] font-black uppercase disabled:opacity-50 shadow-lg shadow-gold/20">{isSaving ? 'Menyimpan...' : 'Simpan'}</button>
+      <CompressionModal isOpen={isCompressing} current={compressProgress.current} total={compressProgress.total} currentFileName={compressProgress.fileName} />
     </form>
   );
 }

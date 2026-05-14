@@ -1,5 +1,5 @@
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { storage } from './firebase';
+import { storage } from './firebase-storage';
 
 export async function uploadFile(path: string, file: File): Promise<string> {
   const fileRef = ref(storage, path);
@@ -8,7 +8,8 @@ export async function uploadFile(path: string, file: File): Promise<string> {
 }
 
 export async function deleteFile(url: string) {
-  if (!url || !url.includes('firebasestorage.googleapis.com')) return;
+  if (!url) return;
+  try { if (new URL(url).hostname !== 'firebasestorage.googleapis.com') return; } catch { return; }
   try {
     const fileRef = ref(storage, url);
     await deleteObject(fileRef);

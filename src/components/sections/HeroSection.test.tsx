@@ -113,16 +113,18 @@ describe('HeroSection', () => {
       expect(screen.getByText('Surabaya . Indonesia')).toBeInTheDocument();
     });
 
-    it('Dani and Marini are each in their own h1 element', () => {
+    it('Dani and Marini are inside a single h1 element', () => {
       renderComponent();
-      expect(screen.getByText('Dani').tagName).toBe('H1');
-      expect(screen.getByText('Marini').tagName).toBe('H1');
+      const h1 = screen.getByRole('heading', { level: 1 });
+      expect(h1).toBeInTheDocument();
+      expect(h1.textContent).toContain('Dani');
+      expect(h1.textContent).toContain('Marini');
     });
 
-    it('names are h1 elements', () => {
+    it('names are inside span elements within h1', () => {
       renderComponent();
-      expect(screen.getByText('Dani').tagName).toBe('H1');
-      expect(screen.getByText('Marini').tagName).toBe('H1');
+      expect(screen.getByText('Dani').tagName).toBe('SPAN');
+      expect(screen.getByText('Marini').tagName).toBe('SPAN');
     });
   });
 
@@ -164,11 +166,10 @@ describe('HeroSection', () => {
       expect(img).toHaveClass('contrast-[1.05]');
     });
 
-    it('hero image fills container (w-full h-full)', () => {
+    it('hero image uses object-cover', () => {
       renderComponent();
       const img = screen.getByAltText('Dani & Marini');
-      expect(img).toHaveClass('w-full');
-      expect(img).toHaveClass('h-full');
+      expect(img).toHaveClass('object-cover');
     });
   });
 
@@ -401,10 +402,10 @@ describe('HeroSection', () => {
       expect(images).toHaveLength(1);
     });
 
-    it('section has two h1 headings (one per name)', () => {
+    it('section has a single h1 heading containing both names', () => {
       const { container } = renderComponent();
       const h1s = container.querySelectorAll('h1');
-      expect(h1s).toHaveLength(2);
+      expect(h1s).toHaveLength(1);
     });
 
     it('date section has space-y-4 for consistent spacing', () => {

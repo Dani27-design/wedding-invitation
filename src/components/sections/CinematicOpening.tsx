@@ -1,4 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+'use client';
+import { useState, useEffect } from "react";
+import Image from "next/image";
 import { motion } from "motion/react";
 import { Heart } from "lucide-react";
 import { LightGlow } from "../ui/LightGlow";
@@ -26,18 +28,6 @@ export const CinematicOpening = ({
     }
   };
 
-  useEffect(() => {
-    // 1. Loader Removal - runs once on mount
-    const loader = document.getElementById('loading-screen');
-    if (loader) {
-      // Ensure one paint cycle of the component is finished
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          loader.remove();
-        });
-      });
-    }
-  }, []);
 
   useEffect(() => {
     // 3. Interaction Listeners - only attach if not already opening
@@ -107,17 +97,19 @@ export const CinematicOpening = ({
         style={{ willChange: 'transform' }}
       >
         {/* Layer 1: Image (Base) */}
-        <img
-          src={wedding?.openingImage ?? ""}
-          fetchPriority="high"
-          sizes="100vw"
-          loading='eager'
-          onError={(e) => {
-            e.currentTarget.style.display = "none";
-          }}
-          className="absolute inset-0 w-full h-full object-cover z-0"
-          alt="Opening BG"
-        />
+        {wedding?.openingImage && (
+          <Image
+            src={wedding.openingImage}
+            fill
+            priority
+            sizes="100vw"
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+            }}
+            className="object-cover z-0"
+            alt="Opening BG"
+          />
+        )}
         
         {/* Layer 2: Visual Effects */}
         <div className="absolute inset-0 z-10">
@@ -186,15 +178,17 @@ export const CinematicOpening = ({
             transition={{ duration: 1.8, delay: 0.5 }}
             className="space-y-4 text-center"
           >
-            <h1 className="font-dayland text-5xl sm:text-7xl md:text-9xl text-ivory drop-shadow-2xl">
-              {wedding?.groomNickname}
-            </h1>
-            <h2 className="font-dayland text-2xl sm:text-4xl md:text-6xl text-gold/70 drop-shadow-2xl">
-              &
-            </h2>
-            <h1 className="font-dayland text-5xl sm:text-7xl md:text-9xl text-ivory drop-shadow-2xl">
-              {wedding?.brideNickname}
-            </h1>
+            <div aria-hidden="true" className="space-y-4">
+              <span className="block font-dayland text-5xl sm:text-7xl md:text-9xl text-ivory drop-shadow-2xl">
+                {wedding?.groomNickname}
+              </span>
+              <span className="block font-dayland text-2xl sm:text-4xl md:text-6xl text-gold/70 drop-shadow-2xl">
+                &
+              </span>
+              <span className="block font-dayland text-5xl sm:text-7xl md:text-9xl text-ivory drop-shadow-2xl">
+                {wedding?.brideNickname}
+              </span>
+            </div>
           </motion.div>
         </div>
 
@@ -209,12 +203,13 @@ export const CinematicOpening = ({
               <p className="font-sans text-xs tracking-[0.3rem] uppercase text-gold/70 font-medium">
                 Turut Mengundang
               </p>
-              <h2 className="font-display italic text-3xl md:text-4xl text-ivory font-light max-w-[85vw] break-words">
+              <p className="font-display italic text-3xl md:text-4xl text-ivory font-light max-w-[85vw] break-words">
                 {guestName}
-              </h2>
+              </p>
             </div>
             <motion.button
               onClick={triggerOpen}
+              aria-label="Buka Undangan"
               className="flex flex-col items-center gap-3 pt-4 group cursor-pointer transition-all"
             >
 
@@ -276,13 +271,6 @@ export const CinematicOpening = ({
                   }}
                 />
               </motion.svg>
-              {/* <motion.span
-              animate={{ opacity: [0.6, 1, 0.6] }}
-              transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut' }}
-              className="font-serif italic uppercase text-sm tracking-[0.3rem] text-gold transition-all duration-500 group-hover:tracking-[0.5rem]"
-            >
-              Buka Undangan
-            </motion.span> */}
             </motion.button>
           </motion.div>
         </div>

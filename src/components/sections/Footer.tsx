@@ -1,8 +1,10 @@
-import { ReactNode } from 'react';
+'use client';
+import { ReactNode, memo } from 'react';
 import { motion } from 'motion/react';
 import { Heart, Code, Palette, Instagram, Linkedin, LucideIcon, MessageCircle } from 'lucide-react';
 import { useWeddingContext } from '../../context/WeddingContext';
 import { deriveWhatsappUrl, deriveCopyright } from '../../utils/weddingDerived';
+import { safeUrl } from '../../utils/safeUrl';
 
 // Original Icons
 const WhatsAppIcon = () => (
@@ -31,12 +33,12 @@ const getIcon = (label: string) => {
   return null;
 };
 
-export const Footer = () => {
+export const Footer = memo(() => {
   const wedding = useWeddingContext();
 
   const creditSocials = wedding ? [
-    (wedding.groomSocialLinks || []).map(l => ({ href: l.label === 'WhatsApp' ? deriveWhatsappUrl(l.url) : l.url, Icon: getIcon(l.label) || Heart })),
-    (wedding.brideSocialLinks || []).map(l => ({ href: l.label === 'WhatsApp' ? deriveWhatsappUrl(l.url) : l.url, Icon: getIcon(l.label) || Heart })),
+    (wedding.groomSocialLinks || []).map(l => ({ href: l.label === 'WhatsApp' ? deriveWhatsappUrl(l.url) : safeUrl(l.url), Icon: getIcon(l.label) || Heart })),
+    (wedding.brideSocialLinks || []).map(l => ({ href: l.label === 'WhatsApp' ? deriveWhatsappUrl(l.url) : safeUrl(l.url), Icon: getIcon(l.label) || Heart })),
   ] : [];
 
   return (
@@ -74,4 +76,4 @@ export const Footer = () => {
     </div>
   </footer>
   );
-};
+});

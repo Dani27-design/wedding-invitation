@@ -1,4 +1,6 @@
-import { useState, useRef, useCallback } from 'react';
+'use client';
+import { useState, useRef, useCallback, useEffect, memo } from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
 import { Heart, MessageCircle, ArrowRight } from 'lucide-react';
 import { AmbientSocialLayer } from '../ui/AmbientSocialLayer';
@@ -11,7 +13,7 @@ interface CinematicStoryProps {
   weddingSlug: string;
 }
 
-export const CinematicStory = ({ weddingSlug }: CinematicStoryProps) => {
+export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
   const wedding = useWeddingContext();
   const slides = wedding?.story ?? [];
 
@@ -19,11 +21,24 @@ export const CinematicStory = ({ weddingSlug }: CinematicStoryProps) => {
   const [heartTrigger, setHeartTrigger] = useState(0);
   const [commentTrigger, setCommentTrigger] = useState<{ name: string; text: string; id: number } | null>(null);
   const [activeSlide, setActiveSlide] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
   const scrollRafRef = useRef(false);
 
-  const { likes, incrementLike } = useStoryLikes(weddingSlug);
-  const { comments, addComment } = useStoryComments(weddingSlug, activeSlide);
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setIsVisible(true); },
+      { threshold: 0 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const { likes, incrementLike } = useStoryLikes(weddingSlug, isVisible);
+  const { comments, addComment } = useStoryComments(weddingSlug, activeSlide, isVisible);
 
   if (slides.length === 0) return null;
 
@@ -53,12 +68,14 @@ export const CinematicStory = ({ weddingSlug }: CinematicStoryProps) => {
   };
 
   return (
-    <section id="story-section" className="relative h-screen-safe w-full bg-ink overflow-hidden scroll-snap-container">
+    <section ref={sectionRef} id="story-section" className="relative h-screen-safe w-full bg-ink overflow-hidden scroll-snap-container">
       <div ref={scrollContainerRef} onScroll={handleStoryScroll} className="h-full w-full flex overflow-x-auto snap-x snap-mandatory no-scrollbar scroll-smooth overscroll-x-contain">
         {slides.map((slide, idx) => (
           <div key={idx} className="relative h-full w-full min-w-full snap-center flex items-center justify-center overflow-hidden">
             <div className="absolute inset-0">
-              <img src={slide.bgImage} loading="lazy" decoding="async" sizes="100vw" onError={(e) => { e.currentTarget.style.display = 'none'; }} className="w-full h-full object-cover opacity-40 md:opacity-50 grayscale hover:grayscale-0 transition-all duration-[3000ms]" alt="Memory" referrerPolicy="no-referrer" />
+              {slide.bgImage && (
+                <Image src={slide.bgImage} fill sizes="100vw" onError={(e) => { e.currentTarget.style.display = 'none'; }} className="object-cover opacity-40 md:opacity-50 grayscale hover:grayscale-0 transition-all duration-[3000ms]" alt="Memory" referrerPolicy="no-referrer" />
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/20 to-ink/60" />
             </div>
 
@@ -137,4 +154,4 @@ export const CinematicStory = ({ weddingSlug }: CinematicStoryProps) => {
       </div>
     </section>
   );
-};
+});

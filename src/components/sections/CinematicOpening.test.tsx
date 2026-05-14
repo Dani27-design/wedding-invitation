@@ -90,10 +90,14 @@ describe('CinematicOpening', () => {
       expect(screen.getByText('Marini')).toBeInTheDocument();
     });
 
-    it('couple names are inside an h1 element', () => {
+    it('couple names are inside an aria-hidden container (decorative, not a heading)', () => {
       renderComponent();
-      expect(screen.getByText('Dani').tagName).toBe('H1');
-      expect(screen.getByText('Marini').tagName).toBe('H1');
+      const dani = screen.getByText('Dani');
+      const marini = screen.getByText('Marini');
+      expect(dani.tagName).toBe('SPAN');
+      expect(marini.tagName).toBe('SPAN');
+      expect(dani.closest('[aria-hidden="true"]')).not.toBeNull();
+      expect(marini.closest('[aria-hidden="true"]')).not.toBeNull();
     });
 
     it('couple names use font-dayland', () => {
@@ -248,10 +252,10 @@ describe('CinematicOpening', () => {
       expect(el.className).toContain('text-3xl');
     });
 
-    it('guest name is inside an h2 element', () => {
+    it('guest name is inside a p element', () => {
       renderComponent({ guestName: 'Heading Check' });
       const el = screen.getByText('Heading Check');
-      expect(el.tagName).toBe('H2');
+      expect(el.tagName).toBe('P');
     });
 
     it('guest name has ivory text color', () => {
@@ -283,11 +287,10 @@ describe('CinematicOpening', () => {
       expect(img).not.toHaveClass('animate-soft-zoom');
     });
 
-    it('background image fills full width and height', () => {
+    it('background image uses object-cover to fill container', () => {
       renderComponent();
       const img = screen.getByAltText('Opening BG');
-      expect(img).toHaveClass('w-full');
-      expect(img).toHaveClass('h-full');
+      expect(img).toHaveClass('object-cover');
     });
 
     it('gradient overlay is present (from-ink via-transparent to-ink)', () => {

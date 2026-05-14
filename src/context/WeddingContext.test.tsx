@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { ReactNode } from 'react';
 import { WeddingContext, useWeddingContext } from './WeddingContext';
-import { WeddingDocument } from '../types/firestore';
+import type { SerializedWedding } from '../lib/serialize-wedding';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -17,9 +17,9 @@ const MOCK_WEDDING = {
     colors: { accent: '#B48D3E', background: '#FDFCF8', text: '#1A1A1A', surface: '#F5F2ED', button: '#F8BBD0' },
     fonts: { heading: 'Cormorant Garamond', body: 'Montserrat', decorative: 'Playfair Display', script: 'Dayland' },
   },
-} as WeddingDocument;
+} as SerializedWedding;
 
-function createWrapper(value: WeddingDocument | null) {
+function createWrapper(value: SerializedWedding | null) {
   return ({ children }: { children: ReactNode }) => (
     <WeddingContext.Provider value={value}>{children}</WeddingContext.Provider>
   );
@@ -103,7 +103,7 @@ describe('context/WeddingContext', () => {
       });
       expect(result.current).toBe(MOCK_WEDDING);
 
-      const updated = { ...MOCK_WEDDING, groomNickname: 'Updated' } as WeddingDocument;
+      const updated = { ...MOCK_WEDDING, groomNickname: 'Updated' } as SerializedWedding;
       const wrapper2 = createWrapper(updated);
       rerender({ wrapper: wrapper2 });
       // After rerender with same wrapper, value stays

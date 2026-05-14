@@ -1,5 +1,16 @@
 import '@testing-library/jest-dom/vitest';
 
+// Mock next/image to render a plain <img> element in tests
+vi.mock('next/image', () => {
+  const { createElement } = require('react');
+  return {
+    default: (props: Record<string, unknown>) => {
+      const { fill, priority, quality, placeholder, blurDataURL, loader, ...rest } = props;
+      return createElement('img', rest);
+    },
+  };
+});
+
 window.HTMLMediaElement.prototype.play = vi.fn(() => Promise.resolve());
 window.HTMLMediaElement.prototype.pause = vi.fn();
 

@@ -41,7 +41,7 @@ describe('PhotoZoomModal', () => {
   describe('renders with photo', () => {
     it('renders when selectedPhoto is provided', () => {
       render(<PhotoZoomModal selectedPhoto="/test.jpg" onClose={vi.fn()} />);
-      expect(screen.getByAltText('Zoomed Moment')).toBeInTheDocument();
+      expect(screen.getByAltText('Foto dalam tampilan penuh')).toBeInTheDocument();
     });
 
     it('renders a visible container', () => {
@@ -61,20 +61,20 @@ describe('PhotoZoomModal', () => {
   describe('image src', () => {
     it('image has correct src attribute', () => {
       render(<PhotoZoomModal selectedPhoto="/test.jpg" onClose={vi.fn()} />);
-      const img = screen.getByAltText('Zoomed Moment');
+      const img = screen.getByAltText('Foto dalam tampilan penuh');
       expect(img).toHaveAttribute('src', '/test.jpg');
     });
 
     it('image src changes when prop changes', () => {
       const { rerender } = render(<PhotoZoomModal selectedPhoto="/first.jpg" onClose={vi.fn()} />);
-      expect(screen.getByAltText('Zoomed Moment')).toHaveAttribute('src', '/first.jpg');
+      expect(screen.getByAltText('Foto dalam tampilan penuh')).toHaveAttribute('src', '/first.jpg');
       rerender(<PhotoZoomModal selectedPhoto="/second.jpg" onClose={vi.fn()} />);
-      expect(screen.getByAltText('Zoomed Moment')).toHaveAttribute('src', '/second.jpg');
+      expect(screen.getByAltText('Foto dalam tampilan penuh')).toHaveAttribute('src', '/second.jpg');
     });
 
     it('image with absolute URL works', () => {
       render(<PhotoZoomModal selectedPhoto="https://example.com/photo.jpg" onClose={vi.fn()} />);
-      expect(screen.getByAltText('Zoomed Moment')).toHaveAttribute('src', 'https://example.com/photo.jpg');
+      expect(screen.getByAltText('Foto dalam tampilan penuh')).toHaveAttribute('src', 'https://example.com/photo.jpg');
     });
   });
 
@@ -82,16 +82,16 @@ describe('PhotoZoomModal', () => {
   // 4. Image has alt text
   // ---------------------------------------------------------------------------
   describe('image alt text', () => {
-    it('image has alt text "Zoomed Moment"', () => {
+    it('image has alt text "Foto dalam tampilan penuh"', () => {
       render(<PhotoZoomModal selectedPhoto="/test.jpg" onClose={vi.fn()} />);
-      const img = screen.getByAltText('Zoomed Moment');
+      const img = screen.getByAltText('Foto dalam tampilan penuh');
       expect(img).toBeInTheDocument();
     });
 
-    it('alt text is exactly "Zoomed Moment" (not empty)', () => {
+    it('alt text is exactly "Foto dalam tampilan penuh" (not empty)', () => {
       render(<PhotoZoomModal selectedPhoto="/test.jpg" onClose={vi.fn()} />);
-      const img = screen.getByAltText('Zoomed Moment');
-      expect(img.getAttribute('alt')).toBe('Zoomed Moment');
+      const img = screen.getByAltText('Foto dalam tampilan penuh');
+      expect(img.getAttribute('alt')).toBe('Foto dalam tampilan penuh');
     });
   });
 
@@ -173,14 +173,14 @@ describe('PhotoZoomModal', () => {
     it('clicking the image does not call onClose', () => {
       const onClose = vi.fn();
       render(<PhotoZoomModal selectedPhoto="/test.jpg" onClose={onClose} />);
-      fireEvent.click(screen.getByAltText('Zoomed Moment'));
+      fireEvent.click(screen.getByAltText('Foto dalam tampilan penuh'));
       expect(onClose).not.toHaveBeenCalled();
     });
 
     it('clicking the image container div does not call onClose', () => {
       const onClose = vi.fn();
       render(<PhotoZoomModal selectedPhoto="/test.jpg" onClose={onClose} />);
-      const img = screen.getByAltText('Zoomed Moment');
+      const img = screen.getByAltText('Foto dalam tampilan penuh');
       const imageContainer = img.parentElement;
       if (imageContainer) fireEvent.click(imageContainer);
       expect(onClose).not.toHaveBeenCalled();
@@ -208,21 +208,21 @@ describe('PhotoZoomModal', () => {
   // 10. Max-height constraint
   // ---------------------------------------------------------------------------
   describe('max-height constraint', () => {
-    it('image has max-h-[85vh] constraint', () => {
+    it('image has max-height constraint via style', () => {
       render(<PhotoZoomModal selectedPhoto="/test.jpg" onClose={vi.fn()} />);
-      const img = screen.getByAltText('Zoomed Moment');
-      expect(img).toHaveClass('max-h-[85vh]');
+      const img = screen.getByAltText('Foto dalam tampilan penuh');
+      expect(img.style.maxHeight).toBe('85vh');
     });
 
-    it('image has max-w-full', () => {
+    it('image has max-width constraint via style', () => {
       render(<PhotoZoomModal selectedPhoto="/test.jpg" onClose={vi.fn()} />);
-      const img = screen.getByAltText('Zoomed Moment');
-      expect(img).toHaveClass('max-w-full');
+      const img = screen.getByAltText('Foto dalam tampilan penuh');
+      expect(img.style.maxWidth).toBe('100%');
     });
 
     it('image uses object-contain to prevent distortion', () => {
       render(<PhotoZoomModal selectedPhoto="/test.jpg" onClose={vi.fn()} />);
-      const img = screen.getByAltText('Zoomed Moment');
+      const img = screen.getByAltText('Foto dalam tampilan penuh');
       expect(img).toHaveClass('object-contain');
     });
   });
@@ -256,13 +256,13 @@ describe('PhotoZoomModal', () => {
   describe('border-radius', () => {
     it('image has rounded-[1.5rem]', () => {
       render(<PhotoZoomModal selectedPhoto="/test.jpg" onClose={vi.fn()} />);
-      const img = screen.getByAltText('Zoomed Moment');
+      const img = screen.getByAltText('Foto dalam tampilan penuh');
       expect(img).toHaveClass('rounded-[1.5rem]');
     });
 
     it('image container has rounded-[2rem]', () => {
       render(<PhotoZoomModal selectedPhoto="/test.jpg" onClose={vi.fn()} />);
-      const img = screen.getByAltText('Zoomed Moment');
+      const img = screen.getByAltText('Foto dalam tampilan penuh');
       const container = img.parentElement;
       expect(container).toHaveClass('rounded-[2rem]');
     });
@@ -280,21 +280,21 @@ describe('PhotoZoomModal', () => {
   describe('spring animation container', () => {
     it('image container has overflow-hidden for animation clipping', () => {
       render(<PhotoZoomModal selectedPhoto="/test.jpg" onClose={vi.fn()} />);
-      const img = screen.getByAltText('Zoomed Moment');
+      const img = screen.getByAltText('Foto dalam tampilan penuh');
       const container = img.parentElement;
       expect(container).toHaveClass('overflow-hidden');
     });
 
     it('image container has relative positioning for close button', () => {
       render(<PhotoZoomModal selectedPhoto="/test.jpg" onClose={vi.fn()} />);
-      const img = screen.getByAltText('Zoomed Moment');
+      const img = screen.getByAltText('Foto dalam tampilan penuh');
       const container = img.parentElement;
       expect(container).toHaveClass('relative');
     });
 
     it('image container has max-w-5xl', () => {
       render(<PhotoZoomModal selectedPhoto="/test.jpg" onClose={vi.fn()} />);
-      const img = screen.getByAltText('Zoomed Moment');
+      const img = screen.getByAltText('Foto dalam tampilan penuh');
       const container = img.parentElement;
       expect(container).toHaveClass('max-w-5xl');
     });
@@ -375,26 +375,26 @@ describe('PhotoZoomModal', () => {
   describe('re-render stability', () => {
     it('re-renders from null to photo correctly', () => {
       const { rerender } = render(<PhotoZoomModal selectedPhoto={null} onClose={vi.fn()} />);
-      expect(screen.queryByAltText('Zoomed Moment')).toBeNull();
+      expect(screen.queryByAltText('Foto dalam tampilan penuh')).toBeNull();
       rerender(<PhotoZoomModal selectedPhoto="/photo.jpg" onClose={vi.fn()} />);
-      expect(screen.getByAltText('Zoomed Moment')).toBeInTheDocument();
+      expect(screen.getByAltText('Foto dalam tampilan penuh')).toBeInTheDocument();
     });
 
     it('re-renders from photo to null correctly', () => {
       const { rerender } = render(<PhotoZoomModal selectedPhoto="/photo.jpg" onClose={vi.fn()} />);
-      expect(screen.getByAltText('Zoomed Moment')).toBeInTheDocument();
+      expect(screen.getByAltText('Foto dalam tampilan penuh')).toBeInTheDocument();
       rerender(<PhotoZoomModal selectedPhoto={null} onClose={vi.fn()} />);
       // AnimatePresence may keep exit animation in DOM briefly
-      expect(screen.queryByAltText('Zoomed Moment')).toBeDefined();
+      expect(screen.queryByAltText('Foto dalam tampilan penuh')).toBeDefined();
     });
 
     it('multiple re-renders with different photos work', () => {
       const { rerender } = render(<PhotoZoomModal selectedPhoto="/a.jpg" onClose={vi.fn()} />);
-      expect(screen.getByAltText('Zoomed Moment')).toHaveAttribute('src', '/a.jpg');
+      expect(screen.getByAltText('Foto dalam tampilan penuh')).toHaveAttribute('src', '/a.jpg');
       rerender(<PhotoZoomModal selectedPhoto="/b.jpg" onClose={vi.fn()} />);
-      expect(screen.getByAltText('Zoomed Moment')).toHaveAttribute('src', '/b.jpg');
+      expect(screen.getByAltText('Foto dalam tampilan penuh')).toHaveAttribute('src', '/b.jpg');
       rerender(<PhotoZoomModal selectedPhoto="/c.jpg" onClose={vi.fn()} />);
-      expect(screen.getByAltText('Zoomed Moment')).toHaveAttribute('src', '/c.jpg');
+      expect(screen.getByAltText('Foto dalam tampilan penuh')).toHaveAttribute('src', '/c.jpg');
     });
   });
 

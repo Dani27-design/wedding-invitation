@@ -264,34 +264,24 @@ describe('utils/animations', () => {
         expect(fadeUp.initial.y).toBe(20);
       });
 
-      it('has a blur filter', () => {
-        expect(fadeUp.initial.filter).toContain('blur');
-      });
-
-      it('has a non-zero blur filter', () => {
-        expect(fadeUp.initial.filter).not.toBe('blur(0px)');
-      });
-
-      it('blur filter matches expected value', () => {
-        expect(fadeUp.initial.filter).toBe('blur(10px)');
+      it('does not use filter:blur (GPU performance optimization)', () => {
+        expect(fadeUp.initial).not.toHaveProperty('filter');
       });
 
       it('opacity is exactly 0 (not falsy)', () => {
         expect(fadeUp.initial.opacity).toStrictEqual(0);
       });
 
-      it('has exactly 3 properties: opacity, y, filter', () => {
+      it('has exactly 2 properties: opacity, y', () => {
         const keys = Object.keys(fadeUp.initial);
-        expect(keys).toHaveLength(3);
+        expect(keys).toHaveLength(2);
         expect(keys).toContain('opacity');
         expect(keys).toContain('y');
-        expect(keys).toContain('filter');
       });
 
       it('does not have undefined properties', () => {
         expect(fadeUp.initial.opacity).not.toBeUndefined();
         expect(fadeUp.initial.y).not.toBeUndefined();
-        expect(fadeUp.initial.filter).not.toBeUndefined();
       });
     });
 
@@ -309,8 +299,8 @@ describe('utils/animations', () => {
         expect(fadeUp.animate.y).toBe(0);
       });
 
-      it('removes blur (blur is 0px)', () => {
-        expect(fadeUp.animate.filter).toBe('blur(0px)');
+      it('does not use filter (GPU performance optimization)', () => {
+        expect(fadeUp.animate).not.toHaveProperty('filter');
       });
 
       it('includes a transition property', () => {
@@ -335,12 +325,11 @@ describe('utils/animations', () => {
         expect(fadeUp.animate.transition.ease).toEqual(transition.ease);
       });
 
-      it('has exactly 4 properties: opacity, y, filter, transition', () => {
+      it('has exactly 3 properties: opacity, y, transition', () => {
         const keys = Object.keys(fadeUp.animate);
-        expect(keys).toHaveLength(4);
+        expect(keys).toHaveLength(3);
         expect(keys).toContain('opacity');
         expect(keys).toContain('y');
-        expect(keys).toContain('filter');
         expect(keys).toContain('transition');
       });
 
@@ -355,7 +344,6 @@ describe('utils/animations', () => {
       it('does not have undefined properties', () => {
         expect(fadeUp.animate.opacity).not.toBeUndefined();
         expect(fadeUp.animate.y).not.toBeUndefined();
-        expect(fadeUp.animate.filter).not.toBeUndefined();
         expect(fadeUp.animate.transition).not.toBeUndefined();
       });
     });
@@ -384,10 +372,9 @@ describe('utils/animations', () => {
         expect(fadeUp.animate.y).toBe(0);
       });
 
-      it('initial has blur and animate removes blur', () => {
-        expect(fadeUp.initial.filter).toContain('blur');
-        expect(fadeUp.initial.filter).not.toBe('blur(0px)');
-        expect(fadeUp.animate.filter).toBe('blur(0px)');
+      it('uses only opacity+transform (no filter for GPU performance)', () => {
+        expect(fadeUp.initial).not.toHaveProperty('filter');
+        expect(fadeUp.animate).not.toHaveProperty('filter');
       });
     });
   });
@@ -520,8 +507,8 @@ describe('utils/animations', () => {
       expect(typeof fadeUp.initial.y).toBe('number');
     });
 
-    it('fadeUp.initial.filter is a string', () => {
-      expect(typeof fadeUp.initial.filter).toBe('string');
+    it('fadeUp.initial does not have filter (GPU optimization)', () => {
+      expect(fadeUp.initial).not.toHaveProperty('filter');
     });
 
     it('fadeUp.animate.opacity is a number', () => {
@@ -532,8 +519,8 @@ describe('utils/animations', () => {
       expect(typeof fadeUp.animate.y).toBe('number');
     });
 
-    it('fadeUp.animate.filter is a string', () => {
-      expect(typeof fadeUp.animate.filter).toBe('string');
+    it('fadeUp.animate does not have filter (GPU optimization)', () => {
+      expect(fadeUp.animate).not.toHaveProperty('filter');
     });
 
     it('stagger.animate.transition.staggerChildren is a number', () => {

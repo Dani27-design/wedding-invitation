@@ -1,7 +1,17 @@
 import { Timestamp } from 'firebase/firestore';
 
+export interface UserDocument {
+  uid: string;
+  email: string;
+  displayName: string;
+  role: 'pending' | 'customer' | 'super';
+  provider: 'email' | 'google';
+  assignedWeddingSlug: string | null;
+  createdAt: Timestamp;
+}
+
 export interface WeddingDocument {
-  ownerId: string;
+  adminIds: string[];
   status: 'draft' | 'published' | 'archived';
   createdAt: Timestamp;
   updatedAt: Timestamp;

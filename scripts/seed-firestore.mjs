@@ -1,47 +1,52 @@
 /**
  * Seed Firestore with initial wedding data.
+ * Uses Firebase Admin SDK to bypass security rules.
  *
- * Pre-requisite: Create .env file with Firebase credentials (see .env.example)
- * Run: node scripts/seed-firestore.mjs
+ * Pre-requisite:
+ *   1. Create .env file with Firebase Admin credentials (see .env.example)
+ *   2. Run: node scripts/seed-firestore.mjs
+ *
  * Idempotent: Checks if weddings/dani-marini exists before writing.
  */
 
 import 'dotenv/config';
-import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, setDoc, getDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { initializeApp, cert } from 'firebase-admin/app';
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 
-const firebaseConfig = {
-  apiKey: process.env.VITE_FIREBASE_API_KEY,
-  authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.VITE_FIREBASE_APP_ID,
-};
+const projectId = process.env.FIREBASE_PROJECT_ID;
+const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+const privateKey = process.env.FIREBASE_PRIVATE_KEY;
 
-if (!firebaseConfig.projectId) {
-  console.error('Missing Firebase config. Create .env file with credentials (see .env.example)');
+if (!projectId || !clientEmail || !privateKey) {
+  console.error('Missing Firebase Admin env vars: FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY');
   process.exit(1);
 }
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+initializeApp({
+  credential: cert({
+    projectId,
+    clientEmail,
+    privateKey: privateKey.replace(/\\n/g, '\n'),
+  }),
+});
+
+const db = getFirestore();
 
 const SLUG = 'dani-marini';
 
 // ─── Wedding Document ─────────────────────────────────────────────────────────
 
 const weddingData = {
-  ownerId: '',
+  adminIds: [],
   status: 'published',
-  createdAt: serverTimestamp(),
-  updatedAt: serverTimestamp(),
+  createdAt: FieldValue.serverTimestamp(),
+  updatedAt: FieldValue.serverTimestamp(),
 
   // Couple — Groom
   groomNickname: 'Dani',
   groomName: 'M. Daniansyah Chusyaidin, S.Kom',
   groomParents: 'Putra Bapak M. Safiudin Sukri & Ibu Indiarti',
-  groomPhoto: '/images/groom_face_potrait.jpeg',
+  groomPhoto: '/images/bride_and_groom_full_body_potrait.jpeg',
   groomSocialLinks: [
     { label: 'Instagram', url: 'https://instagram.com/danichusyaidin' },
     { label: 'LinkedIn', url: 'https://id.linkedin.com/in/daniansyahchusyaidin' }
@@ -51,7 +56,7 @@ const weddingData = {
   brideNickname: 'Marini',
   brideName: 'Siti Nur Marini, A.Md.M',
   brideParents: 'Putri Bapak Margono & Ibu (Almh) Sulami',
-  bridePhoto: '/images/bride_face_potrait.jpeg',
+  bridePhoto: '/images/bride_and_groom_full_body_potrait.jpeg',
   brideSocialLinks: [
     { label: 'Instagram', url: 'https://instagram.com/mariniw_' },
     { label: 'Threads', url: 'https://threads.com/@mariniw_' }
@@ -70,29 +75,29 @@ const weddingData = {
     { name: 'Resepsi', start: '10:00', end: '13:00' },
   ],
 
-  // Story (field renamed: bg → bgImage)
+  // Story
   story: [
-    { year: '2016 — 2017', text: 'Berawal dari chat sederhana,\nlalu kita dipertemukan di dunia nyata.\n\nCappucino cincau dan Indomaret Point—\njadi saksi awal cerita kita.', bgImage: '/images/bride_face_potrait.jpeg' },
-    { year: '2018 — 2022', text: 'Kita berjalan beriringan,\nmelewati hari-hari yang mungkin terlihat biasa,\ntapi selalu terasa berbeda saat dijalani bersama.', bgImage: '/images/groom_face_potrait.jpeg' },
-    { year: '2023', text: 'Kita sampai di satu titik,\nsaling menyaksikan langkah masing-masing,\ndan tetap memilih untuk ada di sisi satu sama lain.', bgImage: '/images/bride_and_groom_half_body_potrait.png' },
+    { year: '2016 — 2017', text: 'Berawal dari chat sederhana,\nlalu kita dipertemukan di dunia nyata.\n\nCappucino cincau dan Indomaret Point—\njadi saksi awal cerita kita.', bgImage: '/images/bride_and_groom_full_body_potrait.jpeg' },
+    { year: '2018 — 2022', text: 'Kita berjalan beriringan,\nmelewati hari-hari yang mungkin terlihat biasa,\ntapi selalu terasa berbeda saat dijalani bersama.', bgImage: '/images/bride_and_groom_full_body_potrait.jpeg' },
+    { year: '2023', text: 'Kita sampai di satu titik,\nsaling menyaksikan langkah masing-masing,\ndan tetap memilih untuk ada di sisi satu sama lain.', bgImage: '/images/bride_and_groom_full_body_potrait.jpeg' },
     { year: '2024 — 2025', text: 'Hubungan ini tidak lagi sekadar berjalan,\ntapi mulai menuju arah yang sama.\n\nDari cerita yang kita jalani,\nperlahan menjadi tujuan yang kita pilih.', bgImage: '/images/bride_and_groom_full_body_potrait.jpeg' },
     { year: '2026', text: 'Setelah semua perjalanan ini,\nkita memutuskan untuk melangkah lebih jauh—\nbersama, selamanya.', bgImage: '/images/bride_and_groom_full_body_potrait.jpeg' },
     { year: 'Ikrar', text: 'Bukan perjalanan yang singkat,\ndan tidak selalu mudah.\nAda waktu yang menguji,\nada langkah yang sempat rapuh.\n\nNamun kami tetap memilih,\nuntuk tidak berhenti satu sama lain.\n\nHingga akhirnya kami sampai di titik ini,\ntapi karena kami memutuskan\nuntuk tetap melaluinya bersama.', bgImage: '/images/bride_and_groom_full_body_potrait.jpeg' },
   ],
 
-  // Gallery (URLs only — layout auto-computed by app)
+  // Gallery
   gallery: [
-    '/images/bride_face_potrait.jpeg',
     '/images/bride_and_groom_full_body_potrait.jpeg',
-    '/images/groom_face_potrait.jpeg',
-    '/images/bride_and_groom_half_body_potrait.png',
-    '/images/bride_face_potrait.jpeg',
-    '/images/groom_face_potrait.jpeg',
-    '/images/bride_and_groom_half_body_potrait.png',
     '/images/bride_and_groom_full_body_potrait.jpeg',
-    '/images/bride_face_potrait.jpeg',
-    '/images/groom_face_potrait.jpeg',
-    '/images/bride_and_groom_half_body_potrait.png',
+    '/images/bride_and_groom_full_body_potrait.jpeg',
+    '/images/bride_and_groom_full_body_potrait.jpeg',
+    '/images/bride_and_groom_full_body_potrait.jpeg',
+    '/images/bride_and_groom_full_body_potrait.jpeg',
+    '/images/bride_and_groom_full_body_potrait.jpeg',
+    '/images/bride_and_groom_full_body_potrait.jpeg',
+    '/images/bride_and_groom_full_body_potrait.jpeg',
+    '/images/bride_and_groom_full_body_potrait.jpeg',
+    '/images/bride_and_groom_full_body_potrait.jpeg',
     '/images/bride_and_groom_full_body_potrait.jpeg',
   ],
 
@@ -112,7 +117,7 @@ const weddingData = {
   heroImage: '/images/bride_and_groom_full_body_potrait.jpeg',
   openingImage: '/images/bride_and_groom_full_body_potrait.jpeg',
 
-  // Quran verse (from EventSection.tsx)
+  // Quran verse
   quranArabic: 'وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَاجًا لِّتَسْكُنُوا إِلَيْهَا وَجَعَلَ بَيْنَكُم مَّوَدَّةً وَرَحْمَةً ۚ إِنَّ فِي ذَٰلِكَ لَآيَاتٍ لِّقَوْمٍ يَتَفَكَّرُونَ',
   quranTranslation: 'Dan di antara tanda-tanda kekuasaan-Nya ialah Dia menciptakan untukmu pasangan hidup dari jenismu sendiri, supaya kamu merasa tenteram kepadanya, dan dijadikan-Nya di antaramu rasa kasih dan sayang. Sesungguhnya pada yang demikian itu benar-benar terdapat tanda-tanda bagi kaum yang berpikir.',
   quranReference: 'QS. Ar-Rum: 21',
@@ -135,17 +140,17 @@ const weddingData = {
     },
   },
 
-  // Credits (from Footer.tsx)
+  // Credits
   credits: [
-    { 
-      name: 'M. Daniansyah C.', 
-      role: 'developer', 
+    {
+      name: 'M. Daniansyah C.',
+      role: 'developer',
       description: 'Menulis setiap baris code di balik halaman ini, merangkainya satu per satu sampai akhirnya bisa bercerita tentang kami.',
       socialLinks: []
     },
-    { 
-      name: 'Siti Nur Marini', 
-      role: 'designer', 
+    {
+      name: 'Siti Nur Marini',
+      role: 'designer',
       description: 'Memperindah setiap bagian di balik halaman ini, menyusunnya satu per satu sampai akhirnya benar-benar terasa seperti kami.',
       socialLinks: []
     },
@@ -187,35 +192,34 @@ const seedWishes = [
 
 async function seed() {
   console.log(`Seeding Firestore for wedding: ${SLUG}`);
-  console.log(`Project: ${firebaseConfig.projectId}\n`);
+  console.log(`Project: ${projectId}\n`);
 
   // 1. Check if wedding already exists
-  const weddingRef = doc(db, 'weddings', SLUG);
-  const weddingSnap = await getDoc(weddingRef);
-  if (weddingSnap.exists()) {
+  const weddingRef = db.doc(`weddings/${SLUG}`);
+  const weddingSnap = await weddingRef.get();
+  if (weddingSnap.exists) {
     console.log('⚠ weddings/' + SLUG + ' already exists. Skipping all seeds.');
     console.log('  Delete the document manually if you want to re-seed.');
     process.exit(0);
   }
 
   // 2. Create wedding document
-  await setDoc(weddingRef, weddingData);
+  await weddingRef.set(weddingData);
   console.log('✓ Created weddings/' + SLUG);
 
   // 3. Create story-likes document
-  const likesRef = doc(db, 'story-likes', SLUG);
-  await setDoc(likesRef, storyLikesData);
+  await db.doc(`story-likes/${SLUG}`).set(storyLikesData);
   console.log('✓ Created story-likes/' + SLUG);
 
   // 4. Create seed wishes
-  const wishesCol = collection(db, 'wishes');
+  const wishesCol = db.collection('wishes');
   for (const wish of seedWishes) {
-    await addDoc(wishesCol, {
+    await wishesCol.add({
       weddingId: SLUG,
       name: wish.name,
       message: wish.message,
       attendance: wish.attendance,
-      createdAt: serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
     });
   }
   console.log(`✓ Created ${seedWishes.length} wishes`);

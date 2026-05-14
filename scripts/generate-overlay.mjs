@@ -2,8 +2,6 @@ import { createCanvas, registerFont } from 'canvas';
 import { writeFileSync } from 'fs';
 
 registerFont('public/fonts/Dayland.ttf', { family: 'Dayland' });
-registerFont('public/fonts/CormorantGaramond-Italic.ttf', { family: 'Cormorant Regular' });
-registerFont('public/fonts/CormorantGaramond-Regular.ttf', { family: 'Cormorant Italic' });
 
 const CANVAS_W = 1080;
 const CANVAS_H = 1920;

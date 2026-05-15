@@ -155,12 +155,15 @@ export function WeddingClient({ wedding, slug }: WeddingClientProps) {
   const handleClosePhoto = useCallback(() => setSelectedPhoto(null), []);
 
   const handleOpen = useCallback(() => {
+    // Load + play audio FIRST — must be in the direct user gesture call stack
+    if (audioRef.current) {
+      audioRef.current.load();
+      audioRef.current.play()
+        .then(() => setIsPlaying(true))
+        .catch(() => setIsPlaying(false));
+    }
     window.scrollTo(0, 0);
     setIsOpen(true);
-    if (audioRef.current) {
-      setIsPlaying(true);
-      audioRef.current.play().catch(() => setIsPlaying(false));
-    }
   }, []);
 
   const toggleMusic = useCallback(() => {
@@ -234,13 +237,13 @@ export function WeddingClient({ wedding, slug }: WeddingClientProps) {
 
   return (
     <WeddingContext.Provider value={wedding}>
-      <div className={`min-h-screen bg-ivory text-ink selection:bg-gold/20 font-sans overflow-x-hidden ${!isOpen ? 'overflow-y-hidden h-screen' : ''}`}>
+      <div className="min-h-screen bg-ivory text-ink selection:bg-gold/20 font-sans overflow-x-hidden">
         <BackgroundLayers />
         {wedding.musicUrl && (
           <audio
             ref={audioRef}
             loop
-            preload="auto"
+            preload="none"
             src={wedding.musicUrl}
           />
         )}

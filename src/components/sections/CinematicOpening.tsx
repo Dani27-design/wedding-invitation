@@ -37,7 +37,7 @@ export const CinematicOpening = ({
     const THRESHOLD = 5;
 
     const handleWheel = (e: WheelEvent) => {
-      // Trigger only on Scroll Down
+      e.preventDefault();
       if (e.deltaY > THRESHOLD) triggerOpen();
     };
 
@@ -46,20 +46,22 @@ export const CinematicOpening = ({
     };
 
     const handleTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
       const touchY = e.touches[0].clientY;
       const deltaY = touchStartY - touchY;
-      // Trigger only on Swipe Up
       if (deltaY > THRESHOLD) triggerOpen();
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Trigger only on Action keys or Scroll Down
-      if (['ArrowDown', ' ', 'Enter'].includes(e.key)) triggerOpen();
+      if (['ArrowDown', ' ', 'Enter'].includes(e.key)) {
+        e.preventDefault();
+        triggerOpen();
+      }
     };
 
-    window.addEventListener('wheel', handleWheel, { passive: true });
+    window.addEventListener('wheel', handleWheel, { passive: false });
     window.addEventListener('touchstart', handleTouchStart, { passive: true });
-    window.addEventListener('touchmove', handleTouchMove, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
     window.addEventListener('keydown', handleKeyDown);
 
     return () => {

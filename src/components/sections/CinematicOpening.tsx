@@ -28,7 +28,6 @@ export const CinematicOpening = ({
 
     const clickButton = () => {
       if (!openedRef.current) {
-        openedRef.current = true;
         buttonRef.current?.click();
       }
     };

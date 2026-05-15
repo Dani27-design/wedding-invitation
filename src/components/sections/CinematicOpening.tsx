@@ -19,7 +19,7 @@ export const CinematicOpening = ({
   onOpen,
 }: CinematicOpeningProps) => {
   const wedding = useWeddingContext();
-  const buttonRef = useRef<HTMLButtonElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
   const openedRef = useRef(false);
 
   // Store onOpen in a ref so the effect closure always has the latest reference
@@ -38,18 +38,16 @@ export const CinematicOpening = ({
       }
     };
 
-    // Desktop: wheel event is NOT a user activation event for audio autoplay.
-    // Detect wheel scroll, then programmatically focus + click the button
-    // so audio.play() runs from a trusted click (user activation).
-    const handleWheel = (e: WheelEvent) => {
-      if (e.deltaY > THRESHOLD && !openedRef.current) {
-        buttonRef.current?.click();
-      }
+    // Scroll/swipe detected → force a click on the overlay screen.
+    // click IS a user activation event → audio.play() works.
+    const forceClick = () => {
+      if (!openedRef.current) overlayRef.current?.click();
     };
 
-    // Mobile: touchmove is NOT a user activation event.
-    // Detect swipe direction in touchmove, but trigger on touchend
-    // which IS a user activation event.
+    const handleWheel = (e: WheelEvent) => {
+      if (e.deltaY > THRESHOLD) forceClick();
+    };
+
     const handleTouchStart = (e: TouchEvent) => {
       touchStartY = e.touches[0].clientY;
       shouldOpenOnTouchEnd = false;
@@ -61,12 +59,13 @@ export const CinematicOpening = ({
       if (deltaY > THRESHOLD) shouldOpenOnTouchEnd = true;
     };
 
+    // touchend IS a user activation event — trigger directly
     const handleTouchEnd = () => {
       if (shouldOpenOnTouchEnd) triggerOpen();
       shouldOpenOnTouchEnd = false;
     };
 
-    // keydown IS a user activation event — triggers audio directly
+    // keydown IS a user activation event — trigger directly
     const handleKeyDown = (e: KeyboardEvent) => {
       if (['ArrowDown', ' ', 'Enter'].includes(e.key)) {
         e.preventDefault();
@@ -98,6 +97,7 @@ export const CinematicOpening = ({
 
   return (
     <motion.div
+      ref={overlayRef}
       initial={{ opacity: 1 }}
       exit={{
         opacity: 0,
@@ -234,7 +234,6 @@ export const CinematicOpening = ({
               </p>
             </div>
             <motion.button
-              ref={buttonRef}
               onClick={handleButtonClick}
               aria-label="Buka Undangan"
               className="flex flex-col items-center gap-3 pt-4 group cursor-pointer transition-all"

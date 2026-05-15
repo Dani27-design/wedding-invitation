@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from "react";
+import { useRef, useEffect } from "react";
 import Image from "next/image";
 import { motion } from "motion/react";
 import { Heart } from "lucide-react";
@@ -19,25 +19,22 @@ export const CinematicOpening = ({
   onOpen,
 }: CinematicOpeningProps) => {
   const wedding = useWeddingContext();
-  const [isOpening, setIsOpening] = useState(false);
-
-  const triggerOpen = () => {
-    if (!isOpening) {
-      setIsOpening(true);
-      onOpen();
-    }
-  };
-
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const openedRef = useRef(false);
 
   useEffect(() => {
-    // 3. Interaction Listeners - only attach if not already opening
-    if (isOpening) return;
-
     let touchStartY = 0;
     const THRESHOLD = 5;
 
+    const clickButton = () => {
+      if (!openedRef.current) {
+        openedRef.current = true;
+        buttonRef.current?.click();
+      }
+    };
+
     const handleWheel = (e: WheelEvent) => {
-      if (e.deltaY > THRESHOLD) triggerOpen();
+      if (e.deltaY > THRESHOLD) clickButton();
     };
 
     const handleTouchStart = (e: TouchEvent) => {
@@ -47,13 +44,13 @@ export const CinematicOpening = ({
     const handleTouchMove = (e: TouchEvent) => {
       const touchY = e.touches[0].clientY;
       const deltaY = touchStartY - touchY;
-      if (deltaY > THRESHOLD) triggerOpen();
+      if (deltaY > THRESHOLD) clickButton();
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (['ArrowDown', ' ', 'Enter'].includes(e.key)) {
         e.preventDefault();
-        triggerOpen();
+        clickButton();
       }
     };
 
@@ -68,7 +65,7 @@ export const CinematicOpening = ({
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpening, onOpen]);
+  }, []);
 
   return (
     <motion.div
@@ -80,7 +77,7 @@ export const CinematicOpening = ({
       }}
       className="fixed inset-0 z-[10000] flex flex-col bg-ink py-[2vh] overflow-hidden"
       style={{ 
-        pointerEvents: isOpening ? 'none' : 'auto',
+        pointerEvents: openedRef.current ? 'none' : 'auto',
         boxShadow: '0 0 0 1.5px #FDFCF8',
         transform: 'translateZ(0)',
         WebkitBackfaceVisibility: 'hidden',
@@ -208,7 +205,8 @@ export const CinematicOpening = ({
               </p>
             </div>
             <motion.button
-              onClick={triggerOpen}
+              ref={buttonRef}
+              onClick={() => { if (!openedRef.current) { openedRef.current = true; onOpen(); } }}
               aria-label="Buka Undangan"
               className="flex flex-col items-center gap-3 pt-4 group cursor-pointer transition-all"
             >

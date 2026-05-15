@@ -97,9 +97,18 @@ export function WeddingClient({ wedding, slug }: WeddingClientProps) {
   const submitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [viewportHeight, setViewportHeight] = useState(667);
 
-  // Block scroll while opening overlay is visible (including exit animation)
+  // Block scroll while opening overlay is visible (including 500ms exit animation)
+  const [isScrollLocked, setIsScrollLocked] = useState(true);
+
   useEffect(() => {
-    if (isOpen) return;
+    if (isOpen) {
+      const timer = setTimeout(() => setIsScrollLocked(false), 600);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isScrollLocked) return;
     const blockScroll = (e: Event) => e.preventDefault();
     window.addEventListener('wheel', blockScroll, { passive: false });
     window.addEventListener('touchmove', blockScroll, { passive: false });
@@ -107,7 +116,7 @@ export function WeddingClient({ wedding, slug }: WeddingClientProps) {
       window.removeEventListener('wheel', blockScroll);
       window.removeEventListener('touchmove', blockScroll);
     };
-  }, [isOpen]);
+  }, [isScrollLocked]);
 
   useEffect(() => {
     let resizeTimer: ReturnType<typeof setTimeout>;
@@ -167,20 +176,18 @@ export function WeddingClient({ wedding, slug }: WeddingClientProps) {
   const handleClosePhoto = useCallback(() => setSelectedPhoto(null), []);
 
   const handleOpen = useCallback(() => {
-    // Play audio in the direct user gesture call stack
+    // Play audio SYNCHRONOUSLY in the user gesture call stack
     if (audioRef.current) {
-      const audio = audioRef.current;
-      const tryPlay = () => {
-        audio.play()
-          .then(() => setIsPlaying(true))
-          .catch(() => setIsPlaying(false));
-      };
-      if (audio.readyState >= 2) {
-        tryPlay();
-      } else {
-        audio.addEventListener('canplay', tryPlay, { once: true });
-        audio.load();
-      }
+      audioRef.current.play()
+        .then(() => setIsPlaying(true))
+        .catch(() => {
+          // Retry once after brief buffer time
+          setTimeout(() => {
+            audioRef.current?.play()
+              .then(() => setIsPlaying(true))
+              .catch(() => setIsPlaying(false));
+          }, 500);
+        });
     }
     window.scrollTo(0, 0);
     setIsOpen(true);

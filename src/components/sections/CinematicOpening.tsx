@@ -104,7 +104,8 @@ export const CinematicOpening = ({
         scale: 1.05,
         transition: { duration: 0.5, ease: [0.76, 0, 0.24, 1] },
       }}
-      className="fixed inset-0 z-[10000] flex flex-col bg-ink py-[2vh] overflow-hidden"
+      onClick={handleButtonClick}
+      className="fixed inset-0 z-[10000] flex flex-col bg-ink py-[2vh] overflow-hidden cursor-pointer"
       style={{
         boxShadow: '0 0 0 1.5px #FDFCF8',
         transform: 'translateZ(0)',

@@ -97,27 +97,6 @@ export function WeddingClient({ wedding, slug }: WeddingClientProps) {
   const submitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [viewportHeight, setViewportHeight] = useState(667);
 
-  // Block scroll while opening overlay is visible (including 500ms exit animation)
-  const [isScrollLocked, setIsScrollLocked] = useState(true);
-
-  useEffect(() => {
-    if (isOpen) {
-      const timer = setTimeout(() => setIsScrollLocked(false), 600);
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (!isScrollLocked) return;
-    const blockScroll = (e: Event) => e.preventDefault();
-    window.addEventListener('wheel', blockScroll, { passive: false });
-    window.addEventListener('touchmove', blockScroll, { passive: false });
-    return () => {
-      window.removeEventListener('wheel', blockScroll);
-      window.removeEventListener('touchmove', blockScroll);
-    };
-  }, [isScrollLocked]);
-
   useEffect(() => {
     let resizeTimer: ReturnType<typeof setTimeout>;
     const handleResize = () => {

@@ -19,92 +19,59 @@ export const CinematicOpening = ({
   onOpen,
 }: CinematicOpeningProps) => {
   const wedding = useWeddingContext();
-  const overlayRef = useRef<HTMLDivElement>(null);
   const openedRef = useRef(false);
-
-  // Store onOpen in a ref so the effect closure always has the latest reference
+  const touchStartY = useRef(0);
   const onOpenRef = useRef(onOpen);
   onOpenRef.current = onOpen;
 
-  useEffect(() => {
-    let touchStartY = 0;
-    let shouldOpenOnTouchEnd = false;
-    const THRESHOLD = 5;
-
-    const triggerOpen = () => {
-      if (!openedRef.current) {
-        openedRef.current = true;
-        onOpenRef.current();
-      }
-    };
-
-    // Scroll/swipe detected → force a click on the overlay screen.
-    // click IS a user activation event → audio.play() works.
-    const forceClick = () => {
-      if (!openedRef.current) overlayRef.current?.click();
-    };
-
-    const handleWheel = (e: WheelEvent) => {
-      if (e.deltaY > THRESHOLD) forceClick();
-    };
-
-    const handleTouchStart = (e: TouchEvent) => {
-      touchStartY = e.touches[0].clientY;
-      shouldOpenOnTouchEnd = false;
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
-      const touchY = e.touches[0].clientY;
-      const deltaY = touchStartY - touchY;
-      if (deltaY > THRESHOLD) shouldOpenOnTouchEnd = true;
-    };
-
-    // touchend IS a user activation event — trigger directly
-    const handleTouchEnd = () => {
-      if (shouldOpenOnTouchEnd) triggerOpen();
-      shouldOpenOnTouchEnd = false;
-    };
-
-    // keydown IS a user activation event — trigger directly
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (['ArrowDown', ' ', 'Enter'].includes(e.key)) {
-        e.preventDefault();
-        triggerOpen();
-      }
-    };
-
-    window.addEventListener('wheel', handleWheel, { passive: true });
-    window.addEventListener('touchstart', handleTouchStart, { passive: true });
-    window.addEventListener('touchmove', handleTouchMove, { passive: true });
-    window.addEventListener('touchend', handleTouchEnd);
-    window.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      window.removeEventListener('wheel', handleWheel);
-      window.removeEventListener('touchstart', handleTouchStart);
-      window.removeEventListener('touchmove', handleTouchMove);
-      window.removeEventListener('touchend', handleTouchEnd);
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, []);
-
-  const handleButtonClick = () => {
+  const handleOpen = () => {
     if (!openedRef.current) {
       openedRef.current = true;
-      onOpen();
+      onOpenRef.current();
     }
   };
 
+  // Wheel: block scroll + detect scroll down → open
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    if (e.deltaY > 5) handleOpen();
+  };
+
+  // Touch: track start position
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  // TouchEnd IS a user activation event → audio.play() works
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const deltaY = touchStartY.current - (e.changedTouches[0]?.clientY ?? touchStartY.current);
+    if (deltaY > 5) handleOpen();
+  };
+
+  // Keyboard: keydown IS a user activation event
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (['ArrowDown', ' ', 'Enter'].includes(e.key)) {
+        e.preventDefault();
+        handleOpen();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   return (
     <motion.div
-      ref={overlayRef}
       initial={{ opacity: 1 }}
       exit={{
         opacity: 0,
         scale: 1.05,
         transition: { duration: 0.5, ease: [0.76, 0, 0.24, 1] },
       }}
-      onClick={handleButtonClick}
+      onClick={handleOpen}
+      onWheel={handleWheel}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
       className="fixed inset-0 z-[10000] flex flex-col bg-ink py-[2vh] overflow-hidden cursor-pointer"
       style={{
         boxShadow: '0 0 0 1.5px #FDFCF8',
@@ -234,7 +201,6 @@ export const CinematicOpening = ({
               </p>
             </div>
             <motion.button
-              onClick={handleButtonClick}
               aria-label="Buka Undangan"
               className="flex flex-col items-center gap-3 pt-4 group cursor-pointer transition-all"
             >

@@ -19,21 +19,27 @@ export const CinematicOpening = ({
   onOpen,
 }: CinematicOpeningProps) => {
   const wedding = useWeddingContext();
-  const buttonRef = useRef<HTMLButtonElement>(null);
   const openedRef = useRef(false);
+
+  // Store onOpen in a ref so the effect closure always has the latest reference
+  const onOpenRef = useRef(onOpen);
+  onOpenRef.current = onOpen;
 
   useEffect(() => {
     let touchStartY = 0;
     const THRESHOLD = 5;
 
-    const clickButton = () => {
+    // Call onOpen directly from the gesture handler — NOT via .click()
+    // This keeps audio.play() in the real user gesture call stack
+    const triggerOpen = () => {
       if (!openedRef.current) {
-        buttonRef.current?.click();
+        openedRef.current = true;
+        onOpenRef.current();
       }
     };
 
     const handleWheel = (e: WheelEvent) => {
-      if (e.deltaY > THRESHOLD) clickButton();
+      if (e.deltaY > THRESHOLD) triggerOpen();
     };
 
     const handleTouchStart = (e: TouchEvent) => {
@@ -43,13 +49,13 @@ export const CinematicOpening = ({
     const handleTouchMove = (e: TouchEvent) => {
       const touchY = e.touches[0].clientY;
       const deltaY = touchStartY - touchY;
-      if (deltaY > THRESHOLD) clickButton();
+      if (deltaY > THRESHOLD) triggerOpen();
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (['ArrowDown', ' ', 'Enter'].includes(e.key)) {
         e.preventDefault();
-        clickButton();
+        triggerOpen();
       }
     };
 
@@ -66,6 +72,13 @@ export const CinematicOpening = ({
     };
   }, []);
 
+  const handleButtonClick = () => {
+    if (!openedRef.current) {
+      openedRef.current = true;
+      onOpen();
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 1 }}
@@ -75,8 +88,7 @@ export const CinematicOpening = ({
         transition: { duration: 0.5, ease: [0.76, 0, 0.24, 1] },
       }}
       className="fixed inset-0 z-[10000] flex flex-col bg-ink py-[2vh] overflow-hidden"
-      style={{ 
-        pointerEvents: openedRef.current ? 'none' : 'auto',
+      style={{
         boxShadow: '0 0 0 1.5px #FDFCF8',
         transform: 'translateZ(0)',
         WebkitBackfaceVisibility: 'hidden',
@@ -106,14 +118,14 @@ export const CinematicOpening = ({
             alt="Opening BG"
           />
         )}
-        
+
         {/* Layer 2: Visual Effects */}
         <div className="absolute inset-0 z-10">
           <LightGlow />
           <FloatingPetals />
           <ForegroundOrnaments />
         </div>
-        
+
         {/* Layer 3: Gradient Overlay (Top) */}
         <div className="absolute inset-0 z-20 bg-gradient-to-b from-ink/60 via-transparent to-ink/90" />
       </motion.div>
@@ -204,8 +216,7 @@ export const CinematicOpening = ({
               </p>
             </div>
             <motion.button
-              ref={buttonRef}
-              onClick={() => { if (!openedRef.current) { openedRef.current = true; onOpen(); } }}
+              onClick={handleButtonClick}
               aria-label="Buka Undangan"
               className="flex flex-col items-center gap-3 pt-4 group cursor-pointer transition-all"
             >

@@ -21,67 +21,40 @@ export const CinematicOpening = ({
   const wedding = useWeddingContext();
   const overlayRef = useRef<HTMLDivElement>(null);
   const openedRef = useRef(false);
-  const touchStartY = useRef(0);
-  const onOpenRef = useRef(onOpen);
-  onOpenRef.current = onOpen;
 
   const handleOpen = () => {
     if (!openedRef.current) {
       openedRef.current = true;
-      onOpenRef.current();
+      onOpen();
     }
   };
 
-  // Touch: track start position
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartY.current = e.touches[0].clientY;
-  };
-
-  // TouchEnd IS a user activation event → audio.play() works
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    const deltaY = touchStartY.current - (e.changedTouches[0]?.clientY ?? touchStartY.current);
-    if (deltaY > 5) handleOpen();
-  };
-
+  // Block all scroll/swipe — only click is allowed to open
   useEffect(() => {
     const el = overlayRef.current;
     if (!el) return;
 
-    // Native wheel listener with { passive: false } — allows preventDefault
-    // React 19 registers onWheel as passive, so we must use native API
-    const onWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      if (e.deltaY > 5) handleOpen();
-    };
+    const blockScroll = (e: Event) => e.preventDefault();
 
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (['ArrowDown', ' ', 'Enter'].includes(e.key)) {
-        e.preventDefault();
-        handleOpen();
-      }
-    };
-
-    el.addEventListener('wheel', onWheel, { passive: false });
-    window.addEventListener('keydown', onKeyDown);
+    el.addEventListener('wheel', blockScroll, { passive: false });
+    el.addEventListener('touchmove', blockScroll, { passive: false });
 
     return () => {
-      el.removeEventListener('wheel', onWheel);
-      window.removeEventListener('keydown', onKeyDown);
+      el.removeEventListener('wheel', blockScroll);
+      el.removeEventListener('touchmove', blockScroll);
     };
   }, []);
 
   return (
     <motion.div
+      ref={overlayRef}
       initial={{ opacity: 1 }}
       exit={{
         opacity: 0,
         scale: 1.05,
         transition: { duration: 0.5, ease: [0.76, 0, 0.24, 1] },
       }}
-      ref={overlayRef}
       onClick={handleOpen}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
       className="fixed inset-0 z-[10000] flex flex-col bg-ink py-[2vh] overflow-hidden cursor-pointer"
       style={{
         boxShadow: '0 0 0 1.5px #FDFCF8',
@@ -99,7 +72,6 @@ export const CinematicOpening = ({
         className="absolute inset-0 z-0"
         style={{ willChange: 'transform' }}
       >
-        {/* Layer 1: Image (Base) */}
         {wedding?.openingImage && (
           <Image
             src={wedding.openingImage}
@@ -114,14 +86,12 @@ export const CinematicOpening = ({
           />
         )}
 
-        {/* Layer 2: Visual Effects */}
         <div className="absolute inset-0 z-10">
           <LightGlow />
           <FloatingPetals />
           <ForegroundOrnaments />
         </div>
 
-        {/* Layer 3: Gradient Overlay (Top) */}
         <div className="absolute inset-0 z-20 bg-gradient-to-b from-ink/60 via-transparent to-ink/90" />
       </motion.div>
 
@@ -214,7 +184,6 @@ export const CinematicOpening = ({
               aria-label="Buka Undangan"
               className="flex flex-col items-center gap-3 pt-4 group cursor-pointer transition-all"
             >
-
               <motion.svg
                 aria-hidden="true"
                 width="44"

@@ -19,6 +19,7 @@ export const CinematicOpening = ({
   onOpen,
 }: CinematicOpeningProps) => {
   const wedding = useWeddingContext();
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const openedRef = useRef(false);
 
   // Store onOpen in a ref so the effect closure always has the latest reference
@@ -27,10 +28,9 @@ export const CinematicOpening = ({
 
   useEffect(() => {
     let touchStartY = 0;
+    let shouldOpenOnTouchEnd = false;
     const THRESHOLD = 5;
 
-    // Call onOpen directly from the gesture handler — NOT via .click()
-    // This keeps audio.play() in the real user gesture call stack
     const triggerOpen = () => {
       if (!openedRef.current) {
         openedRef.current = true;
@@ -38,20 +38,38 @@ export const CinematicOpening = ({
       }
     };
 
+    // Desktop: wheel event is NOT a user activation event for audio autoplay.
+    // Detect wheel scroll, then programmatically focus + click the button
+    // so audio.play() runs from a trusted click (user activation).
     const handleWheel = (e: WheelEvent) => {
-      if (e.deltaY > THRESHOLD) triggerOpen();
+      if (e.deltaY > THRESHOLD && !openedRef.current) {
+        openedRef.current = true;
+        // Use pointerdown + click to create user activation
+        buttonRef.current?.focus();
+        buttonRef.current?.click();
+      }
     };
 
+    // Mobile: touchmove is NOT a user activation event.
+    // Detect swipe direction in touchmove, but trigger on touchend
+    // which IS a user activation event.
     const handleTouchStart = (e: TouchEvent) => {
       touchStartY = e.touches[0].clientY;
+      shouldOpenOnTouchEnd = false;
     };
 
     const handleTouchMove = (e: TouchEvent) => {
       const touchY = e.touches[0].clientY;
       const deltaY = touchStartY - touchY;
-      if (deltaY > THRESHOLD) triggerOpen();
+      if (deltaY > THRESHOLD) shouldOpenOnTouchEnd = true;
     };
 
+    const handleTouchEnd = () => {
+      if (shouldOpenOnTouchEnd) triggerOpen();
+      shouldOpenOnTouchEnd = false;
+    };
+
+    // keydown IS a user activation event — triggers audio directly
     const handleKeyDown = (e: KeyboardEvent) => {
       if (['ArrowDown', ' ', 'Enter'].includes(e.key)) {
         e.preventDefault();
@@ -62,12 +80,14 @@ export const CinematicOpening = ({
     window.addEventListener('wheel', handleWheel, { passive: true });
     window.addEventListener('touchstart', handleTouchStart, { passive: true });
     window.addEventListener('touchmove', handleTouchMove, { passive: true });
+    window.addEventListener('touchend', handleTouchEnd);
     window.addEventListener('keydown', handleKeyDown);
 
     return () => {
       window.removeEventListener('wheel', handleWheel);
       window.removeEventListener('touchstart', handleTouchStart);
       window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
@@ -216,6 +236,7 @@ export const CinematicOpening = ({
               </p>
             </div>
             <motion.button
+              ref={buttonRef}
               onClick={handleButtonClick}
               aria-label="Buka Undangan"
               className="flex flex-col items-center gap-3 pt-4 group cursor-pointer transition-all"

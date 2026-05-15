@@ -43,9 +43,6 @@ export const CinematicOpening = ({
     // so audio.play() runs from a trusted click (user activation).
     const handleWheel = (e: WheelEvent) => {
       if (e.deltaY > THRESHOLD && !openedRef.current) {
-        openedRef.current = true;
-        // Use pointerdown + click to create user activation
-        buttonRef.current?.focus();
         buttonRef.current?.click();
       }
     };

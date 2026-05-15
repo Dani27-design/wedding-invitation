@@ -129,16 +129,16 @@ describe('Footer', () => {
       expect(screen.getByText('Siti Nur Marini')).toBeInTheDocument();
     });
 
-    it('"M. Daniansyah C." is an h5 element', () => {
+    it('"M. Daniansyah C." is an h3 element', () => {
       renderFooter();
       const name = screen.getByText('M. Daniansyah C.');
-      expect(name.tagName).toBe('H5');
+      expect(name.tagName).toBe('H3');
     });
 
-    it('"Siti Nur Marini" is an h5 element', () => {
+    it('"Siti Nur Marini" is an h3 element', () => {
       renderFooter();
       const name = screen.getByText('Siti Nur Marini');
-      expect(name.tagName).toBe('H5');
+      expect(name.tagName).toBe('H3');
     });
 
     it('credit names have serif italic text-xl styling', () => {

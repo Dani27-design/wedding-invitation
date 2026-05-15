@@ -23,7 +23,7 @@ export const PhotoGallery = memo(({ onSelectPhoto }: PhotoGalleryProps) => {
 
     <div className="container mx-auto px-6 relative z-10">
       <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mb-[3vh]">
-        <p className="text-xs uppercase tracking-[0.4em] text-gold font-black mb-2">Jejak Cerita Kami</p>
+        <p className="text-xs uppercase tracking-[0.4em] text-gold-contrast font-black mb-2">Jejak Cerita Kami</p>
         <p className="font-serif italic text-sm leading-relaxed text-ink/70 max-w-[300px] mx-auto">Beberapa momen yang kami simpan, dan kini ingin kami bagikan bersama Anda.</p>
       </motion.div>
 

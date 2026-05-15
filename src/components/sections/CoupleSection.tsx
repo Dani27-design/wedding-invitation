@@ -98,12 +98,12 @@ export const CoupleSection = memo(() => {
           className="flex flex-col gap-[2vh] md:pl-16 text-center md:text-left"
         >
           <motion.div variants={fadeUp}>
-            <p className="text-xs uppercase tracking-[0.5em] text-gold mb-2 font-black">
+            <p className="text-xs uppercase tracking-[0.5em] text-gold-contrast mb-2 font-black">
               Pengantin Pria
             </p>
-            <h3 className="font-serif mb-2 text-2xl sm:text-3xl md:text-5xl leading-none tracking-tighter">
+            <h2 className="font-serif mb-2 text-2xl sm:text-3xl md:text-5xl leading-none tracking-tighter">
               {wedding?.groomName}
-            </h3>
+            </h2>
             <p className="text-xs tracking-widest text-ink/70">
               {wedding?.groomParents}
             </p>
@@ -117,12 +117,12 @@ export const CoupleSection = memo(() => {
             {/* <div className="h-px w-12 bg-gold/20" /> */}
           </motion.div>
           <motion.div variants={fadeUp}>
-            <p className="text-xs uppercase tracking-[0.5em] text-gold mb-2 font-black">
+            <p className="text-xs uppercase tracking-[0.5em] text-gold-contrast mb-2 font-black">
               Pengantin Wanita
             </p>
-            <h3 className="font-serif mb-2 text-2xl sm:text-3xl md:text-5xl leading-none tracking-tighter">
+            <h2 className="font-serif mb-2 text-2xl sm:text-3xl md:text-5xl leading-none tracking-tighter">
               {wedding?.brideName}
-            </h3>
+            </h2>
             <p className="text-xs tracking-widest text-ink/70">
               {wedding?.brideParents}
             </p>

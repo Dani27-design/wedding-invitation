@@ -155,6 +155,7 @@ export function WeddingClient({ wedding, slug }: WeddingClientProps) {
   const handleClosePhoto = useCallback(() => setSelectedPhoto(null), []);
 
   const handleOpen = useCallback(() => {
+    window.scrollTo(0, 0);
     setIsOpen(true);
     if (audioRef.current) {
       setIsPlaying(true);
@@ -233,13 +234,13 @@ export function WeddingClient({ wedding, slug }: WeddingClientProps) {
 
   return (
     <WeddingContext.Provider value={wedding}>
-      <div className="min-h-screen bg-ivory text-ink selection:bg-gold/20 font-sans overflow-x-hidden">
+      <div className={`min-h-screen bg-ivory text-ink selection:bg-gold/20 font-sans overflow-x-hidden ${!isOpen ? 'overflow-y-hidden h-screen' : ''}`}>
         <BackgroundLayers />
         {wedding.musicUrl && (
           <audio
             ref={audioRef}
             loop
-            preload="none"
+            preload="auto"
             src={wedding.musicUrl}
           />
         )}

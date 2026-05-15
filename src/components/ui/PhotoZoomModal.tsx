@@ -1,4 +1,5 @@
 'use client';
+import { useState } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
@@ -11,9 +12,10 @@ interface PhotoZoomModalProps {
 
 export const PhotoZoomModal = ({ selectedPhoto, onClose }: PhotoZoomModalProps) => {
   const trapRef = useFocusTrap(!!selectedPhoto);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   return (
-  <AnimatePresence>
+  <AnimatePresence onExitComplete={() => setIsLoaded(false)}>
     {selectedPhoto && (
       <motion.div
         ref={trapRef}
@@ -32,17 +34,32 @@ export const PhotoZoomModal = ({ selectedPhoto, onClose }: PhotoZoomModalProps) 
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.8, opacity: 0, y: 20 }}
           transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-          className="relative max-w-5xl w-full max-h-full flex items-center justify-center p-2 rounded-[2rem] bg-white/10 border border-white/20 overflow-hidden"
+          className="relative max-w-5xl w-full min-h-[50vh] max-h-full flex items-center justify-center p-2 rounded-[2rem] bg-white/10 border border-white/20 overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
+          {!isLoaded && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="flex items-center gap-2">
+                {[0, 1, 2].map((i) => (
+                  <div
+                    key={i}
+                    className="w-2 h-2 rounded-full bg-white/60 animate-pulse"
+                    style={{ animationDelay: `${i * 0.2}s` }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
           <Image
             src={selectedPhoto}
             alt="Foto dalam tampilan penuh"
             width={1920}
             height={1080}
             sizes="100vw"
-            onError={(e) => { e.currentTarget.style.display = 'none'; }}
-            className="object-contain rounded-[1.5rem]"
+            priority
+            onLoad={() => setIsLoaded(true)}
+            onError={(e) => { e.currentTarget.style.display = 'none'; setIsLoaded(true); }}
+            className={`object-contain rounded-[1.5rem] transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
             style={{ maxWidth: '100%', maxHeight: '85vh', width: 'auto', height: 'auto' }}
           />
           <button

@@ -30,7 +30,7 @@ export const EventSection = memo(() => {
         </motion.div>
 
         <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.8, delay: 0.1 }} className="w-full">
-          <p className="text-xs uppercase tracking-[0.4em] text-gold font-black mb-1">Dengan Segenap Cinta</p>
+          <p className="text-xs uppercase tracking-[0.4em] text-gold-contrast font-black mb-1">Dengan Segenap Cinta</p>
           <p className="font-serif italic text-xs leading-relaxed text-ink/60 max-w-[300px] mx-auto mb-[1vh]">Kami menanti kehadiran Anda di hari istimewa kami.</p>
           <h2 className="font-serif italic text-3xl sm:text-4xl md:text-5xl text-ink tracking-tight mb-[1vh]">{wedding ? deriveDateDisplay(wedding.eventDate) : ''}</h2>
           <CountdownTimer targetDate={wedding ? `${wedding.eventDate}T${wedding.ceremonies[0]?.start ?? '09:00'}:00` : ''} />

@@ -92,13 +92,13 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
                   <div className="w-12 h-12 rounded-full bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center group-hover:bg-rose-pastel/20 transition-all">
                     <Heart className="w-5 h-5 text-rose-pastel transition-transform group-active:scale-125" fill={(likes[idx] ?? 0) > 120 ? 'currentColor' : 'none'} />
                   </div>
-                  <span className="text-xs font-sans text-white/60 tracking-widest">{likes[idx] ?? 0}</span>
+                  <span aria-hidden="true" className="text-xs font-sans text-white/60 tracking-widest">{likes[idx] ?? 0}</span>
                 </motion.button>
                 <motion.button whileTap={{ scale: 0.8 }} aria-label="Komentar" onClick={() => setCommentInput({ index: idx, name: '', text: '' })} className="flex flex-col items-center gap-1 group">
                   <div className="w-12 h-12 rounded-full bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center group-hover:bg-white/10 transition-all">
                     <MessageCircle className="w-5 h-5 text-ivory" />
                   </div>
-                  <span className="text-xs font-sans text-white/60 tracking-widest">{idx === activeSlide ? comments.length : 0}</span>
+                  <span aria-hidden="true" className="text-xs font-sans text-white/60 tracking-widest">{idx === activeSlide ? comments.length : 0}</span>
                 </motion.button>
               </div>
             )}

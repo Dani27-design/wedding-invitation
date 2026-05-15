@@ -96,7 +96,7 @@ describe('EventSection', () => {
 
     it('"Dengan Segenap Cinta" has gold color', () => {
       renderComponent();
-      expect(screen.getByText('Dengan Segenap Cinta')).toHaveClass('text-gold');
+      expect(screen.getByText('Dengan Segenap Cinta')).toHaveClass('text-gold-contrast');
     });
 
     it('"Dengan Segenap Cinta" has font-black weight', () => {

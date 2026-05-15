@@ -39,7 +39,7 @@ export const RSVPSection = memo(({
         viewport={{ once: true }}
         className="text-center mb-[3vh] w-full shrink-0"
       >
-        <p className="text-xs uppercase tracking-[0.4em] text-gold font-black mb-2">
+        <p className="text-xs uppercase tracking-[0.4em] text-gold-contrast font-black mb-2">
           Ucapan & Doa
         </p>
         <p className="font-serif italic text-[13px] leading-relaxed text-ink/70 max-w-[300px] mx-auto">

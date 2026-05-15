@@ -102,7 +102,7 @@ describe('CoupleSection', () => {
 
     it('"Pengantin Pria" has gold color', () => {
       renderComponent();
-      expect(screen.getByText('Pengantin Pria')).toHaveClass('text-gold');
+      expect(screen.getByText('Pengantin Pria')).toHaveClass('text-gold-contrast');
     });
 
     it('"Pengantin Pria" has font-black weight', () => {
@@ -125,10 +125,10 @@ describe('CoupleSection', () => {
       expect(screen.getByText(/Putra Bapak/)).toBeInTheDocument();
     });
 
-    it('groom name is in h3 element', () => {
+    it('groom name is in h2 element', () => {
       renderComponent();
       const el = screen.getByText('M. Daniansyah Chusyaidin, S.Kom');
-      expect(el.tagName).toBe('H3');
+      expect(el.tagName).toBe('H2');
     });
   });
 
@@ -153,7 +153,7 @@ describe('CoupleSection', () => {
 
     it('"Pengantin Wanita" has gold color', () => {
       renderComponent();
-      expect(screen.getByText('Pengantin Wanita')).toHaveClass('text-gold');
+      expect(screen.getByText('Pengantin Wanita')).toHaveClass('text-gold-contrast');
     });
 
     it('"Pengantin Wanita" has font-black weight', () => {
@@ -176,10 +176,10 @@ describe('CoupleSection', () => {
       expect(screen.getByText(/Putri Bapak/)).toBeInTheDocument();
     });
 
-    it('bride name is in h3 element', () => {
+    it('bride name is in h2 element', () => {
       renderComponent();
       const el = screen.getByText('Siti Nur Marini, A.Md.M');
-      expect(el.tagName).toBe('H3');
+      expect(el.tagName).toBe('H2');
     });
   });
 
@@ -506,9 +506,9 @@ describe('CoupleSection', () => {
       expect(container.innerHTML).toBe(firstHTML);
     });
 
-    it('section has exactly two h3 headings for names', () => {
+    it('section has exactly two h2 headings for names', () => {
       const { container } = renderComponent();
-      const h3s = container.querySelectorAll('h3');
+      const h3s = container.querySelectorAll('h2');
       expect(h3s).toHaveLength(2);
     });
 

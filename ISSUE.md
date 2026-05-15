@@ -1,10 +1,8 @@
 # Known Issues
 
-> All issues from 4 audit rounds (54 total) + 2 runtime issues have been resolved.
+> All issues resolved. See `AUDIT.md` for the full production readiness report.
 >
 > **Open issues: 0**
->
-> See `AUDIT.md` for the full production readiness report.
 
 ---
 

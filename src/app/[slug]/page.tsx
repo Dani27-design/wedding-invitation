@@ -188,9 +188,6 @@ export default async function WeddingPage({ params }: PageProps) {
       {customFontsUrl && (
         <link rel="stylesheet" href={customFontsUrl} precedence="default" />
       )}
-      {wedding.openingImage && (
-        <link rel="preload" as="image" href={wedding.openingImage} fetchPriority="high" />
-      )}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}

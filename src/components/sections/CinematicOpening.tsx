@@ -19,6 +19,7 @@ export const CinematicOpening = ({
   onOpen,
 }: CinematicOpeningProps) => {
   const wedding = useWeddingContext();
+  const overlayRef = useRef<HTMLDivElement>(null);
   const openedRef = useRef(false);
   const touchStartY = useRef(0);
   const onOpenRef = useRef(onOpen);
@@ -29,12 +30,6 @@ export const CinematicOpening = ({
       openedRef.current = true;
       onOpenRef.current();
     }
-  };
-
-  // Wheel: block scroll + detect scroll down → open
-  const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
-    if (e.deltaY > 5) handleOpen();
   };
 
   // Touch: track start position
@@ -48,16 +43,31 @@ export const CinematicOpening = ({
     if (deltaY > 5) handleOpen();
   };
 
-  // Keyboard: keydown IS a user activation event
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const el = overlayRef.current;
+    if (!el) return;
+
+    // Native wheel listener with { passive: false } — allows preventDefault
+    // React 19 registers onWheel as passive, so we must use native API
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      if (e.deltaY > 5) handleOpen();
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
       if (['ArrowDown', ' ', 'Enter'].includes(e.key)) {
         e.preventDefault();
         handleOpen();
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+
+    el.addEventListener('wheel', onWheel, { passive: false });
+    window.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      el.removeEventListener('wheel', onWheel);
+      window.removeEventListener('keydown', onKeyDown);
+    };
   }, []);
 
   return (
@@ -68,8 +78,8 @@ export const CinematicOpening = ({
         scale: 1.05,
         transition: { duration: 0.5, ease: [0.76, 0, 0.24, 1] },
       }}
+      ref={overlayRef}
       onClick={handleOpen}
-      onWheel={handleWheel}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       className="fixed inset-0 z-[10000] flex flex-col bg-ink py-[2vh] overflow-hidden cursor-pointer"

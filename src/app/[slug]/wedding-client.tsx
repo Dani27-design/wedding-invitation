@@ -178,16 +178,16 @@ export function WeddingClient({ wedding, slug }: WeddingClientProps) {
   const handleOpen = useCallback(() => {
     // Play audio SYNCHRONOUSLY in the user gesture call stack
     if (audioRef.current) {
-      audioRef.current.play()
-        .then(() => setIsPlaying(true))
-        .catch(() => {
-          // Retry once after brief buffer time
-          setTimeout(() => {
-            audioRef.current?.play()
-              .then(() => setIsPlaying(true))
-              .catch(() => setIsPlaying(false));
-          }, 500);
-        });
+      const retryPlay = (attempts: number) => {
+        if (attempts <= 0 || !audioRef.current) {
+          setIsPlaying(false);
+          return;
+        }
+        audioRef.current.play()
+          .then(() => setIsPlaying(true))
+          .catch(() => setTimeout(() => retryPlay(attempts - 1), 500));
+      };
+      retryPlay(100);
     }
     window.scrollTo(0, 0);
     setIsOpen(true);

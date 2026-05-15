@@ -37,7 +37,6 @@ export const CinematicOpening = ({
     const THRESHOLD = 5;
 
     const handleWheel = (e: WheelEvent) => {
-      e.preventDefault();
       if (e.deltaY > THRESHOLD) triggerOpen();
     };
 
@@ -46,7 +45,6 @@ export const CinematicOpening = ({
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      e.preventDefault();
       const touchY = e.touches[0].clientY;
       const deltaY = touchStartY - touchY;
       if (deltaY > THRESHOLD) triggerOpen();
@@ -59,9 +57,9 @@ export const CinematicOpening = ({
       }
     };
 
-    window.addEventListener('wheel', handleWheel, { passive: false });
+    window.addEventListener('wheel', handleWheel, { passive: true });
     window.addEventListener('touchstart', handleTouchStart, { passive: true });
-    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
     window.addEventListener('keydown', handleKeyDown);
 
     return () => {

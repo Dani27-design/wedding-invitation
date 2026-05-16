@@ -28,10 +28,10 @@ export function StoryForm({ data, onSave, isSaving }: StoryFormProps) {
   const removeSlide = (i: number) => {
     const slide = slides[i];
     if (slide.bgImage && slide.bgImage.includes('firebasestorage.googleapis.com')) {
-      setUrlsToDelete(prev => [...prev, slide.bgImage]);
+      setUrlsToDelete(prev => [...prev, slide.bgImage!]);
     }
     if (slide.bgVideo && slide.bgVideo.includes('firebasestorage.googleapis.com')) {
-      setUrlsToDelete(prev => [...prev, slide.bgVideo]);
+      setUrlsToDelete(prev => [...prev, slide.bgVideo!]);
     }
     setSlides(slides.filter((_, idx) => idx !== i));
   };

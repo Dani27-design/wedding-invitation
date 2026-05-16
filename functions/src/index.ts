@@ -1,12 +1,133 @@
 import {setGlobalOptions} from "firebase-functions";
 import {onRequest} from "firebase-functions/https";
+import {onObjectFinalized} from "firebase-functions/storage";
 import {initializeApp} from "firebase-admin/app";
 import {getFirestore} from "firebase-admin/firestore";
+import {getStorage} from "firebase-admin/storage";
+import * as path from "path";
+import * as os from "os";
+import * as fs from "fs";
+import ffmpegInstaller from "@ffmpeg-installer/ffmpeg";
+import ffmpeg from "fluent-ffmpeg";
+
+ffmpeg.setFfmpegPath(ffmpegInstaller.path);
 
 initializeApp();
 const db = getFirestore();
 
 setGlobalOptions({maxInstances: 10, region: "asia-southeast2"});
+
+/**
+ * Auto-compress uploaded videos to 720p H.264.
+ * Triggers on any video upload to weddings/{slug}/storyVideo-*.
+ * Downloads the original, compresses with FFmpeg, re-uploads,
+ * and updates the Firestore document with the new URL.
+ */
+export const compressVideo = onObjectFinalized(
+  {
+    region: "asia-southeast2",
+    memory: "1GiB",
+    timeoutSeconds: 300,
+    cpu: 2,
+  },
+  async (event) => {
+    const filePath = event.data.name;
+    const contentType = event.data.contentType;
+
+    if (!filePath || !contentType?.startsWith("video/")) return;
+    if (!filePath.includes("/storyVideo-")) return;
+    // Prevent infinite loops — skip already compressed files
+    if (filePath.includes("_compressed")) return;
+
+    const bucket = getStorage().bucket(event.data.bucket);
+    const fileName = path.basename(filePath);
+    const dirName = path.dirname(filePath);
+    // Extract slug from path: weddings/{slug}/storyVideo-{index}
+    const parts = dirName.split("/");
+    const slug = parts[1];
+    if (!slug) return;
+
+    const tempInput = path.join(os.tmpdir(), `input_${fileName}`);
+    const compressedName = fileName.replace(
+      /(\.[^.]+)$/,
+      "_compressed.mp4",
+    );
+    const tempOutput = path.join(os.tmpdir(), compressedName);
+    const compressedPath = `${dirName}/${compressedName}`;
+
+    try {
+      // Download original
+      await bucket.file(filePath).download({destination: tempInput});
+
+      // Compress with FFmpeg: 720p, H.264, reduced bitrate
+      await new Promise<void>((resolve, reject) => {
+        ffmpeg(tempInput)
+          .outputOptions([
+            "-vf", "scale=-2:720",
+            "-c:v", "libx264",
+            "-preset", "fast",
+            "-crf", "28",
+            "-c:a", "aac",
+            "-b:a", "64k",
+            "-movflags", "+faststart",
+            "-y",
+          ])
+          .output(tempOutput)
+          .on("end", () => resolve())
+          .on("error", (err: Error) => reject(err))
+          .run();
+      });
+
+      // Upload compressed version
+      await bucket.upload(tempOutput, {
+        destination: compressedPath,
+        metadata: {contentType: "video/mp4"},
+      });
+
+      // Build Firebase Storage download URL
+      // (same format as client SDK getDownloadURL)
+      const encodedPath = encodeURIComponent(compressedPath);
+      const compressedUrl =
+        `https://firebasestorage.googleapis.com/v0/b/${event.data.bucket}/o/${encodedPath}?alt=media`;
+
+      // Update Firestore — find the slide with this video and replace URL
+      const slideIndexMatch = fileName.match(/storyVideo-(\d+)/);
+      if (slideIndexMatch) {
+        const slideIndex = parseInt(slideIndexMatch[1], 10);
+        const docRef = db.doc(`weddings/${slug}`);
+        const docSnap = await docRef.get();
+        if (docSnap.exists) {
+          const data = docSnap.data();
+          const story = data?.story as Array<{
+            year: string;
+            text: string;
+            bgImage: string;
+            bgVideo?: string;
+          }> | undefined;
+          if (story && story[slideIndex]) {
+            story[slideIndex].bgVideo = compressedUrl;
+            await docRef.update({story});
+          }
+        }
+      }
+
+      // Delete original uncompressed file
+      await bucket.file(filePath).delete().catch((e) => {
+        console.warn("[compressVideo] Failed to delete original:", e);
+      });
+
+      console.log(
+        `[compressVideo] Compressed ${filePath} → ${compressedPath}`,
+      );
+    } catch (error) {
+      console.error("[compressVideo] Error:", error);
+    } finally {
+      // Cleanup temp files
+      if (fs.existsSync(tempInput)) fs.unlinkSync(tempInput);
+      if (fs.existsSync(tempOutput)) fs.unlinkSync(tempOutput);
+    }
+  },
+);
 
 const HEX_RE = /^#[0-9A-Fa-f]{6}$/;
 

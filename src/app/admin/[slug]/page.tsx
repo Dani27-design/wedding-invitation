@@ -233,6 +233,16 @@ export default function AdminPage() {
 
             if (story[idx]) story[idx] = { ...story[idx], bgImage: url };
             updates.story = story;
+          } else if (key.startsWith('storyVideo-')) {
+            const idx = parseInt(key.split('-')[1], 10);
+            const story = (updates.story as StorySlide[] | undefined) ?? [...(wedding?.story ?? [])];
+
+            // Collect old story video URL
+            const oldVideo = wedding?.story?.[idx]?.bgVideo;
+            if (oldVideo) oldUrlsToCleanup.push(oldVideo);
+
+            if (story[idx]) story[idx] = { ...story[idx], bgVideo: url };
+            updates.story = story;
           } else if (key.startsWith('gallery-')) {
             const idx = parseInt(key.split('-')[1], 10);
             const gallery = (updates.gallery as string[] | undefined) ?? [...(wedding?.gallery ?? [])];

@@ -168,12 +168,10 @@ describe('CinematicStory', () => {
       expect(text.className).toContain('italic');
     });
 
-    it('year labels have uppercase tracking styling', () => {
+    it('year labels have bold font weight', () => {
       renderStory();
       const yearEl = screen.getByText('2016 — 2017');
-      const parent = yearEl.parentElement;
-      expect(parent?.className).toContain('uppercase');
-      expect(parent?.className).toContain('tracking-');
+      expect(yearEl.className).toContain('font-bold');
     });
   });
 
@@ -193,11 +191,11 @@ describe('CinematicStory', () => {
       });
     });
 
-    it('images have grayscale filter by default', () => {
+    it('images have vivid opacity (75-80%)', () => {
       renderStory();
       const images = screen.getAllByAltText('Memory');
       images.forEach((img) => {
-        expect(img.className).toContain('grayscale');
+        expect(img.className).toMatch(/opacity-75|opacity-80/);
       });
     });
 
@@ -206,30 +204,6 @@ describe('CinematicStory', () => {
       const images = screen.getAllByAltText('Memory');
       images.forEach((img) => {
         expect(img.className).toContain('object-cover');
-      });
-    });
-
-    it('images have reduced opacity (opacity-40 or opacity-50)', () => {
-      renderStory();
-      const images = screen.getAllByAltText('Memory');
-      images.forEach((img) => {
-        expect(img.className).toMatch(/opacity-40|opacity-50/);
-      });
-    });
-
-    it('images have transition-all for smooth hover effects', () => {
-      renderStory();
-      const images = screen.getAllByAltText('Memory');
-      images.forEach((img) => {
-        expect(img.className).toContain('transition-all');
-      });
-    });
-
-    it('images have hover:grayscale-0 for color reveal', () => {
-      renderStory();
-      const images = screen.getAllByAltText('Memory');
-      images.forEach((img) => {
-        expect(img.className).toContain('hover:grayscale-0');
       });
     });
 
@@ -354,21 +328,21 @@ describe('CinematicStory', () => {
   describe('pagination', () => {
     it('has 6 or more dot indicators', () => {
       const { container } = renderStory();
-      const dots = container.querySelectorAll('.bg-gold.rounded-full');
+      const dots = container.querySelectorAll('.bg-ivory.rounded-full');
       expect(dots.length).toBeGreaterThanOrEqual(6);
     });
 
-    it('dot indicators have bg-gold color', () => {
+    it('dot indicators have bg-ivory color', () => {
       const { container } = renderStory();
-      const dots = container.querySelectorAll('.bg-gold.rounded-full');
+      const dots = container.querySelectorAll('.bg-ivory.rounded-full');
       dots.forEach((dot) => {
-        expect(dot.className).toContain('bg-gold');
+        expect(dot.className).toContain('bg-ivory');
       });
     });
 
     it('dot indicators have rounded-full shape', () => {
       const { container } = renderStory();
-      const dots = container.querySelectorAll('.bg-gold.rounded-full');
+      const dots = container.querySelectorAll('.bg-ivory.rounded-full');
       dots.forEach((dot) => {
         expect(dot.className).toContain('rounded-full');
       });
@@ -376,13 +350,13 @@ describe('CinematicStory', () => {
 
     it('dots have h-1.5 height', () => {
       const { container } = renderStory();
-      const dots = container.querySelectorAll('.bg-gold.rounded-full.h-1\\.5');
+      const dots = container.querySelectorAll('.bg-ivory.rounded-full.h-1\\.5');
       expect(dots.length).toBeGreaterThanOrEqual(6);
     });
 
     it('renders exactly one set of dot indicators (not per-slide)', () => {
       const { container } = renderStory();
-      const dots = container.querySelectorAll('.bg-gold.rounded-full');
+      const dots = container.querySelectorAll('.bg-ivory.rounded-full');
       expect(dots.length).toBe(STORY_SLIDES.length);
     });
 
@@ -395,31 +369,13 @@ describe('CinematicStory', () => {
 
   // ─── Scroll ───────────────────────────────────────────────────────
   describe('scroll', () => {
-    it('has horizontal snap-x container', () => {
-      const { container } = renderStory();
-      const scrollContainer = container.querySelector('.snap-x');
-      expect(scrollContainer).toBeInTheDocument();
-    });
-
-    it('scroll container has snap-mandatory', () => {
-      const { container } = renderStory();
-      const scrollContainer = container.querySelector('.snap-mandatory');
-      expect(scrollContainer).toBeInTheDocument();
-    });
-
     it('scroll container has no-scrollbar class', () => {
       const { container } = renderStory();
       const scrollContainer = container.querySelector('.no-scrollbar');
       expect(scrollContainer).toBeInTheDocument();
     });
 
-    it('scroll container has scroll-smooth', () => {
-      const { container } = renderStory();
-      const scrollContainer = container.querySelector('.scroll-smooth');
-      expect(scrollContainer).toBeInTheDocument();
-    });
-
-    it('scroll container has overflow-x-auto', () => {
+    it('scroll container has overflow-x-auto for smooth scrolling', () => {
       const { container } = renderStory();
       const scrollContainer = container.querySelector('.overflow-x-auto');
       expect(scrollContainer).toBeInTheDocument();
@@ -427,7 +383,7 @@ describe('CinematicStory', () => {
 
     it('scroll container has flex layout', () => {
       const { container } = renderStory();
-      const scrollContainer = container.querySelector('.snap-x');
+      const scrollContainer = container.querySelector('.overflow-x-auto');
       expect(scrollContainer?.className).toContain('flex');
     });
 
@@ -440,54 +396,16 @@ describe('CinematicStory', () => {
 
   // ─── Swipe Hint ───────────────────────────────────────────────────
   describe('swipe hint', () => {
-    it('has "Geser" text for mobile hint', () => {
-      renderStory();
-      expect(screen.getByText('Geser')).toBeInTheDocument();
-    });
-
-    it('mobile hint is hidden on desktop (md:hidden)', () => {
+    it('renders a hand icon as swipe hint on first slide', () => {
       const { container } = renderStory();
-      const mobileHint = screen.getByText('Geser').closest('div[class*="md:hidden"]');
-      expect(mobileHint).toBeInTheDocument();
+      const hint = container.querySelector('.pointer-events-none svg');
+      expect(hint).toBeInTheDocument();
     });
 
-    it('has "Geser untuk melihat" text for desktop hint', () => {
-      renderStory();
-      expect(screen.getByText('Geser untuk melihat')).toBeInTheDocument();
-    });
-
-    it('desktop hint has invisible md:visible classes', () => {
-      renderStory();
-      const desktopHint = screen.getByText('Geser untuk melihat').closest('div[class*="invisible"]');
-      expect(desktopHint).toBeInTheDocument();
-      expect(desktopHint?.className).toContain('md:visible');
-    });
-
-    it('swipe hints have gold color text', () => {
-      renderStory();
-      const mobileHint = screen.getByText('Geser');
-      expect(mobileHint.className).toContain('text-gold');
-    });
-
-    it('desktop hint has uppercase tracking', () => {
-      renderStory();
-      const desktopHint = screen.getByText('Geser untuk melihat');
-      expect(desktopHint.className).toContain('uppercase');
-      expect(desktopHint.className).toContain('tracking-');
-    });
-
-    it('swipe hints only appear on first slide (idx === 0)', () => {
-      renderStory();
-      // Only one "Geser" text should exist
-      const geserElements = screen.getAllByText('Geser');
-      expect(geserElements.length).toBe(1);
-    });
-
-    it('mobile hint has ArrowRight icon', () => {
+    it('swipe hint is centered on screen', () => {
       const { container } = renderStory();
-      const mobileHintWrapper = screen.getByText('Geser').parentElement;
-      const svg = mobileHintWrapper?.querySelector('svg');
-      expect(svg).toBeInTheDocument();
+      const hint = container.querySelector('[class*="right-8"][class*="top-1/2"]');
+      expect(hint).toBeInTheDocument();
     });
   });
 
@@ -499,19 +417,19 @@ describe('CinematicStory', () => {
       expect(gradients.length).toBe(STORY_SLIDES.length);
     });
 
-    it('gradient goes from ink via ink/20 to ink/60', () => {
+    it('gradient is bottom-only for text readability', () => {
       const { container } = renderStory();
       const gradient = container.querySelector('.bg-gradient-to-t');
       expect(gradient?.className).toContain('from-ink');
-      expect(gradient?.className).toContain('via-ink/20');
-      expect(gradient?.className).toContain('to-ink/60');
+      expect(gradient?.className).toContain('via-ink/70');
     });
 
-    it('images are grayscale by default', () => {
+    it('images have vivid opacity without grayscale', () => {
       renderStory();
       const images = screen.getAllByAltText('Memory');
       images.forEach((img) => {
-        expect(img.className).toContain('grayscale');
+        expect(img.className).toMatch(/opacity-75|opacity-80/);
+        expect(img.className).not.toContain('grayscale');
       });
     });
 
@@ -521,9 +439,9 @@ describe('CinematicStory', () => {
       expect(blurCircles.length).toBeGreaterThan(0);
     });
 
-    it('like and comment buttons have white/5 background', () => {
+    it('like and comment buttons have dark background', () => {
       const { container } = renderStory();
-      const bgElements = container.querySelectorAll('.bg-white\\/5');
+      const bgElements = container.querySelectorAll('.bg-black\\/20');
       expect(bgElements.length).toBeGreaterThan(0);
     });
 
@@ -533,11 +451,11 @@ describe('CinematicStory', () => {
       expect(textAreas.length).toBeGreaterThan(0);
     });
 
-    it('year labels have gold color accent', () => {
+    it('year labels have same serif italic style as text', () => {
       renderStory();
       const year = screen.getByText('2016 — 2017');
-      const parent = year.parentElement;
-      expect(parent?.className).toContain('text-gold');
+      expect(year.className).toContain('font-serif');
+      expect(year.className).toContain('italic');
     });
 
     it('slide text has ivory color for readability on dark bg', () => {
@@ -595,13 +513,13 @@ describe('CinematicStory', () => {
 
     it('social buttons are positioned bottom-right', () => {
       const { container } = renderStory();
-      const socialPanels = container.querySelectorAll('.bottom-32.right-6');
+      const socialPanels = container.querySelectorAll('.bottom-36.right-4');
       expect(socialPanels.length).toBeGreaterThan(0);
     });
 
     it('scroll container has h-full w-full', () => {
       const { container } = renderStory();
-      const scrollContainer = container.querySelector('.snap-x');
+      const scrollContainer = container.querySelector('.overflow-x-auto');
       expect(scrollContainer?.className).toContain('h-full');
       expect(scrollContainer?.className).toContain('w-full');
     });

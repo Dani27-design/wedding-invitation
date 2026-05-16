@@ -2,7 +2,7 @@
 import { useState, useRef, useCallback, useEffect, memo } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
-import { Heart, MessageCircle, ArrowRight } from 'lucide-react';
+import { Heart, MessageCircle, Hand } from 'lucide-react';
 import { AmbientSocialLayer } from '../ui/AmbientSocialLayer';
 import { PetalEffect } from '../ui/PetalEffect';
 import { useWeddingContext } from '../../context/WeddingContext';
@@ -25,6 +25,7 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const scrollRafRef = useRef(false);
+  const videoRefs = useRef<Map<number, HTMLVideoElement>>(new Map());
 
   useEffect(() => {
     const el = sectionRef.current;
@@ -40,7 +41,26 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
   const { likes, incrementLike } = useStoryLikes(weddingSlug, isVisible);
   const { comments, addComment } = useStoryComments(weddingSlug, activeSlide, isVisible);
 
+  // Manage video play/pause based on active slide
+  useEffect(() => {
+    videoRefs.current.forEach((el, idx) => {
+      if (idx === activeSlide) {
+        el.play().catch(() => {});
+      } else {
+        el.pause();
+      }
+    });
+  }, [activeSlide]);
+
   if (slides.length === 0) return null;
+
+  const goToSlide = (index: number) => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const target = Math.max(0, Math.min(index, slides.length - 1));
+    el.scrollTo({ left: target * el.clientWidth, behavior: 'smooth' });
+    setActiveSlide(target);
+  };
 
   const handleStoryScroll = useCallback(() => {
     if (scrollRafRef.current) return;
@@ -59,6 +79,54 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
     incrementLike(idx);
   };
 
+  // Limit swipe to one slide at a time
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const THRESHOLD = 30;
+    let startX = 0;
+    let startY = 0;
+    let decided = false;
+    let isHorizontal = false;
+    let triggered = false;
+
+    const onTouchStart = (e: globalThis.TouchEvent) => {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      decided = false;
+      isHorizontal = false;
+      triggered = false;
+    };
+
+    const onTouchMove = (e: globalThis.TouchEvent) => {
+      const dx = e.touches[0].clientX - startX;
+      const dy = e.touches[0].clientY - startY;
+
+      // Decide direction once per gesture
+      if (!decided && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
+        decided = true;
+        isHorizontal = Math.abs(dx) > Math.abs(dy);
+      }
+
+      // Only intercept horizontal swipes — let vertical scroll through
+      if (isHorizontal) {
+        e.preventDefault();
+        if (!triggered && Math.abs(dx) > THRESHOLD) {
+          triggered = true;
+          goToSlide(activeSlide + (dx < 0 ? 1 : -1));
+        }
+      }
+    };
+
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchmove', onTouchMove, { passive: false });
+
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchmove', onTouchMove);
+    };
+  }, [activeSlide, slides.length]);
+
   const handleAddComment = () => {
     if (!commentInput?.text.trim() || !commentInput?.name.trim()) return;
     const newComment = { name: commentInput.name, text: commentInput.text.trim() };
@@ -69,14 +137,34 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
 
   return (
     <section ref={sectionRef} id="story-section" className="relative h-screen-safe w-full bg-ink overflow-hidden scroll-snap-container">
-      <div ref={scrollContainerRef} onScroll={handleStoryScroll} className="h-full w-full flex overflow-x-auto snap-x snap-mandatory no-scrollbar scroll-smooth overscroll-x-contain">
+      <div ref={scrollContainerRef} onScroll={handleStoryScroll} className="h-full w-full flex overflow-x-auto snap-x snap-mandatory no-scrollbar">
         {slides.map((slide, idx) => (
           <div key={idx} className="relative h-full w-full min-w-full snap-center flex items-center justify-center overflow-hidden">
+            {/* Background media — video takes priority over image */}
             <div className="absolute inset-0">
-              {slide.bgImage && (
-                <Image src={slide.bgImage} fill sizes="100vw" onError={(e) => { e.currentTarget.style.display = 'none'; }} className="object-cover opacity-40 md:opacity-50 grayscale hover:grayscale-0 transition-all duration-[3000ms]" alt="Memory" referrerPolicy="no-referrer" />
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/20 to-ink/60" />
+              {slide.bgVideo ? (
+                <>
+                  <video
+                    ref={(el) => {
+                      if (el) videoRefs.current.set(idx, el);
+                      else videoRefs.current.delete(idx);
+                    }}
+                    src={Math.abs(idx - activeSlide) <= 1 ? slide.bgVideo : undefined}
+                    muted
+                    loop
+                    playsInline
+                    preload={idx === activeSlide ? 'auto' : 'none'}
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    className="w-full h-full object-cover opacity-75 md:opacity-80"
+                  />
+                  {/* Image fallback while video loads or if video fails */}
+                  {slide.bgImage && (
+                    <Image src={slide.bgImage} fill sizes="100vw" onError={(e) => { e.currentTarget.style.display = 'none'; }} className="object-cover opacity-75 md:opacity-80 -z-10" alt="Memory" referrerPolicy="no-referrer" />
+                  )}
+                </>
+              ) : slide.bgImage ? (
+                <Image src={slide.bgImage} fill sizes="100vw" onError={(e) => { e.currentTarget.style.display = 'none'; }} className="object-cover opacity-75 md:opacity-80" alt="Memory" referrerPolicy="no-referrer" />
+              ) : null}
             </div>
 
             {idx === activeSlide && (
@@ -86,19 +174,20 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
               </>
             )}
 
+            {/* Action buttons — right side, TikTok style */}
             {commentInput?.index !== idx && (
-              <div className="absolute bottom-32 right-6 flex flex-col gap-5 z-[60]">
+              <div className="absolute bottom-36 right-4 flex flex-col gap-5 z-[60]">
                 <motion.button whileTap={{ scale: 0.8 }} aria-label="Suka" onClick={() => handleLike(idx)} className="relative flex flex-col items-center gap-1 group">
-                  <div className="w-12 h-12 rounded-full bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center group-hover:bg-rose-pastel/20 transition-all">
+                  <div className="w-11 h-11 rounded-full bg-black/20 backdrop-blur-md border border-white/10 flex items-center justify-center group-hover:bg-rose-pastel/20 transition-all">
                     <Heart className="w-5 h-5 text-rose-pastel transition-transform group-active:scale-125" fill={(likes[idx] ?? 0) > 120 ? 'currentColor' : 'none'} />
                   </div>
-                  <span aria-hidden="true" className="text-xs font-sans text-white/60 tracking-widest">{likes[idx] ?? 0}</span>
+                  <span aria-hidden="true" className="text-[10px] font-sans text-white/70 tracking-widest">{likes[idx] ?? 0}</span>
                 </motion.button>
                 <motion.button whileTap={{ scale: 0.8 }} aria-label="Komentar" onClick={() => setCommentInput({ index: idx, name: '', text: '' })} className="flex flex-col items-center gap-1 group">
-                  <div className="w-12 h-12 rounded-full bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center group-hover:bg-white/10 transition-all">
+                  <div className="w-11 h-11 rounded-full bg-black/20 backdrop-blur-md border border-white/10 flex items-center justify-center group-hover:bg-white/10 transition-all">
                     <MessageCircle className="w-5 h-5 text-ivory" />
                   </div>
-                  <span aria-hidden="true" className="text-xs font-sans text-white/60 tracking-widest">{idx === activeSlide ? comments.length : 0}</span>
+                  <span aria-hidden="true" className="text-[10px] font-sans text-white/70 tracking-widest">{idx === activeSlide ? comments.length : 0}</span>
                 </motion.button>
               </div>
             )}
@@ -112,7 +201,7 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
                       <span className="text-xs uppercase tracking-[0.2em] text-ivory font-bold">Bagikan Kebahagiaan</span>
                     </div>
                     <input type="text" maxLength={30} value={commentInput.name} onChange={(e) => setCommentInput({ ...commentInput, name: e.target.value })} placeholder="Nama Anda" aria-label="Nama Anda" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-ivory placeholder:text-white/20 focus:outline-none focus:border-gold/50 mb-3 font-sans" />
-                    <textarea autoFocus maxLength={100} value={commentInput.text} onChange={(e) => setCommentInput({ ...commentInput, text: e.target.value })} placeholder="Tulis pesan..." aria-label="Tulis pesan" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-ivory placeholder:text-white/20 focus:outline-none focus:border-rose-pastel/50 min-h-[80px] resize-none font-sans" />
+                    <textarea maxLength={100} value={commentInput.text} onChange={(e) => setCommentInput({ ...commentInput, text: e.target.value })} placeholder="Tulis pesan..." aria-label="Tulis pesan" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-ivory placeholder:text-white/20 focus:outline-none focus:border-rose-pastel/50 min-h-[80px] resize-none font-sans" />
                     <div className="flex justify-end gap-2 mt-4 font-sans">
                       <button onClick={() => setCommentInput(null)} className="px-4 py-2 text-xs uppercase tracking-widest text-white/60 hover:text-white transition-colors">Batal</button>
                       <button disabled={!commentInput.text.trim() || !commentInput.name.trim()} onClick={() => handleAddComment()} className="px-6 py-2 bg-rose-pastel rounded-full text-ink text-xs uppercase font-black tracking-widest hover:brightness-110 disabled:opacity-30 transition-all">Kirim</button>
@@ -122,34 +211,31 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
               )}
             </AnimatePresence>
 
-            <div className="relative z-30 px-8 pb-32 sm:pb-40 md:pb-48 pt-12 sm:pt-16 md:pt-20 w-full h-full flex flex-col items-start justify-end text-left">
-              <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} transition={{ duration: 1.2, ease: 'easeOut' }} className="max-w-[75%] md:max-w-md w-full">
-                <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ duration: 2 }} className="font-sans text-xs uppercase tracking-[0.6em] text-gold/70 mb-6 flex items-center gap-3">
-                  <span className="h-[1px] w-6 bg-gold/30" />
-                  <span>{slide.year}</span>
-                </motion.div>
-                <h2 className="font-serif italic text-sm md:text-base text-ivory leading-relaxed whitespace-pre-line tracking-tight">{slide.text}</h2>
+            {/* Text content with gradient background — Reels style */}
+            <div className="absolute inset-x-0 bottom-0 z-30 bg-gradient-to-t from-ink from-30% via-ink/70 via-60% to-transparent">
+              <motion.div initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: 'easeOut' }} className="px-5 pt-24 pb-20 sm:pb-24 md:pb-32 max-w-[85%] md:max-w-md">
+                <h2 className="font-serif italic text-xs md:text-sm text-ivory/90 leading-relaxed whitespace-pre-line font-bold mb-1">{slide.year}</h2>
+                <p className="font-serif italic text-xs md:text-sm text-ivory/70 leading-relaxed whitespace-pre-line">{slide.text}</p>
               </motion.div>
             </div>
 
-            {idx === 0 && (
-              <>
-                <motion.div animate={{ x: [0, 8, 0], opacity: [0.2, 0.5, 0.2] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }} className="absolute right-8 top-1/2 -translate-y-1/2 flex flex-col items-center gap-3 z-30 invisible md:visible">
-                  <div className="w-[1px] h-16 bg-gradient-to-b from-transparent via-gold to-transparent" />
-                  <span className="text-xs tracking-[0.6em] uppercase text-gold rotate-90 origin-right translate-x-3 whitespace-nowrap mt-4">Geser untuk melihat</span>
+            {/* Swipe hint — center-right, only on first slide */}
+            {idx === 0 && activeSlide === 0 && (
+              <div className="absolute right-8 top-1/2 -translate-y-1/2 z-30 pointer-events-none flex items-center">
+                <motion.div
+                  animate={{ x: [0, -20, 0], opacity: [0.5, 0.8, 0.5] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  <Hand className="w-6 h-6 text-white/40" style={{ transform: 'scaleX(-1)' }} />
                 </motion.div>
-                <motion.div initial={{ opacity: 0, x: 0 }} animate={{ opacity: [0, 0.8, 0.8, 0], x: [0, 10, 10, 0] }} transition={{ duration: 3, delay: 1.5, repeat: Infinity, repeatDelay: 5 }} className="absolute bottom-24 left-1/2 -translate-x-1/2 flex items-center gap-2 z-30 md:hidden">
-                  <span className="text-xs tracking-[0.3em] uppercase text-gold font-bold">Geser</span>
-                  <ArrowRight className="w-3 h-3 text-gold" />
-                </motion.div>
-              </>
+              </div>
             )}
           </div>
         ))}
       </div>
       <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-2.5 z-40">
         {slides.map((_, i) => (
-          <motion.div key={i} animate={{ scale: i === activeSlide ? 1.2 : 0.8, width: i === activeSlide ? 20 : 6, opacity: i === activeSlide ? 1 : 0.3 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }} className="h-1.5 bg-gold rounded-full transition-colors duration-500" />
+          <motion.div key={i} animate={{ scale: i === activeSlide ? 1.2 : 0.8, width: i === activeSlide ? 20 : 6, opacity: i === activeSlide ? 1 : 0.3 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }} className="h-1.5 bg-ivory rounded-full transition-colors duration-500" />
         ))}
       </div>
     </section>

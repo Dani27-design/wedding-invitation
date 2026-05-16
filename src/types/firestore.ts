@@ -106,6 +106,7 @@ export interface StorySlide {
   year: string;
   text: string;
   bgImage: string;
+  bgVideo?: string;
 }
 
 export interface BankAccount {

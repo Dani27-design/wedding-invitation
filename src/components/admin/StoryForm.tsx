@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { WeddingDocument, StorySlide } from '../../types/firestore';
-import { Plus, Trash2, Upload } from 'lucide-react';
+import { Plus, Trash2, Upload, Film } from 'lucide-react';
 import { compressImage, formatFileSize } from '../../utils/compressImage';
 import { CompressionModal } from './CompressionModal';
 
@@ -12,10 +12,11 @@ interface StoryFormProps {
 }
 
 const MAX_IMAGE_SIZE = 25 * 1024 * 1024;
+const MAX_VIDEO_SIZE = 50 * 1024 * 1024;
 
 export function StoryForm({ data, onSave, isSaving }: StoryFormProps) {
   const [error, setError] = useState('');
-  const [slides, setSlides] = useState<(StorySlide & { file?: File })[]>(
+  const [slides, setSlides] = useState<(StorySlide & { file?: File; videoFile?: File; videoPreview?: string })[]>(
     data?.story?.map(s => ({ ...s })) ?? [{ year: '', text: '', bgImage: '' }]
   );
   const [urlsToDelete, setUrlsToDelete] = useState<string[]>([]);
@@ -29,6 +30,9 @@ export function StoryForm({ data, onSave, isSaving }: StoryFormProps) {
     if (slide.bgImage && slide.bgImage.includes('firebasestorage.googleapis.com')) {
       setUrlsToDelete(prev => [...prev, slide.bgImage]);
     }
+    if (slide.bgVideo && slide.bgVideo.includes('firebasestorage.googleapis.com')) {
+      setUrlsToDelete(prev => [...prev, slide.bgVideo]);
+    }
     setSlides(slides.filter((_, idx) => idx !== i));
   };
   const updateSlide = (i: number, field: keyof StorySlide, value: string) => {
@@ -41,6 +45,22 @@ export function StoryForm({ data, onSave, isSaving }: StoryFormProps) {
     setError('');
     const url = URL.createObjectURL(file);
     setSlides(slides.map((s, idx) => idx === i ? { ...s, bgImage: url, file } : s));
+  };
+
+  const handleVideoChange = (i: number, file: File | undefined) => {
+    if (!file) return;
+    if (file.size > MAX_VIDEO_SIZE) { setError(`Ukuran video maksimal 50MB. File ini ${formatFileSize(file.size)}.`); return; }
+    setError('');
+    const url = URL.createObjectURL(file);
+    setSlides(slides.map((s, idx) => idx === i ? { ...s, videoPreview: url, videoFile: file } : s));
+  };
+
+  const removeVideo = (i: number) => {
+    const slide = slides[i];
+    if (slide.bgVideo && slide.bgVideo.includes('firebasestorage.googleapis.com')) {
+      setUrlsToDelete(prev => [...prev, slide.bgVideo!]);
+    }
+    setSlides(slides.map((s, idx) => idx === i ? { ...s, bgVideo: undefined, videoFile: undefined, videoPreview: undefined } : s));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -69,8 +89,15 @@ export function StoryForm({ data, onSave, isSaving }: StoryFormProps) {
         setIsCompressing(false);
       }
     }
+    // Add video files (no compression — videos are uploaded as-is)
+    for (let i = 0; i < filtered.length; i++) {
+      const s = filtered[i];
+      if (s.videoFile) {
+        files[`storyVideo-${i}`] = s.videoFile;
+      }
+    }
     onSave(
-      { story: filtered.map(({ file: _, ...s }) => s) },
+      { story: filtered.map(({ file: _, videoFile: _v, videoPreview: _p, ...s }) => s) },
       Object.keys(files).length > 0 ? files : undefined,
       urlsToDelete.length > 0 ? urlsToDelete : undefined,
     );
@@ -85,24 +112,25 @@ export function StoryForm({ data, onSave, isSaving }: StoryFormProps) {
         <div key={i} className="p-5 border border-gold/10 rounded-3xl space-y-4 bg-white/50 relative overflow-hidden group">
           <div className="flex items-center justify-between relative z-10">
             <span className="text-[10px] uppercase tracking-widest text-gold font-black">Tahap {i + 1}</span>
-            <button 
-              type="button" 
+            <button
+              type="button"
               onClick={() => {
                 if (confirm('Apakah Anda yakin ingin menghapus slide ini?')) {
                   removeSlide(i);
                 }
-              }} 
-              className="text-red-400 p-1 hover:scale-110 transition-transform" 
+              }}
+              className="text-red-400 p-1 hover:scale-110 transition-transform"
               aria-label="Hapus slide"
             >
               <Trash2 className="w-4 h-4" />
             </button>
           </div>
-          
+
           <div className="space-y-3 relative z-10">
             <input value={slide.year} onChange={(e) => updateSlide(i, 'year', e.target.value)} placeholder="Tahun (misal: 2016 — 2017)" maxLength={30} aria-label={`Tahun Slide ${i + 1}`} className={inputClass} />
             <textarea value={slide.text} onChange={(e) => updateSlide(i, 'text', e.target.value)} placeholder="Cerita..." rows={5} maxLength={500} aria-label={`Cerita Slide ${i + 1}`} className={`${inputClass} resize-none`} />
-            
+
+            {/* Image upload */}
             <div className="space-y-2">
               <label className="text-[10px] uppercase tracking-widest text-ink/60 font-bold block ml-1">Foto Latar</label>
               <div className="flex items-center gap-4">
@@ -115,16 +143,52 @@ export function StoryForm({ data, onSave, isSaving }: StoryFormProps) {
                   <label className="flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-dashed border-gold/30 rounded-xl cursor-pointer hover:bg-gold/5 transition-all group/upload">
                     <Upload className="w-3.5 h-3.5 text-gold group-hover/upload:scale-110 transition-transform" />
                     <span className="text-[10px] font-black text-gold uppercase tracking-widest">Pilih Foto</span>
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      onChange={(e) => handleImageChange(i, e.target.files?.[0])} 
-                      className="hidden" 
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageChange(i, e.target.files?.[0])}
+                      className="hidden"
                     />
                   </label>
                   {slide.file && (
                     <p className="mt-1 text-[9px] text-ink/40 truncate font-mono text-center">{slide.file.name}</p>
                   )}
+                </div>
+              </div>
+            </div>
+
+            {/* Video upload */}
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase tracking-widest text-ink/60 font-bold block ml-1">Video Latar (Opsional)</label>
+              <div className="flex items-center gap-4">
+                {(slide.videoPreview || slide.bgVideo) && (
+                  <div className="relative w-16 h-16 rounded-xl overflow-hidden border border-gold/20 flex-shrink-0">
+                    <video src={slide.videoPreview || slide.bgVideo} className="w-full h-full object-cover" muted />
+                    <button
+                      type="button"
+                      onClick={() => removeVideo(i)}
+                      className="absolute top-0.5 right-0.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center"
+                      aria-label="Hapus video"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <label className="flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-dashed border-gold/30 rounded-xl cursor-pointer hover:bg-gold/5 transition-all group/upload">
+                    <Film className="w-3.5 h-3.5 text-gold group-hover/upload:scale-110 transition-transform" />
+                    <span className="text-[10px] font-black text-gold uppercase tracking-widest">Pilih Video</span>
+                    <input
+                      type="file"
+                      accept="video/*"
+                      onChange={(e) => handleVideoChange(i, e.target.files?.[0])}
+                      className="hidden"
+                    />
+                  </label>
+                  {slide.videoFile && (
+                    <p className="mt-1 text-[9px] text-ink/40 truncate font-mono text-center">{slide.videoFile.name}</p>
+                  )}
+                  <p className="mt-1 text-[9px] text-ink/30 text-center">Jika ada video, video akan ditampilkan sebagai latar</p>
                 </div>
               </div>
             </div>

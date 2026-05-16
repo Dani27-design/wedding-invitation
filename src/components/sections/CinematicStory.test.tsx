@@ -183,11 +183,11 @@ describe('CinematicStory', () => {
       expect(images.length).toBe(STORY_SLIDES.length);
     });
 
-    it('all images use object-cover', () => {
+    it('main images use object-contain for smart fit', () => {
       renderStory();
       const images = screen.getAllByAltText('Memory');
       images.forEach((img) => {
-        expect(img).toHaveClass('object-cover');
+        expect(img).toHaveClass('object-contain');
       });
     });
 
@@ -199,11 +199,11 @@ describe('CinematicStory', () => {
       });
     });
 
-    it('images have object-cover for aspect ratio', () => {
+    it('images have object-contain for smart fit', () => {
       renderStory();
       const images = screen.getAllByAltText('Memory');
       images.forEach((img) => {
-        expect(img.className).toContain('object-cover');
+        expect(img.className).toContain('object-contain');
       });
     });
 

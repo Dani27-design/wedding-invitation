@@ -25,8 +25,6 @@ export async function generateStaticParams() {
   }
 }
 
-const baseUrl = BASE_URL;
-
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
@@ -68,7 +66,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description,
       images: wedding.heroImage ? [wedding.heroImage] : [],
     },
-    alternates: { canonical: `${baseUrl}/${slug}` },
+    alternates: { canonical: `${BASE_URL}/${slug}` },
     robots: { index: true, follow: true },
   };
 }
@@ -140,8 +138,8 @@ function buildIsoDateTime(date: string, time?: string): string {
 }
 
 function buildJsonLd(wedding: WeddingDocument, slug: string) {
-  const firstCeremony = wedding.ceremonies[0];
-  const lastCeremony = wedding.ceremonies[wedding.ceremonies.length - 1];
+  const firstCeremony = wedding.ceremonies?.[0];
+  const lastCeremony = wedding.ceremonies?.[wedding.ceremonies?.length - 1];
   const dateDisplay = deriveDateDisplay(wedding.eventDate);
 
   return {
@@ -168,7 +166,7 @@ function buildJsonLd(wedding: WeddingDocument, slug: string) {
       '@type': 'Person',
       name: `${wedding.groomName} & ${wedding.brideName}`,
     },
-    url: `${baseUrl}/${slug}`,
+    url: `${BASE_URL}/${slug}`,
   };
 }
 

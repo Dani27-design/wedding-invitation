@@ -166,7 +166,7 @@ export function WeddingClient({ wedding, slug }: WeddingClientProps) {
           .then(() => setIsPlaying(true))
           .catch(() => setTimeout(() => retryPlay(attempts - 1), 500));
       };
-      retryPlay(100);
+      retryPlay(3);
     }
     window.scrollTo(0, 0);
     setIsOpen(true);

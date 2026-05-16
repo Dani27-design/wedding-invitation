@@ -140,37 +140,44 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
       <div ref={scrollContainerRef} onScroll={handleStoryScroll} className="h-full w-full flex overflow-x-auto snap-x snap-mandatory no-scrollbar">
         {slides.map((slide, idx) => (
           <div key={idx} className="relative h-full w-full min-w-full snap-center flex items-center justify-center overflow-hidden">
-            {/* Background media — video takes priority over image */}
+            {/* Background media — smart fit with blurred backdrop for non-portrait content */}
             <div className="absolute inset-0">
               {slide.bgVideo ? (
                 <>
+                  {/* Blurred backdrop — fills gaps for landscape/square videos */}
+                  {slide.bgImage && (
+                    <Image src={slide.bgImage} fill sizes="100vw" onError={(e) => { e.currentTarget.style.display = 'none'; }} className="object-cover scale-110 blur-2xl opacity-40" alt="" referrerPolicy="no-referrer" />
+                  )}
+                  {/* Main video — object-contain shows full media without cropping */}
                   <video
                     ref={(el) => {
                       if (el) videoRefs.current.set(idx, el);
                       else videoRefs.current.delete(idx);
                     }}
-                    src={Math.abs(idx - activeSlide) <= 1 ? slide.bgVideo : undefined}
+                    src={idx === activeSlide ? slide.bgVideo : undefined}
                     muted
                     loop
                     playsInline
-                    preload={idx === activeSlide ? 'auto' : 'none'}
+                    preload="metadata"
                     onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                    className="w-full h-full object-cover opacity-75 md:opacity-80"
+                    className={`absolute inset-0 w-full h-full object-contain opacity-80 md:opacity-85 transition-opacity duration-500 ${idx === activeSlide ? '' : 'opacity-0'}`}
                   />
-                  {/* Image fallback while video loads or if video fails */}
-                  {slide.bgImage && (
-                    <Image src={slide.bgImage} fill sizes="100vw" onError={(e) => { e.currentTarget.style.display = 'none'; }} className="object-cover opacity-75 md:opacity-80 -z-10" alt="Memory" referrerPolicy="no-referrer" />
-                  )}
                 </>
               ) : slide.bgImage ? (
-                <Image src={slide.bgImage} fill sizes="100vw" onError={(e) => { e.currentTarget.style.display = 'none'; }} className="object-cover opacity-75 md:opacity-80" alt="Memory" referrerPolicy="no-referrer" />
+                <>
+                  {/* Blurred backdrop — fills gaps for landscape/square images */}
+                  <Image src={slide.bgImage} fill sizes="100vw" onError={(e) => { e.currentTarget.style.display = 'none'; }} className="object-cover scale-110 blur-2xl opacity-40" alt="" referrerPolicy="no-referrer" />
+                  {/* Main image — object-contain shows full media without cropping */}
+                  <Image src={slide.bgImage} fill sizes="100vw" onError={(e) => { e.currentTarget.style.display = 'none'; }} className="object-contain opacity-80 md:opacity-85" alt="Memory" referrerPolicy="no-referrer" />
+                </>
               ) : null}
             </div>
 
             {idx === activeSlide && (
               <>
                 <AmbientSocialLayer customComments={comments} triggerHeartTap={heartTrigger} triggerCommentTap={commentTrigger} />
-                <PetalEffect />
+                {/* Skip PetalEffect on video slides to reduce GPU pressure */}
+                {!slide.bgVideo && <PetalEffect />}
               </>
             )}
 

@@ -153,19 +153,19 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
           <div key={idx} className="relative h-full w-full min-w-full snap-center flex items-center justify-center overflow-hidden">
             {/* Background media */}
             <div className="absolute inset-0 bg-ink">
-              {/* Layer 1: Blurred backdrop — native img with next/image optimizer URL for small size */}
+              {/* Layer 1: Blurred backdrop */}
               {slide.bgImage && (
                 <img
                   src={`/_next/image?url=${encodeURIComponent(slide.bgImage)}&w=128&q=30`}
                   alt=""
                   onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                  className={`absolute inset-0 w-full h-full object-cover blur-2xl transition-opacity duration-300 ${isActive ? 'opacity-30' : 'opacity-0'}`}
+                  className={`absolute inset-0 w-full h-full object-cover blur-2xl ${isActive ? 'opacity-30' : 'opacity-0'}`}
                   style={{ zIndex: 1 }}
                   referrerPolicy="no-referrer"
                   loading="lazy"
                 />
               )}
-              {/* Layer 2: Main media — on top of blur */}
+              {/* Layer 2: Main media */}
               {slide.bgVideo ? (
                 <video
                   ref={(el) => {
@@ -178,7 +178,7 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
                   playsInline
                   preload="metadata"
                   onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                  className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-300 ${isActive ? 'opacity-80 md:opacity-85' : 'opacity-0'}`}
+                  className="absolute inset-0 w-full h-full object-contain opacity-85"
                   style={{ zIndex: 2 }}
                 />
               ) : slide.bgImage ? (
@@ -187,12 +187,14 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
                   fill
                   sizes="100vw"
                   onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                  className={`object-contain transition-opacity duration-300 ${isNear ? 'opacity-80 md:opacity-85' : 'opacity-0'}`}
+                  className="object-contain opacity-85"
                   style={{ zIndex: 2 }}
                   alt="Memory"
                   referrerPolicy="no-referrer"
                 />
               ) : null}
+              {/* Layer 3: Edge vignette — soft gradient edges blend media into black bg */}
+              <div className="absolute inset-0" style={{ zIndex: 3, pointerEvents: 'none', boxShadow: 'inset 0 0 80px 30px rgba(0,0,0,0.6)' }} />
             </div>
 
             {/* Effects — conditional render (have timers/observers) */}
@@ -240,30 +242,24 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
 
             {/* Text content — always mounted, CSS fade */}
             <div className={`absolute inset-x-0 bottom-0 z-30 bg-gradient-to-t from-ink from-30% via-ink/70 via-60% to-transparent transition-opacity duration-300 ${isNear ? 'opacity-100' : 'opacity-0'}`}>
-              <div className="px-5 pt-24 pb-20 sm:pb-24 md:pb-32 max-w-[85%] md:max-w-md">
+              <div
+                className="px-5 pt-24 pb-20 sm:pb-24 md:pb-32 max-w-[85%] md:max-w-md cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (slide.text.length <= 100) return;
+                  setExpandedSlides(prev => {
+                    const next = new Set(prev);
+                    if (next.has(idx)) next.delete(idx); else next.add(idx);
+                    return next;
+                  });
+                }}
+              >
                 <h2 className="font-serif italic text-xs md:text-sm text-ivory/90 leading-relaxed whitespace-pre-line font-bold mb-1">{slide.year}</h2>
                 <p className={`font-serif italic text-xs md:text-sm text-ivory/70 leading-relaxed whitespace-pre-line ${expandedSlides.has(idx) ? '' : 'line-clamp-3'}`}>{slide.text}</p>
-                {slide.text.length > 100 && !expandedSlides.has(idx) && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setExpandedSlides(prev => new Set(prev).add(idx));
-                    }}
-                    className="font-serif italic text-xs text-ivory/50 mt-1 hover:text-ivory/80 transition-colors"
-                  >
-                    baca selengkapnya
-                  </button>
-                )}
-                {expandedSlides.has(idx) && slide.text.length > 100 && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setExpandedSlides(prev => { const next = new Set(prev); next.delete(idx); return next; });
-                    }}
-                    className="font-serif italic text-xs text-ivory/50 mt-1 hover:text-ivory/80 transition-colors"
-                  >
-                    sembunyikan
-                  </button>
+                {slide.text.length > 100 && (
+                  <span className="font-serif italic text-xs text-ivory/50 mt-1 block">
+                    {expandedSlides.has(idx) ? 'sembunyikan' : 'baca selengkapnya'}
+                  </span>
                 )}
               </div>
             </div>

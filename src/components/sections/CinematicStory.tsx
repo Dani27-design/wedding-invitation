@@ -153,42 +153,33 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
           <div key={idx} className="relative h-full w-full min-w-full snap-center flex items-center justify-center overflow-hidden">
             {/* Background media — always mounted, visibility controlled by CSS */}
             <div className="absolute inset-0 bg-ink">
-              {slide.bgVideo ? (
-                <>
-                  {/* Blurred backdrop — conditional render to save GPU memory */}
-                  {isActive && slide.bgImage && (
-                    <div className="absolute inset-0 z-0 opacity-40">
-                      <Image src={slide.bgImage} fill sizes="100vw" onError={(e) => { e.currentTarget.style.display = 'none'; }} className="object-cover scale-125 blur-3xl" alt="" referrerPolicy="no-referrer" />
-                    </div>
-                  )}
-                  {/* Main video — always mounted, CSS visibility */}
-                  <video
-                    ref={(el) => {
-                      if (el) videoRefs.current.set(idx, el);
-                      else videoRefs.current.delete(idx);
-                    }}
-                    src={isActive ? slide.bgVideo : undefined}
-                    muted
-                    loop
-                    playsInline
-                    preload="metadata"
-                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                    className={`absolute inset-0 z-10 w-full h-full object-contain transition-opacity duration-300 ${isActive ? 'opacity-80 md:opacity-85' : 'opacity-0'}`}
-                  />
-                </>
-              ) : slide.bgImage ? (
-                <>
-                  {/* Blurred backdrop — conditional render to save GPU memory */}
-                  {isActive && (
-                    <div className="absolute inset-0 z-0 opacity-40">
-                      <Image src={slide.bgImage} fill sizes="100vw" onError={(e) => { e.currentTarget.style.display = 'none'; }} className="object-cover scale-125 blur-3xl" alt="" referrerPolicy="no-referrer" />
-                    </div>
-                  )}
-                  {/* Main image — always mounted, CSS opacity */}
-                  <div className={`absolute inset-0 z-10 transition-opacity duration-300 ${isNear ? 'opacity-80 md:opacity-85' : 'opacity-0'}`}>
-                    <Image src={slide.bgImage} fill sizes="100vw" onError={(e) => { e.currentTarget.style.display = 'none'; }} className="object-contain" alt="Memory" referrerPolicy="no-referrer" />
+              {/* Blurred backdrop — always mounted, overflow-hidden clips scale-125 */}
+              {slide.bgImage && (
+                <div className={`absolute inset-0 z-0 overflow-hidden transition-opacity duration-300 ${isActive ? 'opacity-40' : 'opacity-0'}`}>
+                  <div className="absolute inset-0 scale-125">
+                    <Image src={slide.bgImage} fill sizes="100vw" onError={(e) => { e.currentTarget.style.display = 'none'; }} className="object-cover blur-3xl" alt="" referrerPolicy="no-referrer" />
                   </div>
-                </>
+                </div>
+              )}
+              {/* Main media — always mounted, CSS opacity */}
+              {slide.bgVideo ? (
+                <video
+                  ref={(el) => {
+                    if (el) videoRefs.current.set(idx, el);
+                    else videoRefs.current.delete(idx);
+                  }}
+                  src={isActive ? slide.bgVideo : undefined}
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                  className={`absolute inset-0 z-10 w-full h-full object-contain transition-opacity duration-300 ${isActive ? 'opacity-80 md:opacity-85' : 'opacity-0'}`}
+                />
+              ) : slide.bgImage ? (
+                <div className={`absolute inset-0 z-10 transition-opacity duration-300 ${isNear ? 'opacity-80 md:opacity-85' : 'opacity-0'}`}>
+                  <Image src={slide.bgImage} fill sizes="100vw" onError={(e) => { e.currentTarget.style.display = 'none'; }} className="object-contain" alt="Memory" referrerPolicy="no-referrer" />
+                </div>
               ) : null}
             </div>
 

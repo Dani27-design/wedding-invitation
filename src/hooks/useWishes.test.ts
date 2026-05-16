@@ -246,16 +246,17 @@ describe('hooks/useWishes', () => {
   // Unsubscribe / cleanup
   // ---------------------------------------------------------------------------
   describe('cleanup', () => {
-    it('calls unsubscribe on unmount', () => {
+    it('calls unsubscribe on unmount', async () => {
       const unsubscribe = vi.fn();
       mockOnSnapshot.mockReturnValue(unsubscribe);
       const { unmount } = renderHook(() => useWishes(WEDDING_ID));
+      await waitFor(() => expect(mockOnSnapshot).toHaveBeenCalledTimes(1));
       expect(unsubscribe).not.toHaveBeenCalled();
       unmount();
       expect(unsubscribe).toHaveBeenCalledTimes(1);
     });
 
-    it('resubscribes when weddingId changes', () => {
+    it('resubscribes when weddingId changes', async () => {
       const unsub1 = vi.fn();
       const unsub2 = vi.fn();
       mockOnSnapshot
@@ -265,19 +266,20 @@ describe('hooks/useWishes', () => {
         ({ id }: { id: string }) => useWishes(id),
         { initialProps: { id: 'wedding-1' } }
       );
-      expect(mockOnSnapshot).toHaveBeenCalledTimes(1);
+      await waitFor(() => expect(mockOnSnapshot).toHaveBeenCalledTimes(1));
       rerender({ id: 'wedding-2' });
+      await waitFor(() => expect(mockOnSnapshot).toHaveBeenCalledTimes(2));
       expect(unsub1).toHaveBeenCalledTimes(1);
-      expect(mockOnSnapshot).toHaveBeenCalledTimes(2);
     });
 
-    it('does not resubscribe when weddingId stays the same', () => {
+    it('does not resubscribe when weddingId stays the same', async () => {
       const unsub = vi.fn();
       mockOnSnapshot.mockReturnValue(unsub);
       const { rerender } = renderHook(
         ({ id }: { id: string }) => useWishes(id),
         { initialProps: { id: WEDDING_ID } }
       );
+      await waitFor(() => expect(mockOnSnapshot).toHaveBeenCalledTimes(1));
       rerender({ id: WEDDING_ID });
       expect(mockOnSnapshot).toHaveBeenCalledTimes(1);
       expect(unsub).not.toHaveBeenCalled();
@@ -288,21 +290,23 @@ describe('hooks/useWishes', () => {
   // Query construction
   // ---------------------------------------------------------------------------
   describe('query construction', () => {
-    it('calls onSnapshot when hook mounts', () => {
+    it('calls onSnapshot when hook mounts', async () => {
       mockOnSnapshot.mockReturnValue(vi.fn());
       renderHook(() => useWishes(WEDDING_ID));
-      expect(mockOnSnapshot).toHaveBeenCalledTimes(1);
+      await waitFor(() => expect(mockOnSnapshot).toHaveBeenCalledTimes(1));
     });
 
-    it('passes a success callback as second argument', () => {
+    it('passes a success callback as second argument', async () => {
       mockOnSnapshot.mockReturnValue(vi.fn());
       renderHook(() => useWishes(WEDDING_ID));
+      await waitFor(() => expect(mockOnSnapshot).toHaveBeenCalledTimes(1));
       expect(typeof mockOnSnapshot.mock.calls[0][1]).toBe('function');
     });
 
-    it('passes an error callback as third argument', () => {
+    it('passes an error callback as third argument', async () => {
       mockOnSnapshot.mockReturnValue(vi.fn());
       renderHook(() => useWishes(WEDDING_ID));
+      await waitFor(() => expect(mockOnSnapshot).toHaveBeenCalledTimes(1));
       expect(typeof mockOnSnapshot.mock.calls[0][2]).toBe('function');
     });
   });
@@ -320,8 +324,7 @@ describe('hooks/useWishes', () => {
         return vi.fn();
       });
       const { result } = renderHook(() => useWishes(WEDDING_ID));
-      await waitFor(() => expect(result.current.isLoading).toBe(false));
-      expect(result.current.wishes).toHaveLength(1);
+      await waitFor(() => expect(result.current.wishes).toHaveLength(1));
     });
 
     it('returns the same isLoading false after multiple snapshots', async () => {

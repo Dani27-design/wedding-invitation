@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { collection, query, where, getDocs, doc, updateDoc, setDoc, serverTimestamp, deleteDoc, runTransaction } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, updateDoc, setDoc, serverTimestamp, deleteDoc, runTransaction, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useUser } from '@/hooks/useUser';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase-auth';
 import { UserDocument, WeddingDocument } from '@/types/firestore';
+import { ConfirmDeleteModal } from '@/components/admin/ConfirmDeleteModal';
 import { THEME_DEFAULTS } from '@/constants/themeDefaults';
 
 const TABS = ['Pendaftar', 'Undangan'] as const;
@@ -65,6 +66,8 @@ export default function SuperAdminPage() {
   const [selectedSlug, setSelectedSlug] = useState('');
   const [acceptError, setAcceptError] = useState('');
   const [isAccepting, setIsAccepting] = useState(false);
+  const [rejectTarget, setRejectTarget] = useState<UserDocument | null>(null);
+  const [removeAdminTarget, setRemoveAdminTarget] = useState<{ slug: string; uid: string } | null>(null);
 
   useEffect(() => {
     if (isLoading || !authUser || userDoc?.role !== 'super') return;
@@ -74,14 +77,14 @@ export default function SuperAdminPage() {
   async function loadData() {
     setIsDataLoading(true);
     try {
-      const [usersSnap, weddingsSnap] = await Promise.all([
-        getDocs(collection(db, 'users')),
+      const [pendingSnap, customerSnap, weddingsSnap] = await Promise.all([
+        getDocs(query(collection(db, 'users'), where('role', '==', 'pending'), orderBy('createdAt', 'desc'))),
+        getDocs(query(collection(db, 'users'), where('role', '==', 'customer'))),
         getDocs(collection(db, 'weddings')),
       ]);
 
-      const allUsers = usersSnap.docs.map((d) => d.data() as UserDocument);
-      setPendingUsers(allUsers.filter((u) => u.role === 'pending'));
-      setCustomerUsers(allUsers.filter((u) => u.role === 'customer'));
+      setPendingUsers(pendingSnap.docs.map((d) => d.data() as UserDocument));
+      setCustomerUsers(customerSnap.docs.map((d) => d.data() as UserDocument));
       setWeddings(weddingsSnap.docs.map((d) => ({ slug: d.id, data: d.data() as WeddingDocument })));
     } catch (error) {
       console.error('[SuperAdmin] Load error:', (error as Error).message);
@@ -171,7 +174,6 @@ export default function SuperAdminPage() {
   }
 
   async function handleReject(user: UserDocument) {
-    if (!confirm(`Tolak pendaftaran ${user.email}?`)) return;
     try {
       await deleteDoc(doc(db, 'users', user.uid));
       await loadData();
@@ -181,7 +183,6 @@ export default function SuperAdminPage() {
   }
 
   async function handleRemoveAdmin(slug: string, uid: string) {
-    if (!confirm('Hapus admin dari undangan ini?')) return;
     try {
       const wedding = weddings.find((w) => w.slug === slug);
       if (!wedding) return;
@@ -298,7 +299,7 @@ export default function SuperAdminPage() {
                       Terima
                     </button>
                     <button
-                      onClick={() => handleReject(u)}
+                      onClick={() => setRejectTarget(u)}
                       className="px-3 py-1.5 border border-red-300 text-red-500 rounded-full text-[10px] font-bold uppercase tracking-wider"
                     >
                       Tolak
@@ -332,7 +333,7 @@ export default function SuperAdminPage() {
                     {(w.data.adminIds ?? []).map((uid) => (
                       <button
                         key={uid}
-                        onClick={() => handleRemoveAdmin(w.slug, uid)}
+                        onClick={() => setRemoveAdminTarget({ slug: w.slug, uid })}
                         className="text-red-400 hover:text-red-600 underline underline-offset-2 mr-2"
                       >
                         Hapus {customerUsers.find((cu) => cu.uid === uid)?.email ?? uid}
@@ -431,6 +432,19 @@ export default function SuperAdminPage() {
           </div>
         </div>
       )}
+
+      <ConfirmDeleteModal
+        isOpen={rejectTarget !== null}
+        message={`Tolak pendaftaran ${rejectTarget?.email ?? ''}?`}
+        onConfirm={() => { if (rejectTarget) handleReject(rejectTarget); setRejectTarget(null); }}
+        onCancel={() => setRejectTarget(null)}
+      />
+      <ConfirmDeleteModal
+        isOpen={removeAdminTarget !== null}
+        message="Hapus admin dari undangan ini?"
+        onConfirm={() => { if (removeAdminTarget) handleRemoveAdmin(removeAdminTarget.slug, removeAdminTarget.uid); setRemoveAdminTarget(null); }}
+        onCancel={() => setRemoveAdminTarget(null)}
+      />
     </div>
   );
 }

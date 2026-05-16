@@ -13,16 +13,17 @@ interface MediaFormProps {
 
 interface MediaItem {
   label: string;
+  description: string;
   field: 'musicUrl' | 'heroImage' | 'openingImage' | 'twibbonOverlay';
   accept: string;
   icon: any;
 }
 
 const MEDIA_ITEMS: MediaItem[] = [
-  { label: 'Musik Latar', field: 'musicUrl', accept: 'audio/*', icon: Music },
-  { label: 'Foto Sampul Undangan', field: 'openingImage', accept: 'image/*', icon: ImageIcon },
-  { label: 'Foto Pembuka Undangan', field: 'heroImage', accept: 'image/*', icon: ImageIcon },
-  { label: 'Twibbon Frame', field: 'twibbonOverlay', accept: 'image/png', icon: Sparkles },
+  { label: 'Musik Latar', description: 'Musik yang diputar saat undangan dibuka', field: 'musicUrl', accept: 'audio/*', icon: Music },
+  { label: 'Foto Sampul', description: 'Gambar pertama yang dilihat tamu sebelum membuka undangan', field: 'openingImage', accept: 'image/*', icon: ImageIcon },
+  { label: 'Foto Utama', description: 'Foto besar di halaman utama setelah undangan dibuka', field: 'heroImage', accept: 'image/*', icon: ImageIcon },
+  { label: 'Twibbon Frame', description: 'Bingkai foto untuk fitur twibbon tamu', field: 'twibbonOverlay', accept: 'image/png', icon: Sparkles },
 ];
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
@@ -128,13 +129,14 @@ export function MediaForm({ data, onSave, isSaving }: MediaFormProps) {
     <form onSubmit={handleSubmit} className="space-y-6">
       <label className="text-xs uppercase tracking-[0.3em] text-gold font-black block">Media</label>
 
-      {MEDIA_ITEMS.map(({ label, field, accept, icon: Icon }) => (
+      {MEDIA_ITEMS.map(({ label, description, field, accept, icon: Icon }) => (
         <div key={field} className="p-4 border border-gold/10 rounded-2xl space-y-4 bg-white/50">
-          <div className="flex items-center justify-between">
+          <div>
             <div className="flex items-center gap-2">
               <Icon className="w-3.5 h-3.5 text-gold" />
               <span className="text-xs text-ink/80 font-black uppercase tracking-wider">{label}</span>
             </div>
+            <p className="text-[10px] text-ink/40 mt-1 ml-5">{description}</p>
           </div>
 
           <div className="space-y-3">

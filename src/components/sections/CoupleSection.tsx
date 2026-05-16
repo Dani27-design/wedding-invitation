@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 import { Heart } from "lucide-react";
 import { stagger, fadeUp } from "../../utils/animations";
 import { useWeddingContext } from "../../context/WeddingContext";
+import { SHIMMER_IVORY } from "../../utils/shimmer";
 
 export const CoupleSection = memo(() => {
   const wedding = useWeddingContext();
@@ -38,6 +39,8 @@ export const CoupleSection = memo(() => {
                   src={wedding.groomPhoto}
                   fill
                   sizes="(max-width: 768px) 65vw, 30vw"
+                  placeholder="blur"
+                  blurDataURL={SHIMMER_IVORY}
                   onError={(e) => { e.currentTarget.style.display = "none"; }}
                   className="object-cover filter saturate-[1.05] contrast-[1.02] hover:scale-105 transition-all duration-1000"
                   alt={wedding?.groomNickname ?? ""}
@@ -75,6 +78,8 @@ export const CoupleSection = memo(() => {
                   src={wedding.bridePhoto}
                   fill
                   sizes="(max-width: 768px) 65vw, 30vw"
+                  placeholder="blur"
+                  blurDataURL={SHIMMER_IVORY}
                   onError={(e) => { e.currentTarget.style.display = "none"; }}
                   className="object-cover filter saturate-[1.05] contrast-[1.02] scale-110 hover:scale-[1.15] transition-all duration-1000"
                   alt={wedding?.brideNickname ?? ""}

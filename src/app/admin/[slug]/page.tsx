@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { signOut } from 'firebase/auth';
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { auth } from '@/lib/firebase-auth';
-import { uploadFile, deleteFile } from '@/lib/storage';
+import { uploadFile, deleteFile, UploadProgressCallback } from '@/lib/storage';
 import { useWedding } from '@/hooks/useWedding';
 import { useUser } from '@/hooks/useUser';
 import { WeddingDocument, StorySlide } from '@/types/firestore';
@@ -22,18 +22,18 @@ import { CreditForm } from '@/components/admin/CreditForm';
 import { StoryInteractionsForm } from '@/components/admin/StoryInteractionsForm';
 import { WishesForm } from '@/components/admin/WishesForm';
 import { motion, AnimatePresence } from 'motion/react';
-import { CheckCircle2, AlertCircle, Loader2, X } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Loader2, X, ExternalLink } from 'lucide-react';
 
 const STEPS = [
   'Pasangan',
   'Acara',
   'Cerita',
   'Media',
-  'Amplop',
+  'Hadiah',
   'Galeri',
   'Kredit',
-  'Kustom',
-  'Interaksi',
+  'Tema',
+  'Komentar',
   'Ucapan',
 ] as const;
 
@@ -41,9 +41,10 @@ const STEPS = [
 interface SaveStatusModalProps {
   status: 'saving' | 'success' | 'error';
   onClose: () => void;
+  uploadProgress?: { fileName: string; percent: number } | null;
 }
 
-function SaveStatusModal({ status, onClose }: SaveStatusModalProps) {
+function SaveStatusModal({ status, onClose, uploadProgress }: SaveStatusModalProps) {
   return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
         <motion.div
@@ -80,17 +81,29 @@ function SaveStatusModal({ status, onClose }: SaveStatusModalProps) {
               <AlertCircle className="w-12 h-12 text-red-500" />
             )}
 
-            <div className="space-y-1">
+            <div className="space-y-1 w-full">
               <h3 className="font-serif italic text-xl text-ink">
                 {status === 'saving' && 'Sedang Menyimpan...'}
                 {status === 'success' && 'Berhasil Disimpan'}
                 {status === 'error' && 'Gagal Menyimpan'}
               </h3>
               <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-black">
-                {status === 'saving' && 'Harap tunggu sebentar'}
+                {status === 'saving' && !uploadProgress && 'Harap tunggu sebentar'}
+                {status === 'saving' && uploadProgress && `Mengunggah: ${uploadProgress.fileName}`}
                 {status === 'success' && 'Semua perubahan telah diperbarui'}
                 {status === 'error' && 'Terjadi kesalahan, silakan coba lagi'}
               </p>
+              {status === 'saving' && uploadProgress && (
+                <div className="mt-3 w-full">
+                  <div className="h-1.5 bg-ink/5 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gold rounded-full transition-all duration-300"
+                      style={{ width: `${uploadProgress.percent}%` }}
+                    />
+                  </div>
+                  <p className="text-[9px] text-ink/30 mt-1 font-sans">{uploadProgress.percent}%</p>
+                </div>
+              )}
             </div>
 
             {status !== 'saving' && (
@@ -164,8 +177,40 @@ export default function AdminPage() {
   const [hasSaved, setHasSaved] = useState(true);
   const [pendingTab, setPendingTab] = useState<number | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
+  const [uploadProgress, setUploadProgress] = useState<{ fileName: string; percent: number } | null>(null);
 
   const { wedding, isLoading: isWeddingLoading } = useWedding(slug ?? '');
+
+  // Tab completion indicators (true = has meaningful data)
+  const tabComplete = wedding ? [
+    !!(wedding.groomPhoto || wedding.bridePhoto || (wedding.groomNickname && wedding.groomNickname !== 'Pria')),
+    !!(wedding.eventDate && wedding.eventCity && wedding.venueName),
+    wedding.story.length > 0,
+    !!(wedding.heroImage && wedding.openingImage),
+    wedding.giftAccounts.length > 0,
+    wedding.gallery.length > 0,
+    wedding.credits.length > 0,
+    true, // Tema always has defaults
+  ] : [];
+  const completedCount = tabComplete.filter(Boolean).length;
+  const totalEditable = 8; // First 8 tabs are editable; last 2 are read-only
+
+  // Warn user before leaving page with unsaved changes
+  useEffect(() => {
+    if (hasSaved) return;
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasSaved]);
+
+  // Auto-dismiss success modal after 1.5s
+  useEffect(() => {
+    if (saveStatus !== 'success') return;
+    const timer = setTimeout(() => setSaveStatus('idle'), 1500);
+    return () => clearTimeout(timer);
+  }, [saveStatus]);
 
   const handleLogout = async () => {
     try {
@@ -175,6 +220,7 @@ export default function AdminPage() {
   };
 
   const [isToggling, setIsToggling] = useState(false);
+  const [showStatusConfirm, setShowStatusConfirm] = useState(false);
 
   const handleToggleStatus = async () => {
     if (!slug || !wedding || isToggling) return;
@@ -199,6 +245,7 @@ export default function AdminPage() {
   ) => {
     if (!slug) return;
     setSaveStatus('saving');
+    setUploadProgress(null);
     try {
       const updates: Record<string, unknown> = { ...fields, updatedAt: serverTimestamp() };
       const oldUrlsToCleanup: string[] = [];
@@ -219,7 +266,10 @@ export default function AdminPage() {
 
           const ext = file.name.split('.').pop() ?? 'bin';
           const path = `weddings/${slug}/${key}-${Date.now()}.${ext}`;
-          const url = await uploadFile(path, file);
+          setUploadProgress({ fileName: file.name, percent: 0 });
+          const url = await uploadFile(path, file, (percent) => {
+            setUploadProgress({ fileName: file.name, percent });
+          });
 
           if (key === 'groomPhoto' || key === 'bridePhoto' || key === 'musicUrl' || key === 'heroImage' || key === 'openingImage' || key === 'twibbonOverlay') {
             updates[key] = url;
@@ -258,6 +308,7 @@ export default function AdminPage() {
       }
 
       // 3. Save document first — old files are still intact if this fails
+      setUploadProgress(null);
       await updateDoc(doc(db, 'weddings', slug), updates as Record<string, any>);
       setSaveStatus('success');
       setHasSaved(true);
@@ -333,7 +384,7 @@ export default function AdminPage() {
           <div className="flex items-center gap-3">
             {userDoc?.role === 'super' ? (
               <button
-                onClick={handleToggleStatus}
+                onClick={() => setShowStatusConfirm(true)}
                 disabled={isToggling}
                 className={`text-xs uppercase tracking-widest font-bold px-2 py-1 rounded-full border transition-colors ${isToggling ? 'opacity-50' : ''} ${wedding?.status === 'published' ? 'text-green-600 border-green-600/30 bg-green-50' : 'text-ink/40 border-ink/10 bg-ink/5'}`}
               >
@@ -344,6 +395,15 @@ export default function AdminPage() {
                 {wedding?.status === 'published' ? 'Aktif' : 'Diarsipkan'}
               </span>
             )}
+            <a
+              href={`/${slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-ink/40 hover:text-gold transition-colors"
+              aria-label="Preview undangan"
+            >
+              <ExternalLink className="w-4 h-4" />
+            </a>
             <button
               onClick={handleLogout}
               className="text-xs uppercase tracking-widest text-ink/40 hover:text-ink transition-colors"
@@ -354,7 +414,8 @@ export default function AdminPage() {
         </div>
       </header>
 
-      <nav className="sticky top-[53px] z-40 bg-ivory/90 backdrop-blur-md border-b border-gold/10 overflow-x-auto no-scrollbar">
+      <nav className="sticky top-[53px] z-40 bg-ivory/90 backdrop-blur-md border-b border-gold/10 overflow-x-auto no-scrollbar relative">
+        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-ivory/90 to-transparent pointer-events-none z-10 sm:hidden" />
         <div role="tablist" className="flex min-w-max px-4 py-2 gap-1 max-w-lg mx-auto">
           {STEPS.map((step, i) => (
             <button
@@ -395,10 +456,21 @@ export default function AdminPage() {
               }`}
             >
               {step}
+              {tabComplete[i] && i < totalEditable && (
+                <span className="ml-1 inline-block w-1.5 h-1.5 rounded-full bg-green-500" aria-label="Terisi" />
+              )}
             </button>
           ))}
         </div>
       </nav>
+
+      {wedding && !isWeddingLoading && (
+        <div className="max-w-lg mx-auto px-4 pt-3 pb-0">
+          <p className="text-[10px] text-ink/30 text-center tracking-wider">
+            {completedCount} dari {totalEditable} bagian terisi
+          </p>
+        </div>
+      )}
 
       <main role="tabpanel" id="admin-tabpanel" aria-labelledby={`tab-${currentStep}`} className="max-w-lg mx-auto px-4 py-6">
         {renderForm()}
@@ -409,6 +481,7 @@ export default function AdminPage() {
           <SaveStatusModal
             status={saveStatus}
             onClose={() => setSaveStatus('idle')}
+            uploadProgress={uploadProgress}
           />
         )}
       </AnimatePresence>
@@ -423,6 +496,54 @@ export default function AdminPage() {
             }}
             onCancel={() => setPendingTab(null)}
           />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showStatusConfirm && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowStatusConfirm(false)}
+              className="absolute inset-0 bg-ink/40 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative bg-white rounded-[2rem] p-8 shadow-2xl border border-gold/10 w-full max-w-xs text-center"
+            >
+              <div className="flex flex-col items-center gap-4 py-4">
+                <AlertCircle className="w-12 h-12 text-gold" />
+                <div className="space-y-1">
+                  <h3 className="font-serif italic text-xl text-ink">
+                    {wedding?.status === 'published' ? 'Arsipkan Undangan?' : 'Publikasikan Undangan?'}
+                  </h3>
+                  <p className="text-xs text-ink/60 leading-relaxed">
+                    {wedding?.status === 'published'
+                      ? 'Mengarsipkan undangan ini akan menyembunyikannya dari tamu.'
+                      : 'Undangan akan terlihat oleh semua tamu yang memiliki tautan.'}
+                  </p>
+                </div>
+                <div className="flex gap-3 mt-4 w-full">
+                  <button
+                    onClick={() => setShowStatusConfirm(false)}
+                    className="flex-1 py-2.5 border border-gold/20 text-ink/60 rounded-full text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 transition-transform"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    onClick={() => { setShowStatusConfirm(false); handleToggleStatus(); }}
+                    className="flex-1 py-2.5 bg-gold text-ivory rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-gold/20 hover:scale-105 transition-transform"
+                  >
+                    Lanjutkan
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>

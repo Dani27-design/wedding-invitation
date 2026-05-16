@@ -1,7 +1,5 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
-import { db } from '../lib/firebase';
 import { GuestWishes } from '../types';
 
 const WISHES_LIMIT = 50;
@@ -13,30 +11,43 @@ export function useWishes(weddingId: string, enabled: boolean = true) {
   useEffect(() => {
     if (!enabled) return;
 
-    const q = query(
-      collection(db, 'wishes'),
-      where('weddingId', '==', weddingId),
-      orderBy('createdAt', 'desc'),
-      limit(WISHES_LIMIT)
-    );
+    let unsubscribe: (() => void) | undefined;
+    let cancelled = false;
 
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const data = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as GuestWishes[];
-        setWishes(data);
-        setIsLoading(false);
-      },
-      (error) => {
-        console.error('[useWishes] Firestore error:', error.message);
-        setIsLoading(false);
-      }
-    );
+    (async () => {
+      const { collection, query, where, orderBy, limit, onSnapshot } = await import('firebase/firestore');
+      const { db } = await import('../lib/firebase');
 
-    return unsubscribe;
+      if (cancelled) return;
+
+      const q = query(
+        collection(db, 'wishes'),
+        where('weddingId', '==', weddingId),
+        orderBy('createdAt', 'desc'),
+        limit(WISHES_LIMIT)
+      );
+
+      unsubscribe = onSnapshot(
+        q,
+        (snapshot) => {
+          const data = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          })) as GuestWishes[];
+          setWishes(data);
+          setIsLoading(false);
+        },
+        (error) => {
+          console.error('[useWishes] Firestore error:', error.message);
+          setIsLoading(false);
+        }
+      );
+    })();
+
+    return () => {
+      cancelled = true;
+      unsubscribe?.();
+    };
   }, [weddingId, enabled]);
 
   return { wishes, isLoading };

@@ -18,6 +18,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
   } catch (error) {
     console.error('[sitemap] Firestore error:', (error as Error).message);
-    throw error;
+    return [];
   }
 }

@@ -89,9 +89,11 @@ export default function RegisterPage() {
           <p className="text-xs uppercase tracking-[0.2em] text-gold font-black">
             Menunggu persetujuan admin
           </p>
-          <p className="font-serif italic text-sm text-ink/60">
-            Akun Anda akan diaktifkan setelah disetujui oleh admin. Anda akan dihubungi melalui email.
-          </p>
+          <div className="font-serif italic text-sm text-ink/60 space-y-2">
+            <p>Akun Anda akan diaktifkan setelah disetujui oleh admin.</p>
+            <p>Proses persetujuan biasanya memakan waktu <strong className="text-ink/80">1x24 jam</strong>.</p>
+            <p>Anda akan menerima email setelah akun aktif dan siap digunakan.</p>
+          </div>
           <a
             href="/login"
             className="inline-block mt-4 px-8 py-2.5 bg-gold text-ivory rounded-full text-[10px] font-black uppercase tracking-[0.2em]"

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { db } from '../../lib/firebase';
 import { collection, query, where, getDocs, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { Trash2, MessageSquare } from 'lucide-react';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface WishesFormProps {
   slug: string;
@@ -11,6 +12,7 @@ interface WishesFormProps {
 export function WishesForm({ slug }: WishesFormProps) {
   const [wishes, setWishes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -23,10 +25,8 @@ export function WishesForm({ slug }: WishesFormProps) {
   useEffect(() => { fetchData(); }, [slug]);
 
   const deleteWish = async (id: string) => {
-    if (confirm('Hapus ucapan ini?')) {
-      await deleteDoc(doc(db, 'wishes', id));
-      fetchData();
-    }
+    await deleteDoc(doc(db, 'wishes', id));
+    fetchData();
   };
 
   if (loading) return <p className="text-xs text-ink/40 tracking-widest uppercase text-center py-10">Memuat ucapan...</p>;
@@ -45,10 +45,16 @@ export function WishesForm({ slug }: WishesFormProps) {
             </div>
             <p className="text-[11px] text-ink/70 leading-relaxed">{w.message}</p>
           </div>
-          <button onClick={() => deleteWish(w.id)} className="text-red-400 p-1 hover:bg-red-50 rounded-lg shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
+          <button onClick={() => setDeleteTarget(w.id)} className="text-red-400 p-1 hover:bg-red-50 rounded-lg shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
         </div>
       ))}
       {wishes.length === 0 && <p className="text-xs text-ink/40 text-center py-10">Belum ada ucapan.</p>}
+      <ConfirmDeleteModal
+        isOpen={deleteTarget !== null}
+        message="Hapus ucapan ini?"
+        onConfirm={() => { if (deleteTarget) deleteWish(deleteTarget); setDeleteTarget(null); }}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { WeddingDocument, CreditPerson } from '../../types/firestore';
 import { Plus, Trash2, User } from 'lucide-react';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 const ROLE_OPTIONS = [
   { value: 'developer', label: 'Developer' },
@@ -20,12 +21,10 @@ export function CreditForm({ data, onSave, isSaving }: CreditFormProps) {
     data?.credits ?? [{ name: '', role: 'developer', description: '' }]
   );
 
+  const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
+
   const addCredit = () => setCredits([...credits, { name: '', role: 'other', description: '' }]);
-  const removeCredit = (i: number) => {
-    if (confirm('Apakah Anda yakin ingin menghapus kredit ini?')) {
-      setCredits(credits.filter((_, idx) => idx !== i));
-    }
-  };
+  const removeCredit = (i: number) => setCredits(credits.filter((_, idx) => idx !== i));
   const updateCredit = (i: number, field: keyof CreditPerson, value: string) => {
     setCredits(credits.map((c, idx) => idx === i ? { ...c, [field]: value } : c));
   };
@@ -50,7 +49,7 @@ export function CreditForm({ data, onSave, isSaving }: CreditFormProps) {
               <span className="text-[10px] uppercase tracking-widest text-gold font-black">Kredit {i + 1}</span>
               <button 
                 type="button" 
-                onClick={() => removeCredit(i)} 
+                onClick={() => setDeleteTarget(i)} 
                 className="text-red-400 p-1 hover:scale-110 transition-transform" 
                 aria-label="Hapus kredit"
               >
@@ -64,6 +63,9 @@ export function CreditForm({ data, onSave, isSaving }: CreditFormProps) {
               ))}
             </select>
             <textarea value={credit.description} onChange={(e) => updateCredit(i, 'description', e.target.value)} placeholder="Deskripsi" rows={4} maxLength={200} aria-label={`Deskripsi Kredit ${i + 1}`} className={`${inputClass} resize-none`} />
+            {credit.description.length > 140 && (
+              <p className={`text-[9px] text-right mt-0.5 ${credit.description.length >= 200 ? 'text-red-500' : 'text-gold'}`}>{credit.description.length}/200</p>
+            )}
           </div>
         ))}
       </fieldset>
@@ -80,6 +82,12 @@ export function CreditForm({ data, onSave, isSaving }: CreditFormProps) {
       </button>
 
       <button type="submit" disabled={isSaving} className="w-full py-3 bg-gold text-ivory rounded-full text-xs tracking-[0.3em] font-black uppercase disabled:opacity-50 shadow-lg shadow-gold/20">{isSaving ? 'Menyimpan...' : 'Simpan'}</button>
+      <ConfirmDeleteModal
+        isOpen={deleteTarget !== null}
+        message="Apakah Anda yakin ingin menghapus kredit ini?"
+        onConfirm={() => { if (deleteTarget !== null) removeCredit(deleteTarget); setDeleteTarget(null); }}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </form>
   );
 }

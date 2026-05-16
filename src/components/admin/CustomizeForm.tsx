@@ -67,8 +67,18 @@ export function CustomizeForm({ data, onSave, isSaving }: CustomizeFormProps) {
     <form onSubmit={handleSubmit} className="space-y-6">
       <fieldset className="space-y-3">
         <legend className="text-xs uppercase tracking-[0.3em] text-gold font-black mb-3">Ayat Al-Quran</legend>
-        <textarea value={quranArabic} onChange={(e) => setQuranArabic(e.target.value)} placeholder="Ayat Arab" rows={4} maxLength={500} aria-label="Ayat Arab" className={`${inputClass} resize-none`} dir="rtl" />
-        <textarea value={quranTranslation} onChange={(e) => setQuranTranslation(e.target.value)} placeholder="Terjemahan" rows={4} maxLength={500} aria-label="Terjemahan" className={`${inputClass} resize-none`} />
+        <div>
+          <textarea value={quranArabic} onChange={(e) => setQuranArabic(e.target.value)} placeholder="Ayat Arab" rows={4} maxLength={500} aria-label="Ayat Arab" className={`${inputClass} resize-none`} dir="rtl" />
+          {quranArabic.length > 350 && (
+            <p className={`text-[9px] text-right mt-0.5 ${quranArabic.length >= 500 ? 'text-red-500' : 'text-gold'}`}>{quranArabic.length}/500</p>
+          )}
+        </div>
+        <div>
+          <textarea value={quranTranslation} onChange={(e) => setQuranTranslation(e.target.value)} placeholder="Terjemahan" rows={4} maxLength={500} aria-label="Terjemahan" className={`${inputClass} resize-none`} />
+          {quranTranslation.length > 350 && (
+            <p className={`text-[9px] text-right mt-0.5 ${quranTranslation.length >= 500 ? 'text-red-500' : 'text-gold'}`}>{quranTranslation.length}/500</p>
+          )}
+        </div>
         <input value={quranReference} onChange={(e) => setQuranReference(e.target.value)} placeholder="Referensi (misal: QS. Ar-Rum: 21)" maxLength={50} aria-label="Referensi Ayat" className={inputClass} />
       </fieldset>
 
@@ -98,6 +108,20 @@ export function CustomizeForm({ data, onSave, isSaving }: CustomizeFormProps) {
           </div>
         ))}
       </fieldset>
+
+      <div className="rounded-2xl border border-gold/10 overflow-hidden">
+        <div className="p-4" style={{ backgroundColor: colors.background }}>
+          <p className="text-[10px] uppercase tracking-widest font-bold mb-1" style={{ color: colors.accent }}>Preview Warna</p>
+          <p className="text-sm font-serif italic" style={{ color: colors.text }}>Contoh teks undangan dengan warna yang dipilih</p>
+          <div className="flex gap-2 mt-2">
+            <span className="px-3 py-1 rounded-full text-[9px] font-bold" style={{ backgroundColor: colors.accent, color: colors.background }}>Tombol Aksen</span>
+            <span className="px-3 py-1 rounded-full text-[9px] font-bold" style={{ backgroundColor: colors.button, color: colors.text }}>Tombol</span>
+          </div>
+        </div>
+        <div className="p-3" style={{ backgroundColor: colors.surface }}>
+          <p className="text-[9px]" style={{ color: colors.text, opacity: 0.6 }}>Area permukaan (surface)</p>
+        </div>
+      </div>
 
       <fieldset className="space-y-3">
         <legend className="text-xs uppercase tracking-[0.3em] text-gold font-black mb-3">Font</legend>

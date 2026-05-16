@@ -20,7 +20,8 @@ export async function generateStaticParams() {
       .select()
       .get();
     return snapshot.docs.map((doc) => ({ slug: doc.id }));
-  } catch {
+  } catch (error) {
+    console.error('[generateStaticParams] Firestore error — no pages pre-rendered:', (error as Error).message);
     return [];
   }
 }

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
+import { signInWithEmailAndPassword, signInWithPopup, sendPasswordResetEmail } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, googleProvider } from '@/lib/firebase-auth';
 import { db } from '@/lib/firebase';
@@ -14,6 +14,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [resetStatus, setResetStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  const [resetError, setResetError] = useState('');
 
   async function redirectByRole(uid: string) {
     const snap = await getDoc(doc(db, 'users', uid));
@@ -23,7 +25,7 @@ export default function LoginPage() {
     }
     const userData = snap.data() as UserDocument;
     if (userData.role === 'pending') {
-      setError('Akun Anda menunggu persetujuan admin.');
+      setError('Akun Anda masih menunggu persetujuan admin (biasanya 1x24 jam). Anda akan menerima email setelah akun diaktifkan. Jika sudah lebih dari 24 jam, silakan hubungi tim kami.');
       return;
     }
     if (userData.role === 'super') {
@@ -48,6 +50,23 @@ export default function LoginPage() {
       setError('Email atau password salah');
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function handleResetPassword() {
+    if (!email.trim()) {
+      setResetError('Masukkan email terlebih dahulu');
+      setResetStatus('error');
+      return;
+    }
+    setResetStatus('sending');
+    setResetError('');
+    try {
+      await sendPasswordResetEmail(auth, email.trim());
+      setResetStatus('sent');
+    } catch {
+      setResetError('Gagal mengirim email reset. Pastikan email terdaftar.');
+      setResetStatus('error');
     }
   }
 
@@ -101,6 +120,22 @@ export default function LoginPage() {
               disabled={isLoading}
               className="w-full px-4 py-3 border border-gold/20 rounded-xl text-sm bg-white focus:outline-none focus:border-gold/50 disabled:opacity-50"
             />
+            <div className="mt-1.5 text-right">
+              <button
+                type="button"
+                onClick={handleResetPassword}
+                disabled={resetStatus === 'sending'}
+                className="text-[10px] text-gold underline underline-offset-4 disabled:opacity-50"
+              >
+                {resetStatus === 'sending' ? 'Mengirim...' : 'Lupa password?'}
+              </button>
+            </div>
+            {resetStatus === 'sent' && (
+              <p className="text-[10px] text-green-600 text-center mt-1">Email reset password telah dikirim. Periksa kotak masuk Anda.</p>
+            )}
+            {resetStatus === 'error' && resetError && (
+              <p className="text-[10px] text-red-500 text-center mt-1">{resetError}</p>
+            )}
           </div>
           {error && <p role="alert" className="text-xs text-red-500 text-center">{error}</p>}
           <button

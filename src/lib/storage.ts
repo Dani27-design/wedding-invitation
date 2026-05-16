@@ -1,10 +1,34 @@
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
 import { storage } from './firebase-storage';
 
-export async function uploadFile(path: string, file: File): Promise<string> {
+export type UploadProgressCallback = (percent: number) => void;
+
+export async function uploadFile(
+  path: string,
+  file: File,
+  onProgress?: UploadProgressCallback,
+): Promise<string> {
   const fileRef = ref(storage, path);
-  await uploadBytes(fileRef, file);
-  return getDownloadURL(fileRef);
+  const task = uploadBytesResumable(fileRef, file);
+
+  return new Promise((resolve, reject) => {
+    task.on(
+      'state_changed',
+      (snapshot) => {
+        const percent = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+        onProgress?.(percent);
+      },
+      (error) => reject(error),
+      async () => {
+        try {
+          const url = await getDownloadURL(task.snapshot.ref);
+          resolve(url);
+        } catch (error) {
+          reject(error);
+        }
+      },
+    );
+  });
 }
 
 export async function deleteFile(url: string) {

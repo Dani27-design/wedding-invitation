@@ -70,8 +70,47 @@ export function CoupleForm({ data, onSave, isSaving }: CoupleFormProps) {
     setter(current.filter((_, i) => i !== idx));
   };
 
+  const getUrlPlaceholder = (platform: string) => {
+    switch (platform) {
+      case 'Instagram': return 'https://instagram.com/username';
+      case 'LinkedIn': return 'https://linkedin.com/in/username';
+      case 'WhatsApp': return '081234567890';
+      case 'Threads': return 'https://threads.net/@username';
+      case 'Twitter': return 'https://x.com/username';
+      case 'Tiktok': return 'https://tiktok.com/@username';
+      default: return 'https://...';
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+
+    // Validate social link URLs
+    const allLinks = [
+      ...groomSocialLinks.filter((l) => l.label.trim() && l.url.trim()),
+      ...brideSocialLinks.filter((l) => l.label.trim() && l.url.trim()),
+    ];
+    for (const link of allLinks) {
+      if (link.label === 'WhatsApp') {
+        if (!/^\+?[0-9\s-]{8,20}$/.test(link.url.trim())) {
+          setError(`Nomor WhatsApp "${link.url}" tidak valid. Gunakan format: 081234567890`);
+          return;
+        }
+      } else {
+        try {
+          const parsed = new URL(link.url.trim());
+          if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+            setError(`URL "${link.url}" tidak valid. URL harus dimulai dengan https://`);
+            return;
+          }
+        } catch {
+          setError(`URL "${link.url}" tidak valid. Pastikan format URL benar (contoh: https://instagram.com/username)`);
+          return;
+        }
+      }
+    }
+
     const files: Record<string, File> = {};
     const fileEntries = [
       groomPhotoFile ? ['groomPhoto', groomPhotoFile] as const : null,
@@ -121,7 +160,7 @@ export function CoupleForm({ data, onSave, isSaving }: CoupleFormProps) {
       <label className="text-xs text-ink/60 block">Foto</label>
       <div className="flex items-center gap-4">
         {preview !== "" && (
-          <div className="relative w-16 h-16 flex-shrink-0">
+          <div className="relative w-20 h-20 flex-shrink-0">
             <img
               src={preview}
               alt={side}
@@ -212,39 +251,40 @@ export function CoupleForm({ data, onSave, isSaving }: CoupleFormProps) {
         <div className="space-y-2 pt-2 border-t border-gold/10">
           <label className="text-xs text-ink/60 block">Tautan Sosial</label>
           {groomSocialLinks.map((link, idx) => (
-            <div key={idx} className="flex gap-2">
-              <select
-                value={link.label}
-                onChange={(e) =>
-                  updateSocialLink("groom", idx, "label", e.target.value)
-                }
-                className={inputClass}
-              >
-                <option value="">Pilih Platform</option>
-                <option value="Instagram">Instagram</option>
-                <option value="LinkedIn">LinkedIn</option>
-                <option value="WhatsApp">WhatsApp</option>
-                <option value="Threads">Threads</option>
-                <option value="Twitter">Twitter</option>
-                <option value="Tiktok">Tiktok</option>
-                <option value="Lainnya">Lainnya</option>
-              </select>
+            <div key={idx} className="space-y-1.5 p-3 bg-white/50 rounded-xl border border-gold/5">
+              <div className="flex gap-2">
+                <select
+                  value={link.label}
+                  onChange={(e) => updateSocialLink("groom", idx, "label", e.target.value)}
+                  aria-label={`Platform tautan ${idx + 1}`}
+                  className={inputClass}
+                >
+                  <option value="">Pilih Platform</option>
+                  <option value="Instagram">Instagram</option>
+                  <option value="LinkedIn">LinkedIn</option>
+                  <option value="WhatsApp">WhatsApp</option>
+                  <option value="Threads">Threads</option>
+                  <option value="Twitter">Twitter</option>
+                  <option value="Tiktok">Tiktok</option>
+                  <option value="Lainnya">Lainnya</option>
+                </select>
+                <button
+                  type="button"
+                  onClick={() => removeSocialLink("groom", idx)}
+                  className="text-red-400 p-2 hover:scale-110 transition-transform"
+                  aria-label="Hapus tautan"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
               <input
-                type="url"
+                type={link.label === 'WhatsApp' ? 'tel' : 'url'}
                 value={link.url}
-                onChange={(e) =>
-                  updateSocialLink("groom", idx, "url", e.target.value)
-                }
-                placeholder="URL"
+                onChange={(e) => updateSocialLink("groom", idx, "url", e.target.value)}
+                placeholder={getUrlPlaceholder(link.label)}
+                aria-label={`URL tautan ${idx + 1}`}
                 className={inputClass}
               />
-              <button
-                type="button"
-                onClick={() => removeSocialLink("groom", idx)}
-                className="text-red-400 p-2"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
             </div>
           ))}
           <button
@@ -292,39 +332,40 @@ export function CoupleForm({ data, onSave, isSaving }: CoupleFormProps) {
         <div className="space-y-2 pt-2 border-t border-gold/10">
           <label className="text-xs text-ink/60 block">Tautan Sosial</label>
           {brideSocialLinks.map((link, idx) => (
-            <div key={idx} className="flex gap-2">
-              <select
-                value={link.label}
-                onChange={(e) =>
-                  updateSocialLink("bride", idx, "label", e.target.value)
-                }
-                className={inputClass}
-              >
-                <option value="">Pilih Platform</option>
-                <option value="Instagram">Instagram</option>
-                <option value="LinkedIn">LinkedIn</option>
-                <option value="WhatsApp">WhatsApp</option>
-                <option value="Threads">Threads</option>
-                <option value="Twitter">Twitter</option>
-                <option value="Tiktok">Tiktok</option>
-                <option value="Lainnya">Lainnya</option>
-              </select>
+            <div key={idx} className="space-y-1.5 p-3 bg-white/50 rounded-xl border border-gold/5">
+              <div className="flex gap-2">
+                <select
+                  value={link.label}
+                  onChange={(e) => updateSocialLink("bride", idx, "label", e.target.value)}
+                  aria-label={`Platform tautan ${idx + 1}`}
+                  className={inputClass}
+                >
+                  <option value="">Pilih Platform</option>
+                  <option value="Instagram">Instagram</option>
+                  <option value="LinkedIn">LinkedIn</option>
+                  <option value="WhatsApp">WhatsApp</option>
+                  <option value="Threads">Threads</option>
+                  <option value="Twitter">Twitter</option>
+                  <option value="Tiktok">Tiktok</option>
+                  <option value="Lainnya">Lainnya</option>
+                </select>
+                <button
+                  type="button"
+                  onClick={() => removeSocialLink("bride", idx)}
+                  className="text-red-400 p-2 hover:scale-110 transition-transform"
+                  aria-label="Hapus tautan"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
               <input
-                type="url"
+                type={link.label === 'WhatsApp' ? 'tel' : 'url'}
                 value={link.url}
-                onChange={(e) =>
-                  updateSocialLink("bride", idx, "url", e.target.value)
-                }
-                placeholder="URL"
+                onChange={(e) => updateSocialLink("bride", idx, "url", e.target.value)}
+                placeholder={getUrlPlaceholder(link.label)}
+                aria-label={`URL tautan ${idx + 1}`}
                 className={inputClass}
               />
-              <button
-                type="button"
-                onClick={() => removeSocialLink("bride", idx)}
-                className="text-red-400 p-2"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
             </div>
           ))}
           <button

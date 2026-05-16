@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { db } from '../../lib/firebase';
 import { collection, query, where, getDocs, deleteDoc, doc, getDoc } from 'firebase/firestore';
 import { Trash2, MessageCircle, Heart } from 'lucide-react';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface StoryInteractionsFormProps {
   data: any; // WeddingDocument
@@ -13,6 +14,7 @@ export function StoryInteractionsForm({ slug }: StoryInteractionsFormProps) {
   const [comments, setComments] = useState<any[]>([]);
   const [likes, setLikes] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -32,10 +34,8 @@ export function StoryInteractionsForm({ slug }: StoryInteractionsFormProps) {
   useEffect(() => { fetchData(); }, [slug]);
 
   const deleteComment = async (id: string) => {
-    if (confirm('Hapus komentar ini?')) {
-      await deleteDoc(doc(db, 'story-comments', id));
-      fetchData();
-    }
+    await deleteDoc(doc(db, 'story-comments', id));
+    fetchData();
   };
 
   if (loading) return <p className="text-xs text-ink/40 tracking-widest uppercase text-center py-10">Memuat data...</p>;
@@ -63,10 +63,16 @@ export function StoryInteractionsForm({ slug }: StoryInteractionsFormProps) {
               </div>
               <p className="text-[11px] text-ink/70 mt-0.5 leading-relaxed">{c.text}</p>
             </div>
-            <button onClick={() => deleteComment(c.id)} className="text-red-400 p-1 hover:bg-red-50 rounded-lg shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
+            <button onClick={() => setDeleteTarget(c.id)} className="text-red-400 p-1 hover:bg-red-50 rounded-lg shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
           </div>
         ))}
       </div>
+      <ConfirmDeleteModal
+        isOpen={deleteTarget !== null}
+        message="Hapus komentar ini?"
+        onConfirm={() => { if (deleteTarget) deleteComment(deleteTarget); setDeleteTarget(null); }}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

@@ -1,9 +1,10 @@
 'use client';
 import { useState } from 'react';
 import { WeddingDocument } from '../../types/firestore';
-import { Plus, Trash2, Upload, Image as ImageIcon } from 'lucide-react';
+import { Plus, Trash2, Upload, Image as ImageIcon, ChevronUp, ChevronDown } from 'lucide-react';
 import { compressImage, formatFileSize } from '../../utils/compressImage';
 import { CompressionModal } from './CompressionModal';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface GalleryFormProps {
   data: WeddingDocument | null;
@@ -23,6 +24,7 @@ export function GalleryForm({ data, onSave, isSaving }: GalleryFormProps) {
   const [isCompressing, setIsCompressing] = useState(false);
   const [compressionInfo, setCompressionInfo] = useState('');
   const [compressProgress, setCompressProgress] = useState({ current: 0, total: 0, fileName: '' });
+  const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
 
   const handleAdd = (files: FileList | null) => {
     if (!files) return;
@@ -41,6 +43,14 @@ export function GalleryForm({ data, onSave, isSaving }: GalleryFormProps) {
       setUrlsToDelete(prev => [...prev, img.url]);
     }
     setImages(images.filter((_, idx) => idx !== i));
+  };
+
+  const moveImage = (from: number, to: number) => {
+    if (to < 0 || to >= images.length) return;
+    const updated = [...images];
+    const [moved] = updated.splice(from, 1);
+    updated.splice(to, 0, moved);
+    setImages(updated);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -78,6 +88,9 @@ export function GalleryForm({ data, onSave, isSaving }: GalleryFormProps) {
         <span className="text-[10px] text-ink/40 font-mono">{images.length}/{MAX_IMAGES}</span>
       </div>
 
+      {images.length > 1 && (
+        <p className="text-[9px] text-ink/30 text-center -mb-3">Ketuk panah di foto untuk mengubah urutan</p>
+      )}
       <div className="grid grid-cols-2 gap-3">
         {images.map((img, i) => (
           <div key={i} className="space-y-1.5">
@@ -86,15 +99,26 @@ export function GalleryForm({ data, onSave, isSaving }: GalleryFormProps) {
               <button
                 type="button"
                 onClick={() => {
-                  if (confirm('Apakah Anda yakin ingin menghapus foto ini?')) {
-                    handleRemove(i);
-                  }
+                  setDeleteTarget(i);
                 }}
                 className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-all hover:scale-110 shadow-lg"
                 aria-label="Hapus foto"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
+              {/* Reorder buttons */}
+              <div className="absolute top-2 left-2 flex flex-col gap-1">
+                {i > 0 && (
+                  <button type="button" onClick={() => moveImage(i, i - 1)} className="w-7 h-7 bg-ink/60 text-white rounded-full flex items-center justify-center hover:bg-ink/80 transition-all shadow" aria-label="Pindah ke atas">
+                    <ChevronUp className="w-3.5 h-3.5" />
+                  </button>
+                )}
+                {i < images.length - 1 && (
+                  <button type="button" onClick={() => moveImage(i, i + 1)} className="w-7 h-7 bg-ink/60 text-white rounded-full flex items-center justify-center hover:bg-ink/80 transition-all shadow" aria-label="Pindah ke bawah">
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
               {img.file && (
                 <div className="absolute bottom-0 left-0 right-0 bg-gold/80 backdrop-blur-sm py-1 px-2">
                   <p className="text-[8px] text-ivory font-black uppercase tracking-tighter truncate">Baru</p>
@@ -129,6 +153,12 @@ export function GalleryForm({ data, onSave, isSaving }: GalleryFormProps) {
       {compressionInfo && <p className="text-[10px] text-green-600 text-center">{compressionInfo}</p>}
       <button type="submit" disabled={isSaving || isCompressing} className="w-full py-3 bg-gold text-ivory rounded-full text-xs tracking-[0.3em] font-black uppercase disabled:opacity-50 shadow-lg shadow-gold/20">{isSaving ? 'Menyimpan...' : 'Simpan'}</button>
       <CompressionModal isOpen={isCompressing} current={compressProgress.current} total={compressProgress.total} currentFileName={compressProgress.fileName} />
+      <ConfirmDeleteModal
+        isOpen={deleteTarget !== null}
+        message="Apakah Anda yakin ingin menghapus foto ini?"
+        onConfirm={() => { if (deleteTarget !== null) handleRemove(deleteTarget); setDeleteTarget(null); }}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </form>
   );
 }

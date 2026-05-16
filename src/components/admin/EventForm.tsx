@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { WeddingDocument, Ceremony } from '../../types/firestore';
 import { Plus, Trash2 } from 'lucide-react';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface EventFormProps {
   data: WeddingDocument | null;
@@ -17,6 +18,7 @@ export function EventForm({ data, onSave, isSaving }: EventFormProps) {
   const [venueMapsUrl, setVenueMapsUrl] = useState(data?.venueMapsUrl ?? '');
   const [defaultGuest, setDefaultGuest] = useState(data?.defaultGuest ?? '');
   const [ceremonies, setCeremonies] = useState<Ceremony[]>(data?.ceremonies ?? [{ name: '', start: '', end: '' }]);
+  const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
 
   const addCeremony = () => setCeremonies([...ceremonies, { name: '', start: '', end: '' }]);
   const removeCeremony = (i: number) => setCeremonies(ceremonies.filter((_, idx) => idx !== i));
@@ -43,12 +45,12 @@ export function EventForm({ data, onSave, isSaving }: EventFormProps) {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-3">
         <label className="text-xs uppercase tracking-[0.3em] text-gold font-black block">Tanggal & Lokasi</label>
-        <input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} required aria-label="Tanggal Acara" className={inputClass} />
+        <input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} min={new Date().toISOString().split('T')[0]} required aria-label="Tanggal Acara" className={inputClass} />
         <input value={eventCity} onChange={(e) => setEventCity(e.target.value)} placeholder="Kota" required maxLength={50} aria-label="Kota" className={inputClass} />
         <input value={venueName} onChange={(e) => setVenueName(e.target.value)} placeholder="Nama Gedung" required maxLength={100} aria-label="Nama Gedung" className={inputClass} />
         <input value={venueAddress} onChange={(e) => setVenueAddress(e.target.value)} placeholder="Alamat Lengkap" required maxLength={200} aria-label="Alamat Lengkap" className={inputClass} />
         <input value={venueMapsUrl} onChange={(e) => setVenueMapsUrl(e.target.value)} placeholder="Google Maps URL" type="url" maxLength={500} aria-label="Google Maps URL" className={inputClass} />
-        <input value={defaultGuest} onChange={(e) => setDefaultGuest(e.target.value)} placeholder="Nama Tamu Default (jika tanpa ?to=)" maxLength={50} aria-label="Nama Tamu Default" className={inputClass} />
+        <input value={defaultGuest} onChange={(e) => setDefaultGuest(e.target.value)} placeholder="Nama tamu jika tautan tidak menyertakan nama (cth: Tamu Undangan)" maxLength={50} aria-label="Nama Tamu Default" className={inputClass} />
       </div>
 
       <fieldset className="space-y-4">
@@ -59,11 +61,7 @@ export function EventForm({ data, onSave, isSaving }: EventFormProps) {
               <span className="text-[10px] uppercase tracking-widest text-ink/60 font-black">Acara {i + 1}</span>
               <button 
                 type="button" 
-                onClick={() => {
-                  if (confirm('Apakah Anda yakin ingin menghapus acara ini?')) {
-                    removeCeremony(i);
-                  }
-                }} 
+                onClick={() => setDeleteTarget(i)} 
                 className="text-red-400 p-1 hover:scale-110 transition-transform" 
                 aria-label="Hapus acara"
               >
@@ -91,6 +89,12 @@ export function EventForm({ data, onSave, isSaving }: EventFormProps) {
       </button>
 
       <button type="submit" disabled={isSaving} className="w-full py-3 bg-gold text-ivory rounded-full text-xs tracking-[0.3em] font-black uppercase disabled:opacity-50 shadow-lg shadow-gold/20">{isSaving ? 'Menyimpan...' : 'Simpan'}</button>
+      <ConfirmDeleteModal
+        isOpen={deleteTarget !== null}
+        message="Apakah Anda yakin ingin menghapus acara ini?"
+        onConfirm={() => { if (deleteTarget !== null) removeCeremony(deleteTarget); setDeleteTarget(null); }}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </form>
   );
 }

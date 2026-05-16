@@ -8,6 +8,7 @@ import { FloatingPetals } from "../ui/FloatingPetals";
 import { ForegroundOrnaments } from "../ui/ForegroundOrnaments";
 import { useWeddingContext } from "../../context/WeddingContext";
 import { deriveDateShort } from "../../utils/weddingDerived";
+import { SHIMMER_DARK } from "../../utils/shimmer";
 
 interface CinematicOpeningProps {
   guestName: string;
@@ -78,6 +79,8 @@ export const CinematicOpening = ({
             fill
             priority
             sizes="100vw"
+            placeholder="blur"
+            blurDataURL={SHIMMER_DARK}
             onError={(e) => {
               e.currentTarget.style.display = "none";
             }}

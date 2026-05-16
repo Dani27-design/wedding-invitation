@@ -94,6 +94,16 @@ html, body {
   animation: soft-zoom 20s ease-in-out infinite;
 }
 
+@keyframes hero-zoom {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
+.animate-hero-zoom {
+  animation: hero-zoom 20s ease-in-out infinite;
+}
+
 .bubble-glow {
   box-shadow: 0 0 12px color-mix(in srgb, var(--color-gold) 15%, transparent);
 }

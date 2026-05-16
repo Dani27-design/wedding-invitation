@@ -13,6 +13,7 @@ import {
 import { useSearchParams } from 'next/navigation';
 import { AnimatePresence } from 'motion/react';
 import { BackgroundLayers } from '@/components/ui/BackgroundLayers';
+import { SectionErrorBoundary } from '@/components/ui/SectionErrorBoundary';
 import { CinematicOpening } from '@/components/sections/CinematicOpening';
 import { HeroSection } from '@/components/sections/HeroSection';
 import { CoupleSection } from '@/components/sections/CoupleSection';
@@ -249,7 +250,7 @@ export function WeddingClient({ wedding, slug }: WeddingClientProps) {
           <audio
             ref={audioRef}
             loop
-            preload="metadata"
+            preload="none"
             src={wedding.musicUrl}
           />
         )}
@@ -262,50 +263,54 @@ export function WeddingClient({ wedding, slug }: WeddingClientProps) {
 
         <main className="relative z-10">
           {isOpen && (
-            <Suspense fallback={null}>
-              <FloatingController
-                isToolsOpen={isToolsOpen}
-                setIsToolsOpen={setIsToolsOpen}
-                isPlaying={isPlaying}
-                toggleMusic={toggleMusic}
-              />
-            </Suspense>
+            <SectionErrorBoundary>
+              <Suspense fallback={null}>
+                <FloatingController
+                  isToolsOpen={isToolsOpen}
+                  setIsToolsOpen={setIsToolsOpen}
+                  isPlaying={isPlaying}
+                  toggleMusic={toggleMusic}
+                />
+              </Suspense>
+            </SectionErrorBoundary>
           )}
 
           <HeroSection />
           <CoupleSection />
 
-          <Suspense fallback={null}>
-            <CinematicStory weddingSlug={slug} />
-            <EventSection />
-            <TwibbonSection />
+          <SectionErrorBoundary>
+            <Suspense fallback={null}>
+              <CinematicStory weddingSlug={slug} />
+              <EventSection />
+              <TwibbonSection />
 
-            <RSVPSection
-              wishes={wishes}
-              currentWishes={currentWishes}
-              currentPage={currentPage}
-              totalPages={totalPages}
-              setCurrentPage={setCurrentPage}
-              onOpenRSVP={handleOpenRSVP}
-              isWishesLoading={isWishesLoading}
-            />
+              <RSVPSection
+                wishes={wishes}
+                currentWishes={currentWishes}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                setCurrentPage={setCurrentPage}
+                onOpenRSVP={handleOpenRSVP}
+                isWishesLoading={isWishesLoading}
+              />
 
-            <RSVPModal
-              isOpen={isRSVPModalOpen}
-              isSubmitSuccess={isSubmitSuccess}
-              guestName={guestName}
-              onClose={handleCloseRSVP}
-              onSubmit={handleRSVPSubmit}
-            />
+              <RSVPModal
+                isOpen={isRSVPModalOpen}
+                isSubmitSuccess={isSubmitSuccess}
+                guestName={guestName}
+                onClose={handleCloseRSVP}
+                onSubmit={handleRSVPSubmit}
+              />
 
-            <DigitalEnvelope copiedIndex={copiedIndex} onCopy={handleCopy} />
-            <PhotoGallery onSelectPhoto={setSelectedPhoto} />
-            <Footer />
-            <PhotoZoomModal
-              selectedPhoto={selectedPhoto}
-              onClose={handleClosePhoto}
-            />
-          </Suspense>
+              <DigitalEnvelope copiedIndex={copiedIndex} onCopy={handleCopy} />
+              <PhotoGallery onSelectPhoto={setSelectedPhoto} />
+              <Footer />
+              <PhotoZoomModal
+                selectedPhoto={selectedPhoto}
+                onClose={handleClosePhoto}
+              />
+            </Suspense>
+          </SectionErrorBoundary>
         </main>
       </div>
     </WeddingContext.Provider>

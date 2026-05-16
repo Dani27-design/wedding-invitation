@@ -8,6 +8,7 @@ import { PetalEffect } from '../ui/PetalEffect';
 import { useWeddingContext } from '../../context/WeddingContext';
 import { useStoryLikes } from '../../hooks/useStoryLikes';
 import { useStoryComments } from '../../hooks/useStoryComments';
+import { SHIMMER_DARK } from '../../utils/shimmer';
 
 interface CinematicStoryProps {
   weddingSlug: string;
@@ -155,15 +156,18 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
             <div className="absolute inset-0 bg-ink">
               {/* Layer 1: Blurred backdrop */}
               {slide.bgImage && (
-                <img
-                  src={`/_next/image?url=${encodeURIComponent(slide.bgImage)}&w=128&q=30`}
-                  alt=""
-                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                  className={`absolute inset-0 w-full h-full object-cover blur-2xl ${isActive ? 'opacity-30' : 'opacity-0'}`}
-                  style={{ zIndex: 1 }}
-                  referrerPolicy="no-referrer"
-                  loading="lazy"
-                />
+                <div className={`absolute inset-0 transition-opacity duration-300 ${isActive ? 'opacity-30' : 'opacity-0'}`} style={{ zIndex: 1 }}>
+                  <Image
+                    src={slide.bgImage}
+                    fill
+                    sizes="128px"
+                    quality={30}
+                    alt=""
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    className="object-cover blur-2xl"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
               )}
               {/* Layer 2: Main media */}
               {slide.bgVideo ? (
@@ -186,6 +190,8 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
                   src={slide.bgImage}
                   fill
                   sizes="100vw"
+                  placeholder="blur"
+                  blurDataURL={SHIMMER_DARK}
                   onError={(e) => { e.currentTarget.style.display = 'none'; }}
                   className="object-contain opacity-85"
                   style={{ zIndex: 2 }}
@@ -243,7 +249,22 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
             {/* Text content — always mounted, CSS fade */}
             <div className={`absolute inset-x-0 bottom-0 z-30 bg-gradient-to-t from-ink from-30% via-ink/70 via-60% to-transparent transition-opacity duration-300 ${isNear ? 'opacity-100' : 'opacity-0'}`}>
               <div
-                className="px-5 pt-24 pb-20 sm:pb-24 md:pb-32 max-w-[85%] md:max-w-md cursor-pointer"
+                className={`px-5 pt-24 pb-20 sm:pb-24 md:pb-32 max-w-[85%] md:max-w-md ${slide.text.length > 100 ? 'cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gold/30 focus-visible:rounded' : ''}`}
+                {...(slide.text.length > 100 ? {
+                  role: 'button',
+                  tabIndex: 0,
+                  'aria-label': expandedSlides.has(idx) ? 'Sembunyikan teks' : 'Baca selengkapnya',
+                  onKeyDown: (e: React.KeyboardEvent) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setExpandedSlides(prev => {
+                        const next = new Set(prev);
+                        if (next.has(idx)) next.delete(idx); else next.add(idx);
+                        return next;
+                      });
+                    }
+                  },
+                } : {})}
                 onClick={(e) => {
                   e.stopPropagation();
                   if (slide.text.length <= 100) return;

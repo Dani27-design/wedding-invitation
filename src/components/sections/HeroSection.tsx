@@ -4,6 +4,7 @@ import Image from "next/image";
 import { motion } from "motion/react";
 import { useWeddingContext } from '../../context/WeddingContext';
 import { deriveDateDisplay } from '../../utils/weddingDerived';
+import { SHIMMER_IVORY } from '../../utils/shimmer';
 
 export const HeroSection = memo(() => {
   const wedding = useWeddingContext();
@@ -11,25 +12,22 @@ export const HeroSection = memo(() => {
   return (
   <section className="relative h-screen-safe flex flex-col items-center justify-between px-6 py-[5vh] overflow-hidden bg-ivory">
     <div className="absolute inset-0 z-0">
-      <motion.div
-        animate={{ scale: [1, 1.03, 1] }} // Gentle zoom effect on the hero image
-        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-        className="w-full h-full transform-gpu relative"
-        style={{ willChange: 'transform' }}
-      >
+      <div className="w-full h-full transform-gpu relative animate-hero-zoom">
         {wedding?.heroImage && (
           <Image
             src={wedding.heroImage}
             fill
             priority
             sizes="100vw"
+            placeholder="blur"
+            blurDataURL={SHIMMER_IVORY}
             onError={(e) => { e.currentTarget.style.display = 'none'; }}
             className="object-cover brightness-[0.85] contrast-[1.05]"
             alt={`${wedding?.groomNickname ?? ''} & ${wedding?.brideNickname ?? ''}`}
           />
         )}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-ivory/20 to-ivory" />
-      </motion.div>
+      </div>
     </div>
 
     <div className="flex flex-col items-center justify-center pt-[5vh] z-10">

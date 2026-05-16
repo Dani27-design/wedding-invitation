@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { WeddingDocument, BankAccount } from '../../types/firestore';
 import { Plus, Trash2 } from 'lucide-react';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface GiftFormProps {
   data: WeddingDocument | null;
@@ -13,6 +14,8 @@ export function GiftForm({ data, onSave, isSaving }: GiftFormProps) {
   const [accounts, setAccounts] = useState<BankAccount[]>(
     data?.giftAccounts ?? [{ bank: '', account: '', owner: '' }]
   );
+
+  const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
 
   const addAccount = () => setAccounts([...accounts, { bank: '', account: '', owner: '' }]);
   const removeAccount = (i: number) => setAccounts(accounts.filter((_, idx) => idx !== i));
@@ -36,11 +39,7 @@ export function GiftForm({ data, onSave, isSaving }: GiftFormProps) {
             <span className="text-[10px] uppercase tracking-widest text-ink/60 font-black">Rekening {i + 1}</span>
             <button 
               type="button" 
-              onClick={() => {
-                if (confirm('Apakah Anda yakin ingin menghapus rekening ini?')) {
-                  removeAccount(i);
-                }
-              }} 
+              onClick={() => setDeleteTarget(i)} 
               className="text-red-400 p-1 hover:scale-110 transition-transform" 
               aria-label="Hapus rekening"
             >
@@ -65,6 +64,12 @@ export function GiftForm({ data, onSave, isSaving }: GiftFormProps) {
       </button>
 
       <button type="submit" disabled={isSaving} className="w-full py-3 bg-gold text-ivory rounded-full text-xs tracking-[0.3em] font-black uppercase disabled:opacity-50 shadow-lg shadow-gold/20">{isSaving ? 'Menyimpan...' : 'Simpan'}</button>
+      <ConfirmDeleteModal
+        isOpen={deleteTarget !== null}
+        message="Apakah Anda yakin ingin menghapus rekening ini?"
+        onConfirm={() => { if (deleteTarget !== null) removeAccount(deleteTarget); setDeleteTarget(null); }}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </form>
   );
 }

@@ -151,17 +151,21 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
 
           return (
           <div key={idx} className="relative h-full w-full min-w-full snap-center flex items-center justify-center overflow-hidden">
-            {/* Background media — always mounted, visibility controlled by CSS */}
+            {/* Background media */}
             <div className="absolute inset-0 bg-ink">
-              {/* Blurred backdrop — always mounted, overflow-hidden clips scale-125 */}
+              {/* Layer 1: Blurred backdrop — native img with next/image optimizer URL for small size */}
               {slide.bgImage && (
-                <div className={`absolute inset-0 z-0 overflow-hidden transition-opacity duration-300 ${isActive ? 'opacity-40' : 'opacity-0'}`}>
-                  <div className="absolute inset-0 scale-125">
-                    <Image src={slide.bgImage} fill sizes="100vw" onError={(e) => { e.currentTarget.style.display = 'none'; }} className="object-cover blur-3xl" alt="" referrerPolicy="no-referrer" />
-                  </div>
-                </div>
+                <img
+                  src={`/_next/image?url=${encodeURIComponent(slide.bgImage)}&w=128&q=30`}
+                  alt=""
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                  className={`absolute inset-0 w-full h-full object-cover blur-2xl transition-opacity duration-300 ${isActive ? 'opacity-30' : 'opacity-0'}`}
+                  style={{ zIndex: 1 }}
+                  referrerPolicy="no-referrer"
+                  loading="lazy"
+                />
               )}
-              {/* Main media — always mounted, CSS opacity */}
+              {/* Layer 2: Main media — on top of blur */}
               {slide.bgVideo ? (
                 <video
                   ref={(el) => {
@@ -174,12 +178,20 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
                   playsInline
                   preload="metadata"
                   onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                  className={`absolute inset-0 z-10 w-full h-full object-contain transition-opacity duration-300 ${isActive ? 'opacity-80 md:opacity-85' : 'opacity-0'}`}
+                  className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-300 ${isActive ? 'opacity-80 md:opacity-85' : 'opacity-0'}`}
+                  style={{ zIndex: 2 }}
                 />
               ) : slide.bgImage ? (
-                <div className={`absolute inset-0 z-10 transition-opacity duration-300 ${isNear ? 'opacity-80 md:opacity-85' : 'opacity-0'}`}>
-                  <Image src={slide.bgImage} fill sizes="100vw" onError={(e) => { e.currentTarget.style.display = 'none'; }} className="object-contain" alt="Memory" referrerPolicy="no-referrer" />
-                </div>
+                <Image
+                  src={slide.bgImage}
+                  fill
+                  sizes="100vw"
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                  className={`object-contain transition-opacity duration-300 ${isNear ? 'opacity-80 md:opacity-85' : 'opacity-0'}`}
+                  style={{ zIndex: 2 }}
+                  alt="Memory"
+                  referrerPolicy="no-referrer"
+                />
               ) : null}
             </div>
 

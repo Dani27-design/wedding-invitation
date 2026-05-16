@@ -103,31 +103,13 @@ describe('CinematicStory', () => {
       expect(screen.getByText('2018 — 2022')).toBeInTheDocument();
     });
 
-    it('third slide shows year "2023"', () => {
+    it('only active slide and neighbors render text content', () => {
       renderStory();
-      expect(screen.getByText('2023')).toBeInTheDocument();
-    });
-
-    it('fourth slide shows year "2024 — 2025"', () => {
-      renderStory();
-      expect(screen.getByText('2024 — 2025')).toBeInTheDocument();
-    });
-
-    it('fifth slide shows year "2026"', () => {
-      renderStory();
-      expect(screen.getByText('2026')).toBeInTheDocument();
-    });
-
-    it('sixth slide shows year "Ikrar"', () => {
-      renderStory();
-      expect(screen.getByText('Ikrar')).toBeInTheDocument();
-    });
-
-    it('renders all 6 slide years from STORY_SLIDES', () => {
-      renderStory();
-      STORY_SLIDES.forEach((slide) => {
-        expect(screen.getByText(slide.year)).toBeInTheDocument();
-      });
+      // Active slide (0) and neighbor (1) render text
+      expect(screen.getByText('2016 — 2017')).toBeInTheDocument();
+      expect(screen.getByText('2018 — 2022')).toBeInTheDocument();
+      // Distant slides (2+) don't render text for performance
+      expect(screen.queryByText('2023')).toBeNull();
     });
 
     it('first slide text content is present', () => {
@@ -140,18 +122,12 @@ describe('CinematicStory', () => {
       expect(screen.getByText(/Kita berjalan beriringan/)).toBeInTheDocument();
     });
 
-    it('sixth slide (Ikrar) text content is present', () => {
+    it('active and neighbor slides render text content', () => {
       renderStory();
-      expect(screen.getByText(/Bukan perjalanan yang singkat/)).toBeInTheDocument();
-    });
-
-    it('each slide has text content from STORY_SLIDES', () => {
-      renderStory();
-      STORY_SLIDES.forEach((slide) => {
-        // Match first few words of each text
-        const firstLine = slide.text.split('\n')[0];
-        expect(screen.getByText(new RegExp(firstLine.slice(0, 20).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')))).toBeInTheDocument();
-      });
+      // Slide 0 (active) text present
+      expect(screen.getByText(/Berawal dari chat sederhana/)).toBeInTheDocument();
+      // Slide 1 (neighbor) text present
+      expect(screen.getByText(/Kita berjalan beriringan/)).toBeInTheDocument();
     });
 
     it('renders exactly 6 slides (same as STORY_SLIDES length)', () => {
@@ -177,10 +153,12 @@ describe('CinematicStory', () => {
 
   // ─── Images ───────────────────────────────────────────────────────
   describe('images', () => {
-    it('renders story images with alt="Memory"', () => {
+    it('renders images for active slide and neighbors only', () => {
       renderStory();
       const images = screen.getAllByAltText('Memory');
-      expect(images.length).toBe(STORY_SLIDES.length);
+      // Active slide (0) + neighbor (1) = 2 images rendered
+      expect(images.length).toBeLessThanOrEqual(STORY_SLIDES.length);
+      expect(images.length).toBeGreaterThan(0);
     });
 
     it('main images use object-contain for smart fit', () => {
@@ -411,10 +389,12 @@ describe('CinematicStory', () => {
 
   // ─── Visual ───────────────────────────────────────────────────────
   describe('visual rendering and styling', () => {
-    it('has dark overlay gradient on images', () => {
+    it('has gradient overlay on active and neighbor slides', () => {
       const { container } = renderStory();
       const gradients = container.querySelectorAll('.bg-gradient-to-t');
-      expect(gradients.length).toBe(STORY_SLIDES.length);
+      // Only active slide ±1 render gradients
+      expect(gradients.length).toBeGreaterThan(0);
+      expect(gradients.length).toBeLessThanOrEqual(2);
     });
 
     it('gradient is bottom-only for text readability', () => {
@@ -564,12 +544,10 @@ describe('CinematicStory', () => {
 
     it('opening comment form hides like and comment buttons for that slide', () => {
       renderStory();
-      const commentButtons = screen.getAllByLabelText('Komentar');
-      const initialCount = commentButtons.length;
-      fireEvent.click(commentButtons[0]);
-      // After opening form, the buttons for that slide should be hidden
-      const remainingCommentButtons = screen.getAllByLabelText('Komentar');
-      expect(remainingCommentButtons.length).toBeLessThan(initialCount);
+      const commentButton = screen.getByLabelText('Komentar');
+      fireEvent.click(commentButton);
+      // After opening form, the buttons should be hidden
+      expect(screen.queryByLabelText('Komentar')).toBeNull();
     });
 
     it('comment form name input updates on typing', () => {

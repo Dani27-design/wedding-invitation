@@ -257,8 +257,8 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
                 <h2 className="font-serif italic text-xs md:text-sm text-ivory/90 leading-relaxed whitespace-pre-line font-bold mb-1">{slide.year}</h2>
                 <p className={`font-serif italic text-xs md:text-sm text-ivory/70 leading-relaxed whitespace-pre-line ${expandedSlides.has(idx) ? '' : 'line-clamp-3'}`}>{slide.text}</p>
                 {slide.text.length > 100 && (
-                  <span className="font-serif italic text-xs text-ivory/50 mt-1 block">
-                    {expandedSlides.has(idx) ? 'sembunyikan' : 'baca selengkapnya'}
+                  <span className="font-serif italic text-xs text-gold mt-1 block">
+                    {expandedSlides.has(idx) ? 'sembunyikan...' : 'baca selengkapnya...'}
                   </span>
                 )}
               </div>

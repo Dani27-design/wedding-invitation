@@ -103,13 +103,11 @@ describe('CinematicStory', () => {
       expect(screen.getByText('2018 — 2022')).toBeInTheDocument();
     });
 
-    it('only active slide and neighbors render text content', () => {
+    it('all slide text is always mounted in DOM', () => {
       renderStory();
-      // Active slide (0) and neighbor (1) render text
       expect(screen.getByText('2016 — 2017')).toBeInTheDocument();
       expect(screen.getByText('2018 — 2022')).toBeInTheDocument();
-      // Distant slides (2+) don't render text for performance
-      expect(screen.queryByText('2023')).toBeNull();
+      expect(screen.getByText('2023')).toBeInTheDocument();
     });
 
     it('first slide text content is present', () => {
@@ -169,11 +167,11 @@ describe('CinematicStory', () => {
       });
     });
 
-    it('images have vivid opacity (75-80%)', () => {
+    it('images use object-contain for smart fit', () => {
       renderStory();
       const images = screen.getAllByAltText('Memory');
       images.forEach((img) => {
-        expect(img.className).toMatch(/opacity-75|opacity-80/);
+        expect(img.className).toContain('object-contain');
       });
     });
 
@@ -389,12 +387,10 @@ describe('CinematicStory', () => {
 
   // ─── Visual ───────────────────────────────────────────────────────
   describe('visual rendering and styling', () => {
-    it('has gradient overlay on active and neighbor slides', () => {
+    it('has gradient overlay on all slides (always mounted)', () => {
       const { container } = renderStory();
       const gradients = container.querySelectorAll('.bg-gradient-to-t');
-      // Only active slide ±1 render gradients
-      expect(gradients.length).toBeGreaterThan(0);
-      expect(gradients.length).toBeLessThanOrEqual(2);
+      expect(gradients.length).toBe(STORY_SLIDES.length);
     });
 
     it('gradient is bottom-only for text readability', () => {
@@ -404,11 +400,11 @@ describe('CinematicStory', () => {
       expect(gradient?.className).toContain('via-ink/70');
     });
 
-    it('images have vivid opacity without grayscale', () => {
+    it('images use object-contain without grayscale', () => {
       renderStory();
       const images = screen.getAllByAltText('Memory');
       images.forEach((img) => {
-        expect(img.className).toMatch(/opacity-75|opacity-80/);
+        expect(img.className).toContain('object-contain');
         expect(img.className).not.toContain('grayscale');
       });
     });
@@ -542,12 +538,13 @@ describe('CinematicStory', () => {
       });
     });
 
-    it('opening comment form hides like and comment buttons for that slide', () => {
-      renderStory();
-      const commentButton = screen.getByLabelText('Komentar');
+    it('opening comment form hides like and comment buttons via opacity', () => {
+      const { container } = renderStory();
+      const commentButton = screen.getAllByLabelText('Komentar')[0];
       fireEvent.click(commentButton);
-      // After opening form, the buttons should be hidden
-      expect(screen.queryByLabelText('Komentar')).toBeNull();
+      // Buttons are still in DOM but hidden via opacity-0 + pointer-events-none
+      const buttonContainer = container.querySelector('.pointer-events-none');
+      expect(buttonContainer).toBeInTheDocument();
     });
 
     it('comment form name input updates on typing', () => {

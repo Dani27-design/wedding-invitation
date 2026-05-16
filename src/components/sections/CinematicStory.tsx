@@ -145,70 +145,76 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
   return (
     <section ref={sectionRef} id="story-section" className="relative h-screen-safe w-full bg-ink overflow-hidden scroll-snap-container">
       <div ref={scrollContainerRef} onScroll={handleStoryScroll} className="h-full w-full flex overflow-x-auto snap-x snap-mandatory no-scrollbar">
-        {slides.map((slide, idx) => (
+        {slides.map((slide, idx) => {
+          const isActive = idx === activeSlide;
+          const isNear = Math.abs(idx - activeSlide) <= 1;
+
+          return (
           <div key={idx} className="relative h-full w-full min-w-full snap-center flex items-center justify-center overflow-hidden">
-            {/* Background media — only render full layers for active slide ±1 */}
-            <div className="absolute inset-0">
-              {Math.abs(idx - activeSlide) <= 1 ? (
-                slide.bgVideo ? (
-                  <>
-                    {/* Blurred backdrop — only on active slide */}
-                    {idx === activeSlide && slide.bgImage && (
-                      <Image src={slide.bgImage} fill sizes="100vw" onError={(e) => { e.currentTarget.style.display = 'none'; }} className="object-cover scale-125 blur-3xl opacity-40 z-0" alt="" referrerPolicy="no-referrer" />
-                    )}
-                    <video
-                      ref={(el) => {
-                        if (el) videoRefs.current.set(idx, el);
-                        else videoRefs.current.delete(idx);
-                      }}
-                      src={idx === activeSlide ? slide.bgVideo : undefined}
-                      muted
-                      loop
-                      playsInline
-                      preload="metadata"
-                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                      className={`absolute inset-0 z-10 w-full h-full object-contain opacity-80 md:opacity-85 transition-opacity duration-500 ${idx === activeSlide ? '' : 'opacity-0'}`}
-                    />
-                  </>
-                ) : slide.bgImage ? (
-                  <>
-                    {/* Blurred backdrop — only on active slide */}
-                    {idx === activeSlide && (
-                      <Image src={slide.bgImage} fill sizes="100vw" onError={(e) => { e.currentTarget.style.display = 'none'; }} className="object-cover scale-125 blur-3xl opacity-40 z-0" alt="" referrerPolicy="no-referrer" />
-                    )}
-                    <Image src={slide.bgImage} fill sizes="100vw" onError={(e) => { e.currentTarget.style.display = 'none'; }} className="object-contain opacity-80 md:opacity-85 z-10" alt="Memory" referrerPolicy="no-referrer" />
-                  </>
-                ) : null
-              ) : (
-                /* Distant slides — render nothing, save GPU/memory */
-                <div className="w-full h-full bg-ink" />
-              )}
+            {/* Background media — always mounted, visibility controlled by CSS */}
+            <div className="absolute inset-0 bg-ink">
+              {slide.bgVideo ? (
+                <>
+                  {/* Blurred backdrop — conditional render to save GPU memory */}
+                  {isActive && slide.bgImage && (
+                    <div className="absolute inset-0 z-0 opacity-40">
+                      <Image src={slide.bgImage} fill sizes="100vw" onError={(e) => { e.currentTarget.style.display = 'none'; }} className="object-cover scale-125 blur-3xl" alt="" referrerPolicy="no-referrer" />
+                    </div>
+                  )}
+                  {/* Main video — always mounted, CSS visibility */}
+                  <video
+                    ref={(el) => {
+                      if (el) videoRefs.current.set(idx, el);
+                      else videoRefs.current.delete(idx);
+                    }}
+                    src={isActive ? slide.bgVideo : undefined}
+                    muted
+                    loop
+                    playsInline
+                    preload="metadata"
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    className={`absolute inset-0 z-10 w-full h-full object-contain transition-opacity duration-300 ${isActive ? 'opacity-80 md:opacity-85' : 'opacity-0'}`}
+                  />
+                </>
+              ) : slide.bgImage ? (
+                <>
+                  {/* Blurred backdrop — conditional render to save GPU memory */}
+                  {isActive && (
+                    <div className="absolute inset-0 z-0 opacity-40">
+                      <Image src={slide.bgImage} fill sizes="100vw" onError={(e) => { e.currentTarget.style.display = 'none'; }} className="object-cover scale-125 blur-3xl" alt="" referrerPolicy="no-referrer" />
+                    </div>
+                  )}
+                  {/* Main image — always mounted, CSS opacity */}
+                  <div className={`absolute inset-0 z-10 transition-opacity duration-300 ${isNear ? 'opacity-80 md:opacity-85' : 'opacity-0'}`}>
+                    <Image src={slide.bgImage} fill sizes="100vw" onError={(e) => { e.currentTarget.style.display = 'none'; }} className="object-contain" alt="Memory" referrerPolicy="no-referrer" />
+                  </div>
+                </>
+              ) : null}
             </div>
 
-            {idx === activeSlide && (
+            {/* Effects — conditional render (have timers/observers) */}
+            {isActive && (
               <>
                 <AmbientSocialLayer customComments={comments} triggerHeartTap={heartTrigger} triggerCommentTap={commentTrigger} />
                 {!slide.bgVideo && <PetalEffect />}
               </>
             )}
 
-            {/* Action buttons — only render on active slide */}
-            {idx === activeSlide && commentInput?.index !== idx && (
-              <div className="absolute bottom-36 right-4 flex flex-col gap-5 z-[60]">
-                <motion.button whileTap={{ scale: 0.8 }} aria-label="Suka" onClick={() => handleLike(idx)} className="relative flex flex-col items-center gap-1 group">
-                  <div className="w-11 h-11 rounded-full bg-black/20 backdrop-blur-md border border-white/10 flex items-center justify-center group-hover:bg-rose-pastel/20 transition-all">
-                    <Heart className="w-5 h-5 text-rose-pastel transition-transform group-active:scale-125" fill={(likes[idx] ?? 0) > 120 ? 'currentColor' : 'none'} />
-                  </div>
-                  <span aria-hidden="true" className="text-[10px] font-sans text-white/70 tracking-widest">{likes[idx] ?? 0}</span>
-                </motion.button>
-                <motion.button whileTap={{ scale: 0.8 }} aria-label="Komentar" onClick={() => setCommentInput({ index: idx, name: '', text: '' })} className="flex flex-col items-center gap-1 group">
-                  <div className="w-11 h-11 rounded-full bg-black/20 backdrop-blur-md border border-white/10 flex items-center justify-center group-hover:bg-white/10 transition-all">
-                    <MessageCircle className="w-5 h-5 text-ivory" />
-                  </div>
-                  <span aria-hidden="true" className="text-[10px] font-sans text-white/70 tracking-widest">{comments.length}</span>
-                </motion.button>
-              </div>
-            )}
+            {/* Action buttons — always mounted, hidden via CSS */}
+            <div className={`absolute bottom-36 right-4 flex flex-col gap-5 z-[60] transition-opacity duration-200 ${isActive && commentInput?.index !== idx ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+              <motion.button whileTap={{ scale: 0.8 }} aria-label="Suka" onClick={() => handleLike(idx)} className="relative flex flex-col items-center gap-1 group">
+                <div className="w-11 h-11 rounded-full bg-black/20 backdrop-blur-md border border-white/10 flex items-center justify-center group-hover:bg-rose-pastel/20 transition-all">
+                  <Heart className="w-5 h-5 text-rose-pastel transition-transform group-active:scale-125" fill={(likes[idx] ?? 0) > 120 ? 'currentColor' : 'none'} />
+                </div>
+                <span aria-hidden="true" className="text-[10px] font-sans text-white/70 tracking-widest">{likes[idx] ?? 0}</span>
+              </motion.button>
+              <motion.button whileTap={{ scale: 0.8 }} aria-label="Komentar" onClick={() => setCommentInput({ index: idx, name: '', text: '' })} className="flex flex-col items-center gap-1 group">
+                <div className="w-11 h-11 rounded-full bg-black/20 backdrop-blur-md border border-white/10 flex items-center justify-center group-hover:bg-white/10 transition-all">
+                  <MessageCircle className="w-5 h-5 text-ivory" />
+                </div>
+                <span aria-hidden="true" className="text-[10px] font-sans text-white/70 tracking-widest">{isActive ? comments.length : 0}</span>
+              </motion.button>
+            </div>
 
             <AnimatePresence>
               {commentInput?.index === idx && (
@@ -229,54 +235,50 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
               )}
             </AnimatePresence>
 
-            {/* Text + controls — only render on active slide ±1 */}
-            {Math.abs(idx - activeSlide) <= 1 && (
-              <>
-                {/* Text content with gradient background — Reels style */}
-                <div className="absolute inset-x-0 bottom-0 z-30 bg-gradient-to-t from-ink from-30% via-ink/70 via-60% to-transparent">
-                  <div className="px-5 pt-24 pb-20 sm:pb-24 md:pb-32 max-w-[85%] md:max-w-md">
-                    <h2 className="font-serif italic text-xs md:text-sm text-ivory/90 leading-relaxed whitespace-pre-line font-bold mb-1">{slide.year}</h2>
-                    <p className={`font-serif italic text-xs md:text-sm text-ivory/70 leading-relaxed whitespace-pre-line ${expandedSlides.has(idx) ? '' : 'line-clamp-3'}`}>{slide.text}</p>
-                    {slide.text.length > 100 && !expandedSlides.has(idx) && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setExpandedSlides(prev => new Set(prev).add(idx));
-                        }}
-                        className="font-serif italic text-xs text-ivory/50 mt-1 hover:text-ivory/80 transition-colors"
-                      >
-                        baca selengkapnya
-                      </button>
-                    )}
-                    {expandedSlides.has(idx) && slide.text.length > 100 && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setExpandedSlides(prev => { const next = new Set(prev); next.delete(idx); return next; });
-                        }}
-                        className="font-serif italic text-xs text-ivory/50 mt-1 hover:text-ivory/80 transition-colors"
-                      >
-                        sembunyikan
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Swipe hint — center-right, only on first slide */}
-                {idx === 0 && activeSlide === 0 && (
-                  <div className="absolute right-8 top-1/2 -translate-y-1/2 z-30 pointer-events-none flex items-center">
-                    <motion.div
-                      animate={{ x: [0, -20, 0], opacity: [0.5, 0.8, 0.5] }}
-                      transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                    >
-                      <Hand className="w-6 h-6 text-white/40" style={{ transform: 'scaleX(-1)' }} />
-                    </motion.div>
-                  </div>
+            {/* Text content — always mounted, CSS fade */}
+            <div className={`absolute inset-x-0 bottom-0 z-30 bg-gradient-to-t from-ink from-30% via-ink/70 via-60% to-transparent transition-opacity duration-300 ${isNear ? 'opacity-100' : 'opacity-0'}`}>
+              <div className="px-5 pt-24 pb-20 sm:pb-24 md:pb-32 max-w-[85%] md:max-w-md">
+                <h2 className="font-serif italic text-xs md:text-sm text-ivory/90 leading-relaxed whitespace-pre-line font-bold mb-1">{slide.year}</h2>
+                <p className={`font-serif italic text-xs md:text-sm text-ivory/70 leading-relaxed whitespace-pre-line ${expandedSlides.has(idx) ? '' : 'line-clamp-3'}`}>{slide.text}</p>
+                {slide.text.length > 100 && !expandedSlides.has(idx) && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setExpandedSlides(prev => new Set(prev).add(idx));
+                    }}
+                    className="font-serif italic text-xs text-ivory/50 mt-1 hover:text-ivory/80 transition-colors"
+                  >
+                    baca selengkapnya
+                  </button>
                 )}
-              </>
+                {expandedSlides.has(idx) && slide.text.length > 100 && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setExpandedSlides(prev => { const next = new Set(prev); next.delete(idx); return next; });
+                    }}
+                    className="font-serif italic text-xs text-ivory/50 mt-1 hover:text-ivory/80 transition-colors"
+                  >
+                    sembunyikan
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Swipe hint — center-right, only on first slide */}
+            {idx === 0 && activeSlide === 0 && (
+              <div className="absolute right-8 top-1/2 -translate-y-1/2 z-30 pointer-events-none flex items-center">
+                <motion.div
+                  animate={{ x: [0, -20, 0], opacity: [0.5, 0.8, 0.5] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  <Hand className="w-6 h-6 text-white/40" style={{ transform: 'scaleX(-1)' }} />
+                </motion.div>
+              </div>
             )}
           </div>
-        ))}
+          );
+        })}
       </div>
       <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-2.5 z-40">
         {slides.map((_, i) => (

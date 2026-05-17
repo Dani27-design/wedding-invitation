@@ -168,8 +168,8 @@ export function StoryForm({ data, onSave, isSaving, onDirty }: StoryFormProps) {
 
       {slides.map((slide, i) => {
         const isExpanded = expandedSlide === i;
-        const thumbImg = slide.bgImage || '';
-        const thumbVideo = slide.videoPreview || slide.bgVideo || '';
+        const thumbSrc = slide.bgImage || '';
+        const slideHasVideo = hasVideo(slide);
 
         return (
           <div key={i} className={`border rounded-2xl relative overflow-hidden transition-colors ${isExpanded ? 'border-gold/25 bg-white/70' : 'border-gold/10 bg-white/40'}`}>
@@ -197,15 +197,27 @@ export function StoryForm({ data, onSave, isSaving, onDirty }: StoryFormProps) {
                 </button>
               </div>
 
-              {/* Thumbnail — prefer image, fallback to video */}
-              <div className="w-10 h-10 rounded-lg overflow-hidden border border-gold/10 flex-shrink-0 bg-ivory">
-                {thumbImg ? (
-                  <img src={thumbImg} alt="" className="w-full h-full object-cover" />
-                ) : thumbVideo ? (
-                  <video src={thumbVideo} className="w-full h-full object-cover" muted preload="metadata" />
+              {/* Thumbnail — video preferred (matches what guests see), fallback to photo */}
+              <div className="relative w-10 h-10 rounded-lg overflow-hidden border border-gold/10 flex-shrink-0 bg-ivory">
+                {slideHasVideo ? (
+                  <video
+                    src={slide.videoPreview || slide.bgVideo}
+                    className="w-full h-full object-cover"
+                    muted
+                    playsInline
+                    preload="metadata"
+                    crossOrigin="anonymous"
+                  />
+                ) : thumbSrc ? (
+                  <img src={thumbSrc} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <ImageIcon className="w-4 h-4 text-ink/10" />
+                  </div>
+                )}
+                {slideHasVideo && (
+                  <div className="absolute bottom-0 right-0 w-4 h-4 bg-ink/60 rounded-tl-md flex items-center justify-center">
+                    <Film className="w-2.5 h-2.5 text-white" />
                   </div>
                 )}
               </div>

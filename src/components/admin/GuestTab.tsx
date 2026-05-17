@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Users, ArrowRight } from 'lucide-react';
 import { getGuests } from '@/lib/guests';
-import { Guest, WeddingDocument } from '@/types/firestore';
+import { WeddingDocument } from '@/types/firestore';
 
 interface GuestTabProps {
   data: WeddingDocument | null;
@@ -14,25 +14,16 @@ interface GuestTabProps {
 }
 
 export function GuestTab({ data, slug, onSave, isSaving, onDirty }: GuestTabProps) {
-  const [guests, setGuests] = useState<Guest[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [greetingTemplate, setGreetingTemplate] = useState(
-    data?.greetingTemplate ?? 'Assalamualaikum Wr. Wb.\n\nKepada Yth.\n{nama}\n\nDengan memohon rahmat dan ridho Allah SWT, kami mengundang Bapak/Ibu/Saudara/i untuk hadir di acara pernikahan kami:\n\n{pengantin}\n\nBuka undangan:\n{link}\n\nMerupakan suatu kehormatan dan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir.\n\nWassalamualaikum Wr. Wb.',
-  );
+  const [guestCount, setGuestCount] = useState<number | null>(null);
 
   useEffect(() => {
     if (!slug) return;
-    setIsLoading(true);
-    getGuests(slug)
-      .then(setGuests)
-      .catch((err) => console.error('[GuestTab] Load error:', err.message))
-      .finally(() => setIsLoading(false));
+    getGuests(slug).then((g) => setGuestCount(g.length)).catch(() => {});
   }, [slug]);
 
-  const totalGuests = guests.length;
-  const totalHadir = guests.filter((g) => g.attendance).length;
-  const totalPria = guests.filter((g) => g.category === 'pria').length;
-  const totalWanita = guests.filter((g) => g.category === 'wanita').length;
+  const [greetingTemplate, setGreetingTemplate] = useState(
+    data?.greetingTemplate ?? 'Assalamualaikum Wr. Wb.\n\nKepada Yth.\n{nama}\n\nDengan memohon rahmat dan ridho Allah SWT, kami mengundang Bapak/Ibu/Saudara/i untuk hadir di acara pernikahan kami:\n\n{pengantin}\n\nBuka undangan:\n{link}\n\nMerupakan suatu kehormatan dan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir.\n\nWassalamualaikum Wr. Wb.',
+  );
 
   const handleSaveTemplate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,26 +43,6 @@ export function GuestTab({ data, slug, onSave, isSaving, onDirty }: GuestTabProp
 
   return (
     <div className="space-y-6">
-      {/* Stats */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="p-3 bg-white/60 border border-gold/10 rounded-2xl text-center">
-          <p className="text-2xl font-serif text-ink">{isLoading ? '—' : totalGuests}</p>
-          <p className="text-[9px] uppercase tracking-widest text-ink/40 font-bold">Total Tamu</p>
-        </div>
-        <div className="p-3 bg-white/60 border border-gold/10 rounded-2xl text-center">
-          <p className="text-2xl font-serif text-green-600">{isLoading ? '—' : totalHadir}</p>
-          <p className="text-[9px] uppercase tracking-widest text-ink/40 font-bold">Hadir</p>
-        </div>
-        <div className="p-3 bg-white/60 border border-gold/10 rounded-2xl text-center">
-          <p className="text-2xl font-serif text-ink">{isLoading ? '—' : totalPria}</p>
-          <p className="text-[9px] uppercase tracking-widest text-ink/40 font-bold">Pihak Pria</p>
-        </div>
-        <div className="p-3 bg-white/60 border border-gold/10 rounded-2xl text-center">
-          <p className="text-2xl font-serif text-ink">{isLoading ? '—' : totalWanita}</p>
-          <p className="text-[9px] uppercase tracking-widest text-ink/40 font-bold">Pihak Wanita</p>
-        </div>
-      </div>
-
       {/* Link to full page */}
       <Link
         href={`/admin/${slug}/guests`}
@@ -82,7 +53,9 @@ export function GuestTab({ data, slug, onSave, isSaving, onDirty }: GuestTabProp
             <Users className="w-4 h-4 text-gold" />
           </div>
           <div>
-            <p className="text-xs font-black uppercase tracking-wider text-ink">Kelola Semua Tamu</p>
+            <p className="text-xs font-black uppercase tracking-wider text-ink">
+              Kelola Semua Tamu{guestCount !== null && <span className="text-gold ml-1.5">({guestCount})</span>}
+            </p>
             <p className="text-[10px] text-ink/40">Tambah, edit, import, QR code, dan kirim undangan</p>
           </div>
         </div>

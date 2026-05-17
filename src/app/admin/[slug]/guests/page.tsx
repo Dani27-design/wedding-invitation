@@ -235,12 +235,6 @@ export default function GuestsPage() {
     );
   }
 
-  // Stats
-  const totalGuests = guests.length;
-  const totalHadir = guests.filter((g) => g.attendance).length;
-  const totalPria = guests.filter((g) => g.category === 'pria').length;
-  const totalWanita = guests.filter((g) => g.category === 'wanita').length;
-
   const inputClass = 'w-full px-4 py-3 border border-gold/20 rounded-xl text-sm bg-white focus:outline-none focus:border-gold/50';
 
   return (
@@ -290,25 +284,18 @@ export default function GuestsPage() {
       </header>
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-        {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="p-3 bg-white/60 border border-gold/10 rounded-2xl text-center">
-            <p className="text-2xl font-serif text-ink">{totalGuests}</p>
-            <p className="text-[9px] uppercase tracking-widest text-ink/40 font-bold">Total</p>
+        {/* Compact stats */}
+        {!isLoading && guests.length > 0 && (
+          <div className="flex items-center justify-center gap-3 text-[10px] text-ink/50 font-bold uppercase tracking-widest">
+            <span>{guests.length} tamu</span>
+            <span className="text-ink/15">|</span>
+            <span className="text-green-600">{guests.filter(g => g.attendance).length} hadir</span>
+            <span className="text-ink/15">|</span>
+            <span>{guests.filter(g => g.category === 'pria').length} pria</span>
+            <span className="text-ink/15">|</span>
+            <span>{guests.filter(g => g.category === 'wanita').length} wanita</span>
           </div>
-          <div className="p-3 bg-white/60 border border-gold/10 rounded-2xl text-center">
-            <p className="text-2xl font-serif text-green-600">{totalHadir}</p>
-            <p className="text-[9px] uppercase tracking-widest text-ink/40 font-bold">Hadir</p>
-          </div>
-          <div className="p-3 bg-white/60 border border-gold/10 rounded-2xl text-center">
-            <p className="text-2xl font-serif text-ink">{totalPria}</p>
-            <p className="text-[9px] uppercase tracking-widest text-ink/40 font-bold">Pihak Pria</p>
-          </div>
-          <div className="p-3 bg-white/60 border border-gold/10 rounded-2xl text-center">
-            <p className="text-2xl font-serif text-ink">{totalWanita}</p>
-            <p className="text-[9px] uppercase tracking-widest text-ink/40 font-bold">Pihak Wanita</p>
-          </div>
-        </div>
+        )}
 
         {/* Search + Filter */}
         <div className="flex flex-col sm:flex-row gap-3">
@@ -434,9 +421,11 @@ export default function GuestsPage() {
           </div>
         )}
 
-        <p className="text-[9px] text-ink/30 text-center pt-2">
-          Menampilkan {filteredGuests.length} dari {guests.length} tamu
-        </p>
+        {filteredGuests.length !== guests.length && (
+          <p className="text-[9px] text-ink/30 text-center pt-2">
+            Menampilkan {filteredGuests.length} dari {guests.length} tamu
+          </p>
+        )}
       </div>
 
       {/* Add/Edit Modal */}

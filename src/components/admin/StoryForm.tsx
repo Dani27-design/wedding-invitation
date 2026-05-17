@@ -315,7 +315,7 @@ export function StoryForm({ data, onSave, isSaving, onDirty }: StoryFormProps) {
                     <label className="text-[9px] uppercase tracking-widest text-ink/50 font-bold block">Video <span className="normal-case text-ink/30">(opsional)</span></label>
                     {(slide.videoPreview || slide.bgVideo) && (
                       <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden border border-gold/15">
-                        <video src={slide.videoPreview || slide.bgVideo} className="w-full h-full object-cover" muted preload="none" />
+                        <video src={slide.videoPreview || slide.bgVideo} className="w-full h-full object-cover" muted playsInline preload="metadata" crossOrigin="anonymous" />
                         <button
                           type="button"
                           onClick={() => removeVideo(i)}

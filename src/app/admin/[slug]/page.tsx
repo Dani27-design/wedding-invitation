@@ -419,7 +419,6 @@ export default function AdminPage() {
       </header>
 
       <nav className="sticky top-[53px] z-40 bg-ivory/90 backdrop-blur-md border-b border-gold/10 overflow-x-auto no-scrollbar relative">
-        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-ivory/90 to-transparent pointer-events-none z-10 sm:hidden" />
         <div role="tablist" className="flex min-w-max px-4 py-2 gap-1 max-w-lg mx-auto">
           {STEPS.map((step, i) => (
             <button

@@ -10,9 +10,10 @@ interface GuestTabProps {
   slug: string;
   onSave: (fields: Partial<WeddingDocument>) => void;
   isSaving?: boolean;
+  onDirty?: () => void;
 }
 
-export function GuestTab({ data, slug, onSave, isSaving }: GuestTabProps) {
+export function GuestTab({ data, slug, onSave, isSaving, onDirty }: GuestTabProps) {
   const [guests, setGuests] = useState<Guest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [greetingTemplate, setGreetingTemplate] = useState(
@@ -40,6 +41,7 @@ export function GuestTab({ data, slug, onSave, isSaving }: GuestTabProps) {
 
   const insertVariable = (variable: string) => {
     setGreetingTemplate((prev) => prev + variable);
+    onDirty?.();
   };
 
   // Preview with sample data
@@ -107,7 +109,7 @@ export function GuestTab({ data, slug, onSave, isSaving }: GuestTabProps) {
         </div>
         <textarea
           value={greetingTemplate}
-          onChange={(e) => setGreetingTemplate(e.target.value)}
+          onChange={(e) => { setGreetingTemplate(e.target.value); onDirty?.(); }}
           rows={10}
           maxLength={1000}
           aria-label="Template pesan undangan"

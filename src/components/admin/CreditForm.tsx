@@ -14,19 +14,21 @@ interface CreditFormProps {
   data: WeddingDocument | null;
   onSave: (fields: Partial<WeddingDocument>, files?: Record<string, File>, urlsToDelete?: string[]) => void;
   isSaving?: boolean;
+  onDirty?: () => void;
 }
 
-export function CreditForm({ data, onSave, isSaving }: CreditFormProps) {
+export function CreditForm({ data, onSave, isSaving, onDirty }: CreditFormProps) {
   const [credits, setCredits] = useState<CreditPerson[]>(
     data?.credits ?? [{ name: '', role: 'developer', description: '' }]
   );
 
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
 
-  const addCredit = () => setCredits([...credits, { name: '', role: 'other', description: '' }]);
-  const removeCredit = (i: number) => setCredits(credits.filter((_, idx) => idx !== i));
+  const addCredit = () => { setCredits([...credits, { name: '', role: 'other', description: '' }]); onDirty?.(); };
+  const removeCredit = (i: number) => { setCredits(credits.filter((_, idx) => idx !== i)); onDirty?.(); };
   const updateCredit = (i: number, field: keyof CreditPerson, value: string) => {
     setCredits(credits.map((c, idx) => idx === i ? { ...c, [field]: value } : c));
+    onDirty?.();
   };
 
   const handleSubmit = (e: React.FormEvent) => {

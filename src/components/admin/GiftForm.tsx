@@ -8,19 +8,21 @@ interface GiftFormProps {
   data: WeddingDocument | null;
   onSave: (fields: Partial<WeddingDocument>, files?: Record<string, File>, urlsToDelete?: string[]) => void;
   isSaving?: boolean;
+  onDirty?: () => void;
 }
 
-export function GiftForm({ data, onSave, isSaving }: GiftFormProps) {
+export function GiftForm({ data, onSave, isSaving, onDirty }: GiftFormProps) {
   const [accounts, setAccounts] = useState<BankAccount[]>(
     data?.giftAccounts ?? [{ bank: '', account: '', owner: '' }]
   );
 
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
 
-  const addAccount = () => setAccounts([...accounts, { bank: '', account: '', owner: '' }]);
-  const removeAccount = (i: number) => setAccounts(accounts.filter((_, idx) => idx !== i));
+  const addAccount = () => { setAccounts([...accounts, { bank: '', account: '', owner: '' }]); onDirty?.(); };
+  const removeAccount = (i: number) => { setAccounts(accounts.filter((_, idx) => idx !== i)); onDirty?.(); };
   const updateAccount = (i: number, field: keyof BankAccount, value: string) => {
     setAccounts(accounts.map((a, idx) => idx === i ? { ...a, [field]: value } : a));
+    onDirty?.();
   };
 
   const handleSubmit = (e: React.FormEvent) => {

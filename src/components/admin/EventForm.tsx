@@ -8,9 +8,10 @@ interface EventFormProps {
   data: WeddingDocument | null;
   onSave: (fields: Partial<WeddingDocument>, files?: Record<string, File>, urlsToDelete?: string[]) => void;
   isSaving?: boolean;
+  onDirty?: () => void;
 }
 
-export function EventForm({ data, onSave, isSaving }: EventFormProps) {
+export function EventForm({ data, onSave, isSaving, onDirty }: EventFormProps) {
   const [eventDate, setEventDate] = useState(data?.eventDate ?? '');
   const [eventCity, setEventCity] = useState(data?.eventCity ?? '');
   const [venueName, setVenueName] = useState(data?.venueName ?? '');
@@ -20,10 +21,11 @@ export function EventForm({ data, onSave, isSaving }: EventFormProps) {
   const [ceremonies, setCeremonies] = useState<Ceremony[]>(data?.ceremonies ?? [{ name: '', start: '', end: '' }]);
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
 
-  const addCeremony = () => setCeremonies([...ceremonies, { name: '', start: '', end: '' }]);
-  const removeCeremony = (i: number) => setCeremonies(ceremonies.filter((_, idx) => idx !== i));
+  const addCeremony = () => { setCeremonies([...ceremonies, { name: '', start: '', end: '' }]); onDirty?.(); };
+  const removeCeremony = (i: number) => { setCeremonies(ceremonies.filter((_, idx) => idx !== i)); onDirty?.(); };
   const updateCeremony = (i: number, field: keyof Ceremony, value: string) => {
     setCeremonies(ceremonies.map((c, idx) => idx === i ? { ...c, [field]: value } : c));
+    onDirty?.();
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -45,12 +47,12 @@ export function EventForm({ data, onSave, isSaving }: EventFormProps) {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-3">
         <label className="text-xs uppercase tracking-[0.3em] text-gold font-black block">Tanggal & Lokasi</label>
-        <input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} min={new Date().toISOString().split('T')[0]} required aria-label="Tanggal Acara" className={inputClass} />
-        <input value={eventCity} onChange={(e) => setEventCity(e.target.value)} placeholder="Kota" required maxLength={50} aria-label="Kota" className={inputClass} />
-        <input value={venueName} onChange={(e) => setVenueName(e.target.value)} placeholder="Nama Gedung" required maxLength={100} aria-label="Nama Gedung" className={inputClass} />
-        <input value={venueAddress} onChange={(e) => setVenueAddress(e.target.value)} placeholder="Alamat Lengkap" required maxLength={200} aria-label="Alamat Lengkap" className={inputClass} />
-        <input value={venueMapsUrl} onChange={(e) => setVenueMapsUrl(e.target.value)} placeholder="Google Maps URL" type="url" maxLength={500} aria-label="Google Maps URL" className={inputClass} />
-        <input value={defaultGuest} onChange={(e) => setDefaultGuest(e.target.value)} placeholder="Nama tamu jika tautan tidak menyertakan nama (cth: Tamu Undangan)" maxLength={50} aria-label="Nama Tamu Default" className={inputClass} />
+        <input type="date" value={eventDate} onChange={(e) => { setEventDate(e.target.value); onDirty?.(); }} min={new Date().toISOString().split('T')[0]} required aria-label="Tanggal Acara" className={inputClass} />
+        <input value={eventCity} onChange={(e) => { setEventCity(e.target.value); onDirty?.(); }} placeholder="Kota" required maxLength={50} aria-label="Kota" className={inputClass} />
+        <input value={venueName} onChange={(e) => { setVenueName(e.target.value); onDirty?.(); }} placeholder="Nama Gedung" required maxLength={100} aria-label="Nama Gedung" className={inputClass} />
+        <input value={venueAddress} onChange={(e) => { setVenueAddress(e.target.value); onDirty?.(); }} placeholder="Alamat Lengkap" required maxLength={200} aria-label="Alamat Lengkap" className={inputClass} />
+        <input value={venueMapsUrl} onChange={(e) => { setVenueMapsUrl(e.target.value); onDirty?.(); }} placeholder="Google Maps URL" type="url" maxLength={500} aria-label="Google Maps URL" className={inputClass} />
+        <input value={defaultGuest} onChange={(e) => { setDefaultGuest(e.target.value); onDirty?.(); }} placeholder="Nama tamu jika tautan tidak menyertakan nama (cth: Tamu Undangan)" maxLength={50} aria-label="Nama Tamu Default" className={inputClass} />
       </div>
 
       <fieldset className="space-y-4">

@@ -30,9 +30,10 @@ interface CustomizeFormProps {
   data: WeddingDocument | null;
   onSave: (fields: Partial<WeddingDocument>, files?: Record<string, File>, urlsToDelete?: string[]) => void;
   isSaving?: boolean;
+  onDirty?: () => void;
 }
 
-export function CustomizeForm({ data, onSave, isSaving }: CustomizeFormProps) {
+export function CustomizeForm({ data, onSave, isSaving, onDirty }: CustomizeFormProps) {
   const currentTheme = data?.theme ?? THEME_DEFAULTS.cinematic;
   const [template, setTemplate] = useState(currentTheme.template);
   const [colors, setColors] = useState({ ...currentTheme.colors });
@@ -48,6 +49,7 @@ export function CustomizeForm({ data, onSave, isSaving }: CustomizeFormProps) {
       setColors({ ...defaults.colors });
       setFonts({ ...defaults.fonts });
     }
+    onDirty?.();
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -68,18 +70,18 @@ export function CustomizeForm({ data, onSave, isSaving }: CustomizeFormProps) {
       <fieldset className="space-y-3">
         <legend className="text-xs uppercase tracking-[0.3em] text-gold font-black mb-3">Ayat Al-Quran</legend>
         <div>
-          <textarea value={quranArabic} onChange={(e) => setQuranArabic(e.target.value)} placeholder="Ayat Arab" rows={4} maxLength={500} aria-label="Ayat Arab" className={`${inputClass} resize-none`} dir="rtl" />
+          <textarea value={quranArabic} onChange={(e) => { setQuranArabic(e.target.value); onDirty?.(); }} placeholder="Ayat Arab" rows={4} maxLength={500} aria-label="Ayat Arab" className={`${inputClass} resize-none`} dir="rtl" />
           {quranArabic.length > 350 && (
             <p className={`text-[9px] text-right mt-0.5 ${quranArabic.length >= 500 ? 'text-red-500' : 'text-gold'}`}>{quranArabic.length}/500</p>
           )}
         </div>
         <div>
-          <textarea value={quranTranslation} onChange={(e) => setQuranTranslation(e.target.value)} placeholder="Terjemahan" rows={4} maxLength={500} aria-label="Terjemahan" className={`${inputClass} resize-none`} />
+          <textarea value={quranTranslation} onChange={(e) => { setQuranTranslation(e.target.value); onDirty?.(); }} placeholder="Terjemahan" rows={4} maxLength={500} aria-label="Terjemahan" className={`${inputClass} resize-none`} />
           {quranTranslation.length > 350 && (
             <p className={`text-[9px] text-right mt-0.5 ${quranTranslation.length >= 500 ? 'text-red-500' : 'text-gold'}`}>{quranTranslation.length}/500</p>
           )}
         </div>
-        <input value={quranReference} onChange={(e) => setQuranReference(e.target.value)} placeholder="Referensi (misal: QS. Ar-Rum: 21)" maxLength={50} aria-label="Referensi Ayat" className={inputClass} />
+        <input value={quranReference} onChange={(e) => { setQuranReference(e.target.value); onDirty?.(); }} placeholder="Referensi (misal: QS. Ar-Rum: 21)" maxLength={50} aria-label="Referensi Ayat" className={inputClass} />
       </fieldset>
 
       <fieldset className="space-y-3">
@@ -98,7 +100,7 @@ export function CustomizeForm({ data, onSave, isSaving }: CustomizeFormProps) {
             <input
               type="color"
               value={colors[key]}
-              onChange={(e) => setColors(prev => ({ ...prev, [key]: e.target.value }))}
+              onChange={(e) => { setColors(prev => ({ ...prev, [key]: e.target.value })); onDirty?.(); }}
               className="w-10 h-10 rounded-lg border border-gold/20 cursor-pointer"
             />
             <div className="flex-1">
@@ -128,7 +130,7 @@ export function CustomizeForm({ data, onSave, isSaving }: CustomizeFormProps) {
         {FONT_FIELDS.map(({ key, label }) => (
           <div key={key}>
             <label htmlFor={`font-${key}`} className="text-xs text-ink/60 mb-1 block">{label}</label>
-            <select id={`font-${key}`} value={fonts[key]} onChange={(e) => setFonts(prev => ({ ...prev, [key]: e.target.value }))} className={inputClass}>
+            <select id={`font-${key}`} value={fonts[key]} onChange={(e) => { setFonts(prev => ({ ...prev, [key]: e.target.value })); onDirty?.(); }} className={inputClass}>
               {FONT_OPTIONS.map(f => (
                 <option key={f} value={f}>{f}</option>
               ))}

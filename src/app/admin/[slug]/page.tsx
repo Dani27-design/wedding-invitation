@@ -183,6 +183,8 @@ export default function AdminPage() {
 
   const { wedding, isLoading: isWeddingLoading } = useWedding(slug ?? '');
 
+  const handleDirty = useCallback(() => setHasSaved(false), []);
+
   // Tab completion indicators (true = has meaningful data)
   const tabComplete = wedding ? [
     !!(wedding.groomPhoto || wedding.bridePhoto || (wedding.groomNickname && wedding.groomNickname !== 'Pria')),
@@ -324,6 +326,7 @@ export default function AdminPage() {
     } catch (error) {
       console.error('[Admin] Save error:', (error as Error).message);
       setSaveStatus('error');
+      setHasSaved(false);
     }
   }, [slug, wedding]);
 
@@ -362,15 +365,15 @@ export default function AdminPage() {
     }
 
     switch (currentStep) {
-      case 0: return <CoupleForm data={wedding} onSave={handleSave} isSaving={isSaving} />;
-      case 1: return <EventForm data={wedding} onSave={handleSave} isSaving={isSaving} />;
-      case 2: return <StoryForm data={wedding} onSave={handleSave} isSaving={isSaving} />;
-      case 3: return <MediaForm data={wedding} onSave={handleSave} isSaving={isSaving} />;
-      case 4: return <GuestTab data={wedding} slug={slug ?? ''} onSave={handleSave} isSaving={isSaving} />;
-      case 5: return <GiftForm data={wedding} onSave={handleSave} isSaving={isSaving} />;
-      case 6: return <GalleryForm data={wedding} onSave={handleSave} isSaving={isSaving} />;
-      case 7: return <CreditForm data={wedding} onSave={handleSave} isSaving={isSaving} />;
-      case 8: return <CustomizeForm data={wedding} onSave={handleSave} isSaving={isSaving} />;
+      case 0: return <CoupleForm data={wedding} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} />;
+      case 1: return <EventForm data={wedding} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} />;
+      case 2: return <StoryForm data={wedding} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} />;
+      case 3: return <MediaForm data={wedding} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} />;
+      case 4: return <GuestTab data={wedding} slug={slug ?? ''} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} />;
+      case 5: return <GiftForm data={wedding} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} />;
+      case 6: return <GalleryForm data={wedding} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} />;
+      case 7: return <CreditForm data={wedding} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} />;
+      case 8: return <CustomizeForm data={wedding} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} />;
       case 9: return <StoryInteractionsForm data={wedding} slug={slug ?? ''} />;
       case 10: return <WishesForm slug={slug ?? ''} />;
       default: return null;
@@ -434,7 +437,6 @@ export default function AdminPage() {
                   return;
                 }
                 setCurrentStep(i);
-                setHasSaved(false);
               }}
               onKeyDown={(e) => {
                 let target: number | null = null;
@@ -450,7 +452,6 @@ export default function AdminPage() {
                   return;
                 }
                 setCurrentStep(target);
-                setHasSaved(false);
               }}
               className={`px-3 py-1.5 rounded-full text-xs font-bold tracking-wider transition-all whitespace-nowrap ${
                 i === currentStep
@@ -468,7 +469,7 @@ export default function AdminPage() {
       </nav>
 
       {wedding && !isWeddingLoading && (
-        <div className="max-w-lg mx-auto px-4 pt-3 pb-0">
+        <div className="max-w-lg h-fit mx-0 px-4 py-2">
           <p className="text-[10px] text-ink/30 text-center tracking-wider">
             {completedCount} dari {totalEditable} bagian terisi
           </p>
@@ -494,7 +495,7 @@ export default function AdminPage() {
           <ConfirmModal
             onConfirm={() => {
               setCurrentStep(pendingTab);
-              setHasSaved(false);
+              setHasSaved(true);
               setPendingTab(null);
             }}
             onCancel={() => setPendingTab(null)}

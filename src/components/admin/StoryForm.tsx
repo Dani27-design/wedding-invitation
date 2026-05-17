@@ -10,12 +10,13 @@ interface StoryFormProps {
   data: WeddingDocument | null;
   onSave: (fields: Partial<WeddingDocument>, files?: Record<string, File>, urlsToDelete?: string[]) => void;
   isSaving?: boolean;
+  onDirty?: () => void;
 }
 
 const MAX_IMAGE_SIZE = 25 * 1024 * 1024;
 const MAX_VIDEO_SIZE = 50 * 1024 * 1024;
 
-export function StoryForm({ data, onSave, isSaving }: StoryFormProps) {
+export function StoryForm({ data, onSave, isSaving, onDirty }: StoryFormProps) {
   const [error, setError] = useState('');
   const [slides, setSlides] = useState<(StorySlide & { file?: File; videoFile?: File; videoPreview?: string })[]>(
     data?.story?.map(s => ({ ...s })) ?? [{ year: '', text: '', bgImage: '' }]
@@ -39,7 +40,7 @@ export function StoryForm({ data, onSave, isSaving }: StoryFormProps) {
     };
   }, []);
 
-  const addSlide = () => { setSlides([...slides, { year: '', text: '', bgImage: '' }]); setExpandedSlide(slides.length); };
+  const addSlide = () => { setSlides([...slides, { year: '', text: '', bgImage: '' }]); setExpandedSlide(slides.length); onDirty?.(); };
   const removeSlide = (i: number) => {
     const slide = slides[i];
     // Revoke blob URLs
@@ -53,9 +54,11 @@ export function StoryForm({ data, onSave, isSaving }: StoryFormProps) {
       setUrlsToDelete(prev => [...prev, slide.bgVideo!]);
     }
     setSlides(slides.filter((_, idx) => idx !== i));
+    onDirty?.();
   };
   const updateSlide = (i: number, field: keyof StorySlide, value: string) => {
     setSlides(slides.map((s, idx) => idx === i ? { ...s, [field]: value } : s));
+    onDirty?.();
   };
 
   const handleImageChange = (i: number, file: File | undefined) => {
@@ -67,6 +70,7 @@ export function StoryForm({ data, onSave, isSaving }: StoryFormProps) {
     if (oldBg && oldBg.startsWith('blob:')) URL.revokeObjectURL(oldBg);
     const url = URL.createObjectURL(file);
     setSlides(slides.map((s, idx) => idx === i ? { ...s, bgImage: url, file } : s));
+    onDirty?.();
   };
 
   const handleVideoChange = (i: number, file: File | undefined) => {
@@ -78,6 +82,7 @@ export function StoryForm({ data, onSave, isSaving }: StoryFormProps) {
     if (oldPreview) URL.revokeObjectURL(oldPreview);
     const url = URL.createObjectURL(file);
     setSlides(slides.map((s, idx) => idx === i ? { ...s, videoPreview: url, videoFile: file } : s));
+    onDirty?.();
   };
 
   const removeVideo = (i: number) => {
@@ -87,6 +92,7 @@ export function StoryForm({ data, onSave, isSaving }: StoryFormProps) {
       setUrlsToDelete(prev => [...prev, slide.bgVideo!]);
     }
     setSlides(slides.map((s, idx) => idx === i ? { ...s, bgVideo: undefined, videoFile: undefined, videoPreview: undefined } : s));
+    onDirty?.();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -13,11 +13,12 @@ interface CoupleFormProps {
     urlsToDelete?: string[],
   ) => void;
   isSaving?: boolean;
+  onDirty?: () => void;
 }
 
 const MAX_IMAGE_SIZE = 25 * 1024 * 1024;
 
-export function CoupleForm({ data, onSave, isSaving }: CoupleFormProps) {
+export function CoupleForm({ data, onSave, isSaving, onDirty }: CoupleFormProps) {
   const [error, setError] = useState("");
   const [isCompressing, setIsCompressing] = useState(false);
   const [compressionInfo, setCompressionInfo] = useState("");
@@ -56,18 +57,21 @@ export function CoupleForm({ data, onSave, isSaving }: CoupleFormProps) {
     const next = [...current];
     next[idx] = { ...next[idx], [field]: value };
     setter(next);
+    onDirty?.();
   };
 
   const addSocialLink = (side: "groom" | "bride") => {
     const setter = side === "groom" ? setGroomSocialLinks : setBrideSocialLinks;
     const current = side === "groom" ? groomSocialLinks : brideSocialLinks;
     setter([...current, { label: "", url: "" }]);
+    onDirty?.();
   };
 
   const removeSocialLink = (side: "groom" | "bride", idx: number) => {
     const setter = side === "groom" ? setGroomSocialLinks : setBrideSocialLinks;
     const current = side === "groom" ? groomSocialLinks : brideSocialLinks;
     setter(current.filter((_, i) => i !== idx));
+    onDirty?.();
   };
 
   const getUrlPlaceholder = (platform: string) => {
@@ -212,6 +216,7 @@ export function CoupleForm({ data, onSave, isSaving }: CoupleFormProps) {
       setBridePhotoFile(file);
       setBridePhotoPreview(url);
     }
+    onDirty?.();
   };
 
   return (
@@ -222,7 +227,7 @@ export function CoupleForm({ data, onSave, isSaving }: CoupleFormProps) {
         </legend>
         <input
           value={groomNickname}
-          onChange={(e) => setGroomNickname(e.target.value)}
+          onChange={(e) => { setGroomNickname(e.target.value); onDirty?.(); }}
           placeholder="Nama Panggilan"
           required
           maxLength={30}
@@ -231,7 +236,7 @@ export function CoupleForm({ data, onSave, isSaving }: CoupleFormProps) {
         />
         <input
           value={groomName}
-          onChange={(e) => setGroomName(e.target.value)}
+          onChange={(e) => { setGroomName(e.target.value); onDirty?.(); }}
           placeholder="Nama Lengkap + Gelar"
           required
           maxLength={100}
@@ -240,7 +245,7 @@ export function CoupleForm({ data, onSave, isSaving }: CoupleFormProps) {
         />
         <input
           value={groomParents}
-          onChange={(e) => setGroomParents(e.target.value)}
+          onChange={(e) => { setGroomParents(e.target.value); onDirty?.(); }}
           placeholder="Putra/Putri dari..."
           required
           maxLength={150}
@@ -303,7 +308,7 @@ export function CoupleForm({ data, onSave, isSaving }: CoupleFormProps) {
         </legend>
         <input
           value={brideNickname}
-          onChange={(e) => setBrideNickname(e.target.value)}
+          onChange={(e) => { setBrideNickname(e.target.value); onDirty?.(); }}
           placeholder="Nama Panggilan"
           required
           maxLength={30}
@@ -312,7 +317,7 @@ export function CoupleForm({ data, onSave, isSaving }: CoupleFormProps) {
         />
         <input
           value={brideName}
-          onChange={(e) => setBrideName(e.target.value)}
+          onChange={(e) => { setBrideName(e.target.value); onDirty?.(); }}
           placeholder="Nama Lengkap + Gelar"
           required
           maxLength={100}
@@ -321,7 +326,7 @@ export function CoupleForm({ data, onSave, isSaving }: CoupleFormProps) {
         />
         <input
           value={brideParents}
-          onChange={(e) => setBrideParents(e.target.value)}
+          onChange={(e) => { setBrideParents(e.target.value); onDirty?.(); }}
           placeholder="Putra/Putri dari..."
           required
           maxLength={150}

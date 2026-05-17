@@ -9,6 +9,7 @@ interface MediaFormProps {
   data: WeddingDocument | null;
   onSave: (fields: Partial<WeddingDocument>, files?: Record<string, File>, urlsToDelete?: string[]) => void;
   isSaving?: boolean;
+  onDirty?: () => void;
 }
 
 interface MediaItem {
@@ -29,7 +30,7 @@ const MEDIA_ITEMS: MediaItem[] = [
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const MAX_AUDIO_SIZE = 10 * 1024 * 1024;
 
-export function MediaForm({ data, onSave, isSaving }: MediaFormProps) {
+export function MediaForm({ data, onSave, isSaving, onDirty }: MediaFormProps) {
   const [error, setError] = useState('');
   const [previews, setPreviews] = useState<Record<string, string>>({
     musicUrl: data?.musicUrl ?? '',
@@ -53,6 +54,7 @@ export function MediaForm({ data, onSave, isSaving }: MediaFormProps) {
     const url = URL.createObjectURL(file);
     setPreviews(prev => ({ ...prev, [field]: url }));
     setFiles(prev => ({ ...prev, [field]: file }));
+    onDirty?.();
   };
 
   const handleGenerateOverlay = async () => {
@@ -81,6 +83,7 @@ export function MediaForm({ data, onSave, isSaving }: MediaFormProps) {
         const file = new File([blob], 'twibbon-overlay.png', { type: 'image/png' });
         setPreviews(prev => ({ ...prev, twibbonOverlay: url }));
         setFiles(prev => ({ ...prev, twibbonOverlay: file }));
+        onDirty?.();
       }
     } finally {
       setIsGenerating(false);

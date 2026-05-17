@@ -6,6 +6,21 @@
 
 ---
 
+## Admin Form — Bug Fixes
+
+### ~~ADM-001: "Perubahan Belum Disimpan" modal triggered unnecessarily on tab switch~~ FIXED
+
+**Root cause:** Three bugs in `[slug]/page.tsx` tab navigation:
+1. `setHasSaved(false)` called on every tab click — marked form as "dirty" even without edits
+2. Same `setHasSaved(false)` on keyboard (arrow key) navigation
+3. ConfirmModal `onConfirm` set `setHasSaved(false)` instead of `true` — created infinite modal loop
+
+**Resolution:** Removed `setHasSaved(false)` from tab click and keyboard handlers. Fixed `onConfirm` to `setHasSaved(true)`. Moved `setHasSaved(false)` to `handleSave` catch block only (correct: only mark dirty on save failure). Added `onDirty` callback prop to all 9 editable form components — each form now calls `onDirty()` on user-initiated changes (field edits, file uploads, add/remove items), giving the parent accurate dirty tracking.
+
+**Files changed:** `[slug]/page.tsx`, `CoupleForm`, `EventForm`, `StoryForm`, `MediaForm`, `GuestTab`, `GiftForm`, `GalleryForm`, `CreditForm`, `CustomizeForm` (10 files)
+
+---
+
 ## Critical (P0) — Must fix before production
 
 ### ~~GMS-001: XSS vulnerability in QR print window via innerHTML injection~~ FIXED

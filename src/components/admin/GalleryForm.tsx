@@ -10,12 +10,13 @@ interface GalleryFormProps {
   data: WeddingDocument | null;
   onSave: (fields: Partial<WeddingDocument>, files?: Record<string, File>, urlsToDelete?: string[]) => void;
   isSaving?: boolean;
+  onDirty?: () => void;
 }
 
 const MAX_IMAGE_SIZE = 25 * 1024 * 1024;
 const MAX_IMAGES = 30;
 
-export function GalleryForm({ data, onSave, isSaving }: GalleryFormProps) {
+export function GalleryForm({ data, onSave, isSaving, onDirty }: GalleryFormProps) {
   const [error, setError] = useState('');
   const [images, setImages] = useState<{ url: string; file?: File }[]>(
     data?.gallery?.map(url => ({ url })) ?? []
@@ -35,6 +36,7 @@ export function GalleryForm({ data, onSave, isSaving }: GalleryFormProps) {
     setError('');
     const newImages = arr.map(file => ({ url: URL.createObjectURL(file), file }));
     setImages([...images, ...newImages]);
+    onDirty?.();
   };
 
   const handleRemove = (i: number) => {
@@ -43,6 +45,7 @@ export function GalleryForm({ data, onSave, isSaving }: GalleryFormProps) {
       setUrlsToDelete(prev => [...prev, img.url]);
     }
     setImages(images.filter((_, idx) => idx !== i));
+    onDirty?.();
   };
 
   const moveImage = (from: number, to: number) => {
@@ -51,6 +54,7 @@ export function GalleryForm({ data, onSave, isSaving }: GalleryFormProps) {
     const [moved] = updated.splice(from, 1);
     updated.splice(to, 0, moved);
     setImages(updated);
+    onDirty?.();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

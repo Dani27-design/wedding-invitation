@@ -13,7 +13,7 @@ export async function generateQRDataURL(text: string): Promise<string> {
 }
 
 /**
- * Draw an aesthetic QR card on canvas matching the twibbon-style design.
+ * Draw an aesthetic QR card on canvas with twibbon-style floral ornaments.
  * Returns a high-res PNG data URL for download.
  */
 export async function generateQRCardPNG(
@@ -21,6 +21,8 @@ export async function generateQRCardPNG(
   guestName: string,
   coupleName: string,
 ): Promise<string> {
+  const { drawFlowerCluster, drawScatteredPetals, drawGoldDust } = await import('./floralDraw');
+
   const qrDataUrl = await generateQRDataURL(invitationUrl);
   if (!qrDataUrl) return '';
 
@@ -39,8 +41,7 @@ export async function generateQRCardPNG(
   const gold = '#B48D3E';
   const ink = '#1A1A1A';
 
-  // --- Rounded rect clip + gradient background ---
-  const r = 28 * S;
+  // --- Rounded rect helper ---
   const roundRect = (x: number, y: number, w: number, h: number, radius: number) => {
     ctx.beginPath();
     ctx.moveTo(x + radius, y);
@@ -55,12 +56,13 @@ export async function generateQRCardPNG(
     ctx.closePath();
   };
 
-  // Clip to card shape
+  const r = 28 * S;
+
+  // --- Background (clipped to rounded rect) ---
   ctx.save();
   roundRect(0, 0, W, H, r);
   ctx.clip();
 
-  // Gradient background
   const bgGrad = ctx.createLinearGradient(0, 0, W * 0.3, H);
   bgGrad.addColorStop(0, '#FAF7F2');
   bgGrad.addColorStop(0.4, '#F5F0E8');
@@ -68,82 +70,41 @@ export async function generateQRCardPNG(
   ctx.fillStyle = bgGrad;
   ctx.fillRect(0, 0, W, H);
 
-  // Radial warm glow top-right
+  // Radial glows
   const glow1 = ctx.createRadialGradient(W * 0.85, H * 0.05, 0, W * 0.85, H * 0.05, W * 0.5);
   glow1.addColorStop(0, 'rgba(180, 141, 62, 0.07)');
   glow1.addColorStop(1, 'transparent');
   ctx.fillStyle = glow1;
   ctx.fillRect(0, 0, W, H);
 
-  // Radial pink glow bottom-left
   const glow2 = ctx.createRadialGradient(W * 0.1, H * 0.9, 0, W * 0.1, H * 0.9, W * 0.45);
   glow2.addColorStop(0, 'rgba(219, 170, 185, 0.08)');
   glow2.addColorStop(1, 'transparent');
   ctx.fillStyle = glow2;
   ctx.fillRect(0, 0, W, H);
 
-  // --- Soft floral corner accents ---
-  const drawPetal = (x: number, y: number, rw: number, rh: number, angle: number, color: string) => {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(angle);
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.ellipse(0, 0, rw, rh, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  };
+  // --- Floral corner clusters (twibbon-style artistic flowers) ---
+  const fs = S * 0.7;
+  drawFlowerCluster(ctx, PAD * 0.5, PAD * 0.5, 4, 50 * fs, 0.3 * fs, 0.9 * fs);
+  drawFlowerCluster(ctx, W - PAD * 0.5, PAD * 0.5, 3, 45 * fs, 0.25 * fs, 0.8 * fs);
+  drawFlowerCluster(ctx, PAD * 0.6, H - PAD * 0.6, 3, 45 * fs, 0.25 * fs, 0.8 * fs);
+  drawFlowerCluster(ctx, W - PAD * 0.6, H - PAD * 0.6, 4, 50 * fs, 0.3 * fs, 0.9 * fs);
 
-  const drawFlowerCluster = (cx: number, cy: number, scale: number) => {
-    const colors = [
-      'rgba(235, 170, 185, 0.35)', 'rgba(255, 200, 180, 0.35)',
-      'rgba(255, 253, 240, 0.45)', 'rgba(250, 240, 185, 0.35)',
-      'rgba(220, 180, 190, 0.4)', 'rgba(245, 225, 190, 0.3)',
-    ];
-    for (let i = 0; i < 8; i++) {
-      const angle = (i / 8) * Math.PI * 2 + (cx * 0.01);
-      const d = 10 * scale;
-      const pw = (12 + Math.sin(i * 1.3) * 4) * scale;
-      const ph = (5 + Math.cos(i * 0.7) * 2) * scale;
-      drawPetal(cx + Math.cos(angle) * d, cy + Math.sin(angle) * d, pw, ph, angle + 0.3, colors[i % colors.length]);
-    }
-    ctx.beginPath();
-    ctx.arc(cx, cy, 3 * scale, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(200, 160, 100, 0.2)';
-    ctx.fill();
-  };
+  // Scattered petals along edges
+  drawScatteredPetals(ctx, 8, W / 2, PAD * 0.4, W * 0.7, PAD, 'rgba(219, 140, 160, 0.06)');
+  drawScatteredPetals(ctx, 8, W / 2, H - PAD * 0.4, W * 0.7, PAD, 'rgba(219, 140, 160, 0.06)');
 
-  // Corner flower clusters
-  const flowerS = S * 0.8;
-  drawFlowerCluster(PAD * 0.6, PAD * 0.6, flowerS * 1.2);
-  drawFlowerCluster(W - PAD * 0.6, PAD * 0.6, flowerS);
-  drawFlowerCluster(PAD * 0.8, H - PAD * 0.8, flowerS);
-  drawFlowerCluster(W - PAD * 0.8, H - PAD * 0.8, flowerS * 1.1);
-
-  // Scattered petals
-  for (let i = 0; i < 12; i++) {
-    const px = PAD * 0.5 + Math.random() * (W - PAD);
-    const py = Math.random() < 0.5 ? Math.random() * PAD * 2 : H - Math.random() * PAD * 2;
-    drawPetal(px, py, 6 * S, 3 * S, Math.random() * Math.PI, 'rgba(219, 140, 160, 0.06)');
-  }
-
-  // Gold dust particles
-  for (let i = 0; i < 30; i++) {
-    ctx.beginPath();
-    ctx.arc(Math.random() * W, Math.random() * H, Math.random() * 1.2 * S, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(196, 164, 106, ${Math.random() * 0.15})`;
-    ctx.fill();
-  }
+  // Gold dust
+  drawGoldDust(ctx, 30, W, H, 1.2 * S, 0.15);
 
   ctx.restore(); // unclip
 
-  // --- Card border ---
+  // --- Borders ---
   roundRect(0, 0, W, H, r);
   ctx.strokeStyle = 'rgba(180, 141, 62, 0.2)';
   ctx.lineWidth = 2 * S;
   ctx.stroke();
 
-  // Inner decorative border
   const inset = 7 * S;
   roundRect(inset, inset, W - inset * 2, H - inset * 2, r - inset);
   ctx.strokeStyle = 'rgba(180, 141, 62, 0.1)';
@@ -153,7 +114,7 @@ export async function generateQRCardPNG(
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
-  // --- Heart ornament helper ---
+  // --- Heart ornament ---
   const drawHeart = (cx: number, cy: number, size: number) => {
     ctx.save();
     ctx.translate(cx, cy);
@@ -184,10 +145,9 @@ export async function generateQRCardPNG(
     drawHeart(W / 2, y - 2 * S, S * 1.1);
   };
 
-  // --- Content ---
+  // --- Content layout ---
   let curY = PAD + 4 * S;
 
-  // Top ornament
   drawDivider(curY + 4 * S, 28 * S);
   curY += 16 * S;
 
@@ -205,7 +165,7 @@ export async function generateQRCardPNG(
   const qrBoxY = curY;
   const qrR = 14 * S;
 
-  // QR box shadow
+  // QR box with shadow
   ctx.save();
   ctx.shadowColor = 'rgba(180, 141, 62, 0.08)';
   ctx.shadowBlur = 12 * S;
@@ -215,7 +175,6 @@ export async function generateQRCardPNG(
   ctx.fill();
   ctx.restore();
 
-  // QR box border
   roundRect(qrBoxX, qrBoxY, qrBoxW, qrBoxH, qrR);
   ctx.strokeStyle = 'rgba(180, 141, 62, 0.1)';
   ctx.lineWidth = 0.5 * S;
@@ -228,7 +187,6 @@ export async function generateQRCardPNG(
     ctx.strokeStyle = 'rgba(180, 141, 62, 0.18)';
     ctx.lineWidth = 1 * S;
     ctx.stroke();
-    // Small dot at end
     const endX = x + Math.cos(startAngle + Math.PI / 2) * 6 * S;
     const endY = y + Math.sin(startAngle + Math.PI / 2) * 6 * S;
     ctx.beginPath();
@@ -259,7 +217,7 @@ export async function generateQRCardPNG(
   }
   curY += 4 * S;
 
-  // Bottom ornament — star diamond shape
+  // Bottom star ornament
   const drawStar = (cx: number, cy: number, size: number) => {
     ctx.beginPath();
     ctx.moveTo(cx, cy - size);
@@ -288,7 +246,7 @@ export async function generateQRCardPNG(
   drawStar(W / 2, curY, 3.5 * S);
   curY += 14 * S;
 
-  // Footer text
+  // Footer
   ctx.font = `bold ${6.5 * S}px sans-serif`;
   ctx.fillStyle = 'rgba(26, 26, 26, 0.28)';
   ctx.letterSpacing = `${1.5 * S}px`;

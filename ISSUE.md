@@ -21,6 +21,31 @@
 
 ---
 
+### ~~ADM-002: QR download saves raw QR image without card frame~~ FIXED
+
+**Root cause:** `handleDownload` in `GuestQRModal` grabbed the raw `<img>` src (280x280 QR data URL) — no frame, names, or branding.
+
+**Resolution:** Created `generateQRCardPNG()` in `qrGenerate.ts` that renders a full aesthetic card on canvas (600x860 @2x retina) with gradient background, floral ornaments, couple name, QR code, guest name, and decorative elements. Download button now uses this function with loading state.
+
+---
+
+### ~~ADM-003: QR card design lacks aesthetic quality compared to twibbon frame~~ FIXED
+
+**Root cause:** `GuestQRCard` used flat ivory background, generic Lucide Heart icons, and plain borders — visually inconsistent with the twibbon overlay's artistic floral design.
+
+**Resolution:** Full redesign of QR card system:
+- Extracted shared floral drawing primitives (`drawPetal`, `drawArtisticFlower`, `drawFlowerCluster`, `drawScatteredPetals`, `drawGoldDust`) into `src/utils/floralDraw.ts`
+- Refactored `twibbonOverlay.ts` to import from shared utility (57 tests still pass)
+- `GuestQRCard` now renders a `<canvas>` layer with live twibbon-style flowers (corner clusters, scattered petals, gold dust) behind content
+- Card uses warm gradient background, SVG heart/star ornaments, corner arc accents on QR box, inner decorative border
+- `generateQRCardPNG` (download) uses same shared flowers for pixel-perfect matching
+- `GuestQRPrintView` reuses `GuestQRCard compact` prop (3-column grid) — no duplicated markup
+- Added `compact` prop for smaller print-optimized cards
+
+**Files changed:** `floralDraw.ts` (new), `twibbonOverlay.ts`, `GuestQRCard.tsx`, `GuestQRModal.tsx`, `GuestQRPrintView.tsx`, `qrGenerate.ts` (6 files)
+
+---
+
 ## Critical (P0) — Must fix before production
 
 ### ~~GMS-001: XSS vulnerability in QR print window via innerHTML injection~~ FIXED

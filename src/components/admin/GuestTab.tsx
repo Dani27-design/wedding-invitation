@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Users, ArrowRight } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { getGuests } from '@/lib/guests';
 import { WeddingDocument } from '@/types/firestore';
 
@@ -15,6 +15,7 @@ interface GuestTabProps {
 
 export function GuestTab({ data, slug, onSave, isSaving, onDirty }: GuestTabProps) {
   const [guestCount, setGuestCount] = useState<number | null>(null);
+  const [defaultGuest, setDefaultGuest] = useState(data?.defaultGuest ?? '');
 
   useEffect(() => {
     if (!slug) return;
@@ -27,7 +28,7 @@ export function GuestTab({ data, slug, onSave, isSaving, onDirty }: GuestTabProp
 
   const handleSaveTemplate = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ greetingTemplate: greetingTemplate.trim() });
+    onSave({ greetingTemplate: greetingTemplate.trim(), defaultGuest: defaultGuest.trim() });
   };
 
   const insertVariable = (variable: string) => {
@@ -43,24 +44,26 @@ export function GuestTab({ data, slug, onSave, isSaving, onDirty }: GuestTabProp
 
   return (
     <div className="space-y-6">
-      {/* Link to full page */}
       <Link
         href={`/admin/${slug}/guests`}
-        className="flex items-center justify-between p-4 bg-gold/5 border border-gold/10 rounded-2xl hover:bg-gold/10 transition-colors group"
+        className="w-full flex items-center justify-center gap-2 py-3 border border-gold/20 rounded-full text-xs tracking-[0.3em] font-black uppercase text-gold hover:bg-gold/5 transition-colors"
       >
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center">
-            <Users className="w-4 h-4 text-gold" />
-          </div>
-          <div>
-            <p className="text-xs font-black uppercase tracking-wider text-ink">
-              Kelola Semua Tamu{guestCount !== null && <span className="text-gold ml-1.5">({guestCount})</span>}
-            </p>
-            <p className="text-[10px] text-ink/40">Tambah, edit, import, QR code, dan kirim undangan</p>
-          </div>
-        </div>
-        <ArrowRight className="w-4 h-4 text-gold group-hover:translate-x-1 transition-transform" />
+        Kelola Tamu{guestCount !== null && ` (${guestCount})`}
+        <ExternalLink className="w-3.5 h-3.5" />
       </Link>
+
+      {/* Default guest name */}
+      <div className="space-y-1">
+        <label className="text-[10px] text-ink/50 font-bold uppercase tracking-wider">Nama Tamu Default</label>
+        <input
+          value={defaultGuest}
+          onChange={(e) => { setDefaultGuest(e.target.value); onDirty?.(); }}
+          placeholder="Nama jika tautan tidak menyertakan nama (cth: Tamu Undangan)"
+          maxLength={50}
+          aria-label="Nama Tamu Default"
+          className="w-full px-3 py-2 border border-gold/20 rounded-lg text-sm bg-white focus:outline-none focus:border-gold/50"
+        />
+      </div>
 
       {/* Greeting Template */}
       <form onSubmit={handleSaveTemplate} className="space-y-3">

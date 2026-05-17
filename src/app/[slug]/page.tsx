@@ -89,6 +89,7 @@ function buildThemeCSS(wedding: WeddingDocument): string {
 
   return `:root {
   --color-gold: ${gold};
+  --color-gold-contrast: color-mix(in srgb, ${gold} 70%, #000);
   --color-ivory: ${ivory};
   --color-ink: ${ink};
   --color-paper: ${paper};

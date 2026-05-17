@@ -281,6 +281,10 @@ export default function GuestsPage() {
     setFilterCategory('all');
   };
 
+  useEffect(() => {
+    if (!isAuthLoading && !authUser) router.push('/login');
+  }, [isAuthLoading, authUser, router]);
+
   // Auth guards
   if (isAuthLoading) {
     return (
@@ -290,7 +294,7 @@ export default function GuestsPage() {
     );
   }
 
-  if (!authUser) { router.push('/login'); return null; }
+  if (!authUser) return null;
 
   const isAuthorized = userDoc?.role === 'super' || (wedding?.adminIds ?? []).includes(authUser.uid);
   if (!isAuthorized && !isWeddingLoading) {

@@ -350,7 +350,7 @@ describe('hooks/useStoryLikes', () => {
         await result.current.incrementLike(0);
       });
 
-      const mockTransaction = { get: vi.fn().mockResolvedValue(createMockSnap(true, { likes: [10, 20] })), update: vi.fn() };
+      const mockTransaction = { get: vi.fn().mockResolvedValue(createMockSnap(true, { likes: [10, 20] })), update: vi.fn(), set: vi.fn() };
       await transactionCallback!(mockTransaction);
       expect(mockTransaction.get).toHaveBeenCalledWith('story-likes-doc-ref');
     });
@@ -370,7 +370,7 @@ describe('hooks/useStoryLikes', () => {
         await result.current.incrementLike(1);
       });
 
-      const mockTransaction = { get: vi.fn().mockResolvedValue(createMockSnap(true, { likes: [10, 20] })), update: vi.fn() };
+      const mockTransaction = { get: vi.fn().mockResolvedValue(createMockSnap(true, { likes: [10, 20] })), update: vi.fn(), set: vi.fn() };
       await transactionCallback!(mockTransaction);
       expect(mockTransaction.update).toHaveBeenCalledWith('story-likes-doc-ref', { likes: [10, 21] });
     });
@@ -390,9 +390,10 @@ describe('hooks/useStoryLikes', () => {
         await result.current.incrementLike(0);
       });
 
-      const mockTransaction = { get: vi.fn().mockResolvedValue(createMockSnap(false)), update: vi.fn() };
+      const mockTransaction = { get: vi.fn().mockResolvedValue(createMockSnap(false)), update: vi.fn(), set: vi.fn() };
       await transactionCallback!(mockTransaction);
       expect(mockTransaction.update).not.toHaveBeenCalled();
+      expect(mockTransaction.set).toHaveBeenCalledWith('story-likes-doc-ref', { likes: [1] });
     });
   });
 

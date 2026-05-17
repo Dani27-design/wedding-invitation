@@ -197,6 +197,10 @@ export default function SuperAdminPage() {
     }
   }
 
+  useEffect(() => {
+    if (!isLoading && !authUser) router.push('/login');
+  }, [isLoading, authUser, router]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-ivory flex items-center justify-center">
@@ -205,10 +209,7 @@ export default function SuperAdminPage() {
     );
   }
 
-  if (!authUser) {
-    router.push('/login');
-    return null;
-  }
+  if (!authUser) return null;
 
   if (userDoc?.role !== 'super') {
     return (

@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { WeddingDocument, CreditPerson } from '../../types/firestore';
-import { Plus, Trash2, User } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 const ROLE_OPTIONS = [
@@ -33,54 +33,53 @@ export function CreditForm({ data, onSave, isSaving, onDirty }: CreditFormProps)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({
-      credits: credits.filter(c => c.name.trim()),
-    });
+    onSave({ credits: credits.filter(c => c.name.trim()) });
   };
 
-  const inputClass = 'w-full px-4 py-3 border border-gold/20 rounded-xl text-sm bg-white focus:outline-none focus:border-gold/50 transition-all';
+  const inputClass = 'w-full px-3 py-2 border border-gold/20 rounded-lg text-sm bg-white focus:outline-none focus:border-gold/50';
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <h2 className="text-xs uppercase tracking-[0.3em] text-gold font-black mb-6">Data Penulis</h2>
+    <form onSubmit={handleSubmit} className="space-y-3">
+      <div className="flex items-center justify-between mb-1">
+        <h2 className="text-xs uppercase tracking-[0.3em] text-gold font-black">Data Penulis</h2>
+        <span className="text-[10px] text-ink/30 font-mono">{credits.length} kredit</span>
+      </div>
 
-      <fieldset className="space-y-4">
-        {credits.map((credit, i) => (
-          <div key={i} className="p-4 border border-gold/10 rounded-2xl space-y-3 bg-white/50">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase tracking-widest text-gold font-black">Kredit {i + 1}</span>
-              <button 
-                type="button" 
-                onClick={() => setDeleteTarget(i)} 
-                className="text-red-400 p-1 hover:scale-110 transition-transform" 
-                aria-label="Hapus kredit"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-            <input value={credit.name} onChange={(e) => updateCredit(i, 'name', e.target.value)} placeholder="Nama" maxLength={50} aria-label={`Nama Kredit ${i + 1}`} className={inputClass} />
-            <select value={credit.role} onChange={(e) => updateCredit(i, 'role', e.target.value)} aria-label={`Peran Kredit ${i + 1}`} className={inputClass}>
-              {ROLE_OPTIONS.map(r => (
-                <option key={r.value} value={r.value}>{r.label}</option>
-              ))}
-            </select>
-            <textarea value={credit.description} onChange={(e) => updateCredit(i, 'description', e.target.value)} placeholder="Deskripsi" rows={4} maxLength={200} aria-label={`Deskripsi Kredit ${i + 1}`} className={`${inputClass} resize-none`} />
+      {credits.map((credit, i) => (
+        <div key={i} className="p-3 border border-gold/10 rounded-2xl bg-white/40 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] uppercase tracking-widest text-ink/40 font-black">{i + 1}</span>
+            <button
+              type="button"
+              onClick={() => setDeleteTarget(i)}
+              className="w-7 h-7 flex items-center justify-center rounded-lg text-red-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+              aria-label={`Hapus kredit ${i + 1}`}
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
+          <input value={credit.name} onChange={(e) => updateCredit(i, 'name', e.target.value)} placeholder="Nama" maxLength={50} aria-label={`Nama Kredit ${i + 1}`} className={inputClass} />
+          <select value={credit.role} onChange={(e) => updateCredit(i, 'role', e.target.value)} aria-label={`Peran Kredit ${i + 1}`} className={inputClass}>
+            {ROLE_OPTIONS.map(r => (
+              <option key={r.value} value={r.value}>{r.label}</option>
+            ))}
+          </select>
+          <div>
+            <textarea value={credit.description} onChange={(e) => updateCredit(i, 'description', e.target.value)} placeholder="Deskripsi" rows={2} maxLength={200} aria-label={`Deskripsi Kredit ${i + 1}`} className={`${inputClass} resize-none`} />
             {credit.description.length > 140 && (
               <p className={`text-[9px] text-right mt-0.5 ${credit.description.length >= 200 ? 'text-red-500' : 'text-gold'}`}>{credit.description.length}/200</p>
             )}
           </div>
-        ))}
-      </fieldset>
+        </div>
+      ))}
 
       <button
         type="button"
         onClick={addCredit}
-        className="w-full py-4 border-2 border-dashed border-gold/30 rounded-3xl flex flex-col items-center justify-center gap-2 hover:bg-gold/5 transition-all group"
+        className="w-full py-2.5 border-2 border-dashed border-gold/25 rounded-2xl flex items-center justify-center gap-2 hover:bg-gold/5 transition-all text-gold"
       >
-        <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-          <Plus className="w-5 h-5 text-gold" />
-        </div>
-        <span className="text-[10px] font-black text-gold uppercase tracking-widest">Tambah Kredit</span>
+        <Plus className="w-4 h-4" />
+        <span className="text-[10px] font-black uppercase tracking-widest">Tambah Kredit</span>
       </button>
 
       <button type="submit" disabled={isSaving} className="w-full py-3 bg-gold text-ivory rounded-full text-xs tracking-[0.3em] font-black uppercase disabled:opacity-50 shadow-lg shadow-gold/20">{isSaving ? 'Menyimpan...' : 'Simpan'}</button>

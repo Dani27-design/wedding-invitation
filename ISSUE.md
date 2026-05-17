@@ -37,6 +37,26 @@
 
 ---
 
+### ~~ADM-005: MediaForm takes excessive vertical space with verbose layout~~ FIXED
+
+**Root cause:** Each of 4 media items was a tall stacked card (~200px+) with header, description, full-width preview (160px), and oversized upload button. Single-column layout wasted horizontal space.
+
+**Resolution:** Redesigned to a **2x2 grid** of compact cards. Each card has: square thumbnail area with the preview (image/audio), hover-to-reveal upload overlay button, compact label + filename below. Removed verbose description text (labels are self-explanatory). Twibbon "Buat Otomatis" button stays as compact action. Page height reduced ~60%.
+
+**Files changed:** `MediaForm.tsx` (1 file)
+
+---
+
+### ~~ADM-006: `router.push` during render causes React hooks order error~~ FIXED
+
+**Root cause:** `router.push('/login')` called directly in render body (before any early return) triggered "Cannot update a component while rendering another component" and "Rendered more hooks than during previous render" when the `useEffect` was placed after the early `return`.
+
+**Resolution:** Moved auth redirect to `useEffect(() => { if (!loading && !user) router.push('/login') }, [...])` placed **before** all early returns, ensuring consistent hook count across renders. Fixed in all 3 admin pages (`[slug]/page.tsx`, `[slug]/guests/page.tsx`, `admin/page.tsx`).
+
+**Files changed:** `[slug]/page.tsx`, `[slug]/guests/page.tsx`, `admin/page.tsx` (3 files)
+
+---
+
 ### ~~ADM-002: QR download saves raw QR image without card frame~~ FIXED
 
 **Root cause:** `handleDownload` in `GuestQRModal` grabbed the raw `<img>` src (280x280 QR data URL) — no frame, names, or branding.

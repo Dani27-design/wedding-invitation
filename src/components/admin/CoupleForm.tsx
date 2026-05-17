@@ -29,29 +29,15 @@ export function CoupleForm({ data, onSave, isSaving, onDirty }: CoupleFormProps)
   const [brideNickname, setBrideNickname] = useState(data?.brideNickname ?? "");
   const [brideName, setBrideName] = useState(data?.brideName ?? "");
   const [brideParents, setBrideParents] = useState(data?.brideParents ?? "");
-  const [groomPhotoPreview, setGroomPhotoPreview] = useState(
-    data?.groomPhoto ?? "",
-  );
-  const [bridePhotoPreview, setBridePhotoPreview] = useState(
-    data?.bridePhoto ?? "",
-  );
-
-  const [groomSocialLinks, setGroomSocialLinks] = useState(
-    data?.groomSocialLinks ?? [],
-  );
-  const [brideSocialLinks, setBrideSocialLinks] = useState(
-    data?.brideSocialLinks ?? [],
-  );
+  const [groomPhotoPreview, setGroomPhotoPreview] = useState(data?.groomPhoto ?? "");
+  const [bridePhotoPreview, setBridePhotoPreview] = useState(data?.bridePhoto ?? "");
+  const [groomSocialLinks, setGroomSocialLinks] = useState(data?.groomSocialLinks ?? []);
+  const [brideSocialLinks, setBrideSocialLinks] = useState(data?.brideSocialLinks ?? []);
   const [groomPhotoFile, setGroomPhotoFile] = useState<File | null>(null);
   const [bridePhotoFile, setBridePhotoFile] = useState<File | null>(null);
   const [urlsToDelete, setUrlsToDelete] = useState<string[]>([]);
 
-  const updateSocialLink = (
-    side: "groom" | "bride",
-    idx: number,
-    field: "label" | "url",
-    value: string,
-  ) => {
+  const updateSocialLink = (side: "groom" | "bride", idx: number, field: "label" | "url", value: string) => {
     const setter = side === "groom" ? setGroomSocialLinks : setBrideSocialLinks;
     const current = side === "groom" ? groomSocialLinks : brideSocialLinks;
     const next = [...current];
@@ -86,11 +72,20 @@ export function CoupleForm({ data, onSave, isSaving, onDirty }: CoupleFormProps)
     }
   };
 
+  const handlePhotoChange = (side: "groom" | "bride", file: File | undefined) => {
+    if (!file) return;
+    if (file.size > MAX_IMAGE_SIZE) { setError("Ukuran foto maksimal 25MB"); return; }
+    setError("");
+    const url = URL.createObjectURL(file);
+    if (side === "groom") { setGroomPhotoFile(file); setGroomPhotoPreview(url); }
+    else { setBridePhotoFile(file); setBridePhotoPreview(url); }
+    onDirty?.();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    // Validate social link URLs
     const allLinks = [
       ...groomSocialLinks.filter((l) => l.label.trim() && l.url.trim()),
       ...brideSocialLinks.filter((l) => l.label.trim() && l.url.trim()),
@@ -155,243 +150,94 @@ export function CoupleForm({ data, onSave, isSaving, onDirty }: CoupleFormProps)
     );
   };
 
-  const renderUploadField = (
+  const inputClass = "w-full px-3 py-2 border border-gold/20 rounded-lg text-sm bg-white focus:outline-none focus:border-gold/50";
+
+  const renderSide = (
     side: "groom" | "bride",
-    preview: string,
-    file: File | null,
+    label: string,
+    nickname: string, setNickname: (v: string) => void,
+    name: string, setName: (v: string) => void,
+    parents: string, setParents: (v: string) => void,
+    preview: string, file: File | null,
+    links: { label: string; url: string }[],
   ) => (
-    <div className="space-y-2">
-      <label className="text-xs text-ink/60 block">Foto</label>
-      <div className="flex items-center gap-4">
-        {preview !== "" && (
-          <div className="relative w-20 h-20 flex-shrink-0">
-            <img
-              src={preview}
-              alt={side}
-              className="w-full h-full object-cover rounded-xl border border-gold/10"
-            />
-          </div>
-        )}
-        <div className="flex-1 min-w-0">
-          <label className="flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-dashed border-gold/30 rounded-xl cursor-pointer hover:bg-gold/5 transition-colors group">
-            <Upload className="w-4 h-4 text-gold group-hover:scale-110 transition-transform" />
-            <span className="text-[10px] font-black text-gold uppercase tracking-widest">
-              Pilih Foto
-            </span>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => handlePhotoChange(side, e.target.files?.[0])}
-              className="hidden"
-            />
-          </label>
-          {file && (
-            <p className="mt-1.5 text-[10px] text-ink/40 truncate font-mono text-center">
-              {file.name}
-            </p>
+    <fieldset className="space-y-2">
+      <legend className="text-xs uppercase tracking-[0.3em] text-gold font-black mb-1">{label}</legend>
+
+      {/* Photo + nickname inline */}
+      <div className="flex items-center gap-3">
+        <div className="relative w-14 h-14 rounded-xl overflow-hidden border border-gold/10 flex-shrink-0 bg-ivory">
+          {preview ? (
+            <img src={preview} alt={side} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <Upload className="w-4 h-4 text-ink/10" />
+            </div>
           )}
+          <label className="absolute inset-0 cursor-pointer">
+            <input type="file" accept="image/*" onChange={(e) => handlePhotoChange(side, e.target.files?.[0])} className="hidden" />
+          </label>
+        </div>
+        <div className="flex-1 min-w-0 space-y-1.5">
+          <input value={nickname} onChange={(e) => { setNickname(e.target.value); onDirty?.(); }} placeholder="Nama Panggilan" required maxLength={30} aria-label={`Nama Panggilan ${label}`} className={inputClass} />
+          {file && <p className="text-[8px] text-ink/30 truncate font-mono">{file.name}</p>}
         </div>
       </div>
-    </div>
+
+      <input value={name} onChange={(e) => { setName(e.target.value); onDirty?.(); }} placeholder="Nama Lengkap + Gelar" required maxLength={100} aria-label={`Nama Lengkap ${label}`} className={inputClass} />
+      <input value={parents} onChange={(e) => { setParents(e.target.value); onDirty?.(); }} placeholder="Putra/Putri dari..." required maxLength={150} aria-label={`Orang Tua ${label}`} className={inputClass} />
+
+      {/* Social links */}
+      {links.length > 0 && (
+        <div className="space-y-2 pt-1">
+          {links.map((link, idx) => (
+            <div key={idx} className="p-2 border border-gold/10 rounded-xl bg-white/30 space-y-1.5">
+              <div className="flex gap-1.5 items-center">
+                <select
+                  value={link.label}
+                  onChange={(e) => updateSocialLink(side, idx, "label", e.target.value)}
+                  aria-label={`Platform tautan ${idx + 1}`}
+                  className={`${inputClass} flex-1`}
+                >
+                  <option value="">Pilih Platform</option>
+                  <option value="Instagram">Instagram</option>
+                  <option value="LinkedIn">LinkedIn</option>
+                  <option value="WhatsApp">WhatsApp</option>
+                  <option value="Threads">Threads</option>
+                  <option value="Twitter">Twitter</option>
+                  <option value="Tiktok">Tiktok</option>
+                  <option value="Lainnya">Lainnya</option>
+                </select>
+                <button type="button" onClick={() => removeSocialLink(side, idx)} className="w-7 h-7 flex items-center justify-center rounded-lg text-red-300 hover:text-red-500 hover:bg-red-50 transition-colors flex-shrink-0" aria-label="Hapus tautan">
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
+              <input
+                type={link.label === 'WhatsApp' ? 'tel' : 'url'}
+                value={link.url}
+                onChange={(e) => updateSocialLink(side, idx, "url", e.target.value)}
+                placeholder={getUrlPlaceholder(link.label)}
+                aria-label={`URL tautan ${idx + 1}`}
+                className={inputClass}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+      <button type="button" onClick={() => addSocialLink(side)} className="text-gold text-[10px] font-black uppercase tracking-widest flex items-center gap-1 hover:underline">
+        <Plus className="w-3 h-3" /> Tambah Tautan
+      </button>
+    </fieldset>
   );
 
-  const inputClass =
-    "w-full px-4 py-3 border border-gold/20 rounded-xl text-sm bg-white focus:outline-none focus:border-gold/50 transition-all";
-
-  const handlePhotoChange = (
-    side: "groom" | "bride",
-    file: File | undefined,
-  ) => {
-    if (!file) return;
-    if (file.size > MAX_IMAGE_SIZE) {
-      setError("Ukuran foto maksimal 25MB");
-      return;
-    }
-    setError("");
-    const url = URL.createObjectURL(file);
-    if (side === "groom") {
-      setGroomPhotoFile(file);
-      setGroomPhotoPreview(url);
-    } else {
-      setBridePhotoFile(file);
-      setBridePhotoPreview(url);
-    }
-    onDirty?.();
-  };
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <fieldset className="space-y-3">
-        <legend className="text-xs uppercase tracking-[0.3em] text-gold font-black mb-3">
-          Pengantin Pria
-        </legend>
-        <input
-          value={groomNickname}
-          onChange={(e) => { setGroomNickname(e.target.value); onDirty?.(); }}
-          placeholder="Nama Panggilan"
-          required
-          maxLength={30}
-          aria-label="Nama Panggilan Pria"
-          className={inputClass}
-        />
-        <input
-          value={groomName}
-          onChange={(e) => { setGroomName(e.target.value); onDirty?.(); }}
-          placeholder="Nama Lengkap + Gelar"
-          required
-          maxLength={100}
-          aria-label="Nama Lengkap Pria"
-          className={inputClass}
-        />
-        <input
-          value={groomParents}
-          onChange={(e) => { setGroomParents(e.target.value); onDirty?.(); }}
-          placeholder="Putra/Putri dari..."
-          required
-          maxLength={150}
-          aria-label="Orang Tua Pria"
-          className={inputClass}
-        />
-        {renderUploadField("groom", groomPhotoPreview, groomPhotoFile)}
-        <div className="space-y-2 pt-2 border-t border-gold/10">
-          <label className="text-xs text-ink/60 block">Tautan Sosial</label>
-          {groomSocialLinks.map((link, idx) => (
-            <div key={idx} className="space-y-1.5 p-3 bg-white/50 rounded-xl border border-gold/5">
-              <div className="flex gap-2">
-                <select
-                  value={link.label}
-                  onChange={(e) => updateSocialLink("groom", idx, "label", e.target.value)}
-                  aria-label={`Platform tautan ${idx + 1}`}
-                  className={inputClass}
-                >
-                  <option value="">Pilih Platform</option>
-                  <option value="Instagram">Instagram</option>
-                  <option value="LinkedIn">LinkedIn</option>
-                  <option value="WhatsApp">WhatsApp</option>
-                  <option value="Threads">Threads</option>
-                  <option value="Twitter">Twitter</option>
-                  <option value="Tiktok">Tiktok</option>
-                  <option value="Lainnya">Lainnya</option>
-                </select>
-                <button
-                  type="button"
-                  onClick={() => removeSocialLink("groom", idx)}
-                  className="text-red-400 p-2 hover:scale-110 transition-transform"
-                  aria-label="Hapus tautan"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-              <input
-                type={link.label === 'WhatsApp' ? 'tel' : 'url'}
-                value={link.url}
-                onChange={(e) => updateSocialLink("groom", idx, "url", e.target.value)}
-                placeholder={getUrlPlaceholder(link.label)}
-                aria-label={`URL tautan ${idx + 1}`}
-                className={inputClass}
-              />
-            </div>
-          ))}
-          <button
-            type="button"
-            onClick={() => addSocialLink("groom")}
-            className="text-gold text-[10px] font-black uppercase tracking-widest flex items-center gap-1 hover:underline"
-          >
-            <Plus className="w-3 h-3" /> Tambah Tautan
-          </button>
-        </div>
-      </fieldset>
-
-      <fieldset className="space-y-3">
-        <legend className="text-xs uppercase tracking-[0.3em] text-gold font-black mb-3">
-          Pengantin Wanita
-        </legend>
-        <input
-          value={brideNickname}
-          onChange={(e) => { setBrideNickname(e.target.value); onDirty?.(); }}
-          placeholder="Nama Panggilan"
-          required
-          maxLength={30}
-          aria-label="Nama Panggilan Wanita"
-          className={inputClass}
-        />
-        <input
-          value={brideName}
-          onChange={(e) => { setBrideName(e.target.value); onDirty?.(); }}
-          placeholder="Nama Lengkap + Gelar"
-          required
-          maxLength={100}
-          aria-label="Nama Lengkap Wanita"
-          className={inputClass}
-        />
-        <input
-          value={brideParents}
-          onChange={(e) => { setBrideParents(e.target.value); onDirty?.(); }}
-          placeholder="Putra/Putri dari..."
-          required
-          maxLength={150}
-          aria-label="Orang Tua Wanita"
-          className={inputClass}
-        />
-        {renderUploadField("bride", bridePhotoPreview, bridePhotoFile)}
-        <div className="space-y-2 pt-2 border-t border-gold/10">
-          <label className="text-xs text-ink/60 block">Tautan Sosial</label>
-          {brideSocialLinks.map((link, idx) => (
-            <div key={idx} className="space-y-1.5 p-3 bg-white/50 rounded-xl border border-gold/5">
-              <div className="flex gap-2">
-                <select
-                  value={link.label}
-                  onChange={(e) => updateSocialLink("bride", idx, "label", e.target.value)}
-                  aria-label={`Platform tautan ${idx + 1}`}
-                  className={inputClass}
-                >
-                  <option value="">Pilih Platform</option>
-                  <option value="Instagram">Instagram</option>
-                  <option value="LinkedIn">LinkedIn</option>
-                  <option value="WhatsApp">WhatsApp</option>
-                  <option value="Threads">Threads</option>
-                  <option value="Twitter">Twitter</option>
-                  <option value="Tiktok">Tiktok</option>
-                  <option value="Lainnya">Lainnya</option>
-                </select>
-                <button
-                  type="button"
-                  onClick={() => removeSocialLink("bride", idx)}
-                  className="text-red-400 p-2 hover:scale-110 transition-transform"
-                  aria-label="Hapus tautan"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-              <input
-                type={link.label === 'WhatsApp' ? 'tel' : 'url'}
-                value={link.url}
-                onChange={(e) => updateSocialLink("bride", idx, "url", e.target.value)}
-                placeholder={getUrlPlaceholder(link.label)}
-                aria-label={`URL tautan ${idx + 1}`}
-                className={inputClass}
-              />
-            </div>
-          ))}
-          <button
-            type="button"
-            onClick={() => addSocialLink("bride")}
-            className="text-gold text-[10px] font-black uppercase tracking-widest flex items-center gap-1 hover:underline"
-          >
-            <Plus className="w-3 h-3" /> Tambah Tautan
-          </button>
-        </div>
-      </fieldset>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {renderSide("groom", "Pengantin Pria", groomNickname, setGroomNickname, groomName, setGroomName, groomParents, setGroomParents, groomPhotoPreview, groomPhotoFile, groomSocialLinks)}
+      {renderSide("bride", "Pengantin Wanita", brideNickname, setBrideNickname, brideName, setBrideName, brideParents, setBrideParents, bridePhotoPreview, bridePhotoFile, brideSocialLinks)}
 
       {error && <p className="text-xs text-red-500 text-center">{error}</p>}
-      {compressionInfo && (
-        <p className="text-[10px] text-green-600 text-center">{compressionInfo}</p>
-      )}
-      <button
-        type="submit"
-        disabled={isSaving || isCompressing}
-        className="w-full py-3 bg-gold text-ivory rounded-full text-xs tracking-[0.3em] font-black uppercase disabled:opacity-50"
-      >
+      {compressionInfo && <p className="text-[10px] text-green-600 text-center">{compressionInfo}</p>}
+      <button type="submit" disabled={isSaving || isCompressing} className="w-full py-3 bg-gold text-ivory rounded-full text-xs tracking-[0.3em] font-black uppercase disabled:opacity-50 shadow-lg shadow-gold/20">
         {isSaving ? "Menyimpan..." : "Simpan"}
       </button>
       <CompressionModal isOpen={isCompressing} current={compressProgress.current} total={compressProgress.total} currentFileName={compressProgress.fileName} />

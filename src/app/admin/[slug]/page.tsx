@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { signOut } from 'firebase/auth';
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { auth } from '@/lib/firebase-auth';
 import { uploadFile, deleteFile, UploadProgressCallback } from '@/lib/storage';
@@ -23,20 +23,20 @@ import { StoryInteractionsForm } from '@/components/admin/StoryInteractionsForm'
 import { WishesForm } from '@/components/admin/WishesForm';
 import { GuestTab } from '@/components/admin/GuestTab';
 import { motion, AnimatePresence } from 'motion/react';
-import { CheckCircle2, AlertCircle, Loader2, X, ExternalLink } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Loader2, X, ExternalLink, LogOut, Users, Calendar, BookHeart, Image, UserRound, Gift, Images, Award, Palette, MessageCircle, Heart } from 'lucide-react';
 
-const STEPS = [
-  'Pasangan',
-  'Acara',
-  'Cerita',
-  'Media',
-  'Tamu',
-  'Hadiah',
-  'Galeri',
-  'Kredit',
-  'Tema',
-  'Komentar',
-  'Ucapan',
+const TABS = [
+  { label: 'Pasangan', icon: UserRound },
+  { label: 'Acara', icon: Calendar },
+  { label: 'Cerita', icon: BookHeart },
+  { label: 'Media', icon: Image },
+  { label: 'Tamu', icon: Users },
+  { label: 'Hadiah', icon: Gift },
+  { label: 'Galeri', icon: Images },
+  { label: 'Kredit', icon: Award },
+  { label: 'Tema', icon: Palette },
+  { label: 'Komentar', icon: MessageCircle },
+  { label: 'Ucapan', icon: Heart },
 ] as const;
 
 
@@ -315,6 +315,28 @@ export default function AdminPage() {
       // 3. Save document first — old files are still intact if this fails
       setUploadProgress(null);
       await updateDoc(doc(db, 'weddings', slug), updates as Record<string, any>);
+
+      // 4. Sync story-likes array length when story slides change
+      if (updates.story) {
+        const storyLen = (updates.story as StorySlide[]).length;
+        const likesRef = doc(db, 'story-likes', slug);
+        try {
+          const likesSnap = await getDoc(likesRef);
+          if (likesSnap.exists()) {
+            const current: number[] = likesSnap.data().likes ?? [];
+            if (current.length !== storyLen) {
+              const synced = current.slice(0, storyLen);
+              while (synced.length < storyLen) synced.push(0);
+              await updateDoc(likesRef, { likes: synced });
+            }
+          } else if (storyLen > 0) {
+            await setDoc(likesRef, { likes: new Array(storyLen).fill(0) });
+          }
+        } catch (e) {
+          console.error('[Admin] story-likes sync error:', (e as Error).message);
+        }
+      }
+
       setSaveStatus('success');
       setHasSaved(true);
       revalidateWedding(slug);
@@ -330,6 +352,10 @@ export default function AdminPage() {
     }
   }, [slug, wedding]);
 
+  useEffect(() => {
+    if (!isAuthLoading && !authUser) router.push('/login');
+  }, [isAuthLoading, authUser, router]);
+
   if (isAuthLoading) {
     return (
       <div className="min-h-screen bg-ivory flex items-center justify-center">
@@ -338,10 +364,7 @@ export default function AdminPage() {
     );
   }
 
-  if (!authUser) {
-    router.push('/login');
-    return null;
-  }
+  if (!authUser) return null;
 
   const isAuthorized = userDoc?.role === 'super' || (wedding?.adminIds ?? []).includes(authUser.uid);
 
@@ -373,7 +396,7 @@ export default function AdminPage() {
       case 5: return <GiftForm data={wedding} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} />;
       case 6: return <GalleryForm data={wedding} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} />;
       case 7: return <CreditForm data={wedding} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} />;
-      case 8: return <CustomizeForm data={wedding} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} />;
+      case 8: return <CustomizeForm data={wedding} slug={slug ?? ''} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} />;
       case 9: return <StoryInteractionsForm data={wedding} slug={slug ?? ''} />;
       case 10: return <WishesForm slug={slug ?? ''} />;
       default: return null;
@@ -383,100 +406,100 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-ivory">
-      <header className="sticky top-0 z-50 bg-ivory/90 backdrop-blur-md border-b border-gold/10 px-4 py-3">
-        <div className="max-w-lg mx-auto flex items-center justify-between">
-          <h1 className="font-serif italic text-lg text-ink">
-            {slug ?? 'Admin'}
-          </h1>
-          <div className="flex items-center gap-3">
-            {userDoc?.role === 'super' ? (
-              <button
-                onClick={() => setShowStatusConfirm(true)}
-                disabled={isToggling}
-                className={`text-xs uppercase tracking-widest font-bold px-2 py-1 rounded-full border transition-colors ${isToggling ? 'opacity-50' : ''} ${wedding?.status === 'published' ? 'text-green-600 border-green-600/30 bg-green-50' : 'text-ink/40 border-ink/10 bg-ink/5'}`}
+      <header className="sticky top-0 z-50 bg-ivory/90 backdrop-blur-md border-b border-gold/10 px-4 py-2">
+        <div className="max-w-lg mx-auto">
+          {/* Top row: slug + actions */}
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <h1 className="font-serif italic text-sm text-ink truncate">{slug ?? 'Admin'}</h1>
+              {userDoc?.role === 'super' ? (
+                <button
+                  onClick={() => setShowStatusConfirm(true)}
+                  disabled={isToggling}
+                  className={`text-[9px] uppercase tracking-widest font-bold px-1.5 py-0.5 rounded-full border transition-colors flex-shrink-0 ${isToggling ? 'opacity-50' : ''} ${wedding?.status === 'published' ? 'text-green-600 border-green-600/30 bg-green-50' : 'text-ink/40 border-ink/10 bg-ink/5'}`}
+                >
+                  {wedding?.status === 'published' ? 'Aktif' : 'Arsip'}
+                </button>
+              ) : (
+                <span className={`text-[9px] uppercase tracking-widest font-bold px-1.5 py-0.5 rounded-full border flex-shrink-0 ${wedding?.status === 'published' ? 'text-green-600 border-green-600/30 bg-green-50' : 'text-ink/40 border-ink/10 bg-ink/5'}`}>
+                  {wedding?.status === 'published' ? 'Aktif' : 'Arsip'}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              <a
+                href={`/${slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-7 h-7 flex items-center justify-center rounded-lg text-ink/30 hover:text-gold hover:bg-gold/5 transition-colors"
+                aria-label="Preview undangan"
               >
-                {wedding?.status === 'published' ? 'Aktif' : 'Diarsipkan'}
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+              <button
+                onClick={handleLogout}
+                className="w-7 h-7 flex items-center justify-center rounded-lg text-ink/30 hover:text-red-500 hover:bg-red-50 transition-colors"
+                aria-label="Keluar"
+              >
+                <LogOut className="w-3.5 h-3.5" />
               </button>
-            ) : (
-              <span className={`text-xs uppercase tracking-widest font-bold px-2 py-1 rounded-full border ${wedding?.status === 'published' ? 'text-green-600 border-green-600/30 bg-green-50' : 'text-ink/40 border-ink/10 bg-ink/5'}`}>
-                {wedding?.status === 'published' ? 'Aktif' : 'Diarsipkan'}
-              </span>
-            )}
-            <a
-              href={`/${slug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-ink/40 hover:text-gold transition-colors"
-              aria-label="Preview undangan"
-            >
-              <ExternalLink className="w-4 h-4" />
-            </a>
-            <button
-              onClick={handleLogout}
-              className="text-xs uppercase tracking-widest text-ink/40 hover:text-ink transition-colors"
-            >
-              Keluar
-            </button>
+            </div>
+          </div>
+
+          {/* Icon tabs — horizontally scrollable */}
+          <div role="tablist" className="flex gap-1 overflow-x-auto no-scrollbar">
+            {TABS.map(({ label, icon: Icon }, i) => {
+              const isActive = i === currentStep;
+              return (
+                <button
+                  key={label}
+                  role="tab"
+                  id={`tab-${i}`}
+                  aria-selected={isActive}
+                  aria-controls="admin-tabpanel"
+                  aria-label={label}
+                  tabIndex={isActive ? 0 : -1}
+                  onClick={() => {
+                    if (i !== currentStep && !hasSaved) {
+                      setPendingTab(i);
+                      return;
+                    }
+                    setCurrentStep(i);
+                  }}
+                  onKeyDown={(e) => {
+                    let target: number | null = null;
+                    if (e.key === 'ArrowRight') target = (i + 1) % TABS.length;
+                    else if (e.key === 'ArrowLeft') target = (i - 1 + TABS.length) % TABS.length;
+                    else if (e.key === 'Home') target = 0;
+                    else if (e.key === 'End') target = TABS.length - 1;
+                    if (target === null) return;
+                    e.preventDefault();
+                    document.getElementById(`tab-${target}`)?.focus();
+                    if (target !== currentStep && !hasSaved) {
+                      setPendingTab(target);
+                      return;
+                    }
+                    setCurrentStep(target);
+                  }}
+                  className={`relative flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl transition-all flex-shrink-0 ${
+                    isActive
+                      ? 'text-gold bg-gold/10'
+                      : 'text-ink/25 hover:text-ink/50'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span className="text-[7px] font-bold uppercase tracking-wide">{label}</span>
+                  {tabComplete[i] && i < totalEditable && (
+                    <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-green-400" aria-label="Terisi" />
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
       </header>
 
-      <nav className="sticky top-[53px] z-40 bg-ivory/90 backdrop-blur-md border-b border-gold/10 overflow-x-auto no-scrollbar relative">
-        <div role="tablist" className="flex min-w-max px-4 py-2 gap-1 max-w-lg mx-auto">
-          {STEPS.map((step, i) => (
-            <button
-              key={step}
-              role="tab"
-              id={`tab-${i}`}
-              aria-selected={i === currentStep}
-              aria-controls="admin-tabpanel"
-              tabIndex={i === currentStep ? 0 : -1}
-              onClick={() => {
-                if (i !== currentStep && !hasSaved) {
-                  setPendingTab(i);
-                  return;
-                }
-                setCurrentStep(i);
-              }}
-              onKeyDown={(e) => {
-                let target: number | null = null;
-                if (e.key === 'ArrowRight') target = (i + 1) % STEPS.length;
-                else if (e.key === 'ArrowLeft') target = (i - 1 + STEPS.length) % STEPS.length;
-                else if (e.key === 'Home') target = 0;
-                else if (e.key === 'End') target = STEPS.length - 1;
-                if (target === null) return;
-                e.preventDefault();
-                document.getElementById(`tab-${target}`)?.focus();
-                if (target !== currentStep && !hasSaved) {
-                  setPendingTab(target);
-                  return;
-                }
-                setCurrentStep(target);
-              }}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold tracking-wider transition-all whitespace-nowrap ${
-                i === currentStep
-                  ? 'bg-gold text-ivory'
-                  : 'text-ink/40 hover:text-ink/70'
-              }`}
-            >
-              {step}
-              {tabComplete[i] && i < totalEditable && (
-                <span className="ml-1 inline-block w-1.5 h-1.5 rounded-full bg-green-500" aria-label="Terisi" />
-              )}
-            </button>
-          ))}
-        </div>
-      </nav>
-
-      {wedding && !isWeddingLoading && (
-        <div className="max-w-lg h-fit mx-0 px-4 pt-2 pb-0">
-          <p className="text-[10px] text-ink/30 text-center tracking-wider pb-0 mb-0">
-            {completedCount} dari {totalEditable} bagian terisi
-          </p>
-        </div>
-      )}
-
-      <main role="tabpanel" id="admin-tabpanel" aria-labelledby={`tab-${currentStep}`} className="max-w-lg mx-auto px-4 py-2">
+      <main role="tabpanel" id="admin-tabpanel" aria-labelledby={`tab-${currentStep}`} className="max-w-lg mx-auto px-4 py-3">
         {renderForm()}
       </main>
 

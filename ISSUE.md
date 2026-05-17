@@ -21,6 +21,22 @@
 
 ---
 
+### ~~ADM-004: StoryForm hard to reorder, scan, and manage slides~~ FIXED
+
+**Root cause:** No reorder capability (had to delete+recreate to change order). Collapsed slides showed only "Tahap N" + year — no thumbnail, no text preview, no media indicators. Delete button hidden inside expanded view. Two stacked upload sections (photo + video) made expanded view very tall.
+
+**Resolution:** Full UX redesign of `StoryForm.tsx`:
+- **Reorder:** Up/down arrow buttons on each slide header (same pattern as GalleryForm). Tracks expanded slide index through moves.
+- **Rich collapsed preview:** 40x40 photo thumbnail, year text, text snippet (truncated), green/blue dots for image/video indicators. Users can scan all slides at a glance.
+- **Delete on header:** Trash button always visible in header row — no need to expand.
+- **Compact media uploads:** Photo and video side by side in 2-column grid (was stacked vertically). Upload buttons say "Ganti" when media exists.
+- **Smarter expand state:** Deleting a slide adjusts the expanded index so the wrong slide doesn't suddenly open.
+- **Slide count:** Shows "N slide" counter in header.
+
+**Files changed:** `StoryForm.tsx` (1 file)
+
+---
+
 ### ~~ADM-002: QR download saves raw QR image without card frame~~ FIXED
 
 **Root cause:** `handleDownload` in `GuestQRModal` grabbed the raw `<img>` src (280x280 QR data URL) — no frame, names, or branding.

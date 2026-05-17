@@ -469,8 +469,8 @@ export default function AdminPage() {
       </nav>
 
       {wedding && !isWeddingLoading && (
-        <div className="max-w-lg h-fit mx-0 px-4 py-2">
-          <p className="text-[10px] text-ink/30 text-center tracking-wider">
+        <div className="max-w-lg h-fit mx-0 px-4 pt-2 pb-0">
+          <p className="text-[10px] text-ink/30 text-center tracking-wider pb-0 mb-0">
             {completedCount} dari {totalEditable} bagian terisi
           </p>
         </div>

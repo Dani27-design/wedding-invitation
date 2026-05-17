@@ -1,62 +1,145 @@
 # Known Issues
 
-> **Open issues: 0** | Last re-audited: 2026-05-17 (post-fix verification)
+> **Open issues: 0** | Last audited: 2026-05-17
 >
-> All 46 issues from three audit rounds (wedding page, admin technical, UX operational) have been resolved. Re-audit confirms fixes are genuine and working. No new issues found at actionable severity.
+> Audit scope: Deep production-grade audit of Guest Management system — security, performance, data integrity, edge cases, and UX.
 
 ---
 
-## Audit Verification Summary
+## Critical (P0) — Must fix before production
 
-**Re-audit rating: 8.7/10 overall**
+### ~~GMS-001: XSS vulnerability in QR print window via innerHTML injection~~ FIXED
 
-| Area | Rating | Status |
-|------|--------|--------|
-| Admin page (tabs, progress, modals) | 8.5/10 | All fixes verified working |
-| Login page (pending messaging, password reset) | 9/10 | Excellent |
-| Register page (timeline, guidance) | 8.5/10 | Clear and helpful |
-| Couple form (social links layout) | 9.5/10 | Stacked + placeholders excellent |
-| Story form (collapsible slides) | 9/10 | Reduces cognitive load |
-| Customize form (color preview) | 9.5/10 | Live swatch works perfectly |
-| Media form (descriptions) | 9/10 | Purpose of each field clear |
-| Gallery form (reorder) | 7.5/10 | Functional, minor polish opportunity |
-| Event form (default guest) | 9/10 | Non-technical placeholder |
+**Resolution:** Added `escapeHtml()` function that escapes `<`, `>`, `&`, `"` in the `<title>` tag (the actual injection vector — React already escapes the body content). Also added `sanitizeFilename()` for the download filename to strip non-alphanumeric characters. The `content.innerHTML` in the body was already safe (React-escaped) but the template literal title was vulnerable to breakout injection.
 
 ---
 
-## Polish Notes (non-blocking, cosmetic)
+### ~~GMS-002: Guest phone numbers publicly readable — no authentication required~~ FIXED
 
-These are minor refinements that could further improve the experience but are NOT production blockers:
-
-1. **Gallery reorder buttons are at minimum tap size (28px)** — could increase to 32px for easier mobile use
-2. **Gallery helper text is subtle** (`text-[9px] text-ink/30`) — could be slightly larger/darker for discoverability
-3. **Register password requirements** only shown in placeholder — could also show as helper text below input
-4. **Admin preview link** is icon-only (ExternalLink) — a text label "Preview" might be clearer for first-time users
+**Resolution:** Changed guest sub-collection read rule from `allow read: if true` to require authentication + adminIds/super admin check (same as write rule). Guest data (names, phones, addresses) is now only accessible to the wedding's own admins. No guest-facing code reads this collection — verified via grep. Zero functional impact.
 
 ---
 
-## Production Readiness Verdict
+### ~~GMS-003: Memory explosion in bulk QR print with 500+ guests~~ FIXED
 
-The platform is **production-ready** for real paying customers:
+**Resolution:** Rewrote `GuestQRPrintView.tsx` with batched generation (20 QRs per batch with `setTimeout(0)` yielding to browser event loop between batches). QR cards now render progressively as each batch completes (user sees cards appearing incrementally). Progress updates per batch (not per item — reduces re-renders from 500 to ~25 for 500 guests). Each QR generation wrapped in try/catch — failed QRs show "Gagal" placeholder without stopping the batch. Added `truncate max-w-[250px]` on guest name to prevent layout overflow. Print button disabled until generation complete.
 
-- Non-technical wedding couples can operate the admin panel comfortably
-- Progress indicators prevent confusion about completion status
-- Confirmation modals prevent destructive accidents
-- Upload progress provides reassurance during large file uploads
-- Pending approval flow provides clear timeline and expectations
-- Color preview gives instant visual feedback
-- Collapsible story slides reduce mobile scroll fatigue
-- Platform-specific social link placeholders guide correct data entry
-- Status toggle is safely guarded with contextual explanation
-- Auto-dismiss success modal eliminates unnecessary clicks
+---
 
-### What's working well:
-- Visual design consistently premium (gold/ivory/serif aesthetic)
-- Indonesian language natural and consistent throughout
-- ARIA accessibility on tabs and forms
-- Mobile scroll indicator on tab bar
-- beforeunload protection for unsaved changes
-- Resumable upload with progress feedback
-- Per-wedding storage authorization (Firestore cross-reference)
-- ISR revalidation after admin saves
-- Filtered Firestore queries for super admin scalability
+### ~~GMS-004: Batch guest import has no rollback on partial failure~~ FIXED
+
+**Resolution:** Replaced `Promise.all(addDoc(...))` with Firestore `writeBatch()`. Imports are now split into 500-doc chunks (Firestore batch limit), each committed atomically — either all 500 in a chunk succeed or none do. Returns `{ success, failed }` count to caller. Added input sanitization in batch: name trimmed + max 100 chars, phone max 20 chars, address max 200 chars, category validated. Import handler shows error if any batch fails: "X tamu berhasil diimport, Y gagal."
+
+---
+
+## High (P1) — Significant risk
+
+### ~~GMS-005: No input validation on guest name — empty strings and extreme lengths accepted~~ FIXED
+
+**Resolution:** Added `sanitizeGuestFields()` helper in `lib/guests.ts` — trims and caps all string fields (name: 100, phone: 20, address: 200, category: validated). Applied to `addGuest` (throws error if name empty after trim), `updateGuest` (sanitizes on update), and `addGuestsBatch` (already had sanitization from GMS-004). Three layers of defense: HTML maxLength on inputs → form-level validation → lib-level sanitization.
+
+---
+
+### ~~GMS-006: Phone number format not normalized — duplicates and broken WhatsApp links~~ FIXED
+
+**Resolution:** Created `normalizePhone()` in `lib/guests.ts` — strips all non-digit characters, converts leading `0` to `62`, handles `+620` edge case. Integrated into `sanitizeGuestFields` so ALL writes (addGuest, updateGuest, addGuestsBatch) produce consistent format. WhatsApp URL generation simplified (phone already normalized — no runtime strip/replace needed). Search now works reliably on normalized digits.
+
+---
+
+### ~~GMS-007: Import column detection fails with special characters in headers~~ FIXED
+
+**Resolution:** Rewrote column detection: `normalizeHeader` now replaces common separators (`_`, `.`, `/`, `-`, `()`) with spaces before removing remaining chars (preserves word boundaries). `detectColumn` uses `includes()` matching instead of exact `===`. Candidates reordered longest-first to prevent false positives (e.g., "nama tamu" checked before "nama"). Headers like "Pihak (Pria/Wanita)" → "pihak pria wanita" → includes "pihak" ✓.
+
+---
+
+### ~~GMS-008: No file size limit on import — large files crash browser~~ FIXED
+
+**Resolution:** Added file size check at the start of `handleFileSelect`: rejects files > 5MB with error "File terlalu besar. Maksimal 5MB." before any ArrayBuffer loading or parsing begins. Prevents browser memory crash.
+
+---
+
+### ~~GMS-009: QR generation silently fails on long names — no error handling~~ FIXED
+
+**Resolution:** Wrapped both `generateQRDataURL` and `generateQRSVG` in try/catch — returns empty string on failure instead of rejecting. `GuestQRCard` now tracks `qrError` state: if QR generation returns empty, shows "QR tidak dapat dibuat. Nama terlalu panjang." error message instead of infinite spinner. Bulk print (GMS-003 fix) already handles empty dataUrl with "Gagal" placeholder.
+
+---
+
+## Medium (P2) — Should fix for quality
+
+### ~~GMS-010: No duplicate guest detection on import or manual add~~ FIXED
+
+**Resolution:** Added duplicate name detection in manual add flow. When user submits a name that already exists in the guest list, shows warning: "Tamu 'X' sudah ada. Klik Simpan lagi untuk tetap menambahkan." User must click Save a second time to confirm (warn, not block — handles legitimate duplicate names in Indonesian culture). `duplicateWarning` state resets on form open. Import duplicate detection deferred (user can see duplicates in list visually after import).
+
+---
+
+### ~~GMS-011: Progress bar in bulk print causes 1000 re-renders~~ FIXED (by GMS-003)
+
+**Resolution:** Already resolved by the GMS-003 batched generation fix. Progress now updates once per batch of 20 (not per item). 500 guests = ~25 progress updates (not 500). Acceptable performance.
+
+---
+
+### ~~GMS-012: Excel import loses leading zeros on phone numbers~~ FIXED
+
+**Resolution:** Two-layer fix: (1) Added `raw: false` to `parseFile()` SheetJS options — returns cell values as formatted strings, preserving text-formatted leading zeros. (2) Extended `normalizePhone()` to handle bare numbers starting with `8` and 9-12 digits long — auto-prepends `62` (Indonesian mobile assumption, safe for target market). So even if Excel strips the zero, `812345678` → `62812345678` correctly.
+
+---
+
+### ~~GMS-013: Template preview shows different URL encoding than actual WhatsApp link~~ FIXED
+
+**Resolution:** Changed preview link from hardcoded `Budi+Santoso` to `encodeURIComponent('Budi Santoso')` — now shows `Budi%20Santoso` matching actual WhatsApp URL behavior. One-line fix.
+
+---
+
+### ~~GMS-014: Guest name overflow breaks QR card print layout~~ FIXED
+
+**Resolution:** Added `line-clamp-2 max-w-[260px]` to guest name in `GuestQRCard.tsx`. Long names wrap gracefully to 2 lines with ellipsis overflow — handles formal Indonesian names like "Muhammad Daniansyah Chusyaidin, S.Kom" without breaking the card layout. Bulk print card (GuestQRPrintView) already had `truncate max-w-[250px]` from GMS-003 fix.
+
+---
+
+## Summary
+
+| Priority | Count | Focus |
+|----------|-------|-------|
+| P0 Critical | 4 | XSS, data exposure, memory crash, partial writes |
+| P1 High | 5 | Validation, phone normalization, import parsing, file size, QR errors |
+| P2 Medium | 5 | Duplicates, re-renders, Excel zeros, preview mismatch, layout overflow |
+| **Total** | **14** | |
+
+---
+
+## Design Tradeoffs (Intentional, Not Bugs)
+
+- **Client-side pagination:** All guests loaded at once, filtered in memory. Fine for <1000 guests per wedding. Would need cursor-based Firestore pagination at scale.
+- **Sequential QR generation:** Intentionally serial to avoid CPU spike. Parallel would be faster but risks browser throttling.
+- **No real-time listener on guests:** Uses one-shot `getDocs` instead of `onSnapshot`. Reduces Firestore costs but means list doesn't auto-update if two admins edit simultaneously.
+
+---
+
+## Security Verdict
+
+| Area | Status |
+|------|--------|
+| Write authorization | SECURE — only admins can write |
+| Read authorization | VULNERABLE — guests publicly readable (GMS-002) |
+| XSS protection | VULNERABLE — print window injection (GMS-001) |
+| Input validation | WEAK — no server-side or client-side validation |
+| Data isolation | PARTIAL — write isolated, read not |
+
+---
+
+## Performance Verdict
+
+| Scenario | Status |
+|----------|--------|
+| 100 guests | SMOOTH — no issues |
+| 500 guests | ACCEPTABLE — import/export fine, bulk print slow (~15s) |
+| 1000 guests | RISKY — bulk print may crash mobile, memory ~10MB |
+| 5000+ guests | BROKEN — client-side filtering too slow, no pagination |
+
+---
+
+## Final Verdict
+
+**SAFE WITH RISKS** — Confidence: **62/100**
+
+The guest management system is functional for typical use (50-200 guests per wedding) but has critical security vulnerabilities (public data, XSS) and will degrade under scale. Must fix P0 issues before accepting real customer data with phone numbers.

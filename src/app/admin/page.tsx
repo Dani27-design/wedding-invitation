@@ -47,6 +47,7 @@ function createPlaceholderWedding(adminUid: string): Omit<WeddingDocument, 'crea
     quranReference: '',
     theme: defaults,
     credits: [],
+    greetingTemplate: 'Assalamualaikum Wr. Wb.\n\nKepada Yth.\n{nama}\n\nDengan memohon rahmat dan ridho Allah SWT, kami mengundang Bapak/Ibu/Saudara/i untuk hadir di acara pernikahan kami:\n\n{pengantin}\n\nBuka undangan:\n{link}\n\nMerupakan suatu kehormatan dan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir.\n\nWassalamualaikum Wr. Wb.',
   };
 }
 

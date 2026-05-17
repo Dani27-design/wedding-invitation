@@ -53,6 +53,8 @@ export interface WeddingDocument {
   theme: WeddingTheme;
 
   credits: CreditPerson[];
+
+  greetingTemplate: string;
 }
 
 export interface ThemeColors {
@@ -119,4 +121,15 @@ export interface CreditPerson {
   name: string;
   role: string;
   description: string;
+}
+
+export interface Guest {
+  id: string;
+  name: string;
+  phone: string;
+  address: string;
+  category: 'pria' | 'wanita';
+  attendance: boolean;
+  attendanceAt: Timestamp | null;
+  createdAt: Timestamp;
 }

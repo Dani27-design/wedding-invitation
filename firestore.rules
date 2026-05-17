@@ -39,6 +39,18 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'super';
     }
 
+    // ─── Guests (per-wedding sub-collection) ─────────────────
+    match /weddings/{slug}/guests/{guestId} {
+      // Read: only wedding admins or super admin (guest data contains PII: phone, address)
+      allow read: if request.auth != null
+        && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'super'
+            || request.auth.uid in get(/databases/$(database)/documents/weddings/$(slug)).data.adminIds);
+      // Write: only wedding admins or super admin
+      allow create, update, delete: if request.auth != null
+        && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'super'
+            || request.auth.uid in get(/databases/$(database)/documents/weddings/$(slug)).data.adminIds);
+    }
+
     // ─── Wishes ──────────────────────────────────────────────
     match /wishes/{wishId} {
       // Anyone can read wishes (public wish list)

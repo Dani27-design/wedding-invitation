@@ -21,6 +21,7 @@ import { CustomizeForm } from '@/components/admin/CustomizeForm';
 import { CreditForm } from '@/components/admin/CreditForm';
 import { StoryInteractionsForm } from '@/components/admin/StoryInteractionsForm';
 import { WishesForm } from '@/components/admin/WishesForm';
+import { GuestTab } from '@/components/admin/GuestTab';
 import { motion, AnimatePresence } from 'motion/react';
 import { CheckCircle2, AlertCircle, Loader2, X, ExternalLink } from 'lucide-react';
 
@@ -29,6 +30,7 @@ const STEPS = [
   'Acara',
   'Cerita',
   'Media',
+  'Tamu',
   'Hadiah',
   'Galeri',
   'Kredit',
@@ -187,13 +189,14 @@ export default function AdminPage() {
     !!(wedding.eventDate && wedding.eventCity && wedding.venueName),
     wedding.story.length > 0,
     !!(wedding.heroImage && wedding.openingImage),
+    true, // Tamu — managed on separate page, always "ready"
     wedding.giftAccounts.length > 0,
     wedding.gallery.length > 0,
     wedding.credits.length > 0,
     true, // Tema always has defaults
   ] : [];
   const completedCount = tabComplete.filter(Boolean).length;
-  const totalEditable = 8; // First 8 tabs are editable; last 2 are read-only
+  const totalEditable = 9; // First 9 tabs are editable; last 2 are read-only
 
   // Warn user before leaving page with unsaved changes
   useEffect(() => {
@@ -363,12 +366,13 @@ export default function AdminPage() {
       case 1: return <EventForm data={wedding} onSave={handleSave} isSaving={isSaving} />;
       case 2: return <StoryForm data={wedding} onSave={handleSave} isSaving={isSaving} />;
       case 3: return <MediaForm data={wedding} onSave={handleSave} isSaving={isSaving} />;
-      case 4: return <GiftForm data={wedding} onSave={handleSave} isSaving={isSaving} />;
-      case 5: return <GalleryForm data={wedding} onSave={handleSave} isSaving={isSaving} />;
-      case 6: return <CreditForm data={wedding} onSave={handleSave} isSaving={isSaving} />;
-      case 7: return <CustomizeForm data={wedding} onSave={handleSave} isSaving={isSaving} />;
-      case 8: return <StoryInteractionsForm data={wedding} slug={slug ?? ''} />;
-      case 9: return <WishesForm slug={slug ?? ''} />;
+      case 4: return <GuestTab data={wedding} slug={slug ?? ''} onSave={handleSave} isSaving={isSaving} />;
+      case 5: return <GiftForm data={wedding} onSave={handleSave} isSaving={isSaving} />;
+      case 6: return <GalleryForm data={wedding} onSave={handleSave} isSaving={isSaving} />;
+      case 7: return <CreditForm data={wedding} onSave={handleSave} isSaving={isSaving} />;
+      case 8: return <CustomizeForm data={wedding} onSave={handleSave} isSaving={isSaving} />;
+      case 9: return <StoryInteractionsForm data={wedding} slug={slug ?? ''} />;
+      case 10: return <WishesForm slug={slug ?? ''} />;
       default: return null;
     }
 

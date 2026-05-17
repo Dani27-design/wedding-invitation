@@ -168,7 +168,8 @@ export function StoryForm({ data, onSave, isSaving, onDirty }: StoryFormProps) {
 
       {slides.map((slide, i) => {
         const isExpanded = expandedSlide === i;
-        const thumbSrc = slide.bgImage || '';
+        const thumbImg = slide.bgImage || '';
+        const thumbVideo = slide.videoPreview || slide.bgVideo || '';
 
         return (
           <div key={i} className={`border rounded-2xl relative overflow-hidden transition-colors ${isExpanded ? 'border-gold/25 bg-white/70' : 'border-gold/10 bg-white/40'}`}>
@@ -196,10 +197,12 @@ export function StoryForm({ data, onSave, isSaving, onDirty }: StoryFormProps) {
                 </button>
               </div>
 
-              {/* Thumbnail */}
+              {/* Thumbnail — prefer image, fallback to video */}
               <div className="w-10 h-10 rounded-lg overflow-hidden border border-gold/10 flex-shrink-0 bg-ivory">
-                {thumbSrc ? (
-                  <img src={thumbSrc} alt="" className="w-full h-full object-cover" />
+                {thumbImg ? (
+                  <img src={thumbImg} alt="" className="w-full h-full object-cover" />
+                ) : thumbVideo ? (
+                  <video src={thumbVideo} className="w-full h-full object-cover" muted preload="metadata" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <ImageIcon className="w-4 h-4 text-ink/10" />
@@ -217,8 +220,8 @@ export function StoryForm({ data, onSave, isSaving, onDirty }: StoryFormProps) {
                   <span className="text-[10px] uppercase tracking-widest text-gold font-black flex-shrink-0">{i + 1}</span>
                   {slide.year && <span className="text-xs text-ink/60 truncate">{slide.year}</span>}
                   {/* Media badges */}
-                  {hasMedia(slide) && <span className="w-1.5 h-1.5 rounded-full bg-green-400 flex-shrink-0" title="Foto" />}
-                  {hasVideo(slide) && <span className="w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0" title="Video" />}
+                  {hasMedia(slide) && <ImageIcon className="w-3 h-3 text-gold/40 flex-shrink-0" />}
+                  {hasVideo(slide) && <Film className="w-3 h-3 text-gold/40 flex-shrink-0" />}
                 </div>
                 {slide.text && !isExpanded && (
                   <p className="text-[11px] text-ink/30 truncate mt-0.5">{slide.text}</p>

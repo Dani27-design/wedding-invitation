@@ -1,4 +1,4 @@
-import { collection, doc, addDoc, updateDoc, deleteDoc, getDocs, query, orderBy, serverTimestamp, Timestamp, writeBatch } from 'firebase/firestore';
+import { collection, doc, addDoc, updateDoc, deleteDoc, getDocs, query, orderBy, serverTimestamp, Timestamp, writeBatch, limit as firestoreLimit, startAfter, where, getCountFromServer, QueryDocumentSnapshot, QueryConstraint } from 'firebase/firestore';
 import { db } from './firebase';
 import type { Guest } from '@/types/firestore';
 
@@ -36,6 +36,35 @@ export async function getGuests(slug: string): Promise<Guest[]> {
   const q = query(guestsCollection(slug), orderBy('createdAt', 'desc'));
   const snap = await getDocs(q);
   return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Guest));
+}
+
+export type GuestPageCursor = QueryDocumentSnapshot | null;
+
+export async function getGuestPage(
+  slug: string,
+  pageSize: number,
+  cursor?: GuestPageCursor,
+): Promise<{ guests: Guest[]; lastDoc: GuestPageCursor; hasMore: boolean }> {
+  const constraints: QueryConstraint[] = [orderBy('createdAt', 'desc'), firestoreLimit(pageSize + 1)];
+  if (cursor) constraints.push(startAfter(cursor));
+  const q = query(guestsCollection(slug), ...constraints);
+  const snap = await getDocs(q);
+  const hasMore = snap.docs.length > pageSize;
+  const docs = snap.docs.slice(0, pageSize);
+  return {
+    guests: docs.map(d => ({ id: d.id, ...d.data() } as Guest)),
+    lastDoc: docs.length > 0 ? docs[docs.length - 1] : null,
+    hasMore,
+  };
+}
+
+export async function getGuestCounts(slug: string): Promise<{ pria: number; wanita: number }> {
+  const col = guestsCollection(slug);
+  const [priaSnap, wanitaSnap] = await Promise.all([
+    getCountFromServer(query(col, where('category', '==', 'pria'))),
+    getCountFromServer(query(col, where('category', '==', 'wanita'))),
+  ]);
+  return { pria: priaSnap.data().count, wanita: wanitaSnap.data().count };
 }
 
 export async function addGuest(slug: string, data: Omit<Guest, 'id' | 'createdAt' | 'attendanceAt'>) {

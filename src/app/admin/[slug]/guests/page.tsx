@@ -1,15 +1,16 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase-auth';
 import { useUser } from '@/hooks/useUser';
 import { useWedding } from '@/hooks/useWedding';
-import { getGuests, addGuest, updateGuest, deleteGuest, addGuestsBatch } from '@/lib/guests';
+import { getGuests, getGuestPage, getGuestCounts, addGuest, updateGuest, deleteGuest, addGuestsBatch } from '@/lib/guests';
+import type { GuestPageCursor } from '@/lib/guests';
 import { Guest } from '@/types/firestore';
-import { Plus, Search, Trash2, Edit3, ArrowLeft, MessageCircle, Download, Upload, QrCode, Printer } from 'lucide-react';
+import { Plus, Search, Trash2, Edit3, ArrowLeft, MessageCircle, Download, Upload, QrCode, Printer, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { ConfirmDeleteModal } from '@/components/admin/ConfirmDeleteModal';
 import { GuestImportModal } from '@/components/admin/GuestImportModal';
 import { GuestQRModal } from '@/components/admin/GuestQRModal';
@@ -17,7 +18,7 @@ import { GuestQRPrintView } from '@/components/admin/GuestQRPrintView';
 import { BASE_URL } from '@/constants/baseUrl';
 import type { ImportedGuest } from '@/utils/guestImport';
 
-const ITEMS_PER_PAGE = 20;
+const PAGE_SIZE = 20;
 
 interface GuestFormData {
   name: string;
@@ -35,12 +36,21 @@ export default function GuestsPage() {
   const { authUser, userDoc, isLoading: isAuthLoading } = useUser();
   const { wedding, isLoading: isWeddingLoading } = useWedding(slug ?? '');
 
-  const [guests, setGuests] = useState<Guest[]>([]);
+  // Counts (server-side)
+  const [counts, setCounts] = useState({ pria: 0, wanita: 0 });
+
+  // Server-side pagination
+  const [pageGuests, setPageGuests] = useState<Guest[]>([]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const cursorsRef = useRef<GuestPageCursor[]>([null]);
+  const [hasNextPage, setHasNextPage] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Client-side search/filter (lazy-loaded)
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState<'all' | 'pria' | 'wanita'>('all');
-  const [filterAttendance, setFilterAttendance] = useState<'all' | 'hadir' | 'belum'>('all');
-  const [currentPage, setCurrentPage] = useState(1);
+  const [allGuests, setAllGuests] = useState<Guest[] | null>(null);
+  const [filterPage, setFilterPage] = useState(0);
 
   // Modal states
   const [showForm, setShowForm] = useState(false);
@@ -55,27 +65,53 @@ export default function GuestsPage() {
   const [qrGuest, setQrGuest] = useState<Guest | null>(null);
   const [showBulkPrint, setShowBulkPrint] = useState(false);
 
-  // Load guests
-  const loadGuests = async () => {
+  const isFiltering = searchQuery.trim() !== '' || filterCategory !== 'all';
+
+  // Load server-side page
+  const loadPage = useCallback(async (pageIdx: number) => {
     if (!slug) return;
     setIsLoading(true);
     try {
-      const data = await getGuests(slug);
-      setGuests(data);
-    } catch (error) {
-      console.error('[Guests] Load error:', (error as Error).message);
+      const { guests, lastDoc, hasMore } = await getGuestPage(slug, PAGE_SIZE, cursorsRef.current[pageIdx]);
+      setPageGuests(guests);
+      setHasNextPage(hasMore);
+      setCurrentPage(pageIdx);
+      if (lastDoc && !cursorsRef.current[pageIdx + 1]) {
+        cursorsRef.current[pageIdx + 1] = lastDoc;
+      }
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [slug]);
 
+  // Load counts
+  const refreshCounts = useCallback(async () => {
+    if (!slug) return;
+    getGuestCounts(slug).then(setCounts).catch(() => {});
+  }, [slug]);
+
+  // Initial load
   useEffect(() => {
-    if (!isAuthLoading && authUser && slug) loadGuests();
-  }, [isAuthLoading, authUser, slug]);
+    if (!isAuthLoading && authUser && slug) {
+      loadPage(0);
+      refreshCounts();
+    }
+  }, [isAuthLoading, authUser, slug, loadPage, refreshCounts]);
 
-  // Filtered + searched guests
+  // Lazy-load all guests when filtering
+  useEffect(() => {
+    if (isFiltering && !allGuests && slug) {
+      getGuests(slug).then(setAllGuests).catch(() => {});
+    }
+  }, [isFiltering, allGuests, slug]);
+
+  // Reset filter page on filter change
+  useEffect(() => { setFilterPage(0); }, [searchQuery, filterCategory]);
+
+  // Filtered guests (client-side)
   const filteredGuests = useMemo(() => {
-    let result = guests;
+    if (!isFiltering || !allGuests) return [];
+    let result = allGuests;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       result = result.filter((g) => g.name.toLowerCase().includes(q) || g.phone.includes(q));
@@ -83,22 +119,34 @@ export default function GuestsPage() {
     if (filterCategory !== 'all') {
       result = result.filter((g) => g.category === filterCategory);
     }
-    if (filterAttendance === 'hadir') {
-      result = result.filter((g) => g.attendance);
-    } else if (filterAttendance === 'belum') {
-      result = result.filter((g) => !g.attendance);
-    }
     return result;
-  }, [guests, searchQuery, filterCategory, filterAttendance]);
+  }, [isFiltering, allGuests, searchQuery, filterCategory]);
 
-  // Pagination
-  const totalPages = Math.ceil(filteredGuests.length / ITEMS_PER_PAGE);
-  const paginatedGuests = filteredGuests.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE,
-  );
+  // Display guests
+  const visibleGuests = isFiltering
+    ? filteredGuests.slice(filterPage * PAGE_SIZE, (filterPage + 1) * PAGE_SIZE)
+    : pageGuests;
 
-  useEffect(() => { setCurrentPage(1); }, [searchQuery, filterCategory, filterAttendance]);
+  const totalFilterPages = Math.ceil(filteredGuests.length / PAGE_SIZE);
+  const activePage = isFiltering ? filterPage : currentPage;
+  const canGoPrev = activePage > 0;
+  const canGoNext = isFiltering ? filterPage < totalFilterPages - 1 : hasNextPage;
+
+  const goNextPage = () => {
+    if (isFiltering) setFilterPage((p) => p + 1);
+    else loadPage(currentPage + 1);
+  };
+  const goPrevPage = () => {
+    if (isFiltering) setFilterPage((p) => p - 1);
+    else loadPage(currentPage - 1);
+  };
+
+  // Refresh after mutation
+  const refreshAfterMutation = async () => {
+    setAllGuests(null);
+    cursorsRef.current = [null];
+    await Promise.all([loadPage(0), refreshCounts()]);
+  };
 
   // Form handlers
   const openAddForm = () => {
@@ -127,9 +175,11 @@ export default function GuestsPage() {
     if (!formData.name.trim()) { setFormError('Nama tamu wajib diisi'); return; }
     if (!slug) return;
 
-    // Duplicate check (only on add, not edit)
+    // Duplicate check (only on add)
     if (!editingGuest && !duplicateWarning) {
-      const isDuplicate = guests.some(
+      const all = allGuests ?? await getGuests(slug);
+      if (!allGuests) setAllGuests(all);
+      const isDuplicate = all.some(
         (g) => g.name.toLowerCase().trim() === formData.name.trim().toLowerCase()
       );
       if (isDuplicate) {
@@ -161,7 +211,7 @@ export default function GuestsPage() {
         });
       }
       setShowForm(false);
-      await loadGuests();
+      await refreshAfterMutation();
     } catch (error) {
       setFormError((error as Error).message);
     } finally {
@@ -173,7 +223,7 @@ export default function GuestsPage() {
     if (!slug) return;
     try {
       await deleteGuest(slug, guest.id);
-      await loadGuests();
+      await refreshAfterMutation();
     } catch (error) {
       console.error('[Guests] Delete error:', (error as Error).message);
     }
@@ -185,22 +235,34 @@ export default function GuestsPage() {
       ...g,
       attendance: false,
     })));
-    await loadGuests();
+    await refreshAfterMutation();
     if (result.failed > 0) {
       throw new Error(`${result.success} tamu berhasil diimport, ${result.failed} gagal.`);
     }
   };
 
   const handleExport = async (format: 'csv' | 'xlsx') => {
+    if (!slug) return;
     setIsExporting(true);
     try {
+      const all = allGuests ?? await getGuests(slug);
+      if (!allGuests) setAllGuests(all);
       const { exportGuests } = await import('@/utils/guestExport');
-      await exportGuests(guests, slug ?? 'guests', format);
+      await exportGuests(all, slug, format);
     } catch (error) {
       console.error('[Guests] Export error:', (error as Error).message);
     } finally {
       setIsExporting(false);
     }
+  };
+
+  const handleBulkPrint = async () => {
+    if (!slug) return;
+    if (!allGuests) {
+      const all = await getGuests(slug);
+      setAllGuests(all);
+    }
+    setShowBulkPrint(true);
   };
 
   const getWhatsAppUrl = (guest: Guest) => {
@@ -212,6 +274,11 @@ export default function GuestsPage() {
       .replace(/\{pengantin\}/g, `${wedding.groomNickname} & ${wedding.brideNickname}`)
       .replace(/\{link\}/g, link);
     return `https://wa.me/${guest.phone}?text=${encodeURIComponent(text)}`;
+  };
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setFilterCategory('all');
   };
 
   // Auth guards
@@ -236,6 +303,7 @@ export default function GuestsPage() {
   }
 
   const inputClass = 'w-full px-4 py-3 border border-gold/20 rounded-xl text-sm bg-white focus:outline-none focus:border-gold/50';
+  const totalCount = counts.pria + counts.wanita;
 
   return (
     <div className="min-h-screen bg-ivory">
@@ -258,15 +326,15 @@ export default function GuestsPage() {
             </button>
             <button
               onClick={() => handleExport('xlsx')}
-              disabled={isExporting || guests.length === 0}
+              disabled={isExporting || totalCount === 0}
               className="w-8 h-8 flex items-center justify-center text-ink/40 hover:text-gold border border-gold/20 rounded-full transition-colors disabled:opacity-30"
               aria-label="Export tamu"
             >
               <Download className="w-3.5 h-3.5" />
             </button>
             <button
-              onClick={() => setShowBulkPrint(true)}
-              disabled={guests.length === 0}
+              onClick={handleBulkPrint}
+              disabled={totalCount === 0}
               className="w-8 h-8 flex items-center justify-center text-ink/40 hover:text-gold border border-gold/20 rounded-full transition-colors disabled:opacity-30"
               aria-label="Print semua QR"
             >
@@ -283,118 +351,117 @@ export default function GuestsPage() {
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-        {/* Compact stats */}
-        {!isLoading && guests.length > 0 && (
-          <div className="flex items-center justify-center gap-3 text-[10px] text-ink/50 font-bold uppercase tracking-widest">
-            <span>{guests.length} tamu</span>
-            <span className="text-ink/15">|</span>
-            <span className="text-green-600">{guests.filter(g => g.attendance).length} hadir</span>
-            <span className="text-ink/15">|</span>
-            <span>{guests.filter(g => g.category === 'pria').length} pria</span>
-            <span className="text-ink/15">|</span>
-            <span>{guests.filter(g => g.category === 'wanita').length} wanita</span>
-          </div>
+      <div className="max-w-4xl mx-auto px-4 py-4 space-y-4">
+        {/* Inline stats */}
+        {totalCount > 0 && (
+          <p className="text-[10px] text-ink/40 font-bold uppercase tracking-widest text-center">
+            {counts.pria} tamu pihak pria <span className="text-ink/15 mx-1">|</span> {counts.wanita} tamu pihak wanita
+          </p>
         )}
 
-        {/* Search + Filter */}
-        <div className="flex flex-col sm:flex-row gap-3">
+        {/* Search + category pills */}
+        <div className="flex items-center gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/30" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink/30" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari nama atau nomor HP..."
-              className="w-full pl-10 pr-4 py-2.5 border border-gold/20 rounded-xl text-sm bg-white focus:outline-none focus:border-gold/50"
+              placeholder="Cari nama / HP..."
+              aria-label="Cari tamu"
+              className="w-full pl-9 pr-8 py-2 border border-gold/20 rounded-full text-xs bg-white focus:outline-none focus:border-gold/50"
             />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink/30 hover:text-ink/60" aria-label="Hapus pencarian">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
-          <select
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value as typeof filterCategory)}
-            className="px-3 py-2.5 border border-gold/20 rounded-xl text-xs bg-white focus:outline-none focus:border-gold/50"
-          >
-            <option value="all">Semua Pihak</option>
-            <option value="pria">Pihak Pria</option>
-            <option value="wanita">Pihak Wanita</option>
-          </select>
-          <select
-            value={filterAttendance}
-            onChange={(e) => setFilterAttendance(e.target.value as typeof filterAttendance)}
-            className="px-3 py-2.5 border border-gold/20 rounded-xl text-xs bg-white focus:outline-none focus:border-gold/50"
-          >
-            <option value="all">Semua Status</option>
-            <option value="hadir">Hadir</option>
-            <option value="belum">Belum Hadir</option>
-          </select>
+          {(['all', 'pria', 'wanita'] as const).map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setFilterCategory(cat)}
+              className={`px-3 py-2 rounded-full text-[10px] font-black uppercase tracking-wider transition-colors whitespace-nowrap ${
+                filterCategory === cat
+                  ? 'bg-gold text-ivory'
+                  : 'text-ink/40 border border-gold/15 hover:text-ink/60'
+              }`}
+            >
+              {cat === 'all' ? 'Semua' : cat === 'pria' ? 'Pria' : 'Wanita'}
+            </button>
+          ))}
         </div>
 
         {/* Guest List */}
-        {isLoading ? (
-          <p className="text-center text-xs text-ink/30 tracking-widest uppercase py-10">Memuat data tamu...</p>
-        ) : filteredGuests.length === 0 ? (
-          <div className="text-center py-16 border-2 border-dashed border-gold/10 rounded-3xl">
-            <p className="text-xs text-ink/40 tracking-wider mb-4">
-              {guests.length === 0 ? 'Belum ada tamu. Tambahkan tamu pertama.' : 'Tidak ada tamu yang cocok dengan filter.'}
+        {isLoading && !isFiltering ? (
+          <p className="text-center text-xs text-ink/30 tracking-widest uppercase py-10">Memuat...</p>
+        ) : visibleGuests.length === 0 ? (
+          <div className="text-center py-12 border-2 border-dashed border-gold/10 rounded-2xl">
+            <p className="text-xs text-ink/40 tracking-wider mb-3">
+              {isFiltering ? 'Tidak ada tamu yang cocok.' : 'Belum ada tamu.'}
             </p>
-            {guests.length === 0 && (
-              <button onClick={openAddForm} className="px-6 py-2 bg-gold text-ivory rounded-full text-[10px] uppercase tracking-[0.2em] font-black">
+            {isFiltering ? (
+              <button onClick={clearFilters} className="text-[10px] text-gold font-bold uppercase tracking-widest hover:underline">
+                Reset Filter
+              </button>
+            ) : (
+              <button onClick={openAddForm} className="px-5 py-2 bg-gold text-ivory rounded-full text-[10px] uppercase tracking-[0.2em] font-black">
                 Tambah Tamu
               </button>
             )}
           </div>
         ) : (
-          <div className="space-y-2">
-            {paginatedGuests.map((guest) => (
-              <div key={guest.id} className="p-4 bg-white/60 border border-gold/10 rounded-2xl flex items-center justify-between gap-3">
+          <div className="border border-gold/10 rounded-2xl overflow-hidden divide-y divide-gold/5">
+            {visibleGuests.map((guest) => (
+              <div key={guest.id} className="flex items-center gap-3 px-4 py-2.5 bg-white/40 hover:bg-white/70 transition-colors">
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <p className="font-serif text-sm text-ink truncate">{guest.name}</p>
-                    <span className={`text-[8px] px-1.5 py-0.5 rounded-full uppercase font-black tracking-wider ${
-                      guest.category === 'pria' ? 'bg-blue-50 text-blue-600' : 'bg-pink-50 text-pink-600'
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-sm text-ink truncate">{guest.name}</p>
+                    <span className={`text-[7px] px-1.5 py-0.5 rounded-full uppercase font-black tracking-wider flex-shrink-0 ${
+                      guest.category === 'pria' ? 'bg-blue-50 text-blue-500' : 'bg-pink-50 text-pink-500'
                     }`}>
-                      {guest.category === 'pria' ? 'Pria' : 'Wanita'}
+                      {guest.category === 'pria' ? 'P' : 'W'}
                     </span>
                     {guest.attendance && (
-                      <span className="text-[8px] px-1.5 py-0.5 rounded-full uppercase font-black tracking-wider bg-green-50 text-green-600">
+                      <span className="text-[7px] px-1.5 py-0.5 rounded-full uppercase font-black tracking-wider bg-green-50 text-green-500 flex-shrink-0">
                         Hadir
                       </span>
                     )}
                   </div>
-                  {guest.phone && <p className="text-[10px] text-ink/40">{guest.phone}</p>}
+                  {guest.phone && <p className="text-[10px] text-ink/30 mt-0.5">{guest.phone}</p>}
                 </div>
-                <div className="flex items-center gap-1 flex-shrink-0">
+                <div className="flex items-center gap-0.5 flex-shrink-0">
                   {getWhatsAppUrl(guest) && (
                     <a
                       href={getWhatsAppUrl(guest)!}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-8 h-8 flex items-center justify-center text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                      className="w-7 h-7 flex items-center justify-center text-green-500 hover:bg-green-50 rounded-lg transition-colors"
                       aria-label="Kirim WhatsApp"
                     >
-                      <MessageCircle className="w-4 h-4" />
+                      <MessageCircle className="w-3.5 h-3.5" />
                     </a>
                   )}
                   <button
                     onClick={() => setQrGuest(guest)}
-                    className="w-8 h-8 flex items-center justify-center text-ink/40 hover:text-gold hover:bg-gold/5 rounded-lg transition-colors"
+                    className="w-7 h-7 flex items-center justify-center text-ink/30 hover:text-gold hover:bg-gold/5 rounded-lg transition-colors"
                     aria-label="QR Code"
                   >
-                    <QrCode className="w-4 h-4" />
+                    <QrCode className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => openEditForm(guest)}
-                    className="w-8 h-8 flex items-center justify-center text-ink/40 hover:text-ink hover:bg-ink/5 rounded-lg transition-colors"
+                    className="w-7 h-7 flex items-center justify-center text-ink/30 hover:text-ink hover:bg-ink/5 rounded-lg transition-colors"
                     aria-label="Edit tamu"
                   >
-                    <Edit3 className="w-4 h-4" />
+                    <Edit3 className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => setDeleteTarget(guest)}
-                    className="w-8 h-8 flex items-center justify-center text-red-400 hover:bg-red-50 rounded-lg transition-colors"
+                    className="w-7 h-7 flex items-center justify-center text-red-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                     aria-label="Hapus tamu"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
@@ -403,27 +470,33 @@ export default function GuestsPage() {
         )}
 
         {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 pt-4">
-            {Array.from({ length: totalPages }, (_, i) => (
-              <button
-                key={i}
-                onClick={() => setCurrentPage(i + 1)}
-                className={`w-8 h-8 rounded-full text-xs font-bold transition-colors ${
-                  currentPage === i + 1
-                    ? 'bg-gold text-ivory'
-                    : 'text-ink/40 hover:text-ink/70 hover:bg-ink/5'
-                }`}
-              >
-                {i + 1}
-              </button>
-            ))}
+        {(canGoPrev || canGoNext) && (
+          <div className="flex items-center justify-center gap-4 pt-2">
+            <button
+              onClick={goPrevPage}
+              disabled={!canGoPrev}
+              className="w-8 h-8 flex items-center justify-center rounded-full border border-gold/20 text-ink/40 hover:text-gold hover:border-gold/40 transition-colors disabled:opacity-20 disabled:hover:text-ink/40 disabled:hover:border-gold/20"
+              aria-label="Halaman sebelumnya"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <span className="text-[10px] text-ink/40 font-bold uppercase tracking-widest">
+              Hal. {activePage + 1}
+            </span>
+            <button
+              onClick={goNextPage}
+              disabled={!canGoNext}
+              className="w-8 h-8 flex items-center justify-center rounded-full border border-gold/20 text-ink/40 hover:text-gold hover:border-gold/40 transition-colors disabled:opacity-20 disabled:hover:text-ink/40 disabled:hover:border-gold/20"
+              aria-label="Halaman berikutnya"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
         )}
 
-        {filteredGuests.length !== guests.length && (
-          <p className="text-[9px] text-ink/30 text-center pt-2">
-            Menampilkan {filteredGuests.length} dari {guests.length} tamu
+        {isFiltering && filteredGuests.length > 0 && (
+          <p className="text-[9px] text-ink/30 text-center">
+            {filteredGuests.length} tamu ditemukan
           </p>
         )}
       </div>
@@ -533,7 +606,7 @@ export default function GuestsPage() {
       {/* Bulk Print View */}
       <GuestQRPrintView
         isOpen={showBulkPrint}
-        guests={guests}
+        guests={allGuests ?? []}
         slug={slug ?? ''}
         coupleName={wedding ? `${wedding.groomNickname} & ${wedding.brideNickname}` : ''}
         onClose={() => setShowBulkPrint(false)}

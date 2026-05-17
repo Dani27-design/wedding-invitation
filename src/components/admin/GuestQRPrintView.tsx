@@ -1,6 +1,6 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
-import { Heart, Printer, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Printer, X } from 'lucide-react';
 import { generateQRDataURL } from '@/utils/qrGenerate';
 import { Guest } from '@/types/firestore';
 import { BASE_URL } from '@/constants/baseUrl';
@@ -39,18 +39,15 @@ export function GuestQRPrintView({ isOpen, guests, slug, coupleName, onClose }: 
           const dataUrl = await generateQRDataURL(url);
           items.push({ name: guests[i].name, dataUrl });
         } catch {
-          // Skip failed QR (name too long or encoding error)
           items.push({ name: guests[i].name, dataUrl: '' });
         }
       }
 
       if (cancelled) return;
 
-      // Progressive render: update state with current items
       setQrItems([...items]);
       setProgress(Math.round((end / guests.length) * 100));
 
-      // If more to process, yield to browser then continue
       if (end < guests.length) {
         await new Promise((resolve) => setTimeout(resolve, 0));
         await generateBatch(end, items);
@@ -94,7 +91,7 @@ export function GuestQRPrintView({ isOpen, guests, slug, coupleName, onClose }: 
               <Printer className="w-3.5 h-3.5" />
               Print
             </button>
-            <button onClick={onClose} className="p-2 text-ink/40 hover:text-ink transition-colors">
+            <button onClick={onClose} className="p-2 text-ink/40 hover:text-ink transition-colors" aria-label="Tutup">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -113,45 +110,53 @@ export function GuestQRPrintView({ isOpen, guests, slug, coupleName, onClose }: 
         </div>
       )}
 
-      {/* QR Grid (print area) — renders progressively as items are generated */}
+      {/* QR Grid */}
       {qrItems.length > 0 && (
         <div className="max-w-4xl mx-auto px-4 py-6 print:max-w-none print:px-4 print:py-2">
-          <div className="grid grid-cols-2 gap-4 print:gap-2 print:grid-cols-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 print:gap-2 print:grid-cols-3">
             {qrItems.map((item, i) => (
               <div
                 key={i}
-                className="bg-ivory border border-gold/20 rounded-2xl p-5 flex flex-col items-center text-center print:rounded-lg print:p-3 print:border-gold/30 break-inside-avoid"
+                className="relative overflow-hidden rounded-2xl p-4 flex flex-col items-center text-center print:rounded-lg print:p-3 break-inside-avoid"
+                style={{ background: 'linear-gradient(170deg, #FAF7F2 0%, #F5F0E8 40%, #F2EBE0 100%)' }}
               >
-                {/* Couple name */}
+                {/* Inner border */}
+                <div className="absolute inset-[4px] rounded-[14px] border border-gold/15 pointer-events-none print:inset-[3px] print:rounded-[10px]" />
+
+                {/* Top ornament */}
                 <div className="flex items-center gap-1.5 mb-1">
-                  <div className="w-4 h-px bg-gold/30 print:w-3" />
-                  <Heart className="w-2.5 h-2.5 text-gold/40 fill-gold/15" />
-                  <div className="w-4 h-px bg-gold/30 print:w-3" />
+                  <div className="w-4 h-px bg-gold/25 print:w-3" />
+                  <svg width="8" height="8" viewBox="0 0 14 14" fill="none" className="print:w-[6px] print:h-[6px]">
+                    <path d="M7 2C5.5 0 3 0.5 2 2.5C1 4.5 2.5 7 7 11C11.5 7 13 4.5 12 2.5C11 0.5 8.5 0 7 2Z" fill="rgba(180,141,62,0.2)" stroke="rgba(180,141,62,0.3)" strokeWidth="0.5" />
+                  </svg>
+                  <div className="w-4 h-px bg-gold/25 print:w-3" />
                 </div>
-                <p className="font-dayland text-lg text-gold mb-3 print:text-base print:mb-2">{coupleName}</p>
+
+                {/* Couple name */}
+                <p className="font-dayland text-base text-gold mb-2 print:text-sm print:mb-1">{coupleName}</p>
 
                 {/* QR */}
-                <div className="bg-white p-2 rounded-lg border border-gold/10 mb-3 print:mb-2">
+                <div className="bg-white/90 p-2 rounded-xl border border-gold/10 shadow-[0_1px_8px_rgba(180,141,62,0.06)] mb-2 print:p-1.5 print:rounded-lg print:mb-1.5">
                   {item.dataUrl ? (
-                    <img src={item.dataUrl} alt={`QR ${item.name}`} className="w-[140px] h-[140px] print:w-[120px] print:h-[120px]" />
+                    <img src={item.dataUrl} alt={`QR ${item.name}`} className="w-[120px] h-[120px] print:w-[100px] print:h-[100px]" />
                   ) : (
-                    <div className="w-[140px] h-[140px] print:w-[120px] print:h-[120px] flex items-center justify-center text-[8px] text-ink/30">
+                    <div className="w-[120px] h-[120px] print:w-[100px] print:h-[100px] flex items-center justify-center text-[8px] text-ink/30">
                       Gagal
                     </div>
                   )}
                 </div>
 
                 {/* Guest name */}
-                <p className="font-serif italic text-sm text-ink print:text-xs truncate max-w-[250px]">{item.name}</p>
+                <p className="font-serif italic text-sm text-ink print:text-xs truncate max-w-[180px] print:max-w-[150px]">{item.name}</p>
 
-                {/* Separator */}
-                <div className="flex items-center gap-1.5 mt-1.5">
-                  <div className="w-5 h-px bg-gold/15" />
-                  <Heart className="w-2 h-2 text-gold/25 fill-gold/10" />
-                  <div className="w-5 h-px bg-gold/15" />
+                {/* Bottom ornament */}
+                <div className="flex items-center gap-1 mt-1.5">
+                  <div className="w-4 h-px bg-gold/15 print:w-3" />
+                  <svg width="6" height="6" viewBox="0 0 8 8" fill="rgba(180,141,62,0.12)"><path d="M4 0L5.2 2.8L8 4L5.2 5.2L4 8L2.8 5.2L0 4L2.8 2.8Z" /></svg>
+                  <div className="w-4 h-px bg-gold/15 print:w-3" />
                 </div>
 
-                <p className="text-[7px] text-ink/30 uppercase tracking-widest mt-1 font-sans print:text-[6px]">
+                <p className="text-[6px] text-ink/25 uppercase tracking-[0.15em] mt-1 font-sans font-bold print:text-[5px]">
                   Scan untuk membuka undangan
                 </p>
               </div>
@@ -168,7 +173,7 @@ export function GuestQRPrintView({ isOpen, guests, slug, coupleName, onClose }: 
           .fixed > * { visibility: visible; }
           .print\\:hidden { display: none !important; }
           .break-inside-avoid { break-inside: avoid; page-break-inside: avoid; }
-          @page { margin: 10mm; }
+          @page { margin: 8mm; }
         }
       `}</style>
     </div>

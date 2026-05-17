@@ -1,8 +1,9 @@
 'use client';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Printer, Download, MessageCircle } from 'lucide-react';
+import { X, Printer, Download, MessageCircle, Loader2 } from 'lucide-react';
 import { GuestQRCard } from './GuestQRCard';
+import { generateQRCardPNG } from '@/utils/qrGenerate';
 
 interface GuestQRModalProps {
   isOpen: boolean;
@@ -23,6 +24,7 @@ function sanitizeFilename(str: string): string {
 
 export function GuestQRModal({ isOpen, guestName, coupleName, invitationUrl, whatsappUrl, onClose }: GuestQRModalProps) {
   const printRef = useRef<HTMLDivElement>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const handlePrint = () => {
     const content = printRef.current;
@@ -47,15 +49,18 @@ export function GuestQRModal({ isOpen, guestName, coupleName, invitationUrl, wha
     setTimeout(() => { printWindow.print(); printWindow.close(); }, 500);
   };
 
-  const handleDownload = () => {
-    const content = printRef.current;
-    if (!content) return;
-    const img = content.querySelector('img');
-    if (!img) return;
-    const link = document.createElement('a');
-    link.href = img.src;
-    link.download = `qr-${sanitizeFilename(guestName)}.png`;
-    link.click();
+  const handleDownload = async () => {
+    setIsDownloading(true);
+    try {
+      const dataUrl = await generateQRCardPNG(invitationUrl, guestName, coupleName);
+      if (!dataUrl) return;
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = `qr-${sanitizeFilename(guestName)}.png`;
+      link.click();
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   return (
@@ -99,9 +104,10 @@ export function GuestQRModal({ isOpen, guestName, coupleName, invitationUrl, wha
               </button>
               <button
                 onClick={handleDownload}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-gold/20 text-ink/70 rounded-full text-[10px] font-black uppercase tracking-[0.15em] hover:bg-gold/5 transition-colors"
+                disabled={isDownloading}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-gold/20 text-ink/70 rounded-full text-[10px] font-black uppercase tracking-[0.15em] hover:bg-gold/5 transition-colors disabled:opacity-50"
               >
-                <Download className="w-3.5 h-3.5" />
+                {isDownloading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
                 Unduh
               </button>
               {whatsappUrl && (

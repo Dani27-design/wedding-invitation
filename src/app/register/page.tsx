@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { createUserWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, googleProvider } from '@/lib/firebase-auth';
@@ -78,115 +79,83 @@ export default function RegisterPage() {
     }
   }
 
+  const inputClass = 'w-full px-4 py-3 bg-ivory/10 border border-ivory/10 rounded-xl text-sm text-ivory placeholder:text-ivory/25 focus:outline-none focus:border-gold/40 transition-colors disabled:opacity-50';
+
   if (isSuccess) {
     return (
       <>
-        <title>Daftar — Admin</title>
+        <title>Pendaftaran Berhasil | Wedding DM</title>
         <meta name="robots" content="noindex" />
-        <div className="min-h-screen bg-ivory flex items-center justify-center px-6">
-        <div className="w-full max-w-sm text-center space-y-4">
-          <h1 className="font-serif italic text-2xl text-ink">Pendaftaran Berhasil</h1>
-          <p className="text-xs uppercase tracking-[0.2em] text-gold font-black">
-            Menunggu persetujuan admin
-          </p>
-          <div className="font-serif italic text-sm text-ink/60 space-y-2">
-            <p>Akun Anda akan diaktifkan setelah disetujui oleh admin.</p>
-            <p>Proses persetujuan biasanya memakan waktu <strong className="text-ink/80">1x24 jam</strong>.</p>
-            <p>Anda akan menerima email setelah akun aktif dan siap digunakan.</p>
+        <div className="min-h-screen bg-ink flex items-center justify-center px-6 relative overflow-hidden">
+          <div className="absolute top-[15%] left-[10%] w-60 h-60 bg-gold/8 rounded-full blur-[100px]" />
+          <div className="absolute bottom-[10%] right-[5%] w-72 h-72 bg-rose-pastel/6 rounded-full blur-[120px]" />
+
+          <div className="w-full max-w-sm relative z-10 text-center space-y-5">
+            <Link href="/" className="font-display italic text-xl text-ivory font-bold hover:text-gold transition-colors">Wedding DM</Link>
+            <h1 className="font-serif italic text-2xl text-ivory">Terima kasih telah mendaftar</h1>
+            <p className="font-serif italic text-sm text-ivory/40 leading-relaxed max-w-xs mx-auto">
+              Akun Anda sedang dalam proses verifikasi dan akan diaktifkan dalam waktu 1x24 jam. Kami akan mengirimkan notifikasi melalui email setelah semuanya siap.
+            </p>
+            <Link
+              href="/login"
+              className="inline-block px-8 py-3 bg-gold text-ivory rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-gold/20 hover:scale-105 transition-transform"
+            >
+              Kembali ke Halaman Masuk
+            </Link>
           </div>
-          <a
-            href="/login"
-            className="inline-block mt-4 px-8 py-2.5 bg-gold text-ivory rounded-full text-[10px] font-black uppercase tracking-[0.2em]"
-          >
-            Ke Halaman Masuk
-          </a>
         </div>
-      </div>
       </>
     );
   }
 
   return (
     <>
-      <title>Daftar — Admin</title>
+      <title>Daftar | Wedding DM</title>
       <meta name="robots" content="noindex" />
-      <div className="min-h-screen bg-ivory flex items-center justify-center px-6">
-        <div className="w-full max-w-sm space-y-6">
+      <div className="min-h-screen bg-ink flex items-center justify-center px-6 relative overflow-hidden">
+        <div className="absolute top-[15%] left-[10%] w-60 h-60 bg-gold/8 rounded-full blur-[100px]" />
+        <div className="absolute bottom-[10%] right-[5%] w-72 h-72 bg-rose-pastel/6 rounded-full blur-[120px]" />
+
+        <div className="w-full max-w-sm relative z-10 space-y-6">
           <div className="text-center">
-            <h1 className="font-serif italic text-2xl text-ink mb-1">Daftar</h1>
-          <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-black">Buat Akun Admin</p>
-        </div>
+            <Link href="/" className="font-display italic text-xl text-ivory font-bold hover:text-gold transition-colors">Wedding DM</Link>
+            <h1 className="font-serif italic text-2xl text-ivory mt-8 mb-1">Mulai Perjalanan Anda</h1>
+            <p className="font-serif italic text-[14px] text-ivory/30">Daftarkan diri untuk mulai membuat undangan pernikahan digital</p>
+          </div>
 
-        <form onSubmit={handleEmailRegister} className="space-y-4">
-          <div>
-            <label htmlFor="reg-name" className="sr-only">Nama Lengkap</label>
-            <input
-              id="reg-name"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Nama Lengkap"
-              required
-              maxLength={50}
-              disabled={isLoading}
-              className="w-full px-4 py-3 border border-gold/20 rounded-xl text-sm bg-white focus:outline-none focus:border-gold/50 disabled:opacity-50"
-            />
+          <form onSubmit={handleEmailRegister} className="space-y-3">
+            <div>
+              <label htmlFor="reg-name" className="sr-only">Nama Lengkap</label>
+              <input id="reg-name" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nama Lengkap" required maxLength={50} disabled={isLoading} className={inputClass} />
+            </div>
+            <div>
+              <label htmlFor="reg-email" className="sr-only">Email</label>
+              <input id="reg-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" required disabled={isLoading} className={inputClass} />
+            </div>
+            <div>
+              <label htmlFor="reg-password" className="sr-only">Password</label>
+              <input id="reg-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password (min 6 karakter)" required minLength={6} disabled={isLoading} className={inputClass} />
+            </div>
+            {error && <p role="alert" className="text-xs text-red-400 text-center">{error}</p>}
+            <button type="submit" disabled={isLoading} className="w-full py-3 bg-gold text-ivory rounded-full text-xs tracking-[0.3em] font-black uppercase disabled:opacity-50 shadow-lg shadow-gold/20 hover:scale-105 transition-transform">
+              {isLoading ? 'Memuat...' : 'Daftar'}
+            </button>
+          </form>
+
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px bg-ivory/10" />
+            <span className="text-[10px] uppercase tracking-widest text-ivory/20 font-bold">atau</span>
+            <div className="flex-1 h-px bg-ivory/10" />
           </div>
-          <div>
-            <label htmlFor="reg-email" className="sr-only">Email</label>
-            <input
-              id="reg-email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email"
-              required
-              disabled={isLoading}
-              className="w-full px-4 py-3 border border-gold/20 rounded-xl text-sm bg-white focus:outline-none focus:border-gold/50 disabled:opacity-50"
-            />
-          </div>
-          <div>
-            <label htmlFor="reg-password" className="sr-only">Password</label>
-            <input
-              id="reg-password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password (min 6 karakter)"
-              required
-              minLength={6}
-              disabled={isLoading}
-              className="w-full px-4 py-3 border border-gold/20 rounded-xl text-sm bg-white focus:outline-none focus:border-gold/50 disabled:opacity-50"
-            />
-          </div>
-          {error && <p role="alert" className="text-xs text-red-500 text-center">{error}</p>}
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full py-3 bg-gold text-ivory rounded-full text-xs tracking-[0.3em] font-black uppercase disabled:opacity-50"
-          >
-            {isLoading ? 'Memuat...' : 'Daftar'}
+
+          <button onClick={handleGoogleRegister} disabled={isLoading} className="w-full py-3 border border-ivory/15 rounded-full text-xs tracking-[0.2em] font-black uppercase text-ivory/60 hover:border-gold hover:text-gold transition-colors disabled:opacity-50">
+            Lanjutkan dengan Google
           </button>
-        </form>
 
-        <div className="flex items-center gap-3">
-          <div className="flex-1 h-px bg-gold/10" />
-          <span className="text-[10px] uppercase tracking-widest text-ink/30 font-bold">atau</span>
-          <div className="flex-1 h-px bg-gold/10" />
-        </div>
-
-        <button
-          onClick={handleGoogleRegister}
-          disabled={isLoading}
-          className="w-full py-3 border border-gold/20 rounded-full text-xs tracking-[0.2em] font-black uppercase text-ink/70 hover:border-gold/40 transition-colors disabled:opacity-50"
-        >
-          Daftar dengan Google
-        </button>
-
-        <p className="text-center text-xs text-ink/40">
-          Sudah punya akun?{' '}
-          <a href="/login" className="text-gold underline underline-offset-4">Masuk</a>
-        </p>
+          <p className="text-center text-xs text-ivory/30">
+            Sudah memiliki akun?{' '}
+            <Link href="/login" className="text-gold hover:underline underline-offset-4">Masuk di sini</Link>
+          </p>
         </div>
       </div>
     </>

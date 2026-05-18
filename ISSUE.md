@@ -37,6 +37,40 @@
 
 ---
 
+### ~~LP-001: Landing page lacks visual depth, product showcase, and social proof~~ FIXED
+
+**Root cause:** Hero was text on solid dark background with invisible decorative blurs (5%/3% opacity). No product screenshot, no social proof, no visual hooks. Feature cards were plain with no hover interaction. Footer had no navigation. Two sections repeated the same CTA pattern.
+
+**Resolution:** Full redesign of `src/app/page.tsx`:
+- **Hero:** Added `BackgroundLayers` (grain + light-sweep textures), `PetalEffect` (falling petals animation), increased decorative glow opacity (10%/8%), added center glow. Added live demo phone mockup iframe (180×320, scaled 0.48, `pointer-events-none`, `loading="lazy"`).
+- **Social proof stats:** New section with 3 stat counters (100+ Pasangan, 10.000+ Tamu, 4.9 Rating) with icons.
+- **Feature cards:** Added glassmorphism (`bg-white/60 backdrop-blur-sm`), hover lift effect (`hover:-translate-y-1`), hover border/shadow transition.
+- **Demo section:** Dark section with interactive phone mockup iframe (220×390, scrollable) + "Buka Layar Penuh" link.
+- **Final CTA:** Added "Gratis Untuk Memulai" pricing hint label, decorative background blobs.
+- **Footer:** Added navigation links (Demo, Daftar, Masuk), copyright with dynamic year, secondary border separator, `bg-paper/30` background.
+
+**Components reused:** `BackgroundLayers`, `PetalEffect` (existing, no new deps). All assets from existing codebase.
+
+**Files changed:** `src/app/page.tsx` (1 file)
+
+---
+
+### ~~LP-002: Landing page has redundant sections and duplicate CTAs~~ FIXED
+
+**Root cause:** Two demo iframes (hero + demo section) showing identical content. Three demo links (hero, demo section, footer). Two registration CTAs with different wording. Demo section repeated the hero's dark layout with a second phone mockup.
+
+**Resolution:** Simplified from 7 sections to 5:
+- **Removed** entire demo section (redundant with hero mockup)
+- **Hero mockup** made clickable (wrapped in `<Link>` to demo, with hover border/shadow) — replaces the "Buka Layar Penuh" link
+- **Removed** demo link from footer nav (hero + "Lihat Demo" button are sufficient)
+- **Tightened spacing** — `py-20` → `py-16`, `py-12` → `py-10`, `space-y-8` → `space-y-6`
+
+Flow is now: **See it (hero+mockup) → Trust it (stats) → Learn it (features) → Do it (CTA) → Footer**
+
+**Files changed:** `src/app/page.tsx` (1 file)
+
+---
+
 ### ~~ADM-005: MediaForm takes excessive vertical space with verbose layout~~ FIXED
 
 **Root cause:** Each of 4 media items was a tall stacked card (~200px+) with header, description, full-width preview (160px), and oversized upload button. Single-column layout wasted horizontal space.

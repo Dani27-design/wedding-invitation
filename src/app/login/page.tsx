@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { signInWithEmailAndPassword, signInWithPopup, sendPasswordResetEmail } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, googleProvider } from '@/lib/firebase-auth';
@@ -83,89 +84,64 @@ export default function LoginPage() {
     }
   }
 
+  const inputClass = 'w-full px-4 py-3 bg-ivory/10 border border-ivory/10 rounded-xl text-sm text-ivory placeholder:text-ivory/25 focus:outline-none focus:border-gold/40 transition-colors disabled:opacity-50';
+
   return (
     <>
-      <title>Masuk — Admin</title>
+      <title>Masuk | Wedding DM</title>
       <meta name="robots" content="noindex" />
-      <div className="min-h-screen bg-ivory flex items-center justify-center px-6">
-        <div className="w-full max-w-sm space-y-6">
+      <div className="min-h-screen bg-ink flex items-center justify-center px-6 relative overflow-hidden">
+        <div className="absolute top-[15%] left-[10%] w-60 h-60 bg-gold/8 rounded-full blur-[100px]" />
+        <div className="absolute bottom-[10%] right-[5%] w-72 h-72 bg-rose-pastel/6 rounded-full blur-[120px]" />
+
+        <div className="w-full max-w-sm relative z-10 space-y-6">
           <div className="text-center">
-          <h1 className="font-serif italic text-2xl text-ink mb-1">Masuk</h1>
-          <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-black">Admin Panel</p>
-        </div>
-
-        <form onSubmit={handleEmailLogin} className="space-y-4">
-          <div>
-            <label htmlFor="login-email" className="sr-only">Email</label>
-            <input
-              id="login-email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email"
-              required
-              disabled={isLoading}
-              className="w-full px-4 py-3 border border-gold/20 rounded-xl text-sm bg-white focus:outline-none focus:border-gold/50 disabled:opacity-50"
-            />
+            <Link href="/" className="font-display italic text-xl text-ivory font-bold hover:text-gold transition-colors">Wedding DM</Link>
+            <h1 className="font-serif italic text-2xl text-ivory mt-10 mb-1">Selamat Datang Kembali</h1>
+            <p className="font-serif italic text-[14px] text-ivory/30">Masuk untuk melanjutkan pengelolaan undangan Anda</p>
           </div>
-          <div>
-            <label htmlFor="login-password" className="sr-only">Password</label>
-            <input
-              id="login-password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
-              required
-              disabled={isLoading}
-              className="w-full px-4 py-3 border border-gold/20 rounded-xl text-sm bg-white focus:outline-none focus:border-gold/50 disabled:opacity-50"
-            />
-            <div className="mt-1.5 text-right">
-              <button
-                type="button"
-                onClick={handleResetPassword}
-                disabled={resetStatus === 'sending'}
-                className="text-[10px] text-gold underline underline-offset-4 disabled:opacity-50"
-              >
-                {resetStatus === 'sending' ? 'Mengirim...' : 'Lupa password?'}
-              </button>
+
+          <form onSubmit={handleEmailLogin} className="space-y-3">
+            <div>
+              <label htmlFor="login-email" className="sr-only">Email</label>
+              <input id="login-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" required disabled={isLoading} className={inputClass} />
             </div>
-            {resetStatus === 'sent' && (
-              <p className="text-[10px] text-green-600 text-center mt-1">Email reset password telah dikirim. Periksa kotak masuk Anda.</p>
-            )}
-            {resetStatus === 'error' && resetError && (
-              <p className="text-[10px] text-red-500 text-center mt-1">{resetError}</p>
-            )}
+            <div>
+              <label htmlFor="login-password" className="sr-only">Password</label>
+              <input id="login-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" required disabled={isLoading} className={inputClass} />
+              <div className="mt-1.5 text-right">
+                <button type="button" onClick={handleResetPassword} disabled={resetStatus === 'sending'} className="text-[10px] text-gold/70 hover:text-gold underline underline-offset-4 disabled:opacity-50 transition-colors">
+                  {resetStatus === 'sending' ? 'Mengirim...' : 'Lupa password?'}
+                </button>
+              </div>
+              {resetStatus === 'sent' && (
+                <p className="text-[10px] text-green-400 text-center mt-1">Email reset password telah dikirim.</p>
+              )}
+              {resetStatus === 'error' && resetError && (
+                <p className="text-[10px] text-red-400 text-center mt-1">{resetError}</p>
+              )}
+            </div>
+            {error && <p role="alert" className="text-xs text-red-400 text-center">{error}</p>}
+            <button type="submit" disabled={isLoading} className="w-full py-3 bg-gold text-ivory rounded-full text-xs tracking-[0.3em] font-black uppercase disabled:opacity-50 shadow-lg shadow-gold/20 hover:scale-105 transition-transform">
+              {isLoading ? 'Memuat...' : 'Masuk'}
+            </button>
+          </form>
+
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px bg-ivory/10" />
+            <span className="text-[10px] uppercase tracking-widest text-ivory/20 font-bold">atau</span>
+            <div className="flex-1 h-px bg-ivory/10" />
           </div>
-          {error && <p role="alert" className="text-xs text-red-500 text-center">{error}</p>}
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full py-3 bg-gold text-ivory rounded-full text-xs tracking-[0.3em] font-black uppercase disabled:opacity-50"
-          >
-            {isLoading ? 'Memuat...' : 'Masuk'}
+
+          <button onClick={handleGoogleLogin} disabled={isLoading} className="w-full py-3 border border-ivory/15 rounded-full text-xs tracking-[0.2em] font-black uppercase text-ivory/60 hover:border-gold hover:text-gold transition-colors disabled:opacity-50">
+            Lanjutkan dengan Google
           </button>
-        </form>
 
-        <div className="flex items-center gap-3">
-          <div className="flex-1 h-px bg-gold/10" />
-          <span className="text-[10px] uppercase tracking-widest text-ink/30 font-bold">atau</span>
-          <div className="flex-1 h-px bg-gold/10" />
+          <p className="text-center text-xs text-ivory/30">
+            Baru pertama kali?{' '}
+            <Link href="/register" className="text-gold hover:underline underline-offset-4">Buat akun</Link>
+          </p>
         </div>
-
-        <button
-          onClick={handleGoogleLogin}
-          disabled={isLoading}
-          className="w-full py-3 border border-gold/20 rounded-full text-xs tracking-[0.2em] font-black uppercase text-ink/70 hover:border-gold/40 transition-colors disabled:opacity-50"
-        >
-          Masuk dengan Google
-        </button>
-
-        <p className="text-center text-xs text-ink/40">
-          Belum punya akun?{' '}
-          <a href="/register" className="text-gold underline underline-offset-4">Daftar</a>
-        </p>
-      </div>
       </div>
     </>
   );

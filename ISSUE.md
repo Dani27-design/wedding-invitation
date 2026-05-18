@@ -71,6 +71,39 @@ Flow is now: **See it (hero+mockup) → Trust it (stats) → Learn it (features)
 
 ---
 
+### ~~LP-003: Landing page not responsive across different mobile devices~~ FIXED
+
+**Root cause:** Multiple responsive issues: `py-auto` (invalid CSS, does nothing) on hero section; phone mockup and rotating rings used fixed pixel widths (180px, 260px, 300px) that don't scale on narrow screens; feature chips forced 2 columns on small screens causing text overflow; `p-6` used instead of `px-6 py-*` in several sections (strengths, features, consultation, footer) giving insufficient vertical padding.
+
+**Resolution:**
+- Hero: `py-auto` → `py-16` (valid padding)
+- Phone mockup: `w-[180px]` → `w-[45vw] max-w-[180px] aspect-[9/16]` (scales on small screens)
+- Rotating rings: fixed `w-[260px]`/`w-[300px]` → `w-[70vw] max-w-[260px]`/`w-[80vw] max-w-[300px]`
+- Feature chips: `grid-cols-2` → `grid-cols-1 sm:grid-cols-2 md:grid-cols-3` (single column on mobile)
+- Section padding fixed: strengths `px-6 py-12`, features `px-6 py-12`, consultation `px-6 py-14`, footer `px-6 py-8`
+
+**Files changed:** `src/app/page.tsx` (1 file)
+
+---
+
+### ~~LP-004: Landing page copywriting and section redesign~~ FIXED
+
+**Resolution:** Complete copywriting overhaul across all sections with formal, elegant Indonesian tone. Replaced generic CTA section with WhatsApp consultation form (`ConsultationForm.tsx`). Redesigned strengths section with 5 genuine competitive advantages based on codebase analysis. Expanded features to 24 items in 2 grouped categories. Redesigned footer with brand, navigation with gold dot separators, heart divider, and copyright.
+
+**Files changed:** `src/app/page.tsx`, `src/components/ui/ConsultationForm.tsx` (new)
+
+---
+
+### ~~LP-005: Login and register pages inconsistent with company profile design~~ FIXED
+
+**Root cause:** Auth pages used light ivory background, basic white inputs, and generic copywriting ("Masuk", "Daftar", "Buat Akun Baru") that didn't match the dark, elegant company profile aesthetic.
+
+**Resolution:** Both pages redesigned with dark ink background, gold/rose decorative glows, dark-themed inputs (`bg-ivory/10 border-ivory/10 text-ivory`), gold primary buttons with shadow, and "Wedding DM" brand link to homepage. Copywriting updated: login heading "Selamat Datang Kembali", register heading "Mulai Perjalanan Anda", success page "Terima kasih telah mendaftar" with consolidated single-paragraph explanation. Google buttons changed to "Lanjutkan dengan Google".
+
+**Files changed:** `src/app/login/page.tsx`, `src/app/register/page.tsx` (2 files)
+
+---
+
 ### ~~ADM-005: MediaForm takes excessive vertical space with verbose layout~~ FIXED
 
 **Root cause:** Each of 4 media items was a tall stacked card (~200px+) with header, description, full-width preview (160px), and oversized upload button. Single-column layout wasted horizontal space.

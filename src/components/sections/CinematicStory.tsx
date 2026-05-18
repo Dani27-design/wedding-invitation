@@ -154,21 +154,8 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
           <div key={idx} className="relative h-full w-full min-w-full snap-center flex items-center justify-center overflow-hidden">
             {/* Background media */}
             <div className="absolute inset-0 bg-ink">
-              {/* Layer 1: Ambient backdrop — dark overlay with subtle color from the image */}
-              {slide.bgImage && (
-                <div className={`absolute inset-0 transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-0'}`} style={{ zIndex: 1 }}>
-                  <Image
-                    src={slide.bgImage}
-                    fill
-                    sizes="128px"
-                    quality={10}
-                    alt=""
-                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                    className="object-cover opacity-20 scale-110"
-                    referrerPolicy="no-referrer"
-                  />
-                </div>
-              )}
+              {/* Layer 1: Subtle ambient glow behind main media */}
+              <div className="absolute inset-0" style={{ zIndex: 1, background: 'radial-gradient(ellipse at center, rgba(180,141,62,0.06) 0%, transparent 70%)' }} />
               {/* Layer 2: Main media */}
               {slide.bgVideo ? (
                 <video

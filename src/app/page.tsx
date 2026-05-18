@@ -59,9 +59,9 @@ export default function LandingPage() {
         <PetalEffect />
         <LightGlow />
 
-        <div className="absolute top-[10%] left-[10%] w-60 h-60 bg-gold/10 rounded-full blur-[100px]" />
-        <div className="absolute bottom-[15%] right-[5%] w-72 h-72 bg-rose-pastel/8 rounded-full blur-[120px]" />
-        <div className="absolute top-[60%] left-[50%] -translate-x-1/2 w-96 h-40 bg-gold/5 rounded-full blur-[80px]" />
+        <div className="absolute top-[10%] left-[10%] w-[40vw] max-w-60 aspect-square bg-gold/10 rounded-full blur-[100px]" />
+        <div className="absolute bottom-[15%] right-[5%] w-[50vw] max-w-72 aspect-square bg-rose-pastel/8 rounded-full blur-[120px]" />
+        <div className="absolute top-[60%] left-[50%] -translate-x-1/2 w-[60vw] max-w-96 h-auto aspect-[2.4/1] bg-gold/5 rounded-full blur-[80px]" />
 
         <div className="relative z-10 max-w-lg mx-auto text-center space-y-6">
           <h1 className="font-display text-4xl sm:text-5xl md:text-6xl text-ivory leading-tight font-bold italic">
@@ -73,19 +73,19 @@ export default function LandingPage() {
 
           {/* Phone mockup */}
           <div className="relative flex justify-center pt-4 pb-2">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70vw] max-w-[260px] aspect-square border border-gold/10 rounded-full animate-[spin_45s_linear_infinite]" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] max-w-[300px] aspect-square border border-ivory/5 rounded-full animate-[spin_60s_linear_infinite_reverse]" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-64 bg-gold/15 rounded-full blur-[60px]" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[220px] sm:w-[260px] aspect-square border border-gold/10 rounded-full animate-[spin_45s_linear_infinite]" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250px] sm:w-[300px] aspect-square border border-ivory/5 rounded-full animate-[spin_60s_linear_infinite_reverse]" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-36 sm:w-48 aspect-[3/4] bg-gold/15 rounded-full blur-[60px]" />
 
             <Link
               href="/dani-marini?to=Tamu+Spesial"
-              className="relative block w-[45vw] max-w-[180px] rounded-[20px] overflow-hidden border-2 border-ivory/15 shadow-2xl shadow-gold/20 hover:scale-[1.03] hover:border-gold/30 transition-all duration-500 aspect-[9/16]"
+              className="relative block w-[150px] sm:w-[170px] rounded-[16px] sm:rounded-[20px] overflow-hidden border-2 border-ivory/15 shadow-2xl shadow-gold/20 hover:scale-[1.03] hover:border-gold/30 transition-all duration-500 aspect-[9/16]"
             >
               <iframe
                 src="/dani-marini?to=Tamu+Spesial"
                 title="Demo undangan"
-                className="w-[375px] h-[667px] origin-top-left pointer-events-none"
-                style={{ transform: 'scale(0.48)' }}
+                className="absolute top-0 left-0 w-[375px] h-[667px] origin-top-left pointer-events-none"
+                style={{ transform: 'scale(0.4)' }}
                 loading="lazy"
               />
               <div className="absolute inset-0" />
@@ -174,7 +174,7 @@ export default function LandingPage() {
       {/* ── Consultation ── */}
       <section className="relative px-6 py-14 overflow-hidden bg-ink text-ivory">
         <div className="absolute inset-0 bg-gradient-to-b from-ink via-ink/95 to-ink" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gold/8 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] max-w-80 aspect-square bg-gold/8 rounded-full blur-3xl" />
 
         <div className="relative z-10 max-w-lg mx-auto text-center space-y-5">
           <p className="text-[10px] uppercase tracking-[0.4em] text-gold font-black">Konsultasi Gratis</p>

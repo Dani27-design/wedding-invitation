@@ -154,17 +154,17 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
           <div key={idx} className="relative h-full w-full min-w-full snap-center flex items-center justify-center overflow-hidden">
             {/* Background media */}
             <div className="absolute inset-0 bg-ink">
-              {/* Layer 1: Blurred backdrop */}
+              {/* Layer 1: Ambient backdrop — dark overlay with subtle color from the image */}
               {slide.bgImage && (
-                <div className={`absolute inset-0 transition-opacity duration-300 ${isActive ? 'opacity-30' : 'opacity-0'}`} style={{ zIndex: 1 }}>
+                <div className={`absolute inset-0 transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-0'}`} style={{ zIndex: 1 }}>
                   <Image
                     src={slide.bgImage}
                     fill
                     sizes="128px"
-                    quality={30}
+                    quality={10}
                     alt=""
                     onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                    className="object-cover blur-2xl"
+                    className="object-cover opacity-20 scale-110"
                     referrerPolicy="no-referrer"
                   />
                 </div>
@@ -214,13 +214,13 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
             {/* Action buttons — always mounted, hidden via CSS */}
             <div className={`absolute bottom-36 right-4 flex flex-col gap-5 z-[60] transition-opacity duration-200 ${isActive && commentInput?.index !== idx ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
               <motion.button whileTap={{ scale: 0.8 }} aria-label="Suka" onClick={() => handleLike(idx)} className="relative flex flex-col items-center gap-1 group">
-                <div className="w-11 h-11 rounded-full bg-black/20 backdrop-blur-md border border-white/10 flex items-center justify-center group-hover:bg-rose-pastel/20 transition-all">
+                <div className="w-11 h-11 rounded-full bg-black/40 border border-white/10 flex items-center justify-center group-hover:bg-rose-pastel/20 transition-all">
                   <Heart className="w-5 h-5 text-rose-pastel transition-transform group-active:scale-125" fill={(likes[idx] ?? 0) > 120 ? 'currentColor' : 'none'} />
                 </div>
                 <span aria-hidden="true" className="text-[10px] font-sans text-white/70 tracking-widest">{likes[idx] ?? 0}</span>
               </motion.button>
               <motion.button whileTap={{ scale: 0.8 }} aria-label="Komentar" onClick={() => setCommentInput({ index: idx, name: '', text: '' })} className="flex flex-col items-center gap-1 group">
-                <div className="w-11 h-11 rounded-full bg-black/20 backdrop-blur-md border border-white/10 flex items-center justify-center group-hover:bg-white/10 transition-all">
+                <div className="w-11 h-11 rounded-full bg-black/40 border border-white/10 flex items-center justify-center group-hover:bg-white/10 transition-all">
                   <MessageCircle className="w-5 h-5 text-ivory" />
                 </div>
                 <span aria-hidden="true" className="text-[10px] font-sans text-white/70 tracking-widest">{isActive ? comments.length : 0}</span>
@@ -230,7 +230,7 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
             <AnimatePresence>
               {commentInput?.index === idx && (
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="absolute inset-x-6 bottom-48 z-[70] max-w-sm mx-auto">
-                  <div className="bg-ink/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-5 shadow-2xl">
+                  <div className="bg-ink/95 border border-white/10 rounded-2xl p-5 shadow-2xl">
                     <div className="flex items-center gap-3 mb-4">
                       <MessageCircle className="w-4 h-4 text-rose-pastel" />
                       <span className="text-xs uppercase tracking-[0.2em] text-ivory font-bold">Bagikan Kebahagiaan</span>

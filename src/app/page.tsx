@@ -5,7 +5,7 @@ import { ConsultationForm } from '@/components/ui/ConsultationForm';
 import { BackgroundLayers } from '@/components/ui/BackgroundLayers';
 import { PetalEffect } from '@/components/ui/PetalEffect';
 import { FloatingPetals } from '@/components/ui/FloatingPetals';
-import { LightGlow } from '@/components/ui/LightGlow';
+
 
 export const metadata: Metadata = {
   title: 'Wedding DM | Undangan Pernikahan Digital Premium',
@@ -57,11 +57,11 @@ export default function LandingPage() {
       <section className="relative min-h-screen-safe flex flex-col items-center justify-center px-6 py-16 bg-ink text-ivory overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-ink via-ink/95 to-ink" />
         <PetalEffect />
-        <LightGlow />
 
-        <div className="absolute top-[10%] left-[10%] w-[40vw] max-w-60 aspect-square bg-gold/10 rounded-full blur-[100px]" />
-        <div className="absolute bottom-[15%] right-[5%] w-[50vw] max-w-72 aspect-square bg-rose-pastel/8 rounded-full blur-[120px]" />
-        <div className="absolute top-[60%] left-[50%] -translate-x-1/2 w-[60vw] max-w-96 h-auto aspect-[2.4/1] bg-gold/5 rounded-full blur-[80px]" />
+        {/* Glows — radial gradients instead of blur for consistent cross-device rendering */}
+        <div className="absolute top-[10%] left-[10%] w-72 h-72 rounded-full" style={{ background: 'radial-gradient(circle, rgba(180,141,62,0.1) 0%, transparent 70%)' }} />
+        <div className="absolute bottom-[15%] right-[5%] w-80 h-80 rounded-full" style={{ background: 'radial-gradient(circle, rgba(248,187,208,0.08) 0%, transparent 70%)' }} />
+        <div className="absolute top-[60%] left-1/2 -translate-x-1/2 w-96 h-40 rounded-full" style={{ background: 'radial-gradient(circle, rgba(180,141,62,0.05) 0%, transparent 70%)' }} />
 
         <div className="relative z-10 max-w-lg mx-auto text-center space-y-6">
           <h1 className="font-display text-4xl sm:text-5xl md:text-6xl text-ivory leading-tight font-bold italic">
@@ -75,7 +75,7 @@ export default function LandingPage() {
           <div className="relative flex justify-center pt-4 pb-2">
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[220px] sm:w-[260px] aspect-square border border-gold/10 rounded-full animate-[spin_45s_linear_infinite]" />
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250px] sm:w-[300px] aspect-square border border-ivory/5 rounded-full animate-[spin_60s_linear_infinite_reverse]" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-36 sm:w-48 aspect-[3/4] bg-gold/15 rounded-full blur-[60px]" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-64 rounded-full" style={{ background: 'radial-gradient(circle, rgba(180,141,62,0.15) 0%, transparent 70%)' }} />
 
             <Link
               href="/dani-marini?to=Tamu+Spesial"
@@ -174,7 +174,7 @@ export default function LandingPage() {
       {/* ── Consultation ── */}
       <section className="relative px-6 py-14 overflow-hidden bg-ink text-ivory">
         <div className="absolute inset-0 bg-gradient-to-b from-ink via-ink/95 to-ink" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] max-w-80 aspect-square bg-gold/8 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full" style={{ background: 'radial-gradient(circle, rgba(180,141,62,0.08) 0%, transparent 70%)' }} />
 
         <div className="relative z-10 max-w-lg mx-auto text-center space-y-5">
           <p className="text-[10px] uppercase tracking-[0.4em] text-gold font-black">Konsultasi Gratis</p>

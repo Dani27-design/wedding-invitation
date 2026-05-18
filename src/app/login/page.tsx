@@ -91,8 +91,8 @@ export default function LoginPage() {
       <title>Masuk | Wedding DM</title>
       <meta name="robots" content="noindex" />
       <div className="min-h-screen bg-ink flex items-center justify-center px-6 relative overflow-hidden">
-        <div className="absolute top-[15%] left-[10%] w-60 h-60 bg-gold/8 rounded-full blur-[100px]" />
-        <div className="absolute bottom-[10%] right-[5%] w-72 h-72 bg-rose-pastel/6 rounded-full blur-[120px]" />
+        <div className="absolute top-[15%] left-[10%] w-60 h-60 rounded-full" style={{ background: 'radial-gradient(circle, rgba(180,141,62,0.08) 0%, transparent 70%)' }} />
+        <div className="absolute bottom-[10%] right-[5%] w-72 h-72 rounded-full" style={{ background: 'radial-gradient(circle, rgba(248,187,208,0.06) 0%, transparent 70%)' }} />
 
         <div className="w-full max-w-sm relative z-10 space-y-6">
           <div className="text-center">

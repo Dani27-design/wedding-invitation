@@ -37,6 +37,23 @@
 
 ---
 
+### ~~LP-006: Landing page missing About and FAQ sections; brand rename to Marinikah Invitation~~ FIXED
+
+**Root cause:** No About section to introduce the brand story. No FAQ section to address common questions before consultation. Brand name was "Marinikah" but should be "Marinikah Invitation" across all pages.
+
+**Resolution:**
+- Added **About section** between Hero and Strengths: "Berawal dari satu pertanyaan sederhana" with brand origin story
+- Added **FAQ section** between Features and Consultation: 6 collapsible `<details>` items (pricing/consultation, setup time, app requirement, editing, sharing, guest limits)
+- Renamed "Marinikah" → "Marinikah Invitation" across 7 files: `page.tsx`, `login/page.tsx`, `register/page.tsx`, `error.tsx`, `ConsultationForm.tsx`, `manifest.ts`, `layout.tsx`
+- Updated metadata (title, siteName, JSON-LD), footer brand, copyright, OG image alt
+- FAQ uses existing `<details>` pattern with `+` icon that rotates on open
+
+Page flow: Hero → About → Strengths → Features → FAQ → Consultation → Footer
+
+**Files changed:** `page.tsx`, `login/page.tsx`, `register/page.tsx`, `error.tsx`, `ConsultationForm.tsx`, `manifest.ts`, `layout.tsx` (7 files)
+
+---
+
 ### ~~SEO-003: Missing security headers~~ FIXED
 
 **Root cause:** Only `Cross-Origin-Opener-Policy` header was configured. Missing `X-Content-Type-Options`, `X-Frame-Options`, and `Referrer-Policy` — standard security headers that prevent MIME sniffing, clickjacking, and referrer leakage.

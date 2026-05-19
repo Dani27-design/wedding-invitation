@@ -84,14 +84,14 @@ export default function RegisterPage() {
   if (isSuccess) {
     return (
       <>
-        <title>Pendaftaran Berhasil | Marinikah</title>
+        <title>Pendaftaran Berhasil | Marinikah Invitation</title>
         <meta name="robots" content="noindex" />
         <div className="min-h-screen bg-ink flex items-center justify-center px-6 relative overflow-hidden">
           <div className="absolute top-[15%] left-[10%] w-60 h-60 bg-gold/8 rounded-full blur-[100px]" />
           <div className="absolute bottom-[10%] right-[5%] w-72 h-72 bg-rose-pastel/6 rounded-full blur-[120px]" />
 
           <div className="w-full max-w-sm relative z-10 text-center space-y-5">
-            <Link href="/" className="font-display italic text-xl text-ivory font-bold hover:text-gold transition-colors">Marinikah</Link>
+            <Link href="/" className="font-display italic text-xl text-ivory font-bold hover:text-gold transition-colors">Marinikah Invitation</Link>
             <h1 className="font-serif italic text-2xl text-ivory">Terima kasih telah mendaftar</h1>
             <p className="font-serif italic text-sm text-ivory/40 leading-relaxed max-w-xs mx-auto">
               Akun Anda sedang dalam proses verifikasi dan akan diaktifkan dalam waktu 1x24 jam. Kami akan mengirimkan notifikasi melalui email setelah semuanya siap.
@@ -110,7 +110,7 @@ export default function RegisterPage() {
 
   return (
     <>
-      <title>Daftar | Marinikah</title>
+      <title>Daftar | Marinikah Invitation</title>
       <meta name="robots" content="noindex" />
       <div className="min-h-screen bg-ink flex items-center justify-center px-6 relative overflow-hidden">
         <div className="absolute top-[15%] left-[10%] w-60 h-60 rounded-full" style={{ background: 'radial-gradient(circle, rgba(180,141,62,0.08) 0%, transparent 70%)' }} />
@@ -118,7 +118,7 @@ export default function RegisterPage() {
 
         <div className="w-full max-w-sm relative z-10 space-y-6">
           <div className="text-center">
-            <Link href="/" className="font-display italic text-xl text-ivory font-bold hover:text-gold transition-colors">Marinikah</Link>
+            <Link href="/" className="font-display italic text-xl text-ivory font-bold hover:text-gold transition-colors">Marinikah Invitation</Link>
             <h1 className="font-serif italic text-2xl text-ivory mt-8 mb-1">Mulai Perjalanan Anda</h1>
             <p className="font-serif italic text-[14px] text-ivory/30">Daftarkan diri untuk mulai membuat undangan pernikahan digital</p>
           </div>

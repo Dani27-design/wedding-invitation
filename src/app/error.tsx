@@ -5,7 +5,7 @@ import Link from 'next/link';
 export default function GlobalError({ reset }: { error: Error; reset: () => void }) {
   return (
     <>
-      <title>Terjadi Kesalahan | Marinikah</title>
+      <title>Terjadi Kesalahan | Marinikah Invitation</title>
       <meta name="robots" content="noindex" />
       <div className="min-h-screen bg-ivory flex items-center justify-center px-6">
         <div className="max-w-sm text-center space-y-4">

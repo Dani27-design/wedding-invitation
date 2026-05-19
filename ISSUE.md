@@ -54,6 +54,22 @@ Page flow: Hero → About → Strengths → Features → FAQ → Consultation �
 
 ---
 
+### ~~ADM-007: Super admin page uninformative and poorly designed~~ FIXED
+
+**Root cause:** Header was bare ("Super Admin" + "Keluar" text). Two separate sticky bars. No dashboard stats. Pendaftar cards had no registration timestamps. Undangan cards had no event date or search. Logout was a text button. No users list tab. "Hapus admin" was inline red text link.
+
+**Resolution:** Full redesign of `src/app/admin/page.tsx`:
+- **Single compact header** with "Marinikah Invitation" brand, LogOut icon button, stats row (pendaftar count in red, total undangan, active count in green), and tabs with icons
+- **3 tabs:** Pendaftar (Users icon), Undangan (FileText icon), Pengguna (UserRound icon, new)
+- **Pendaftar tab:** Registration date shown via `formatDate()`, provider badge, icon buttons (Check/X) instead of text buttons
+- **Undangan tab:** Search filter (slug, couple name, city), couple name as primary display, event date + city inline, status badges (published/draft/archived with distinct colors), admin emails as removable pill chips, ExternalLink icon to manage
+- **Pengguna tab (new):** Lists all users with role badge (super=gold, customer=green, pending=gray), email, registration date, assigned wedding slug as link
+- Stats row highlights pending count in red when > 0
+
+**Files changed:** `src/app/admin/page.tsx` (1 file)
+
+---
+
 ### ~~SEO-003: Missing security headers~~ FIXED
 
 **Root cause:** Only `Cross-Origin-Opener-Policy` header was configured. Missing `X-Content-Type-Options`, `X-Frame-Options`, and `Referrer-Policy` — standard security headers that prevent MIME sniffing, clickjacking, and referrer leakage.

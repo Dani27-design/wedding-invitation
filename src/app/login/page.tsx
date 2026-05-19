@@ -90,15 +90,15 @@ export default function LoginPage() {
     <>
       <title>Masuk | Marinikah Invitation</title>
       <meta name="robots" content="noindex" />
-      <div className="min-h-screen bg-ink flex items-center justify-center px-6 relative overflow-hidden">
+      <div className="min-h-screen bg-ink flex items-start sm:items-center justify-center px-6 py-12 relative overflow-hidden">
         <div className="absolute top-[15%] left-[10%] w-60 h-60 rounded-full" style={{ background: 'radial-gradient(circle, rgba(180,141,62,0.08) 0%, transparent 70%)' }} />
         <div className="absolute bottom-[10%] right-[5%] w-72 h-72 rounded-full" style={{ background: 'radial-gradient(circle, rgba(248,187,208,0.06) 0%, transparent 70%)' }} />
 
-        <div className="w-full max-w-sm relative z-10 space-y-6">
+        <div className="w-full max-w-sm relative z-10 space-y-5">
           <div className="text-center">
             <Link href="/" className="font-display italic text-xl text-ivory font-bold hover:text-gold transition-colors">Marinikah Invitation</Link>
-            <h1 className="font-serif italic text-2xl text-ivory mt-10 mb-1">Selamat Datang Kembali</h1>
-            <p className="font-serif italic text-[14px] text-ivory/30">Masuk untuk melanjutkan pengelolaan undangan Anda</p>
+            <h1 className="font-serif italic text-2xl text-ivory mt-6 mb-1">Selamat Datang Kembali</h1>
+            <p className="font-serif italic text-[13px] text-ivory/30">Masuk untuk melanjutkan pengelolaan undangan Anda</p>
           </div>
 
           <form onSubmit={handleEmailLogin} className="space-y-3">

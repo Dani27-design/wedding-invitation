@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { collection, query, where, getDocs, doc, updateDoc, setDoc, serverTimestamp, deleteDoc, runTransaction, orderBy } from 'firebase/firestore';
+import Link from 'next/link';
+import { collection, query, where, getDocs, doc, updateDoc, deleteDoc, runTransaction, orderBy, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useUser } from '@/hooks/useUser';
 import { signOut } from 'firebase/auth';
@@ -10,8 +11,9 @@ import { auth } from '@/lib/firebase-auth';
 import { UserDocument, WeddingDocument } from '@/types/firestore';
 import { ConfirmDeleteModal } from '@/components/admin/ConfirmDeleteModal';
 import { THEME_DEFAULTS } from '@/constants/themeDefaults';
+import { LogOut, Users, FileText, Search, ExternalLink, Trash2, Check, X, UserRound } from 'lucide-react';
 
-const TABS = ['Pendaftar', 'Undangan'] as const;
+const TABS = ['Pendaftar', 'Undangan', 'Pengguna'] as const;
 
 function createPlaceholderWedding(adminUid: string): Omit<WeddingDocument, 'createdAt' | 'updatedAt'> {
   const defaults = THEME_DEFAULTS.cinematic;
@@ -51,6 +53,12 @@ function createPlaceholderWedding(adminUid: string): Omit<WeddingDocument, 'crea
   };
 }
 
+function formatDate(ts: any): string {
+  if (!ts?.toDate) return '';
+  const d = ts.toDate();
+  return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
 export default function SuperAdminPage() {
   const router = useRouter();
   const { authUser, userDoc, isLoading } = useUser();
@@ -58,7 +66,10 @@ export default function SuperAdminPage() {
   const [pendingUsers, setPendingUsers] = useState<UserDocument[]>([]);
   const [weddings, setWeddings] = useState<{ slug: string; data: WeddingDocument }[]>([]);
   const [customerUsers, setCustomerUsers] = useState<UserDocument[]>([]);
+  const [superAdmins, setSuperAdmins] = useState<UserDocument[]>([]);
+  const [allUsers, setAllUsers] = useState<UserDocument[]>([]);
   const [isDataLoading, setIsDataLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Accept modal state
   const [acceptingUser, setAcceptingUser] = useState<UserDocument | null>(null);
@@ -78,21 +89,35 @@ export default function SuperAdminPage() {
   async function loadData() {
     setIsDataLoading(true);
     try {
-      const [pendingSnap, customerSnap, weddingsSnap] = await Promise.all([
+      const [pendingSnap, customerSnap, weddingsSnap, allUsersSnap] = await Promise.all([
         getDocs(query(collection(db, 'users'), where('role', '==', 'pending'), orderBy('createdAt', 'desc'))),
         getDocs(query(collection(db, 'users'), where('role', '==', 'customer'))),
         getDocs(collection(db, 'weddings')),
+        getDocs(query(collection(db, 'users'), orderBy('createdAt', 'desc'))),
       ]);
 
       setPendingUsers(pendingSnap.docs.map((d) => d.data() as UserDocument));
       setCustomerUsers(customerSnap.docs.map((d) => d.data() as UserDocument));
       setWeddings(weddingsSnap.docs.map((d) => ({ slug: d.id, data: d.data() as WeddingDocument })));
+      setAllUsers(allUsersSnap.docs.map((d) => d.data() as UserDocument));
+      setSuperAdmins(allUsersSnap.docs.filter((d) => d.data().role === 'super').map((d) => d.data() as UserDocument));
     } catch (error) {
       console.error('[SuperAdmin] Load error:', (error as Error).message);
     } finally {
       setIsDataLoading(false);
     }
   }
+
+  const filteredWeddings = useMemo(() => {
+    if (!searchQuery.trim()) return weddings;
+    const q = searchQuery.toLowerCase();
+    return weddings.filter((w) =>
+      w.slug.includes(q) ||
+      w.data.groomNickname.toLowerCase().includes(q) ||
+      w.data.brideNickname.toLowerCase().includes(q) ||
+      w.data.eventCity.toLowerCase().includes(q)
+    );
+  }, [weddings, searchQuery]);
 
   async function handleAccept() {
     if (!acceptingUser) return;
@@ -109,19 +134,14 @@ export default function SuperAdminPage() {
           return;
         }
         targetSlug = newSlug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
-
         const placeholder = createPlaceholderWedding(acceptingUser.uid);
 
         await runTransaction(db, async (transaction) => {
-          // Fresh read: check slug doesn't already exist
           const weddingSnap = await transaction.get(doc(db, 'weddings', targetSlug));
           if (weddingSnap.exists()) throw new Error('Slug sudah digunakan');
-
-          // Fresh read: check user is still pending
           const userSnap = await transaction.get(doc(db, 'users', acceptingUser.uid));
           if (userSnap.data()?.role !== 'pending') throw new Error('User sudah diproses');
 
-          // Atomic writes
           transaction.set(doc(db, 'weddings', targetSlug), {
             ...placeholder,
             createdAt: serverTimestamp(),
@@ -141,17 +161,13 @@ export default function SuperAdminPage() {
         targetSlug = selectedSlug;
 
         await runTransaction(db, async (transaction) => {
-          // Fresh read: check wedding exists and has room
           const weddingSnap = await transaction.get(doc(db, 'weddings', targetSlug));
           if (!weddingSnap.exists()) throw new Error('Undangan tidak ditemukan');
           const adminIds = weddingSnap.data().adminIds ?? [];
           if (adminIds.length >= 2) throw new Error('Undangan sudah memiliki 2 admin (maksimal)');
-
-          // Fresh read: check user is still pending
           const userSnap = await transaction.get(doc(db, 'users', acceptingUser.uid));
           if (userSnap.data()?.role !== 'pending') throw new Error('User sudah diproses');
 
-          // Atomic writes
           transaction.update(doc(db, 'weddings', targetSlug), {
             adminIds: [...adminIds, acceptingUser.uid],
             updatedAt: serverTimestamp(),
@@ -189,7 +205,6 @@ export default function SuperAdminPage() {
       if (!wedding) return;
       const newIds = (wedding.data.adminIds ?? []).filter((id) => id !== uid);
       await updateDoc(doc(db, 'weddings', slug), { adminIds: newIds, updatedAt: serverTimestamp() });
-      // Clear the user's assigned slug
       await updateDoc(doc(db, 'users', uid), { assignedWeddingSlug: null });
       await loadData();
     } catch (error) {
@@ -228,122 +243,219 @@ export default function SuperAdminPage() {
     });
   };
 
+  const publishedCount = weddings.filter((w) => w.data.status === 'published').length;
+
   return (
     <div className="min-h-screen bg-ivory">
-      <header className="sticky top-0 z-50 bg-ivory/90 backdrop-blur-md border-b border-gold/10 px-4 py-3">
-        <div className="max-w-2xl mx-auto flex items-center justify-between">
-          <h1 className="font-serif italic text-lg text-ink">Super Admin</h1>
-          <button
-            onClick={() => { signOut(auth); router.push('/login'); }}
-            className="text-xs uppercase tracking-widest text-ink/40 hover:text-ink transition-colors"
-          >
-            Keluar
-          </button>
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-ivory/90 backdrop-blur-md border-b border-gold/10 px-4 py-2">
+        <div className="max-w-2xl mx-auto">
+          <div className="flex items-center justify-between mb-2">
+            <p className="font-serif italic text-sm text-ink font-bold">Marinikah Invitation</p>
+            <button
+              onClick={() => { signOut(auth); router.push('/login'); }}
+              className="w-7 h-7 flex items-center justify-center rounded-lg text-ink/30 hover:text-red-500 hover:bg-red-50 transition-colors"
+              aria-label="Keluar"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {/* Stats row */}
+          {!isDataLoading && (
+            <div className="flex items-center gap-4 mb-2 text-[10px] text-ink/40 font-bold uppercase tracking-wider">
+              <span className={pendingUsers.length > 0 ? 'text-red-500' : ''}>{pendingUsers.length} pendaftar</span>
+              <span className="text-ink/15">|</span>
+              <span>{weddings.length} undangan</span>
+              <span className="text-ink/15">|</span>
+              <span className="text-green-600">{publishedCount} aktif</span>
+            </div>
+          )}
+
+          {/* Tabs */}
+          <div role="tablist" className="flex gap-1">
+            {TABS.map((tab, i) => (
+              <button
+                key={tab}
+                role="tab"
+                id={`super-tab-${i}`}
+                aria-selected={i === activeTab}
+                aria-controls="super-admin-tabpanel"
+                tabIndex={i === activeTab ? 0 : -1}
+                onClick={() => setActiveTab(i)}
+                onKeyDown={(e) => {
+                  let target: number | null = null;
+                  if (e.key === 'ArrowRight') target = (i + 1) % TABS.length;
+                  else if (e.key === 'ArrowLeft') target = (i - 1 + TABS.length) % TABS.length;
+                  else if (e.key === 'Home') target = 0;
+                  else if (e.key === 'End') target = TABS.length - 1;
+                  if (target === null) return;
+                  e.preventDefault();
+                  document.getElementById(`super-tab-${target}`)?.focus();
+                  setActiveTab(target);
+                }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold tracking-wider transition-all ${
+                  i === activeTab ? 'bg-gold text-ivory' : 'text-ink/40 hover:text-ink/70'
+                }`}
+              >
+                {i === 0 ? <Users className="w-3 h-3" /> : i === 1 ? <FileText className="w-3 h-3" /> : <UserRound className="w-3 h-3" />}
+                {tab}
+                {i === 0 && pendingUsers.length > 0 && (
+                  <span className="bg-red-500 text-white text-[8px] px-1.5 py-0.5 rounded-full leading-none">{pendingUsers.length}</span>
+                )}
+              </button>
+            ))}
+          </div>
         </div>
       </header>
 
-      <nav className="sticky top-[53px] z-40 bg-ivory/90 backdrop-blur-md border-b border-gold/10">
-        <div role="tablist" className="flex px-4 py-2 gap-1 max-w-2xl mx-auto">
-          {TABS.map((tab, i) => (
-            <button
-              key={tab}
-              role="tab"
-              id={`super-tab-${i}`}
-              aria-selected={i === activeTab}
-              aria-controls="super-admin-tabpanel"
-              tabIndex={i === activeTab ? 0 : -1}
-              onClick={() => setActiveTab(i)}
-              onKeyDown={(e) => {
-                let target: number | null = null;
-                if (e.key === 'ArrowRight') target = (i + 1) % TABS.length;
-                else if (e.key === 'ArrowLeft') target = (i - 1 + TABS.length) % TABS.length;
-                else if (e.key === 'Home') target = 0;
-                else if (e.key === 'End') target = TABS.length - 1;
-                if (target === null) return;
-                e.preventDefault();
-                document.getElementById(`super-tab-${target}`)?.focus();
-                setActiveTab(target);
-              }}
-              className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-wider transition-all ${
-                i === activeTab ? 'bg-gold text-ivory' : 'text-ink/40 hover:text-ink/70'
-              }`}
-            >
-              {tab}
-              {i === 0 && pendingUsers.length > 0 && (
-                <span className="ml-1.5 bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded-full">{pendingUsers.length}</span>
-              )}
-            </button>
-          ))}
-        </div>
-      </nav>
-
-      <main role="tabpanel" id="super-admin-tabpanel" aria-labelledby={`super-tab-${activeTab}`} className="max-w-2xl mx-auto px-4 py-6">
+      <main role="tabpanel" id="super-admin-tabpanel" aria-labelledby={`super-tab-${activeTab}`} className="max-w-2xl mx-auto px-4 py-4">
         {isDataLoading ? (
           <p className="text-center text-xs text-ink/30 tracking-widest uppercase py-10">Memuat data...</p>
         ) : activeTab === 0 ? (
-          // ─── Pending Users Tab ───
-          <div className="space-y-3">
+          /* ─── Pending Users Tab ─── */
+          <div className="space-y-2">
             {pendingUsers.length === 0 ? (
               <p className="text-center text-xs text-ink/30 tracking-widest uppercase py-10">Tidak ada pendaftar baru</p>
             ) : (
               pendingUsers.map((u) => (
-                <div key={u.uid} className="bg-white/60 border border-gold/10 rounded-xl p-4 flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="font-serif italic text-sm text-ink truncate">{u.displayName}</p>
-                    <p className="text-[10px] text-ink/40 truncate">{u.email}</p>
-                    <p className="text-[10px] text-ink/20 uppercase tracking-wider">{u.provider}</p>
+                <div key={u.uid} className="flex items-center gap-3 px-3 py-2.5 bg-white/50 border border-gold/10 rounded-2xl">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-ink truncate font-medium">{u.displayName}</p>
+                      <span className="text-[8px] px-1.5 py-0.5 rounded-full uppercase font-bold tracking-wider bg-ink/5 text-ink/30 flex-shrink-0">{u.provider}</span>
+                    </div>
+                    <p className="text-[10px] text-ink/35 truncate">{u.email}</p>
+                    {u.createdAt && <p className="text-[9px] text-ink/25">{formatDate(u.createdAt)}</p>}
                   </div>
-                  <div className="flex gap-2 flex-shrink-0">
+                  <div className="flex gap-1.5 flex-shrink-0">
                     <button
                       onClick={() => setAcceptingUser(u)}
-                      className="px-3 py-1.5 bg-green-500 text-white rounded-full text-[10px] font-bold uppercase tracking-wider"
+                      className="w-8 h-8 flex items-center justify-center rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition-colors"
+                      aria-label={`Terima ${u.displayName}`}
                     >
-                      Terima
+                      <Check className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => setRejectTarget(u)}
-                      className="px-3 py-1.5 border border-red-300 text-red-500 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                      className="w-8 h-8 flex items-center justify-center rounded-lg text-red-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                      aria-label={`Tolak ${u.displayName}`}
                     >
-                      Tolak
+                      <X className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
               ))
             )}
           </div>
-        ) : (
-          // ─── Weddings Tab ───
+        ) : activeTab === 1 ? (
+          /* ─── Weddings Tab ─── */
           <div className="space-y-3">
-            {weddings.length === 0 ? (
-              <p className="text-center text-xs text-ink/30 tracking-widest uppercase py-10">Belum ada undangan</p>
+            {/* Search */}
+            {weddings.length > 3 && (
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink/30" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Cari slug, nama, atau kota..."
+                  aria-label="Cari undangan"
+                  className="w-full pl-9 pr-4 py-2 border border-gold/20 rounded-full text-xs bg-white focus:outline-none focus:border-gold/50"
+                />
+              </div>
+            )}
+
+            {filteredWeddings.length === 0 ? (
+              <p className="text-center text-xs text-ink/30 tracking-widest uppercase py-10">
+                {weddings.length === 0 ? 'Belum ada undangan' : 'Tidak ada hasil'}
+              </p>
             ) : (
-              weddings.map((w) => (
-                <div key={w.slug} className="bg-white/60 border border-gold/10 rounded-xl p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <a href={`/admin/${w.slug}`} className="font-serif italic text-sm text-ink hover:text-gold transition-colors">
-                      /{w.slug}
-                    </a>
-                    <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full ${
-                      w.data.status === 'published' ? 'text-green-600 bg-green-50' : 'text-ink/40 bg-ink/5'
-                    }`}>
-                      {w.data.status}
-                    </span>
+              <div className="border border-gold/10 rounded-2xl overflow-hidden divide-y divide-gold/5">
+                {filteredWeddings.map((w) => (
+                  <div key={w.slug} className="px-3 py-3 bg-white/40">
+                    <div className="flex items-start justify-between gap-2 mb-1.5">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <Link href={`/admin/${w.slug}`} className="text-sm text-ink hover:text-gold transition-colors font-medium truncate">
+                            {w.data.groomNickname} & {w.data.brideNickname}
+                          </Link>
+                          <span className={`text-[8px] px-1.5 py-0.5 rounded-full uppercase font-bold tracking-wider flex-shrink-0 ${
+                            w.data.status === 'published' ? 'text-green-600 bg-green-50' : w.data.status === 'archived' ? 'text-ink/30 bg-ink/5' : 'text-gold bg-gold/10'
+                          }`}>
+                            {w.data.status}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-ink/30 truncate">/{w.slug}{w.data.eventDate && ` · ${w.data.eventDate}`}{w.data.eventCity && ` · ${w.data.eventCity}`}</p>
+                      </div>
+                      <div className="flex gap-1 flex-shrink-0">
+                        <Link
+                          href={`/admin/${w.slug}`}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-ink/30 hover:text-gold hover:bg-gold/5 transition-colors"
+                          aria-label={`Kelola ${w.slug}`}
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </Link>
+                      </div>
+                    </div>
+                    {/* Admin list */}
+                    <div className="flex flex-wrap gap-1.5">
+                      {(w.data.adminIds ?? []).map((uid) => {
+                        const email = customerUsers.find((cu) => cu?.uid === uid)?.email ?? superAdmins.find((sa) => sa?.uid === uid)?.email ?? uid;
+                        return (
+                          <span key={uid} className="inline-flex items-center gap-1 text-[9px] text-ink/35 bg-ink/5 px-2 py-0.5 rounded-full">
+                            {email}
+                            <button
+                              onClick={() => setRemoveAdminTarget({ slug: w.slug, uid })}
+                              className="text-red-300 hover:text-red-500 transition-colors"
+                              aria-label={`Hapus admin ${email}`}
+                            >
+                              <X className="w-2.5 h-2.5" />
+                            </button>
+                          </span>
+                        );
+                      })}
+                      {(w.data.adminIds ?? []).length === 0 && (
+                        <span className="text-[9px] text-ink/20">Belum ada admin</span>
+                      )}
+                    </div>
                   </div>
-                  <p className="text-xs text-ink/60 mb-2">{w.data.groomNickname} & {w.data.brideNickname}</p>
-                  <div className="text-[10px] text-ink/30 space-y-0.5">
-                    <p>Admin: {(w.data.adminIds ?? []).length === 0 ? 'Belum ditugaskan' : getAdminEmails(w.data.adminIds ?? []).join(', ')}</p>
-                    {(w.data.adminIds ?? []).map((uid) => (
-                      <button
-                        key={uid}
-                        onClick={() => setRemoveAdminTarget({ slug: w.slug, uid })}
-                        className="text-red-400 hover:text-red-600 underline underline-offset-2 mr-2"
-                      >
-                        Hapus {customerUsers.find((cu) => cu.uid === uid)?.email ?? uid}
-                      </button>
-                    ))}
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          /* ─── Users Tab ─── */
+          <div className="space-y-2">
+            {allUsers.length === 0 ? (
+              <p className="text-center text-xs text-ink/30 tracking-widest uppercase py-10">Belum ada pengguna</p>
+            ) : (
+              <div className="border border-gold/10 rounded-2xl overflow-hidden divide-y divide-gold/5">
+                {allUsers.map((u) => (
+                  <div key={u.uid} className="flex items-center gap-3 px-3 py-2.5 bg-white/40">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm text-ink truncate">{u.displayName}</p>
+                        <span className={`text-[8px] px-1.5 py-0.5 rounded-full uppercase font-bold tracking-wider flex-shrink-0 ${
+                          u.role === 'super' ? 'text-gold bg-gold/10' : u.role === 'customer' ? 'text-green-600 bg-green-50' : 'text-ink/40 bg-ink/5'
+                        }`}>
+                          {u.role}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-ink/35 truncate">{u.email}</p>
+                      <div className="flex items-center gap-2 text-[9px] text-ink/25">
+                        {u.createdAt && <span>{formatDate(u.createdAt)}</span>}
+                        {u.assignedWeddingSlug && (
+                          <>
+                            <span>·</span>
+                            <Link href={`/admin/${u.assignedWeddingSlug}`} className="text-gold/60 hover:text-gold">/{u.assignedWeddingSlug}</Link>
+                          </>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))
+                ))}
+              </div>
             )}
           </div>
         )}
@@ -402,7 +514,7 @@ export default function SuperAdminPage() {
                   onChange={(e) => setSelectedSlug(e.target.value)}
                   className="w-full px-3 py-2 border border-gold/20 rounded-xl text-sm bg-white focus:outline-none focus:border-gold/50"
                 >
-                  <option value="">— Pilih —</option>
+                  <option value="">Pilih undangan</option>
                   {weddings
                     .filter((w) => (w.data.adminIds ?? []).length < 2)
                     .map((w) => (

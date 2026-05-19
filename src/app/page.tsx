@@ -109,7 +109,6 @@ export default function LandingPage() {
         <div className="absolute top-[60%] left-1/2 -translate-x-1/2 w-96 h-40 rounded-full" style={{ background: 'radial-gradient(circle, rgba(180,141,62,0.05) 0%, transparent 70%)' }} />
 
         <div className="relative z-10 max-w-lg mx-auto text-center space-y-6">
-          <NextImage src="/images/logo-2.jpeg" alt="Marinikah Invitation" width={64} height={64} className="mx-auto rounded-full border border-ivory/10" />
           <h1 className="font-display text-4xl sm:text-5xl md:text-6xl text-ivory leading-tight font-bold italic">
             Satu Tautan untuk Hari yang Tak Terlupakan
           </h1>

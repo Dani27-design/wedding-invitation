@@ -5,8 +5,8 @@ import { BASE_URL } from '@/constants/baseUrl';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Undangan Pernikahan',
-  description: 'Undangan Pernikahan Digital',
+  title: 'Marinikah - Undangan Pernikahan Digital',
+  description: 'Undangan pernikahan digital yang elegan dan berkesan',
   metadataBase: new URL(BASE_URL),
 };
 

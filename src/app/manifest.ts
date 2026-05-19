@@ -2,9 +2,9 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Undangan Pernikahan',
-    short_name: 'Undangan',
-    description: 'Undangan Pernikahan Digital',
+    name: 'Marinikah - Undangan Pernikahan Digital',
+    short_name: 'Marinikah',
+    description: 'Undangan pernikahan digital yang elegan dan berkesan',
     start_url: '/',
     display: 'standalone',
     background_color: '#FDFCF8',

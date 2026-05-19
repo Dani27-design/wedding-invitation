@@ -9,7 +9,7 @@ export function ConsultationForm() {
   const [message, setMessage] = useState('');
 
   const handleSend = () => {
-    const text = `Halo, saya ${name.trim() || 'calon pengantin'}.\n\n${message.trim() || 'Saya ingin bertanya tentang undangan digital Wedding DM.'}`;
+    const text = `Halo, saya ${name.trim() || 'calon pengantin'}.\n\n${message.trim() || 'Saya ingin bertanya tentang undangan digital Marinikah.'}`;
     window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
   };
 

@@ -7,10 +7,31 @@ import { PetalEffect } from '@/components/ui/PetalEffect';
 import { FloatingPetals } from '@/components/ui/FloatingPetals';
 
 
+import { BASE_URL } from '@/constants/baseUrl';
+
+const title = 'Marinikah | Undangan Pernikahan Digital Premium';
+const description = 'Buat undangan pernikahan digital dengan desain elegan, RSVP online, twibbon interaktif, galeri sinematik, dan personalisasi tamu. Praktis dibagikan, indah dikenang.';
+
 export const metadata: Metadata = {
-  title: 'Wedding DM | Undangan Pernikahan Digital Premium',
-  description: 'Buat undangan pernikahan digital dengan desain elegan, RSVP online, twibbon interaktif, galeri sinematik, dan personalisasi tamu. Praktis dibagikan, indah dikenang.',
+  title,
+  description,
   robots: { index: true, follow: true },
+  alternates: { canonical: BASE_URL },
+  openGraph: {
+    title,
+    description,
+    url: BASE_URL,
+    siteName: 'Marinikah',
+    type: 'website',
+    locale: 'id_ID',
+    images: [{ url: '/images/logo-1.jpeg', width: 1200, height: 630, alt: 'Marinikah - Undangan Pernikahan Digital Premium' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title,
+    description,
+    images: ['/images/logo-1.jpeg'],
+  },
 };
 
 const FEATURE_GROUPS = [
@@ -48,9 +69,26 @@ const FEATURE_GROUPS = [
   },
 ];
 
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: 'Marinikah',
+  url: BASE_URL,
+  description,
+  applicationCategory: 'DesignApplication',
+  operatingSystem: 'Web',
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'IDR', description: 'Gratis untuk memulai' },
+  provider: {
+    '@type': 'Organization',
+    name: 'Marinikah',
+    url: BASE_URL,
+  },
+};
+
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-ivory text-ink overflow-x-hidden">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <BackgroundLayers />
 
       {/* ── Hero ── */}
@@ -117,7 +155,7 @@ export default function LandingPage() {
 
         <div className="relative z-10 max-w-lg mx-auto">
           <div className="text-center mb-4">
-            <p className="text-[10px] uppercase tracking-[0.4em] text-gold-contrast font-black mb-2">Mengapa Wedding DM?</p>
+            <p className="text-[10px] uppercase tracking-[0.4em] text-gold-contrast font-black mb-2">Mengapa Marinikah?</p>
             <h2 className="font-serif italic text-2xl sm:text-3xl text-ink">
               Bukan sekadar undangan, tetapi pengalaman yang hidup
             </h2>
@@ -201,7 +239,7 @@ export default function LandingPage() {
       <footer className="px-6 py-8 border-t border-gold/5">
         <div className="max-w-lg mx-auto">
           <div className="text-center mb-3">
-            <p className="font-display italic text-xl text-ink font-bold mb-1">Wedding DM</p>
+            <p className="font-serif italic text-xl text-ink font-bold mb-1 lowercase">marinikah</p>
             <p className="font-serif italic text-[13px] text-ink/35">Undangan pernikahan digital yang elegan dan berkesan</p>
           </div>
           <div className="flex items-center justify-center gap-6 mb-3">
@@ -216,7 +254,7 @@ export default function LandingPage() {
             <Heart className="w-3 h-3 text-gold/20" />
             <div className="w-12 h-px bg-gold/10" />
           </div>
-          <p className="text-[9px] text-ink/25 text-center">&copy; {new Date().getFullYear()} Wedding DM. All rights reserved.</p>
+          <p className="text-[9px] text-ink/25 text-center">&copy; {new Date().getFullYear()} Marinikah. All rights reserved.</p>
         </div>
       </footer>
     </div>

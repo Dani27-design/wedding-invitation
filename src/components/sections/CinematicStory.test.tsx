@@ -17,6 +17,8 @@ const mockAddComment = vi.fn();
 vi.mock('../../context/WeddingContext', () => ({
   useWeddingContext: () => ({
     story: STORY_SLIDES,
+    groomNickname: 'Dani',
+    brideNickname: 'Marini',
   }),
 }));
 
@@ -153,7 +155,7 @@ describe('CinematicStory', () => {
   describe('images', () => {
     it('renders images for active slide and neighbors only', () => {
       renderStory();
-      const images = screen.getAllByAltText('Memory');
+      const images = screen.getAllByAltText(/Dani & Marini/);
       // Active slide (0) + neighbor (1) = 2 images rendered
       expect(images.length).toBeLessThanOrEqual(STORY_SLIDES.length);
       expect(images.length).toBeGreaterThan(0);
@@ -161,7 +163,7 @@ describe('CinematicStory', () => {
 
     it('main images use object-contain for smart fit', () => {
       renderStory();
-      const images = screen.getAllByAltText('Memory');
+      const images = screen.getAllByAltText(/Dani & Marini/);
       images.forEach((img) => {
         expect(img).toHaveClass('object-contain');
       });
@@ -169,7 +171,7 @@ describe('CinematicStory', () => {
 
     it('images use object-contain for smart fit', () => {
       renderStory();
-      const images = screen.getAllByAltText('Memory');
+      const images = screen.getAllByAltText(/Dani & Marini/);
       images.forEach((img) => {
         expect(img.className).toContain('object-contain');
       });
@@ -177,7 +179,7 @@ describe('CinematicStory', () => {
 
     it('images have object-contain for smart fit', () => {
       renderStory();
-      const images = screen.getAllByAltText('Memory');
+      const images = screen.getAllByAltText(/Dani & Marini/);
       images.forEach((img) => {
         expect(img.className).toContain('object-contain');
       });
@@ -185,7 +187,7 @@ describe('CinematicStory', () => {
 
     it('images have referrerPolicy no-referrer', () => {
       renderStory();
-      const images = screen.getAllByAltText('Memory');
+      const images = screen.getAllByAltText(/Dani & Marini/);
       images.forEach((img) => {
         expect(img).toHaveAttribute('referrerpolicy', 'no-referrer');
       });
@@ -193,7 +195,7 @@ describe('CinematicStory', () => {
 
     it('first image src matches first slide background', () => {
       renderStory();
-      const images = screen.getAllByAltText('Memory');
+      const images = screen.getAllByAltText(/Dani & Marini/);
       expect(images[0]).toHaveAttribute('src', STORY_SLIDES[0].bgImage);
     });
   });
@@ -402,22 +404,22 @@ describe('CinematicStory', () => {
 
     it('images use object-contain without grayscale', () => {
       renderStory();
-      const images = screen.getAllByAltText('Memory');
+      const images = screen.getAllByAltText(/Dani & Marini/);
       images.forEach((img) => {
         expect(img.className).toContain('object-contain');
         expect(img.className).not.toContain('grayscale');
       });
     });
 
-    it('like button has backdrop-blur effect', () => {
+    it('like button has dark background', () => {
       const { container } = renderStory();
-      const blurCircles = container.querySelectorAll('.backdrop-blur-md');
-      expect(blurCircles.length).toBeGreaterThan(0);
+      const darkButtons = container.querySelectorAll('.bg-black\\/40');
+      expect(darkButtons.length).toBeGreaterThan(0);
     });
 
     it('like and comment buttons have dark background', () => {
       const { container } = renderStory();
-      const bgElements = container.querySelectorAll('.bg-black\\/20');
+      const bgElements = container.querySelectorAll('.bg-black\\/40');
       expect(bgElements.length).toBeGreaterThan(0);
     });
 

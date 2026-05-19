@@ -22,6 +22,8 @@ const GALLERY_ITEMS = GALLERY_URLS.map((src, i) => ({ src, ...getGalleryLayout(i
 vi.mock('../../context/WeddingContext', () => ({
   useWeddingContext: () => ({
     gallery: GALLERY_URLS,
+    groomNickname: 'Dani',
+    brideNickname: 'Marini',
   }),
 }));
 
@@ -65,7 +67,7 @@ describe('PhotoGallery', () => {
     it('renders consistently on re-render', () => {
       const { rerender } = render(<PhotoGallery onSelectPhoto={vi.fn()} />);
       rerender(<PhotoGallery onSelectPhoto={vi.fn()} />);
-      const images = screen.getAllByAltText(/Foto kenangan/);
+      const images = screen.getAllByAltText(/Galeri Dani & Marini/);
       expect(images).toHaveLength(12);
     });
 
@@ -84,54 +86,54 @@ describe('PhotoGallery', () => {
   describe('images', () => {
     it('renders exactly 12 gallery images', () => {
       renderGallery();
-      const images = screen.getAllByAltText(/Foto kenangan/);
+      const images = screen.getAllByAltText(/Galeri Dani & Marini/);
       expect(images).toHaveLength(12);
     });
 
     it('all images use object-cover', () => {
       renderGallery();
-      const images = screen.getAllByAltText(/Foto kenangan/);
+      const images = screen.getAllByAltText(/Galeri Dani & Marini/);
       images.forEach((img) => {
         expect(img).toHaveClass('object-cover');
       });
     });
 
-    it('images have alt text "Foto kenangan N" for each index', () => {
+    it('images have contextual alt text with couple names for each index', () => {
       renderGallery();
       for (let i = 0; i < 12; i++) {
-        expect(screen.getByAltText(`Foto kenangan ${i + 1}`)).toBeInTheDocument();
+        expect(screen.getByAltText(`Galeri Dani & Marini - foto ${i + 1}`)).toBeInTheDocument();
       }
     });
 
     it('first image has correct src path', () => {
       renderGallery();
-      const img = screen.getByAltText('Foto kenangan 1');
+      const img = screen.getByAltText('Galeri Dani & Marini - foto 1');
       expect(img).toHaveAttribute('src', '/images/bride_face_potrait.jpeg');
     });
 
     it('second image has correct src path', () => {
       renderGallery();
-      const img = screen.getByAltText('Foto kenangan 2');
+      const img = screen.getByAltText('Galeri Dani & Marini - foto 2');
       expect(img).toHaveAttribute('src', '/images/bride_and_groom_full_body_potrait.jpeg');
     });
 
     it('third image has correct src path', () => {
       renderGallery();
-      const img = screen.getByAltText('Foto kenangan 3');
+      const img = screen.getByAltText('Galeri Dani & Marini - foto 3');
       expect(img).toHaveAttribute('src', '/images/groom_face_potrait.jpeg');
     });
 
     it('each image src matches GALLERY_ITEMS constant', () => {
       renderGallery();
       GALLERY_ITEMS.forEach((item, i) => {
-        const img = screen.getByAltText(`Foto kenangan ${i + 1}`);
+        const img = screen.getByAltText(`Galeri Dani & Marini - foto ${i + 1}`);
         expect(img).toHaveAttribute('src', item.src);
       });
     });
 
     it('images have object-cover for proper aspect ratio', () => {
       renderGallery();
-      const images = screen.getAllByAltText(/Foto kenangan/);
+      const images = screen.getAllByAltText(/Galeri Dani & Marini/);
       images.forEach((img) => {
         expect(img.className).toContain('object-cover');
       });
@@ -139,7 +141,7 @@ describe('PhotoGallery', () => {
 
     it('images have object-cover to fill container', () => {
       renderGallery();
-      const images = screen.getAllByAltText(/Foto kenangan/);
+      const images = screen.getAllByAltText(/Galeri Dani & Marini/);
       images.forEach((img) => {
         expect(img.className).toContain('object-cover');
       });
@@ -147,7 +149,7 @@ describe('PhotoGallery', () => {
 
     it('images have transition-transform for hover animation', () => {
       renderGallery();
-      const images = screen.getAllByAltText(/Foto kenangan/);
+      const images = screen.getAllByAltText(/Galeri Dani & Marini/);
       images.forEach((img) => {
         expect(img.className).toContain('transition-transform');
       });
@@ -155,7 +157,7 @@ describe('PhotoGallery', () => {
 
     it('images have referrerPolicy no-referrer', () => {
       renderGallery();
-      const images = screen.getAllByAltText(/Foto kenangan/);
+      const images = screen.getAllByAltText(/Galeri Dani & Marini/);
       images.forEach((img) => {
         expect(img).toHaveAttribute('referrerpolicy', 'no-referrer');
       });
@@ -167,7 +169,7 @@ describe('PhotoGallery', () => {
     it('clicking first image calls onSelectPhoto with its src', () => {
       const onSelectPhoto = vi.fn();
       renderGallery(onSelectPhoto);
-      const firstImage = screen.getByAltText('Foto kenangan 1');
+      const firstImage = screen.getByAltText('Galeri Dani & Marini - foto 1');
       const clickable = firstImage.closest('.cursor-zoom-in');
       fireEvent.click(clickable!);
       expect(onSelectPhoto).toHaveBeenCalledWith('/images/bride_face_potrait.jpeg');
@@ -176,7 +178,7 @@ describe('PhotoGallery', () => {
     it('clicking second image calls onSelectPhoto with its src', () => {
       const onSelectPhoto = vi.fn();
       renderGallery(onSelectPhoto);
-      const img = screen.getByAltText('Foto kenangan 2');
+      const img = screen.getByAltText('Galeri Dani & Marini - foto 2');
       fireEvent.click(img.closest('.cursor-zoom-in')!);
       expect(onSelectPhoto).toHaveBeenCalledWith('/images/bride_and_groom_full_body_potrait.jpeg');
     });
@@ -184,7 +186,7 @@ describe('PhotoGallery', () => {
     it('clicking third image calls onSelectPhoto with groom src', () => {
       const onSelectPhoto = vi.fn();
       renderGallery(onSelectPhoto);
-      const img = screen.getByAltText('Foto kenangan 3');
+      const img = screen.getByAltText('Galeri Dani & Marini - foto 3');
       fireEvent.click(img.closest('.cursor-zoom-in')!);
       expect(onSelectPhoto).toHaveBeenCalledWith('/images/groom_face_potrait.jpeg');
     });
@@ -193,7 +195,7 @@ describe('PhotoGallery', () => {
       const onSelectPhoto = vi.fn();
       renderGallery(onSelectPhoto);
       GALLERY_ITEMS.forEach((item, i) => {
-        const img = screen.getByAltText(`Foto kenangan ${i + 1}`);
+        const img = screen.getByAltText(`Galeri Dani & Marini - foto ${i + 1}`);
         fireEvent.click(img.closest('.cursor-zoom-in')!);
         expect(onSelectPhoto).toHaveBeenLastCalledWith(item.src);
       });
@@ -203,8 +205,8 @@ describe('PhotoGallery', () => {
     it('clicking multiple images in sequence calls onSelectPhoto correctly', () => {
       const onSelectPhoto = vi.fn();
       renderGallery(onSelectPhoto);
-      const img0 = screen.getByAltText('Foto kenangan 1').closest('.cursor-zoom-in')!;
-      const img5 = screen.getByAltText('Foto kenangan 6').closest('.cursor-zoom-in')!;
+      const img0 = screen.getByAltText('Galeri Dani & Marini - foto 1').closest('.cursor-zoom-in')!;
+      const img5 = screen.getByAltText('Galeri Dani & Marini - foto 6').closest('.cursor-zoom-in')!;
       fireEvent.click(img0);
       fireEvent.click(img5);
       expect(onSelectPhoto).toHaveBeenCalledTimes(2);
@@ -382,7 +384,7 @@ describe('PhotoGallery', () => {
 
     it('images have backface-visibility hidden for rendering optimization', () => {
       renderGallery();
-      const images = screen.getAllByAltText(/Foto kenangan/);
+      const images = screen.getAllByAltText(/Galeri Dani & Marini/);
       images.forEach((img) => {
         expect(img.className).toContain('[backface-visibility:hidden]');
       });
@@ -393,13 +395,13 @@ describe('PhotoGallery', () => {
       // For index 0: 0, index 1: 0.1, index 2: 0.2, index 3: 0.3, index 4+: 0.3
       // We verify the gallery renders all 12 items correctly despite delay cap
       renderGallery();
-      const images = screen.getAllByAltText(/Foto kenangan/);
+      const images = screen.getAllByAltText(/Galeri Dani & Marini/);
       expect(images.length).toBe(12);
     });
 
     it('all images are rendered for performance', () => {
       renderGallery();
-      const images = screen.getAllByAltText(/Foto kenangan/);
+      const images = screen.getAllByAltText(/Galeri Dani & Marini/);
       expect(images).toHaveLength(12);
     });
   });
@@ -468,7 +470,7 @@ describe('PhotoGallery', () => {
 
     it('no image has eager loading', () => {
       renderGallery();
-      const images = screen.getAllByAltText(/Foto kenangan/);
+      const images = screen.getAllByAltText(/Galeri Dani & Marini/);
       images.forEach((img) => {
         expect(img.getAttribute('loading')).not.toBe('eager');
       });
@@ -478,7 +480,7 @@ describe('PhotoGallery', () => {
       const { container } = renderGallery();
       const section = container.querySelector('section');
       expect(section).toBeInTheDocument();
-      const images = screen.getAllByAltText(/Foto kenangan/);
+      const images = screen.getAllByAltText(/Galeri Dani & Marini/);
       expect(images.length).toBe(GALLERY_ITEMS.length);
     });
 

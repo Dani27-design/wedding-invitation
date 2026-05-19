@@ -182,7 +182,7 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
                   onError={(e) => { e.currentTarget.style.display = 'none'; }}
                   className="object-contain opacity-85"
                   style={{ zIndex: 2 }}
-                  alt="Memory"
+                  alt={`${wedding?.groomNickname ?? ''} & ${wedding?.brideNickname ?? ''} - ${slide.year || `kisah ${idx + 1}`}`}
                   referrerPolicy="no-referrer"
                 />
               ) : null}

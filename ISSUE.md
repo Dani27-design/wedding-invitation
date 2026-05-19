@@ -37,6 +37,51 @@
 
 ---
 
+### ~~SEO-003: Missing security headers~~ FIXED
+
+**Root cause:** Only `Cross-Origin-Opener-Policy` header was configured. Missing `X-Content-Type-Options`, `X-Frame-Options`, and `Referrer-Policy` — standard security headers that prevent MIME sniffing, clickjacking, and referrer leakage.
+
+**Resolution:** Added 3 security headers to `next.config.ts` `headers()`:
+- `X-Content-Type-Options: nosniff` — prevents browsers from MIME-sniffing responses
+- `X-Frame-Options: SAMEORIGIN` — prevents clickjacking via iframe embedding from other domains
+- `Referrer-Policy: strict-origin-when-cross-origin` — limits referrer data sent to third parties
+
+**Files changed:** `next.config.ts` (1 file)
+
+---
+
+### ~~SEO-002: Brand name inconsistency and missing OG image~~ FIXED
+
+**Root cause:** Entire codebase used "Wedding DM" as brand name, but logo assets (`logo-1.jpeg`, `logo-2.jpeg`) show the brand is "marinikah". OG image and Twitter image fields were empty on landing page, preventing rich social previews.
+
+**Resolution:**
+- Renamed all "Wedding DM" references to "Marinikah" across 6 files: `page.tsx`, `login/page.tsx`, `register/page.tsx`, `error.tsx`, `ConsultationForm.tsx`, `manifest.ts`, `layout.tsx`
+- Added `logo-1.jpeg` as OG image (1200×630) and Twitter image (`summary_large_image`) on landing page
+- Updated manifest: name "Marinikah - Undangan Pernikahan Digital", short_name "Marinikah"
+- Updated root layout metadata with Marinikah branding
+- Footer brand rendered as lowercase "marinikah" matching the logo wordmark style
+
+**Files changed:** `page.tsx`, `login/page.tsx`, `register/page.tsx`, `error.tsx`, `ConsultationForm.tsx`, `manifest.ts`, `layout.tsx` (7 files)
+
+---
+
+### ~~SEO-001: Landing page missing OpenGraph, Twitter Cards, canonical, and structured data~~ FIXED
+
+**Root cause:** Company profile page had title and description but no OpenGraph tags, no Twitter Card tags, no canonical URL, no JSON-LD structured data. Social sharing (WhatsApp, Facebook, Twitter) showed no rich preview. Landing page was also missing from the sitemap.
+
+**Resolution:**
+- Added `openGraph` (title, description, url, siteName, type, locale) and `twitter` (card, title, description) to landing page metadata
+- Added `alternates.canonical` pointing to `BASE_URL`
+- Added JSON-LD `WebApplication` + `Organization` schema with service description and free offer
+- Added landing page (`/`) to sitemap with `priority: 1.0` — sitemap now returns static pages even if Firestore query fails
+- Improved gallery alt texts: "Foto kenangan 1" → "Galeri {groom} & {bride} - foto 1" (contextual)
+- Improved story slide alt texts: "Memory" → "{groom} & {bride} - {year}" (contextual)
+- Created global `error.tsx` with noindex, "Coba Lagi" reset button, and "Halaman Utama" link
+
+**Files changed:** `page.tsx`, `sitemap.ts`, `PhotoGallery.tsx`, `CinematicStory.tsx`, `error.tsx` (new) — 5 files
+
+---
+
 ### ~~LP-001: Landing page lacks visual depth, product showcase, and social proof~~ FIXED
 
 **Root cause:** Hero was text on solid dark background with invisible decorative blurs (5%/3% opacity). No product screenshot, no social proof, no visual hooks. Feature cards were plain with no hover interaction. Footer had no navigation. Two sections repeated the same CTA pattern.

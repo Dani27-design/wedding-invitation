@@ -88,7 +88,7 @@ export default function LoginPage() {
 
   return (
     <>
-      <title>Masuk | Wedding DM</title>
+      <title>Masuk | Marinikah</title>
       <meta name="robots" content="noindex" />
       <div className="min-h-screen bg-ink flex items-center justify-center px-6 relative overflow-hidden">
         <div className="absolute top-[15%] left-[10%] w-60 h-60 rounded-full" style={{ background: 'radial-gradient(circle, rgba(180,141,62,0.08) 0%, transparent 70%)' }} />
@@ -96,7 +96,7 @@ export default function LoginPage() {
 
         <div className="w-full max-w-sm relative z-10 space-y-6">
           <div className="text-center">
-            <Link href="/" className="font-display italic text-xl text-ivory font-bold hover:text-gold transition-colors">Wedding DM</Link>
+            <Link href="/" className="font-display italic text-xl text-ivory font-bold hover:text-gold transition-colors">Marinikah</Link>
             <h1 className="font-serif italic text-2xl text-ivory mt-10 mb-1">Selamat Datang Kembali</h1>
             <p className="font-serif italic text-[14px] text-ivory/30">Masuk untuk melanjutkan pengelolaan undangan Anda</p>
           </div>

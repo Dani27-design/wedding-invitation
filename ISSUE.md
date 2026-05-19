@@ -85,11 +85,11 @@ Page flow: Hero → About → Strengths → Features → FAQ → Consultation �
 
 ### ~~SEO-002: Brand name inconsistency and missing OG image~~ FIXED
 
-**Root cause:** Entire codebase used "Wedding DM" as brand name, but logo assets (`logo-1.jpeg`, `logo-2.jpeg`) show the brand is "marinikah". OG image and Twitter image fields were empty on landing page, preventing rich social previews.
+**Root cause:** Entire codebase used "Wedding DM" as brand name, but logo assets (`logo-1.png`, `logo-1.png`) show the brand is "marinikah". OG image and Twitter image fields were empty on landing page, preventing rich social previews.
 
 **Resolution:**
 - Renamed all "Wedding DM" references to "Marinikah" across 6 files: `page.tsx`, `login/page.tsx`, `register/page.tsx`, `error.tsx`, `ConsultationForm.tsx`, `manifest.ts`, `layout.tsx`
-- Added `logo-1.jpeg` as OG image (1200×630) and Twitter image (`summary_large_image`) on landing page
+- Added `logo-1.png` as OG image (1200×630) and Twitter image (`summary_large_image`) on landing page
 - Updated manifest: name "Marinikah - Undangan Pernikahan Digital", short_name "Marinikah"
 - Updated root layout metadata with Marinikah branding
 - Footer brand rendered as lowercase "marinikah" matching the logo wordmark style

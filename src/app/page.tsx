@@ -23,13 +23,13 @@ export const metadata: Metadata = {
     siteName: 'Marinikah Invitation',
     type: 'website',
     locale: 'id_ID',
-    images: [{ url: '/images/logo-1.jpeg', width: 1200, height: 630, alt: 'Marinikah Invitation' }],
+    images: [{ url: '/images/logo-1.png', width: 1200, height: 630, alt: 'Marinikah Invitation' }],
   },
   twitter: {
     card: 'summary_large_image',
     title,
     description,
-    images: ['/images/logo-1.jpeg'],
+    images: ['/images/logo-1.png'],
   },
 };
 
@@ -100,7 +100,7 @@ export default function LandingPage() {
       <BackgroundLayers />
 
       {/* ── Hero ── */}
-      <section className="relative min-h-screen-safe flex flex-col items-start sm:items-center justify-center px-6 py-12 sm:py-16 bg-ink text-ivory overflow-hidden overflow-y-auto">
+      <section className="relative min-h-screen-safe flex flex-col items-start sm:items-center justify-center px-6 py-3 bg-ink text-ivory overflow-hidden overflow-y-auto rounded-b-3xl">
         <div className="absolute inset-0 bg-gradient-to-b from-ink via-ink/95 to-ink" />
         <PetalEffect />
 
@@ -109,8 +109,9 @@ export default function LandingPage() {
         <div className="absolute top-[60%] left-1/2 -translate-x-1/2 w-96 h-40 rounded-full" style={{ background: 'radial-gradient(circle, rgba(180,141,62,0.05) 0%, transparent 70%)' }} />
 
         <div className="relative z-10 max-w-lg mx-auto text-center space-y-4 sm:space-y-6">
-          <h1 className="font-display text-3xl sm:text-5xl md:text-6xl text-ivory leading-tight font-bold italic">
-            Satu Tautan untuk Hari yang Tak Terlupakan
+          <NextImage src="/images/logo-1.png" alt="Marinikah Invitation" width={120} height={30} className="mx-auto my-0 p-0" />
+          <h1 className="font-display text-2xl sm:text-4xl md:text-5xl text-ivory leading-tight font-bold italic">
+            Sebuah Cerita untuk Hari yang Tak Terlupakan
           </h1>
           <p className="font-serif italic text-sm sm:text-lg text-ivory/45 max-w-md mx-auto leading-relaxed">
             Hadirkan momen pernikahan Anda dalam pengalaman digital yang elegan, personal, dan penuh cerita. Dirancang untuk terasa hangat, indah, dan berkesan bagi setiap tamu yang membuka.
@@ -118,18 +119,18 @@ export default function LandingPage() {
 
           {/* Phone mockup */}
           <div className="relative flex justify-center pt-2 sm:pt-4 pb-2">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[180px] sm:w-[260px] aspect-square border border-gold/10 rounded-full animate-[spin_45s_linear_infinite]" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] sm:w-[300px] aspect-square border border-ivory/5 rounded-full animate-[spin_60s_linear_infinite_reverse]" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-36 sm:w-48 h-48 sm:h-64 rounded-full" style={{ background: 'radial-gradient(circle, rgba(180,141,62,0.15) 0%, transparent 70%)' }} />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[260px] sm:w-[340px] aspect-square border border-gold/10 rounded-full animate-[spin_45s_linear_infinite]" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[290px] sm:w-[380px] aspect-square border border-ivory/5 rounded-full animate-[spin_60s_linear_infinite_reverse]" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 sm:w-60 h-60 sm:h-80 rounded-full" style={{ background: 'radial-gradient(circle, rgba(180,141,62,0.15) 0%, transparent 70%)' }} />
 
             <Link
               href="/dani-marini?to=Tamu+Spesial"
-              className="relative block w-[120px] sm:w-[170px] rounded-[14px] sm:rounded-[20px] overflow-hidden border-2 border-ivory/15 shadow-2xl shadow-gold/20 hover:scale-[1.03] hover:border-gold/30 transition-all duration-500 aspect-[9/16]"
+              className="relative block w-[200px] sm:w-[240px] rounded-[22px] sm:rounded-[26px] overflow-hidden border-2 border-ivory/15 shadow-2xl shadow-gold/20 hover:scale-[1.03] hover:border-gold/30 transition-all duration-500 aspect-[9/16]"
             >
               <iframe
                 src="/dani-marini?to=Tamu+Spesial"
                 title="Demo undangan"
-                className="absolute top-0 left-0 w-[375px] h-[667px] origin-top-left pointer-events-none scale-[0.32] sm:scale-[0.453]"
+                className="absolute top-0 left-0 w-[375px] h-[667px] origin-top-left pointer-events-none scale-[0.533] sm:scale-[0.64]"
                 loading="lazy"
               />
               <div className="absolute inset-0" />
@@ -284,7 +285,7 @@ export default function LandingPage() {
       <footer className="px-6 py-8 border-t border-gold/5">
         <div className="max-w-lg mx-auto">
           <div className="flex justify-center mb-3">
-            <NextImage src="/images/logo-1.jpeg" alt="Marinikah Invitation" width={180} height={90} className="opacity-80 w-[140px] sm:w-[180px] h-auto" />
+            <NextImage src="/images/logo-1.png" alt="Marinikah Invitation" width={180} height={90} className="opacity-80 w-[140px] sm:w-[180px] h-auto" />
           </div>
           <div className="flex items-center justify-center gap-6 mb-3">
             <Link href="/dani-marini?to=Tamu+Spesial" className="text-[10px] text-ink/70 uppercase tracking-wider hover:text-gold transition-colors">Coba</Link>

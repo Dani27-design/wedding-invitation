@@ -113,7 +113,7 @@ export default function LandingPage() {
           <h1 className="font-display text-2xl sm:text-4xl md:text-5xl text-ivory leading-tight font-bold italic">
             Sebuah Cerita untuk Hari yang Tak Terlupakan
           </h1>
-          <p className="font-serif italic text-sm sm:text-lg text-ivory/45 max-w-md mx-auto leading-relaxed">
+          <p className="font-serif italic text-lg text-ivory/60 max-w-md mx-auto leading-relaxed">
             Hadirkan momen pernikahan Anda dalam pengalaman digital yang elegan, personal, dan penuh cerita. Dirancang untuk terasa hangat, indah, dan berkesan bagi setiap tamu yang membuka.
           </p>
 
@@ -147,7 +147,7 @@ export default function LandingPage() {
             </Link>
             <Link
               href="/dani-marini?to=Tamu+Spesial"
-              className="group px-8 py-3 border border-ivory/20 text-ivory/60 rounded-full text-xs uppercase tracking-[0.2em] font-black hover:border-gold hover:text-gold transition-colors flex items-center gap-2"
+              className="group px-8 py-3 border border-ivory/30 text-ivory/80 rounded-full text-xs uppercase tracking-[0.2em] font-black hover:border-gold hover:text-gold transition-colors flex items-center gap-2"
             >
               Lihat Contoh
               <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
@@ -159,12 +159,12 @@ export default function LandingPage() {
       {/* ── About ── */}
       <section className="px-6 py-12">
         <div className="max-w-md mx-auto text-center">
-          <p className="text-[10px] uppercase tracking-[0.4em] text-gold-contrast font-black mb-2">Tentang Kami</p>
+          <p className="text-xs uppercase tracking-[0.4em] text-gold-contrast font-black mb-2">Tentang Kami</p>
           <h2 className="font-serif italic text-2xl sm:text-3xl text-ink mb-4">
             Berawal dari satu pertanyaan sederhana
           </h2>
-          <p className="font-serif italic text-sm text-ink/45 leading-relaxed">
-            Bagaimana jika undangan pernikahan bisa terasa seindah hari pernikahan itu sendiri? Dari pertanyaan itulah Marinikah Invitation hadir, dibangun dengan hati oleh pasangan yang percaya bahwa undangan bukan sekadar informasi, tetapi bagian dari cerita cinta itu sendiri. Dirancang untuk pasangan yang ingin menyampaikan kisah mereka dengan cara yang lebih bermakna.
+          <p className="font-serif italic text-lg text-ink/60 leading-relaxed">
+            "Bagaimana jika undangan pernikahan bisa terasa seindah hari pernikahan itu sendiri?"<br></br>Dari pertanyaan itulah Marinikah Wedding Invitation hadir, dibangun dengan hati oleh pasangan yang percaya bahwa undangan bukan sekadar informasi, tetapi bagian dari cerita cinta itu sendiri.<br></br>Dirancang untuk pasangan yang ingin menyampaikan kisah mereka dengan cara yang lebih bermakna.
           </p>
         </div>
       </section>
@@ -175,7 +175,7 @@ export default function LandingPage() {
 
         <div className="relative z-10 max-w-lg mx-auto">
           <div className="text-center mb-4">
-            <p className="text-[10px] uppercase tracking-[0.4em] text-gold-contrast font-black mb-2">Mengapa Marinikah Invitation?</p>
+            <p className="text-xs uppercase tracking-[0.4em] text-gold-contrast font-black mb-2">Mengapa Marinikah Invitation?</p>
             <h2 className="font-serif italic text-2xl sm:text-3xl text-ink">
               Bukan sekadar undangan, tetapi pengalaman yang hidup
             </h2>
@@ -192,8 +192,8 @@ export default function LandingPage() {
               <div key={title} className="flex gap-4">
                 <div className={`w-1 rounded-full bg-gradient-to-b ${color} flex-shrink-0`} />
                 <div className="py-1">
-                  <p className="font-serif italic text-sm text-ink mb-0.5">{title}</p>
-                  <p className="text-[11px] text-ink/40 leading-relaxed">{desc}</p>
+                  <p className="text-md font-serif font-semibold text-gold-contrast mb-0.5">{title}</p>
+                  <p className="text-md text-ink/60 leading-relaxed font-serif italic">{desc}</p>
                 </div>
               </div>
             ))}
@@ -202,24 +202,26 @@ export default function LandingPage() {
       </section>
 
       {/* ── Features ── */}
-      <section className="px-6 py-12 bg-paper/30 border-y border-gold/5">
+      <section className="px-6 py-12 bg-paper border-y border-gold/10">
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-5">
-            <p className="text-[10px] uppercase tracking-[0.4em] text-gold-contrast font-black mb-2">Dirancang untuk<br />Hari Istimewa Anda</p>
+            <p className="text-xs uppercase tracking-[0.4em] text-gold-contrast font-black mb-2">Dirancang untuk Hari Istimewa Anda</p>
             <h2 className="font-serif italic text-2xl sm:text-3xl text-ink">
-              Hadirkan cerita, suasana, dan kebahagiaan dalam satu pengalaman digital
+              Hadirkan suasana dan kebahagiaan dalam satu pengalaman digital
             </h2>
           </div>
 
-          <div className="space-y-5">
+          <div className="space-y-8">
             {FEATURE_GROUPS.map(({ label, items }) => (
               <div key={label}>
-                <p className="text-[10px] text-center uppercase tracking-[0.3em] text-gold font-black mb-3">{label}</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                <p className="text-xs uppercase tracking-[0.3em] text-gold font-black mb-4">{label}</p>
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                   {items.map(({ icon: Icon, title }) => (
-                    <div key={title} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/60 border border-gold/5">
-                      <Icon className="w-3.5 h-3.5 text-gold/60 flex-shrink-0" />
-                      <span className="text-[11px] text-ink/60 leading-tight">{title}</span>
+                    <div key={title} className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-white/70 hover:bg-white hover:shadow-md hover:shadow-gold/5 hover:-translate-y-0.5 transition-all duration-300 text-center">
+                      <div className="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center">
+                        <Icon className="w-3.5 h-3.5 text-gold" />
+                      </div>
+                      <span className="text-[10px] text-ink/70 leading-tight">{title}</span>
                     </div>
                   ))}
                 </div>
@@ -229,11 +231,60 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── FAQ ── */}
+      {/* ── Gallery Showcase ── */}
       <section className="px-6 py-12">
+        <div className="max-w-2xl mx-auto">
+          <div className="text-center mb-6">
+            <p className="text-xs uppercase tracking-[0.4em] text-gold-contrast font-black mb-2">Tampilan Produk</p>
+            <h2 className="font-serif italic text-2xl sm:text-3xl text-ink">
+              Lihat langsung seperti apa undangan dan pengelolaannya
+            </h2>
+          </div>
+
+          {/* Invitation previews */}
+          <p className="text-xs uppercase tracking-[0.3em] text-gold font-black mb-3">Undangan Digital</p>
+          <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2 mb-8 -mx-6 px-6">
+            {[
+              { src: '/images/admin-landing/invitation-hero-preview.png', alt: 'Halaman utama undangan' },
+              { src: '/images/admin-landing/invitation-couple-preview.png', alt: 'Profil pasangan' },
+              { src: '/images/admin-landing/invitation-story-preview.png', alt: 'Cerita cinta' },
+              { src: '/images/admin-landing/invitation-event-preview.png', alt: 'Detail acara' },
+              { src: '/images/admin-landing/invitation-twibbon-preview.png', alt: 'Twibbon tamu' },
+              { src: '/images/admin-landing/invitation-rsvp-preview.png', alt: 'RSVP dan ucapan' },
+            ].map(({ src, alt }) => (
+              <div key={src} className="w-[120px] sm:w-[150px] flex-shrink-0 rounded-xl overflow-hidden border border-gold/10 shadow-sm leading-none">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={src} alt={alt} className="w-full block" />
+              </div>
+            ))}
+          </div>
+
+          {/* Admin panel previews */}
+          <p className="text-xs uppercase tracking-[0.3em] text-gold font-black mb-3">Panel Admin</p>
+          <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6">
+            {[
+              { src: '/images/admin-landing/admin-form-event.png', alt: 'Kelola acara' },
+              { src: '/images/admin-landing/admin-form-story.png', alt: 'Kelola cerita' },
+              { src: '/images/admin-landing/admin-form-theme.png', alt: 'Pilih tema' },
+              { src: '/images/admin-landing/admin-guest.png', alt: 'Daftar tamu' },
+              { src: '/images/admin-landing/admin-guest-qrcode.png', alt: 'QR code tamu' },
+              { src: '/images/admin-landing/admin-form-guest.png', alt: 'Kelola tamu' },
+              { src: '/images/admin-landing/admin-login.png', alt: 'Halaman masuk' },
+            ].map(({ src, alt }) => (
+              <div key={src} className="w-[120px] sm:w-[150px] flex-shrink-0 rounded-xl overflow-hidden border border-gold/10 shadow-sm leading-none">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={src} alt={alt} className="w-full block" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FAQ ── */}
+      <section className="px-6 py-8">
         <div className="max-w-lg mx-auto">
           <div className="text-center mb-6">
-            <p className="text-[10px] uppercase tracking-[0.4em] text-gold-contrast font-black mb-2">Pertanyaan Umum</p>
+            <p className="text-xs uppercase tracking-[0.4em] text-gold-contrast font-black mb-2">Pertanyaan Umum</p>
             <h2 className="font-serif italic text-2xl sm:text-3xl text-ink">
               Hal yang sering ditanyakan
             </h2>
@@ -247,7 +298,7 @@ export default function LandingPage() {
                   <span className="text-gold/40 text-lg leading-none ml-3 flex-shrink-0 group-open:rotate-45 transition-transform">+</span>
                 </summary>
                 <div className="px-4 pb-3 border-t border-gold/5">
-                  <p className="font-serif italic text-xs text-ink/45 leading-relaxed pt-3">{a}</p>
+                  <p className="font-serif text-sm text-ink/80 leading-relaxed pt-3">{a}</p>
                 </div>
               </details>
             ))}
@@ -261,19 +312,19 @@ export default function LandingPage() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full" style={{ background: 'radial-gradient(circle, rgba(180,141,62,0.08) 0%, transparent 70%)' }} />
 
         <div className="relative z-10 max-w-lg mx-auto text-center space-y-5">
-          <p className="text-[10px] uppercase tracking-[0.4em] text-gold font-black">Konsultasi Gratis</p>
+          <p className="text-xs uppercase tracking-[0.4em] text-gold font-black">Konsultasi Gratis</p>
           <h2 className="font-display italic text-2xl sm:text-3xl text-ivory font-bold">
             Wujudkan undangan digital anda yang benar-benar berkesan
           </h2>
-          <p className="font-serif italic text-sm text-ivory/40 leading-relaxed max-w-sm mx-auto">
+          <p className="font-serif italic text-lg text-ivory/80 leading-relaxed max-w-sm mx-auto">
             Ada pertanyaan atau ingin berdiskusi? Sampaikan melalui WhatsApp dan tim kami akan segera membantu.
           </p>
           <ConsultationForm />
           <div className="flex items-center gap-3 justify-center pt-2">
-            <span className="text-[10px] text-ivory/25">atau langsung</span>
+            <span className="text-xs text-ivory/50">atau langsung</span>
             <Link
               href="/register"
-              className="text-[10px] text-gold font-black uppercase tracking-widest hover:underline underline-offset-4"
+              className="text-xs text-gold font-black uppercase tracking-widest hover:underline underline-offset-4"
             >
               Daftar Sekarang
             </Link>
@@ -282,24 +333,25 @@ export default function LandingPage() {
       </section>
 
       {/* ── Footer ── */}
-      <footer className="px-6 py-8 border-t border-gold/5">
+      <footer className="px-6 py-5 border-t border-gold/5">
         <div className="max-w-lg mx-auto">
           <div className="flex justify-center mb-3">
             <NextImage src="/images/logo-1.png" alt="Marinikah Invitation" width={180} height={90} className="opacity-80 w-[140px] sm:w-[180px] h-auto" />
           </div>
           <div className="flex items-center justify-center gap-6 mb-3">
-            <Link href="/dani-marini?to=Tamu+Spesial" className="text-[10px] text-ink/70 uppercase tracking-wider hover:text-gold transition-colors">Coba</Link>
+            <Link href="/dani-marini?to=Tamu+Spesial" className="text-xs text-ink/70 uppercase tracking-wider hover:text-gold transition-colors">Coba</Link>
             <div className="w-1 h-1 rounded-full bg-gold/20" />
-            <Link href="/register" className="text-[10px] text-ink/70 uppercase tracking-wider hover:text-gold transition-colors">Daftar</Link>
+            <Link href="/register" className="text-xs text-ink/70 uppercase tracking-wider hover:text-gold transition-colors">Daftar</Link>
             <div className="w-1 h-1 rounded-full bg-gold/20" />
-            <Link href="/login" className="text-[10px] text-ink/70 uppercase tracking-wider hover:text-gold transition-colors">Masuk</Link>
+            <Link href="/login" className="text-xs text-ink/70 uppercase tracking-wider hover:text-gold transition-colors">Masuk</Link>
           </div>
           <div className="flex items-center justify-center gap-3 mb-3">
-            <div className="w-12 h-px bg-gold/10" />
-            <Heart className="w-3 h-3 text-gold/20" />
-            <div className="w-12 h-px bg-gold/10" />
+            <div className="w-12 h-px bg-gold/20" />
+            <Heart className="w-3 h-3 text-gold/40" />
+            <div className="w-12 h-px bg-gold/20" />
           </div>
-          <p className="text-[9px] text-ink/25 text-center">&copy; {new Date().getFullYear()} Marinikah Invitation. All rights reserved.</p>
+          <p className="text-[12px] text-ink/70 text-center">&copy; {new Date().getFullYear()} Marinikah Wedding Invitation</p>
+          <p className="text-[12px] text-ink/50 text-center font-serif italic">Build with Love by Marini & Dani</p>
         </div>
       </footer>
     </div>

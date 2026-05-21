@@ -126,13 +126,13 @@ export default function LandingPage() {
               >
                 Mulai Membuat
               </Link>
-              <Link
-                href="/dani-marini?to=Tamu+Spesial"
+              <a
+                href="#gallery"
                 className="group px-8 py-3 border border-ivory/30 text-ivory/80 rounded-full text-xs uppercase tracking-[0.2em] font-black hover:border-gold hover:text-gold transition-colors flex items-center gap-2"
               >
                 Lihat Contoh
                 <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-              </Link>
+              </a>
             </div>
           </div>
 
@@ -142,19 +142,17 @@ export default function LandingPage() {
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[290px] sm:w-[380px] aspect-square border border-ivory/5 rounded-full animate-[spin_60s_linear_infinite_reverse]" />
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 sm:w-60 h-60 sm:h-80 rounded-full" style={{ background: 'radial-gradient(circle, rgba(180,141,62,0.15) 0%, transparent 70%)' }} />
 
-            <Link
-              href="/dani-marini?to=Tamu+Spesial"
-              className="relative block w-[200px] sm:w-[240px] lg:w-[220px] rounded-[22px] sm:rounded-[26px] overflow-hidden border-2 border-ivory/15 shadow-2xl shadow-gold/20 hover:scale-[1.03] hover:border-gold/30 transition-all duration-500 aspect-[9/16]"
-            >
+            <div className="relative block w-[200px] sm:w-[240px] lg:w-[220px] rounded-[22px] sm:rounded-[26px] overflow-hidden border-2 border-ivory/15 shadow-2xl shadow-gold/20 aspect-[9/16]">
               <iframe
                 src="/dani-marini?to=Tamu+Spesial"
                 title="Demo undangan"
                 className="absolute top-0 left-0 w-[375px] h-[667px] origin-top-left pointer-events-none scale-[0.533] sm:scale-[0.64] lg:scale-[0.587]"
                 loading="lazy"
+                sandbox="allow-scripts allow-same-origin"
               />
               <div className="absolute inset-0" />
               <div className="absolute inset-0 bg-gradient-to-br from-ivory/10 via-transparent to-transparent" />
-            </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -235,7 +233,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Gallery Showcase ── */}
-      <section className="px-6 py-12">
+      <section id="gallery" className="px-6 py-12 scroll-mt-4">
         <div className="max-w-2xl lg:max-w-6xl mx-auto">
           <div className="text-center mb-6">
             <p className="text-xs uppercase tracking-[0.4em] text-gold-contrast font-black mb-2">pratinjau</p>
@@ -341,7 +339,6 @@ export default function LandingPage() {
 
             {/* Nav */}
             <div className="flex items-center gap-2">
-              <Link href="/dani-marini?to=Tamu+Spesial" className="px-4 py-1.5 border border-gold/20 rounded-full text-[10px] uppercase tracking-widest text-ink/60 font-bold hover:border-gold hover:text-gold transition-colors">Coba</Link>
               <Link href="/register" className="px-4 py-1.5 border border-gold/20 rounded-full text-[10px] uppercase tracking-widest text-ink/60 font-bold hover:border-gold hover:text-gold transition-colors">Daftar</Link>
               <Link href="/login" className="px-4 py-1.5 border border-gold/20 rounded-full text-[10px] uppercase tracking-widest text-ink/60 font-bold hover:border-gold hover:text-gold transition-colors">Masuk</Link>
             </div>

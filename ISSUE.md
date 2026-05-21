@@ -37,6 +37,22 @@
 
 ---
 
+### ~~ADM-008: CreditForm lacks icon picker, max limit, and developer restriction~~ FIXED
+
+**Root cause:** Credits tab used a dropdown with only 3 roles (developer/designer/other), no limit on number of credits, and anyone could select "developer" role.
+
+**Resolution:**
+- Created shared `src/constants/creditIcons.ts` with 24 icon options (Code, Palette, Camera, Music, Video, Heart, Sparkles, Flower, Star, Gem, Pen, Brush, Scissors, Book, Gift, Cake, Church, Car, Plane, MapPin, Sun, Moon, Crown, Ribbon)
+- `CreditForm` now shows a 6-column icon picker grid instead of a dropdown. Selected icon highlighted with gold ring.
+- Max 2 credits enforced — "Tambah" button hidden when 2 credits exist, counter shows `N/2`
+- Developer role (`Code` icon) only appears when credit name matches "M. Daniansyah C." via `restricted: true` flag
+- `Footer.tsx` on invitation page updated to use `CREDIT_ICON_MAP` from shared constants — supports all 24 icons with Heart fallback
+- No database schema change — `role` field stays as string, just stores more values (e.g., `'camera'`, `'music'`, `'flower'`)
+
+**Files changed:** `creditIcons.ts` (new), `CreditForm.tsx`, `Footer.tsx` (3 files)
+
+---
+
 ### ~~LP-006: Landing page missing About and FAQ sections; brand rename to Marinikah Invitation~~ FIXED
 
 **Root cause:** No About section to introduce the brand story. No FAQ section to address common questions before consultation. Brand name was "Marinikah" but should be "Marinikah Invitation" across all pages.

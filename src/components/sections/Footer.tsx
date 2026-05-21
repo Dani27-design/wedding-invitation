@@ -1,7 +1,8 @@
 'use client';
 import { ReactNode, memo } from 'react';
 import { motion } from 'motion/react';
-import { Heart, Code, Palette, Instagram, Linkedin, LucideIcon, MessageCircle } from 'lucide-react';
+import { Heart, Instagram, Linkedin, LucideIcon, MessageCircle } from 'lucide-react';
+import { CREDIT_ICON_MAP } from '../../constants/creditIcons';
 import { useWeddingContext } from '../../context/WeddingContext';
 import { deriveWhatsappUrl, deriveCopyright } from '../../utils/weddingDerived';
 import { safeUrl } from '../../utils/safeUrl';
@@ -19,10 +20,7 @@ const SocialLink = ({ href, label, children }: { href: string; label: string; ch
   <motion.a href={href} aria-label={label} target="_blank" rel="noopener noreferrer" whileHover={{ y: -3, color: 'var(--color-gold)' }} className="text-ink">{children}</motion.a>
 );
 
-const ROLE_ICONS: Record<string, LucideIcon> = {
-  developer: Code,
-  designer: Palette,
-};
+const ROLE_ICONS: Record<string, LucideIcon> = CREDIT_ICON_MAP;
 
 const getIcon = (label: string) => {
   const norm = label.toLowerCase();

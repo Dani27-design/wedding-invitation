@@ -7,9 +7,12 @@ interface ConfirmDeleteModalProps {
   message: string;
   onConfirm: () => void;
   onCancel: () => void;
+  title?: string;
+  confirmLabel?: string;
+  variant?: 'danger' | 'warning';
 }
 
-export function ConfirmDeleteModal({ isOpen, message, onConfirm, onCancel }: ConfirmDeleteModalProps) {
+export function ConfirmDeleteModal({ isOpen, message, onConfirm, onCancel, title, confirmLabel, variant = 'danger' }: ConfirmDeleteModalProps) {
   return (
     <AnimatePresence>
       {isOpen && (
@@ -28,9 +31,9 @@ export function ConfirmDeleteModal({ isOpen, message, onConfirm, onCancel }: Con
             className="relative bg-white rounded-[2rem] p-8 shadow-2xl border border-gold/10 w-full max-w-xs text-center"
           >
             <div className="flex flex-col items-center gap-4 py-4">
-              <AlertCircle className="w-12 h-12 text-red-400" />
+              <AlertCircle className={`w-12 h-12 ${variant === 'danger' ? 'text-red-400' : 'text-gold'}`} />
               <div className="space-y-1">
-                <h3 className="font-serif italic text-lg text-ink">Konfirmasi Hapus</h3>
+                <h3 className="font-serif italic text-lg text-ink">{title ?? 'Konfirmasi Hapus'}</h3>
                 <p className="text-xs text-ink/60 leading-relaxed">{message}</p>
               </div>
               <div className="flex gap-3 mt-4 w-full">
@@ -42,9 +45,9 @@ export function ConfirmDeleteModal({ isOpen, message, onConfirm, onCancel }: Con
                 </button>
                 <button
                   onClick={onConfirm}
-                  className="flex-1 py-2.5 bg-red-500 text-white rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-lg hover:scale-105 transition-transform"
+                  className={`flex-1 py-2.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-lg hover:scale-105 transition-transform ${variant === 'danger' ? 'bg-red-500 text-white' : 'bg-gold text-ivory'}`}
                 >
-                  Hapus
+                  {confirmLabel ?? 'Hapus'}
                 </button>
               </div>
             </div>

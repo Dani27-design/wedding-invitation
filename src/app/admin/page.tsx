@@ -11,7 +11,7 @@ import { auth } from '@/lib/firebase-auth';
 import { UserDocument, WeddingDocument } from '@/types/firestore';
 import { ConfirmDeleteModal } from '@/components/admin/ConfirmDeleteModal';
 import { THEME_DEFAULTS } from '@/constants/themeDefaults';
-import { LogOut, Users, FileText, Search, ExternalLink, Trash2, Check, X, UserRound } from 'lucide-react';
+import { LogOut, Users, FileText, Search, ExternalLink, Trash2, Check, X, UserRound, Globe, Archive, UserPlus } from 'lucide-react';
 
 const TABS = ['Pendaftar', 'Undangan', 'Pengguna'] as const;
 
@@ -80,6 +80,19 @@ export default function SuperAdminPage() {
   const [isAccepting, setIsAccepting] = useState(false);
   const [rejectTarget, setRejectTarget] = useState<UserDocument | null>(null);
   const [removeAdminTarget, setRemoveAdminTarget] = useState<{ slug: string; uid: string } | null>(null);
+  const [deleteUserTarget, setDeleteUserTarget] = useState<UserDocument | null>(null);
+  const [deleteWeddingTarget, setDeleteWeddingTarget] = useState<string | null>(null);
+  const [toggleStatusTarget, setToggleStatusTarget] = useState<{ slug: string; current: string } | null>(null);
+  const [addAdminTarget, setAddAdminTarget] = useState<string | null>(null);
+  const [addAdminSelectedUid, setAddAdminSelectedUid] = useState('');
+  const [addAdminSearch, setAddAdminSearch] = useState('');
+  const [addAdminError, setAddAdminError] = useState('');
+  const [isAddingAdmin, setIsAddingAdmin] = useState(false);
+  const [assignUserTarget, setAssignUserTarget] = useState<UserDocument | null>(null);
+  const [assignSelectedSlug, setAssignSelectedSlug] = useState('');
+  const [assignSearch, setAssignSearch] = useState('');
+  const [assignError, setAssignError] = useState('');
+  const [isAssigning, setIsAssigning] = useState(false);
 
   useEffect(() => {
     if (isLoading || !authUser || userDoc?.role !== 'super') return;
@@ -209,6 +222,131 @@ export default function SuperAdminPage() {
       await loadData();
     } catch (error) {
       console.error('[SuperAdmin] Remove admin error:', (error as Error).message);
+    }
+  }
+
+  async function handleDeleteUser(user: UserDocument) {
+    try {
+      // Clear assigned wedding admin if exists
+      if (user.assignedWeddingSlug) {
+        const wedding = weddings.find((w) => w.slug === user.assignedWeddingSlug);
+        if (wedding) {
+          const newIds = (wedding.data.adminIds ?? []).filter((id) => id !== user.uid);
+          await updateDoc(doc(db, 'weddings', user.assignedWeddingSlug), { adminIds: newIds, updatedAt: serverTimestamp() });
+        }
+      }
+      await deleteDoc(doc(db, 'users', user.uid));
+      await loadData();
+    } catch (error) {
+      console.error('[SuperAdmin] Delete user error:', (error as Error).message);
+    }
+  }
+
+  async function handleToggleStatus(slug: string, current: string) {
+    try {
+      const newStatus = current === 'published' ? 'archived' : 'published';
+      await updateDoc(doc(db, 'weddings', slug), { status: newStatus, updatedAt: serverTimestamp() });
+      await loadData();
+    } catch (error) {
+      console.error('[SuperAdmin] Toggle status error:', (error as Error).message);
+    }
+  }
+
+  async function handleDeleteWedding(slug: string) {
+    try {
+      const wedding = weddings.find((w) => w.slug === slug);
+      if (wedding) {
+        for (const uid of wedding.data.adminIds ?? []) {
+          await updateDoc(doc(db, 'users', uid), { assignedWeddingSlug: null });
+        }
+      }
+      await deleteDoc(doc(db, 'weddings', slug));
+      await loadData();
+    } catch (error) {
+      console.error('[SuperAdmin] Delete wedding error:', (error as Error).message);
+    }
+  }
+
+  async function handleAddAdmin() {
+    if (!addAdminTarget || !addAdminSelectedUid) {
+      setAddAdminError('Pilih pengguna');
+      return;
+    }
+    setAddAdminError('');
+    setIsAddingAdmin(true);
+    try {
+      const wedding = weddings.find((w) => w.slug === addAdminTarget);
+      if (!wedding) throw new Error('Undangan tidak ditemukan');
+      const currentIds = wedding.data.adminIds ?? [];
+      if (currentIds.includes(addAdminSelectedUid)) throw new Error('Pengguna sudah menjadi admin undangan ini');
+      if (currentIds.length >= 2) throw new Error('Undangan sudah memiliki 2 admin (maksimal)');
+
+      // Remove from old wedding first (1 user = 1 invitation)
+      const selectedUser = allUsers.find((u) => u.uid === addAdminSelectedUid);
+      if (selectedUser?.assignedWeddingSlug && selectedUser.assignedWeddingSlug !== addAdminTarget) {
+        const oldWedding = weddings.find((w) => w.slug === selectedUser.assignedWeddingSlug);
+        if (oldWedding) {
+          const oldIds = (oldWedding.data.adminIds ?? []).filter((id) => id !== addAdminSelectedUid);
+          await updateDoc(doc(db, 'weddings', selectedUser.assignedWeddingSlug), { adminIds: oldIds, updatedAt: serverTimestamp() });
+        }
+      }
+
+      await updateDoc(doc(db, 'weddings', addAdminTarget), {
+        adminIds: [...currentIds, addAdminSelectedUid],
+        updatedAt: serverTimestamp(),
+      });
+      await updateDoc(doc(db, 'users', addAdminSelectedUid), {
+        assignedWeddingSlug: addAdminTarget,
+      });
+
+      setAddAdminTarget(null);
+      setAddAdminSelectedUid('');
+      await loadData();
+    } catch (error) {
+      setAddAdminError((error as Error).message);
+    } finally {
+      setIsAddingAdmin(false);
+    }
+  }
+
+  async function handleAssignUser() {
+    if (!assignUserTarget || !assignSelectedSlug) {
+      setAssignError('Pilih undangan');
+      return;
+    }
+    setAssignError('');
+    setIsAssigning(true);
+    try {
+      const wedding = weddings.find((w) => w.slug === assignSelectedSlug);
+      if (!wedding) throw new Error('Undangan tidak ditemukan');
+      const currentIds = wedding.data.adminIds ?? [];
+      if (currentIds.includes(assignUserTarget.uid)) throw new Error('Pengguna sudah menjadi admin undangan ini');
+      if (currentIds.length >= 2) throw new Error('Undangan sudah memiliki 2 admin (maksimal)');
+
+      // Remove from old wedding if reassigning
+      if (assignUserTarget.assignedWeddingSlug && assignUserTarget.assignedWeddingSlug !== assignSelectedSlug) {
+        const oldWedding = weddings.find((w) => w.slug === assignUserTarget.assignedWeddingSlug);
+        if (oldWedding) {
+          const oldIds = (oldWedding.data.adminIds ?? []).filter((id) => id !== assignUserTarget.uid);
+          await updateDoc(doc(db, 'weddings', assignUserTarget.assignedWeddingSlug), { adminIds: oldIds, updatedAt: serverTimestamp() });
+        }
+      }
+
+      await updateDoc(doc(db, 'weddings', assignSelectedSlug), {
+        adminIds: [...currentIds, assignUserTarget.uid],
+        updatedAt: serverTimestamp(),
+      });
+      await updateDoc(doc(db, 'users', assignUserTarget.uid), {
+        assignedWeddingSlug: assignSelectedSlug,
+      });
+
+      setAssignUserTarget(null);
+      setAssignSelectedSlug('');
+      await loadData();
+    } catch (error) {
+      setAssignError((error as Error).message);
+    } finally {
+      setIsAssigning(false);
     }
   }
 
@@ -389,6 +527,13 @@ export default function SuperAdminPage() {
                         <p className="text-[10px] text-ink/30 truncate">/{w.slug}{w.data.eventDate && ` · ${w.data.eventDate}`}{w.data.eventCity && ` · ${w.data.eventCity}`}</p>
                       </div>
                       <div className="flex gap-1 flex-shrink-0">
+                        <button
+                          onClick={() => setToggleStatusTarget({ slug: w.slug, current: w.data.status })}
+                          className={`w-7 h-7 flex items-center justify-center rounded-lg transition-colors ${w.data.status === 'published' ? 'text-green-500 hover:bg-green-50' : 'text-ink/30 hover:text-gold hover:bg-gold/5'}`}
+                          aria-label={w.data.status === 'published' ? `Arsipkan ${w.slug}` : `Publikasikan ${w.slug}`}
+                        >
+                          {w.data.status === 'published' ? <Globe className="w-3.5 h-3.5" /> : <Archive className="w-3.5 h-3.5" />}
+                        </button>
                         <Link
                           href={`/admin/${w.slug}`}
                           className="w-7 h-7 flex items-center justify-center rounded-lg text-ink/30 hover:text-gold hover:bg-gold/5 transition-colors"
@@ -396,6 +541,13 @@ export default function SuperAdminPage() {
                         >
                           <ExternalLink className="w-3.5 h-3.5" />
                         </Link>
+                        <button
+                          onClick={() => setDeleteWeddingTarget(w.slug)}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-red-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                          aria-label={`Hapus ${w.slug}`}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       </div>
                     </div>
                     {/* Admin list */}
@@ -417,6 +569,16 @@ export default function SuperAdminPage() {
                       })}
                       {(w.data.adminIds ?? []).length === 0 && (
                         <span className="text-[9px] text-ink/20">Belum ada admin</span>
+                      )}
+                      {(w.data.adminIds ?? []).length < 2 && (
+                        <button
+                          onClick={() => { setAddAdminTarget(w.slug); setAddAdminSelectedUid(''); setAddAdminError(''); }}
+                          className="inline-flex items-center gap-1 text-[9px] text-gold bg-gold/10 px-2 py-0.5 rounded-full hover:bg-gold/20 transition-colors"
+                          aria-label={`Tambah admin ke ${w.slug}`}
+                        >
+                          <UserPlus className="w-2.5 h-2.5" />
+                          Tambah
+                        </button>
                       )}
                     </div>
                   </div>
@@ -453,6 +615,26 @@ export default function SuperAdminPage() {
                         )}
                       </div>
                     </div>
+                    {u.role !== 'super' && (
+                      <div className="flex gap-1 flex-shrink-0">
+                        {!u.assignedWeddingSlug && (
+                          <button
+                            onClick={() => { setAssignUserTarget(u); setAssignSelectedSlug(''); setAssignError(''); }}
+                            className="w-7 h-7 flex items-center justify-center rounded-lg text-gold/50 hover:text-gold hover:bg-gold/5 transition-colors"
+                            aria-label={`Hubungkan ${u.displayName} ke undangan`}
+                          >
+                            <UserPlus className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setDeleteUserTarget(u)}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-red-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                          aria-label={`Hapus ${u.displayName}`}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -559,6 +741,146 @@ export default function SuperAdminPage() {
         onConfirm={() => { if (removeAdminTarget) handleRemoveAdmin(removeAdminTarget.slug, removeAdminTarget.uid); setRemoveAdminTarget(null); }}
         onCancel={() => setRemoveAdminTarget(null)}
       />
+      <ConfirmDeleteModal
+        isOpen={deleteUserTarget !== null}
+        message={`Hapus pengguna ${deleteUserTarget?.email ?? ''}? Akun akan dihapus permanen.`}
+        onConfirm={() => { if (deleteUserTarget) handleDeleteUser(deleteUserTarget); setDeleteUserTarget(null); }}
+        onCancel={() => setDeleteUserTarget(null)}
+      />
+      <ConfirmDeleteModal
+        isOpen={deleteWeddingTarget !== null}
+        message={`Hapus undangan /${deleteWeddingTarget ?? ''}? Data undangan akan dihapus permanen.`}
+        onConfirm={() => { if (deleteWeddingTarget) handleDeleteWedding(deleteWeddingTarget); setDeleteWeddingTarget(null); }}
+        onCancel={() => setDeleteWeddingTarget(null)}
+      />
+      <ConfirmDeleteModal
+        isOpen={toggleStatusTarget !== null}
+        title={toggleStatusTarget?.current === 'published' ? 'Arsipkan Undangan' : 'Publikasikan Undangan'}
+        message={toggleStatusTarget?.current === 'published' ? `Arsipkan undangan /${toggleStatusTarget?.slug ?? ''}? Undangan tidak akan terlihat oleh tamu.` : `Publikasikan undangan /${toggleStatusTarget?.slug ?? ''}? Undangan akan terlihat oleh semua tamu.`}
+        confirmLabel={toggleStatusTarget?.current === 'published' ? 'Arsipkan' : 'Publikasikan'}
+        variant="warning"
+        onConfirm={() => { if (toggleStatusTarget) handleToggleStatus(toggleStatusTarget.slug, toggleStatusTarget.current); setToggleStatusTarget(null); }}
+        onCancel={() => setToggleStatusTarget(null)}
+      />
+
+      {/* Add Admin Modal */}
+      {addAdminTarget && (() => {
+        const availableUsers = allUsers.filter((u) =>
+          u.role !== 'pending' && u.role !== 'super' && !u.assignedWeddingSlug &&
+          !(weddings.find((w) => w.slug === addAdminTarget)?.data.adminIds ?? []).includes(u.uid)
+        );
+        const q = addAdminSearch.toLowerCase();
+        const filtered = q ? availableUsers.filter((u) => u.displayName.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)) : availableUsers;
+
+        return (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
+            <div className="absolute inset-0 bg-ink/40 backdrop-blur-sm" onClick={() => setAddAdminTarget(null)} />
+            <div className="relative bg-white rounded-[2rem] p-6 shadow-2xl border border-gold/10 w-full max-w-sm">
+              <h3 className="font-serif italic text-lg text-ink mb-1">Tambah Admin</h3>
+              <p className="text-xs text-ink/40 mb-3">Undangan: /{addAdminTarget}</p>
+
+              <input
+                type="text"
+                value={addAdminSearch}
+                onChange={(e) => setAddAdminSearch(e.target.value)}
+                placeholder="Cari nama atau email..."
+                className="w-full px-3 py-2 border border-gold/20 rounded-xl text-sm bg-white focus:outline-none focus:border-gold/50 mb-2"
+              />
+
+              <div className="max-h-40 overflow-y-auto border border-gold/10 rounded-xl divide-y divide-gold/5">
+                {filtered.length === 0 ? (
+                  <p className="text-xs text-ink/30 text-center py-4">{q ? 'Tidak ditemukan' : 'Tidak ada pengguna tersedia'}</p>
+                ) : filtered.map((u) => (
+                  <button
+                    key={u.uid}
+                    onClick={() => setAddAdminSelectedUid(u.uid)}
+                    className={`w-full text-left px-3 py-2 text-xs transition-colors ${addAdminSelectedUid === u.uid ? 'bg-gold/10 text-gold' : 'hover:bg-ivory text-ink/70'}`}
+                  >
+                    <p className="font-medium truncate">{u.displayName}</p>
+                    <p className="text-[10px] text-ink/40 truncate">{u.email}</p>
+                  </button>
+                ))}
+              </div>
+
+              {addAdminError && <p className="text-xs text-red-500 mt-2">{addAdminError}</p>}
+
+              <div className="flex gap-3 mt-4">
+                <button
+                  onClick={() => { setAddAdminTarget(null); setAddAdminError(''); setAddAdminSearch(''); }}
+                  className="flex-1 py-2.5 border border-gold/20 text-ink/60 rounded-full text-[10px] font-black uppercase tracking-[0.2em]"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={handleAddAdmin}
+                  disabled={isAddingAdmin || !addAdminSelectedUid}
+                  className="flex-1 py-2.5 bg-gold text-ivory rounded-full text-[10px] font-black uppercase tracking-[0.2em] disabled:opacity-50"
+                >
+                  {isAddingAdmin ? 'Memproses...' : 'Tambahkan'}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Assign User to Wedding Modal */}
+      {assignUserTarget && (() => {
+        const availableWeddings = weddings.filter((w) => (w.data.adminIds ?? []).length < 2);
+        const q = assignSearch.toLowerCase();
+        const filtered = q ? availableWeddings.filter((w) => w.slug.includes(q) || w.data.groomNickname.toLowerCase().includes(q) || w.data.brideNickname.toLowerCase().includes(q) || w.data.eventCity.toLowerCase().includes(q)) : availableWeddings;
+
+        return (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
+            <div className="absolute inset-0 bg-ink/40 backdrop-blur-sm" onClick={() => setAssignUserTarget(null)} />
+            <div className="relative bg-white rounded-[2rem] p-6 shadow-2xl border border-gold/10 w-full max-w-sm">
+              <h3 className="font-serif italic text-lg text-ink mb-1">Hubungkan ke Undangan</h3>
+              <p className="text-xs text-ink/40 mb-3">{assignUserTarget.displayName} ({assignUserTarget.email})</p>
+
+              <input
+                type="text"
+                value={assignSearch}
+                onChange={(e) => setAssignSearch(e.target.value)}
+                placeholder="Cari slug, nama pasangan, atau kota..."
+                className="w-full px-3 py-2 border border-gold/20 rounded-xl text-sm bg-white focus:outline-none focus:border-gold/50 mb-2"
+              />
+
+              <div className="max-h-40 overflow-y-auto border border-gold/10 rounded-xl divide-y divide-gold/5">
+                {filtered.length === 0 ? (
+                  <p className="text-xs text-ink/30 text-center py-4">{q ? 'Tidak ditemukan' : 'Tidak ada undangan tersedia'}</p>
+                ) : filtered.map((w) => (
+                  <button
+                    key={w.slug}
+                    onClick={() => setAssignSelectedSlug(w.slug)}
+                    className={`w-full text-left px-3 py-2 text-xs transition-colors ${assignSelectedSlug === w.slug ? 'bg-gold/10 text-gold' : 'hover:bg-ivory text-ink/70'}`}
+                  >
+                    <p className="font-medium truncate">{w.data.groomNickname} & {w.data.brideNickname}</p>
+                    <p className="text-[10px] text-ink/40 truncate">/{w.slug}{w.data.eventCity && ` · ${w.data.eventCity}`}</p>
+                  </button>
+                ))}
+              </div>
+
+              {assignError && <p className="text-xs text-red-500 mt-2">{assignError}</p>}
+
+              <div className="flex gap-3 mt-4">
+                <button
+                  onClick={() => { setAssignUserTarget(null); setAssignError(''); setAssignSearch(''); }}
+                  className="flex-1 py-2.5 border border-gold/20 text-ink/60 rounded-full text-[10px] font-black uppercase tracking-[0.2em]"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={handleAssignUser}
+                  disabled={isAssigning || !assignSelectedSlug}
+                  className="flex-1 py-2.5 bg-gold text-ivory rounded-full text-[10px] font-black uppercase tracking-[0.2em] disabled:opacity-50"
+                >
+                  {isAssigning ? 'Memproses...' : 'Hubungkan'}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

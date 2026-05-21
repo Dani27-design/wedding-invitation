@@ -45,7 +45,7 @@ export function EventForm({ data, onSave, isSaving, onDirty }: EventFormProps) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <fieldset className="space-y-2">
         <legend className="text-xs uppercase tracking-[0.3em] text-gold font-black mb-1">Tanggal & Lokasi</legend>
-        <input type="date" value={eventDate} onChange={(e) => { setEventDate(e.target.value); onDirty?.(); }} min={new Date().toISOString().split('T')[0]} required aria-label="Tanggal Acara" className={inputClass} />
+        <input type="date" value={eventDate} onChange={(e) => { setEventDate(e.target.value); onDirty?.(); }} required aria-label="Tanggal Acara" className={inputClass} />
         <input value={eventCity} onChange={(e) => { setEventCity(e.target.value); onDirty?.(); }} placeholder="Kota" required maxLength={50} aria-label="Kota" className={inputClass} />
         <input value={venueName} onChange={(e) => { setVenueName(e.target.value); onDirty?.(); }} placeholder="Nama Gedung" required maxLength={100} aria-label="Nama Gedung" className={inputClass} />
         <input value={venueAddress} onChange={(e) => { setVenueAddress(e.target.value); onDirty?.(); }} placeholder="Alamat Lengkap" required maxLength={200} aria-label="Alamat Lengkap" className={inputClass} />

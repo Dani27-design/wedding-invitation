@@ -16,11 +16,42 @@ const TimeBox = ({ value, label }: { value: number; label: string }) => (
   </div>
 );
 
+// Deterministic seed for sparkle positions (avoids hydration mismatch)
+const seed = (i: number, offset: number = 0) => ((i + offset) * 0.618033988749895) % 1;
+
+const Sparkle = ({ index }: { index: number }) => (
+  <motion.div
+    initial={{ opacity: 0, scale: 0, y: 0 }}
+    animate={{
+      opacity: [0, 1, 1, 0],
+      scale: [0, 1, 1.2, 0],
+      y: [0, -30 - seed(index, 3) * 40, -60 - seed(index, 4) * 50, -90],
+      x: [(seed(index, 5) - 0.5) * 20, (seed(index, 6) - 0.5) * 60],
+    }}
+    transition={{
+      duration: 2 + seed(index, 7) * 1.5,
+      repeat: Infinity,
+      delay: seed(index, 8) * 3,
+      ease: 'easeOut',
+    }}
+    className="absolute pointer-events-none"
+    style={{ left: `${seed(index, 1) * 100}%`, top: `${30 + seed(index, 2) * 40}%` }}
+  >
+    <div className={`rounded-full ${index % 3 === 0 ? 'w-1.5 h-1.5 bg-gold/60' : index % 3 === 1 ? 'w-1 h-1 bg-rose-pastel/50' : 'w-2 h-2 bg-gold/30'}`} />
+  </motion.div>
+);
+
 export const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
   const timeLeft = useCountdown(targetDate);
+  const isPast = timeLeft.days === 0 && timeLeft.hours === 0 && timeLeft.minutes === 0 && timeLeft.seconds === 0 && targetDate && !isNaN(new Date(targetDate).getTime()) && new Date(targetDate).getTime() < Date.now();
 
   return (
-    <div className="w-full max-w-xl mx-auto px-4">
+    <div className="w-full max-w-xl mx-auto px-4 relative">
+      {isPast && (
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {[...Array(12)].map((_, i) => <Sparkle key={i} index={i} />)}
+        </div>
+      )}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1, y: [0, -4, 0] }}

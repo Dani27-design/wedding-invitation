@@ -54,8 +54,7 @@ export function GalleryShowcase({ groups }: { groups: GalleryGroup[] }) {
               exit={{ scale: 0.9, opacity: 0 }}
               src={selected}
               alt="Preview"
-              className="max-h-full max-w-full rounded-2xl shadow-2xl object-contain"
-              onClick={(e) => e.stopPropagation()}
+              className="max-h-full max-w-full rounded-2xl shadow-2xl object-contain cursor-pointer"
             />
           </motion.div>
         )}

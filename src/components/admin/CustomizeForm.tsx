@@ -136,16 +136,17 @@ export function CustomizeForm({ data, slug, onSave, isSaving, onDirty }: Customi
       {/* Live preview */}
       <details className="border border-gold/10 rounded-xl overflow-hidden" onToggle={handlePreviewToggle}>
         <summary className="px-4 py-2.5 text-[10px] uppercase tracking-widest text-gold font-black cursor-pointer hover:bg-gold/5 transition-colors">
-          Preview Undangan
+          Preview Tema Undangan
         </summary>
         <div className="border-t border-gold/5 bg-ink/5 flex justify-center py-3">
           <div className="relative w-[200px] rounded-lg overflow-hidden border border-ink/10 shadow-sm" style={{ height: 355 }}>
             <iframe
               key={previewKey}
               src={`/${slug}`}
-              title="Preview undangan"
+              title="Preview Tema Undangan"
               className="w-[375px] h-[667px] origin-top-left"
               style={{ transform: 'scale(0.533)' }}
+              sandbox="allow-scripts allow-same-origin"
             />
           </div>
         </div>

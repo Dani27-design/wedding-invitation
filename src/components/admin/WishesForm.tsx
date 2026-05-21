@@ -1,8 +1,8 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { db } from '../../lib/firebase';
 import { collection, query, where, getDocs, deleteDoc, doc, orderBy, limit as firestoreLimit, startAfter, QueryDocumentSnapshot, QueryConstraint } from 'firebase/firestore';
-import { Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Trash2, ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface WishesFormProps {
@@ -18,6 +18,13 @@ export function WishesForm({ slug }: WishesFormProps) {
   const [page, setPage] = useState(0);
   const [cursors, setCursors] = useState<(QueryDocumentSnapshot | null)[]>([null]);
   const [hasNext, setHasNext] = useState(false);
+
+  // Search
+  const [searchQuery, setSearchQuery] = useState('');
+  const [allWishes, setAllWishes] = useState<any[] | null>(null);
+  const [searchPage, setSearchPage] = useState(0);
+
+  const isSearching = searchQuery.trim() !== '';
 
   const fetchWishes = async (pageIdx: number) => {
     setLoading(true);
@@ -47,26 +54,75 @@ export function WishesForm({ slug }: WishesFormProps) {
     setLoading(false);
   };
 
+  // Lazy-load all wishes when searching
+  useEffect(() => {
+    if (isSearching && !allWishes) {
+      getDocs(query(collection(db, 'wishes'), where('weddingId', '==', slug), orderBy('createdAt', 'desc')))
+        .then(snap => setAllWishes(snap.docs.map(d => ({ id: d.id, ...d.data() }))))
+        .catch(() => {});
+    }
+  }, [isSearching, allWishes, slug]);
+
+  useEffect(() => { setSearchPage(0); }, [searchQuery]);
+
   useEffect(() => { fetchWishes(0); }, [slug]);
 
   const deleteWish = async (id: string) => {
     await deleteDoc(doc(db, 'wishes', id));
+    setAllWishes(null);
     setCursors([null]);
     fetchWishes(0);
   };
 
-  if (loading && wishes.length === 0) return <p className="text-xs text-ink/40 tracking-widest uppercase text-center py-10">Memuat...</p>;
+  // Filtered search results
+  const filteredWishes = useMemo(() => {
+    if (!isSearching || !allWishes) return [];
+    const q = searchQuery.toLowerCase();
+    return allWishes.filter(w => w.name?.toLowerCase().includes(q) || w.message?.toLowerCase().includes(q));
+  }, [isSearching, allWishes, searchQuery]);
+
+  const displayWishes = isSearching
+    ? filteredWishes.slice(searchPage * PAGE_SIZE, (searchPage + 1) * PAGE_SIZE)
+    : wishes;
+
+  const totalSearchPages = Math.ceil(filteredWishes.length / PAGE_SIZE);
+  const activePage = isSearching ? searchPage : page;
+  const canPrev = activePage > 0;
+  const canNext = isSearching ? searchPage < totalSearchPages - 1 : hasNext;
+
+  const goPrev = () => { if (isSearching) setSearchPage(p => p - 1); else fetchWishes(page - 1); };
+  const goNext = () => { if (isSearching) setSearchPage(p => p + 1); else fetchWishes(page + 1); };
+
+  if (loading && wishes.length === 0 && !isSearching) return <p className="text-xs text-ink/40 tracking-widest uppercase text-center py-10">Memuat...</p>;
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h2 className="text-xs uppercase tracking-[0.3em] text-gold font-black">Ucapan</h2>
-        <span className="text-[10px] text-ink/30 font-mono">{wishes.length > 0 ? `Hal. ${page + 1}` : '0'}</span>
+        <span className="text-[10px] text-ink/30 font-mono">{isSearching ? `${filteredWishes.length} hasil` : `Hal. ${page + 1}`}</span>
       </div>
 
-      {wishes.length > 0 ? (
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink/30" />
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Cari nama atau ucapan..."
+          aria-label="Cari ucapan"
+          className="w-full pl-9 pr-8 py-2 border border-gold/20 rounded-full text-xs bg-white focus:outline-none focus:border-gold/50"
+        />
+        {searchQuery && (
+          <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink/30 hover:text-ink/60" aria-label="Hapus pencarian">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
+
+      {displayWishes.length > 0 ? (
         <div className="border border-gold/10 rounded-2xl overflow-hidden divide-y divide-gold/5">
-          {wishes.map((w) => (
+          {displayWishes.map((w) => (
             <div key={w.id} className="flex items-start gap-2 px-3 py-2 bg-white/40">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
@@ -84,27 +140,17 @@ export function WishesForm({ slug }: WishesFormProps) {
           ))}
         </div>
       ) : (
-        <p className="text-[10px] text-ink/25">Belum ada ucapan</p>
+        <p className="text-[10px] text-ink/25">{isSearching ? 'Tidak ditemukan' : 'Belum ada ucapan'}</p>
       )}
 
       {/* Pagination */}
-      {(page > 0 || hasNext) && (
+      {(canPrev || canNext) && (
         <div className="flex items-center justify-center gap-4 pt-1">
-          <button
-            onClick={() => fetchWishes(page - 1)}
-            disabled={page === 0}
-            className="w-7 h-7 flex items-center justify-center rounded-full border border-gold/20 text-ink/40 hover:text-gold hover:border-gold/40 transition-colors disabled:opacity-20"
-            aria-label="Halaman sebelumnya"
-          >
+          <button onClick={goPrev} disabled={!canPrev} className="w-7 h-7 flex items-center justify-center rounded-full border border-gold/20 text-ink/40 hover:text-gold hover:border-gold/40 transition-colors disabled:opacity-20" aria-label="Halaman sebelumnya">
             <ChevronLeft className="w-3.5 h-3.5" />
           </button>
-          <span className="text-[10px] text-ink/40 font-bold uppercase tracking-widest">Hal. {page + 1}</span>
-          <button
-            onClick={() => fetchWishes(page + 1)}
-            disabled={!hasNext}
-            className="w-7 h-7 flex items-center justify-center rounded-full border border-gold/20 text-ink/40 hover:text-gold hover:border-gold/40 transition-colors disabled:opacity-20"
-            aria-label="Halaman berikutnya"
-          >
+          <span className="text-[10px] text-ink/40 font-bold uppercase tracking-widest">Hal. {activePage + 1}</span>
+          <button onClick={goNext} disabled={!canNext} className="w-7 h-7 flex items-center justify-center rounded-full border border-gold/20 text-ink/40 hover:text-gold hover:border-gold/40 transition-colors disabled:opacity-20" aria-label="Halaman berikutnya">
             <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>

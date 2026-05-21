@@ -88,6 +88,7 @@ export default function SuperAdminPage() {
   const [addAdminSearch, setAddAdminSearch] = useState('');
   const [addAdminError, setAddAdminError] = useState('');
   const [isAddingAdmin, setIsAddingAdmin] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [assignUserTarget, setAssignUserTarget] = useState<UserDocument | null>(null);
   const [assignSelectedSlug, setAssignSelectedSlug] = useState('');
   const [assignSearch, setAssignSearch] = useState('');
@@ -391,8 +392,8 @@ export default function SuperAdminPage() {
           <div className="flex items-center justify-between mb-2">
             <p className="font-serif italic text-sm text-ink font-bold">Marinikah Invitation</p>
             <button
-              onClick={() => { signOut(auth); router.push('/login'); }}
-              className="w-7 h-7 flex items-center justify-center rounded-lg text-ink/30 hover:text-red-500 hover:bg-red-50 transition-colors"
+              onClick={() => setShowLogoutConfirm(true)}
+              className="w-7 h-7 flex items-center justify-center rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors"
               aria-label="Keluar"
             >
               <LogOut className="w-3.5 h-3.5" />
@@ -881,6 +882,16 @@ export default function SuperAdminPage() {
           </div>
         );
       })()}
+
+      <ConfirmDeleteModal
+        isOpen={showLogoutConfirm}
+        title="Keluar dari Akun"
+        message="Apakah Anda yakin ingin keluar?"
+        confirmLabel="Keluar"
+        variant="warning"
+        onConfirm={() => { setShowLogoutConfirm(false); signOut(auth); router.push('/login'); }}
+        onCancel={() => setShowLogoutConfirm(false)}
+      />
     </div>
   );
 }

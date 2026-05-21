@@ -22,8 +22,11 @@ import { CreditForm } from '@/components/admin/CreditForm';
 import { StoryInteractionsForm } from '@/components/admin/StoryInteractionsForm';
 import { WishesForm } from '@/components/admin/WishesForm';
 import { GuestTab } from '@/components/admin/GuestTab';
+import { ConfirmDeleteModal } from '@/components/admin/ConfirmDeleteModal';
 import { motion, AnimatePresence } from 'motion/react';
-import { CheckCircle2, AlertCircle, Loader2, X, ExternalLink, LogOut, Users, Calendar, BookHeart, Image, UserRound, Gift, Images, Award, Palette, MessageCircle, Heart } from 'lucide-react';
+import NextImage from 'next/image';
+import { CheckCircle2, AlertCircle, Loader2, X, LogOut, Users, Calendar, BookHeart, Image, UserRound, Gift, Images, Award, Palette, MessageCircle, Heart, Copy, Check, Eye } from 'lucide-react';
+import { BASE_URL } from '@/constants/baseUrl';
 
 const TABS = [
   { label: 'Pasangan', icon: UserRound },
@@ -35,8 +38,9 @@ const TABS = [
   { label: 'Galeri', icon: Images },
   { label: 'Kredit', icon: Award },
   { label: 'Tema', icon: Palette },
-  { label: 'Komentar', icon: MessageCircle },
+  { label: 'Interaksi', icon: MessageCircle },
   { label: 'Ucapan', icon: Heart },
+  { label: 'Preview', icon: Eye },
 ] as const;
 
 
@@ -180,6 +184,9 @@ export default function AdminPage() {
   const [pendingTab, setPendingTab] = useState<number | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
   const [uploadProgress, setUploadProgress] = useState<{ fileName: string; percent: number } | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showStatusInfo, setShowStatusInfo] = useState(false);
 
   const { wedding, isLoading: isWeddingLoading } = useWedding(slug ?? '');
 
@@ -399,6 +406,29 @@ export default function AdminPage() {
       case 8: return <CustomizeForm data={wedding} slug={slug ?? ''} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} />;
       case 9: return <StoryInteractionsForm data={wedding} slug={slug ?? ''} />;
       case 10: return <WishesForm slug={slug ?? ''} />;
+      case 11: return (
+        <div className="flex flex-col items-center justify-start">
+          <p className="text-xs text-ink/40 text-center mb-1">Tautan dan tombol tidak aktif dalam mode ini.</p>
+          {/* Phone frame */}
+          <div className="relative w-full max-w-lg">
+            {/* Notch */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-5 bg-ink rounded-b-2xl z-10" />
+            {/* Frame */}
+            <div className="rounded-[2.5rem] border-[3px] border-ink/80 bg-ink overflow-hidden shadow-xl" style={{ height: '85vh', maxHeight: 700 }}>
+              <div className="w-full h-full rounded-[2.2rem] overflow-hidden">
+                <iframe
+                  src={`/${slug}`}
+                  title="Preview undangan"
+                  className="w-full h-full border-0 bg-white"
+                  sandbox="allow-scripts allow-same-origin"
+                />
+              </div>
+            </div>
+            {/* Home indicator */}
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-20 h-1 bg-ivory/60 rounded-full z-10" />
+          </div>
+        </div>
+      );
       default: return null;
     }
 
@@ -408,42 +438,33 @@ export default function AdminPage() {
     <div className="min-h-screen bg-ivory">
       <header className="sticky top-0 z-50 bg-ivory/90 backdrop-blur-md border-b border-gold/10 px-4 py-2">
         <div className="max-w-lg mx-auto">
-          {/* Top row: slug + actions */}
+          {/* Top row: logo + url + copy + status + logout */}
           <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2 min-w-0">
-              <h1 className="font-serif italic text-sm text-ink truncate">{slug ?? 'Admin'}</h1>
-              {userDoc?.role === 'super' ? (
-                <button
-                  onClick={() => setShowStatusConfirm(true)}
-                  disabled={isToggling}
-                  className={`text-[9px] uppercase tracking-widest font-bold px-1.5 py-0.5 rounded-full border transition-colors flex-shrink-0 ${isToggling ? 'opacity-50' : ''} ${wedding?.status === 'published' ? 'text-green-600 border-green-600/30 bg-green-50' : 'text-ink/40 border-ink/10 bg-ink/5'}`}
-                >
-                  {wedding?.status === 'published' ? 'Aktif' : 'Arsip'}
-                </button>
-              ) : (
-                <span className={`text-[9px] uppercase tracking-widest font-bold px-1.5 py-0.5 rounded-full border flex-shrink-0 ${wedding?.status === 'published' ? 'text-green-600 border-green-600/30 bg-green-50' : 'text-ink/40 border-ink/10 bg-ink/5'}`}>
-                  {wedding?.status === 'published' ? 'Aktif' : 'Arsip'}
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-1.5 flex-shrink-0">
-              <a
-                href={`/${slug}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-7 h-7 flex items-center justify-center rounded-lg text-ink/30 hover:text-gold hover:bg-gold/5 transition-colors"
-                aria-label="Preview undangan"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
+            <div className="flex items-center gap-1 min-w-0">
+              <NextImage src="/images/logo-1.png" alt="Marinikah Invitation" width={100} height={40} className="h-8 w-auto flex-shrink-0" />
+              <p className="text-[10px] text-ink/35 truncate">/{slug}</p>
               <button
-                onClick={handleLogout}
-                className="w-7 h-7 flex items-center justify-center rounded-lg text-ink/30 hover:text-red-500 hover:bg-red-50 transition-colors"
-                aria-label="Keluar"
+                onClick={() => { navigator.clipboard.writeText(`${BASE_URL}/${slug}`); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+                className="flex-shrink-0 w-5 h-5 flex items-center justify-center rounded text-ink/25 hover:text-gold transition-colors"
+                aria-label="Salin URL"
               >
-                <LogOut className="w-3.5 h-3.5" />
+                {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
+              </button>
+              <button
+                onClick={() => setShowStatusInfo(true)}
+                className={`flex-shrink-0 text-[9px] uppercase tracking-widest font-bold px-1.5 py-0.5 rounded-full border transition-colors ${wedding?.status === 'published' ? 'text-green-600 border-green-600/30 bg-green-50' : 'text-ink/40 border-ink/10 bg-ink/5'}`}
+                aria-label="Status undangan"
+              >
+                {wedding?.status === 'published' ? 'Aktif' : 'Arsip'}
               </button>
             </div>
+            <button
+              onClick={() => setShowLogoutConfirm(true)}
+              className="w-7 h-7 flex items-center justify-center rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors flex-shrink-0"
+              aria-label="Keluar"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+            </button>
           </div>
 
           {/* Icon tabs — horizontally scrollable */}
@@ -499,7 +520,7 @@ export default function AdminPage() {
         </div>
       </header>
 
-      <main role="tabpanel" id="admin-tabpanel" aria-labelledby={`tab-${currentStep}`} className="max-w-lg mx-auto px-4 py-3">
+      <main role="tabpanel" id="admin-tabpanel" aria-labelledby={`tab-${currentStep}`} className="max-w-lg mx-auto px-4 py-1">
         {renderForm()}
       </main>
 
@@ -573,6 +594,63 @@ export default function AdminPage() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Status info modal */}
+      <AnimatePresence>
+        {showStatusInfo && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowStatusInfo(false)}
+              className="absolute inset-0 bg-ink/40 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative bg-white rounded-[2rem] p-6 shadow-2xl border border-gold/10 w-full max-w-xs text-center"
+            >
+              <div className="flex flex-col items-center gap-3 py-2">
+                {wedding?.status === 'published' ? (
+                  <>
+                    <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center">
+                      <Check className="w-6 h-6 text-green-500" />
+                    </div>
+                    <h3 className="font-serif italic text-lg text-ink">Undangan Aktif</h3>
+                    <p className="text-xs text-ink/60 leading-relaxed">Undangan Anda sudah dipublikasikan dan dapat diakses oleh semua tamu melalui tautan yang telah dibagikan. Untuk mengirim undangan via WhatsApp atau menambahkan tamu, buka tab <strong className="text-ink">Tamu</strong>.</p>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-12 h-12 rounded-full bg-ink/5 flex items-center justify-center">
+                      <X className="w-6 h-6 text-ink/30" />
+                    </div>
+                    <h3 className="font-serif italic text-lg text-ink">Undangan Belum Aktif</h3>
+                    <p className="text-xs text-ink/60 leading-relaxed">Undangan Anda belum dipublikasikan. Hubungi admin untuk mengaktifkan undangan. Setelah aktif, Anda dapat mengirim undangan via WhatsApp atau menambahkan tamu melalui tab <strong className="text-ink">Tamu</strong>.</p>
+                  </>
+                )}
+                <button
+                  onClick={() => setShowStatusInfo(false)}
+                  className="mt-2 px-8 py-2.5 bg-gold text-ivory rounded-full text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 transition-transform"
+                >
+                  Mengerti
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <ConfirmDeleteModal
+        isOpen={showLogoutConfirm}
+        title="Keluar dari Akun"
+        message="Apakah Anda yakin ingin keluar?"
+        confirmLabel="Keluar"
+        variant="warning"
+        onConfirm={() => { setShowLogoutConfirm(false); handleLogout(); }}
+        onCancel={() => setShowLogoutConfirm(false)}
+      />
     </div>
   );
 }

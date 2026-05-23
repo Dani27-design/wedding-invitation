@@ -26,7 +26,7 @@ export const RSVPSection = memo(({
 }: RSVPSectionProps) => (
   <section
     id="rsvp-section"
-    className="relative py-[2vh] lg:py-20 h-fit bg-paper overflow-hidden"
+    className="relative py-[3vh] lg:py-20 h-fit bg-paper overflow-hidden"
   >
     <div className="absolute inset-0 pointer-events-none">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_color-mix(in_srgb,var(--color-gold)_3%,transparent)_0%,_transparent_70%)]" />

@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'motion/react';
 interface GalleryGroup {
   label: string;
   items: { src: string; alt: string }[];
+  phoneFrame?: boolean;
 }
 
 export function GalleryShowcase({ groups }: { groups: GalleryGroup[] }) {
@@ -13,7 +14,7 @@ export function GalleryShowcase({ groups }: { groups: GalleryGroup[] }) {
 
   return (
     <>
-      {groups.map(({ label, items }) => (
+      {groups.map(({ label, items, phoneFrame }) => (
         <div key={label} className="mb-8 last:mb-0">
           <p className="text-xs uppercase tracking-[0.3em] text-gold font-black mb-3">{label}</p>
           <div className={`flex gap-3 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6 lg:mx-0 lg:px-0 lg:grid lg:overflow-visible ${items.length <= 6 ? 'lg:grid-cols-6' : 'lg:grid-cols-7'}`}>
@@ -21,10 +22,21 @@ export function GalleryShowcase({ groups }: { groups: GalleryGroup[] }) {
               <button
                 key={src}
                 onClick={() => setSelected(src)}
-                className="w-[120px] sm:w-[150px] lg:w-auto flex-shrink-0 lg:flex-shrink rounded-xl overflow-hidden border border-gold/10 shadow-sm leading-none hover:shadow-lg hover:shadow-gold/10 hover:-translate-y-1 transition-all duration-300 cursor-zoom-in"
+                className={`flex-shrink-0 lg:flex-shrink leading-none hover:-translate-y-1 transition-all duration-300 cursor-zoom-in ${phoneFrame ? 'w-[140px] sm:w-[170px] lg:w-auto' : 'w-[120px] sm:w-[150px] lg:w-auto rounded-xl overflow-hidden border border-gold/10 shadow-sm hover:shadow-lg hover:shadow-gold/10'}`}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={src} alt={alt} className="w-full block" />
+                {phoneFrame ? (
+                  <div className="relative w-full" style={{ aspectRatio: '320/660' }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/images/iphone-frame.svg" alt="" aria-hidden="true" className="absolute inset-0 w-full h-full z-10 pointer-events-none" />
+                    <div className="absolute overflow-hidden bg-white" style={{ top: '2.1%', left: '4.4%', width: '91.2%', height: '95.8%', borderRadius: '13.1% / 6.4%' }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={src} alt={alt} className="w-full h-full object-contain object-top" />
+                    </div>
+                  </div>
+                ) : (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img src={src} alt={alt} className="w-full block" />
+                )}
               </button>
             ))}
           </div>

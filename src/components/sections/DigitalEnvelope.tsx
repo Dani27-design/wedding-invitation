@@ -16,7 +16,7 @@ export const DigitalEnvelope = memo(({ copiedIndex, onCopy }: DigitalEnvelopePro
   if (giftAccounts.length === 0) return null;
 
   return (
-  <section id="gift-section" className="relative py-[2vh] lg:py-20 h-fit bg-ivory overflow-hidden">
+  <section id="gift-section" className="relative py-[3vh] lg:py-20 h-fit bg-ivory overflow-hidden">
     <div className="absolute inset-0 pointer-events-none opacity-[0.4]">
       <motion.div animate={{ rotate: [0, 360], scale: [1, 1.2, 1] }} transition={{ duration: 40, repeat: Infinity, ease: 'linear' }} className="absolute -top-1/4 -left-1/4 w-full h-full border border-gold/5 rounded-full" />
       <motion.div animate={{ rotate: [360, 0], scale: [1, 1.3, 1] }} transition={{ duration: 50, repeat: Infinity, ease: 'linear' }} className="absolute -bottom-1/4 -right-1/4 w-full h-full border border-gold/5 rounded-full" />

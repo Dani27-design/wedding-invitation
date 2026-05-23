@@ -199,7 +199,7 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
             )}
 
             {/* Action buttons — always mounted, hidden via CSS */}
-            <div className={`absolute bottom-36 right-4 flex flex-col gap-5 z-[60] transition-opacity duration-200 ${isActive && commentInput?.index !== idx ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+            <div className={`absolute bottom-36 right-4 lg:right-[calc(50%-320px)] flex flex-col gap-5 z-[60] transition-opacity duration-200 ${isActive && commentInput?.index !== idx ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
               <motion.button whileTap={{ scale: 0.8 }} aria-label="Suka" onClick={() => handleLike(idx)} className="relative flex flex-col items-center gap-1 group">
                 <div className="w-11 h-11 rounded-full bg-black/40 border border-white/10 flex items-center justify-center group-hover:bg-rose-pastel/20 transition-all">
                   <Heart className="w-5 h-5 text-rose-pastel transition-transform group-active:scale-125" fill={(likes[idx] ?? 0) > 120 ? 'currentColor' : 'none'} />
@@ -216,7 +216,7 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
 
             <AnimatePresence>
               {commentInput?.index === idx && (
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="absolute inset-x-6 bottom-48 z-[70] max-w-sm mx-auto">
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="absolute inset-x-6 bottom-48 z-[70] max-w-sm mx-auto lg:left-1/2 lg:-translate-x-1/2 lg:inset-x-auto lg:w-[380px]">
                   <div className="bg-ink/95 border border-white/10 rounded-2xl p-5 shadow-2xl">
                     <div className="flex items-center gap-3 mb-4">
                       <MessageCircle className="w-4 h-4 text-rose-pastel" />
@@ -236,7 +236,7 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
             {/* Text content — always mounted, CSS fade */}
             <div className={`absolute inset-x-0 bottom-0 z-30 bg-gradient-to-t from-ink from-30% via-ink/70 via-60% to-transparent transition-opacity duration-300 ${isNear ? 'opacity-100' : 'opacity-0'}`}>
               <div
-                className={`px-5 pt-24 pb-20 sm:pb-24 md:pb-32 max-w-[85%] md:max-w-md ${slide.text.length > 100 ? 'cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gold/30 focus-visible:rounded' : ''}`}
+                className={`px-5 lg:px-0 pt-24 pb-20 sm:pb-24 md:pb-32 max-w-[85%] md:max-w-md lg:max-w-lg lg:mx-auto ${slide.text.length > 100 ? 'cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gold/30 focus-visible:rounded' : ''}`}
                 {...(slide.text.length > 100 ? {
                   role: 'button',
                   tabIndex: 0,

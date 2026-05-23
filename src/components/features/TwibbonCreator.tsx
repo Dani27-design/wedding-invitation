@@ -316,13 +316,13 @@ export function TwibbonCreator() {
   return (
     <div
       ref={wrapperRef}
-      className="flex flex-col h-fit w-full items-center justify-start gap-[3vh] px-4"
+      className="flex flex-col lg:flex-row h-fit w-full items-center lg:items-start justify-start lg:justify-center gap-[3vh] lg:gap-12 xl:gap-16 px-4 lg:px-12 xl:px-20 lg:max-w-5xl lg:mx-auto"
     >
-      <div className="text-center shrink-0">
+      <div className="text-center lg:text-left shrink-0 lg:w-[280px] xl:w-[320px] lg:sticky lg:top-[20vh] lg:pt-8">
         <p className="text-xs uppercase tracking-[0.4em] text-gold font-black mb-2">
           Twibbon Pernikahan Kami
         </p>
-        <p className="font-serif italic text-[13px] leading-relaxed text-ink/70 max-w-[300px] mx-auto">
+        <p className="font-serif italic text-[13px] leading-relaxed text-ink/70 max-w-[300px] mx-auto lg:mx-0">
           rayakan momen bahagia ini bersama kami.
         </p>
       </div>

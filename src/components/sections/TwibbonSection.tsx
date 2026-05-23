@@ -3,7 +3,7 @@ import { memo } from 'react';
 import { TwibbonCreator } from '../features/TwibbonCreator';
 
 export const TwibbonSection = memo(() => (
-  <section id="twibbon-section" className="relative py-[2vh] h-fit bg-ivory overflow-hidden flex flex-col items-center">
+  <section id="twibbon-section" className="relative py-[2vh] lg:py-20 h-fit bg-ivory overflow-hidden flex flex-col items-center">
     <TwibbonCreator />
 
     {/* Gradient Bridge to RSVP Section */}

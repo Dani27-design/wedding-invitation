@@ -75,7 +75,8 @@ export const AmbientSocialLayer = ({
     const interval = setInterval(() => {
       setElements((prev) => {
         const currentPool = poolRef.current;
-        const isComment = Math.random() > 0.6;
+        const hasComments = currentPool.length > 0;
+        const isComment = hasComments && Math.random() > 0.6;
         const newEl: SocialElement = {
           id: Date.now() + Math.random(),
           type: isComment ? 'comment' : 'heart',

@@ -2,15 +2,21 @@
 import { motion } from 'motion/react';
 import { useCountdown } from '../../hooks/useCountdown';
 
-const TimeBox = ({ value, label }: { value: number; label: string }) => (
+const SHAPES = [
+  'rounded-[2.5rem_1rem_2.5rem_1rem]',
+  'rounded-[1rem_2.5rem_1rem_2.5rem]',
+  'rounded-[2rem_1.5rem_2rem_1.5rem]',
+  'rounded-[1.5rem_2rem_1.5rem_2rem]',
+];
+
+const TimeBox = ({ value, label, index }: { value: number; label: string; index: number }) => (
   <div className="flex flex-col items-center flex-1 min-w-0">
-    <div className="relative">
-      <div className="absolute inset-0 bg-gold/10 rounded-full scale-150 opacity-30 -z-10" />
-      <span className="font-display text-3xl md:text-5xl text-ink block font-light leading-none tracking-tighter">
+    <div className={`relative bg-ivory border border-gold/10 ${SHAPES[index % SHAPES.length]} w-16 h-16 md:w-20 md:h-20 flex items-center justify-center shadow-sm`}>
+      <span className="font-display text-3xl md:text-5xl text-gold-contrast block font-light leading-none tabular-nums">
         {value.toString().padStart(2, '0')}
       </span>
     </div>
-    <span className="font-serif italic text-xs md:text-xs tracking-[0.2em] md:tracking-[0.3em] uppercase text-gold/70 font-bold mt-2">
+    <span className="font-serif italic text-xs tracking-[0.2em] md:tracking-[0.3em] uppercase text-gold/70 font-bold mt-2">
       {label}
     </span>
   </div>
@@ -54,14 +60,14 @@ export const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
       )}
       <motion.div
         initial={{ opacity: 0 }}
-        animate={{ opacity: 1, y: [0, -4, 0] }}
-        transition={{ opacity: { duration: 1.5 }, y: { duration: 4, repeat: Infinity, ease: 'easeInOut' } }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1.5 }}
         className="flex justify-center items-center gap-1 md:gap-14 py-2 md:py-6 w-full relative z-30"
       >
-        <TimeBox value={timeLeft.days} label="Hari" />
-        <TimeBox value={timeLeft.hours} label="Jam" />
-        <TimeBox value={timeLeft.minutes} label="Menit" />
-        <TimeBox value={timeLeft.seconds} label="Detik" />
+        <TimeBox value={timeLeft.days} label="Hari" index={0} />
+        <TimeBox value={timeLeft.hours} label="Jam" index={1} />
+        <TimeBox value={timeLeft.minutes} label="Menit" index={2} />
+        <TimeBox value={timeLeft.seconds} label="Detik" index={3} />
       </motion.div>
     </div>
   );

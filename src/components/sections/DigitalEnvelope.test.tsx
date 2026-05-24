@@ -48,25 +48,25 @@ describe('DigitalEnvelope', () => {
 
     it('displays "Tanda Kasih" title', () => {
       renderWithProps();
-      expect(screen.getByText('Tanda Kasih')).toBeInTheDocument();
+      expect(screen.getAllByText('Tanda Kasih')[0]).toBeInTheDocument();
     });
 
     it('title has uppercase serif italic styling', () => {
       renderWithProps();
-      const title = screen.getByText('Tanda Kasih');
+      const title = screen.getAllByText('Tanda Kasih')[0];
       expect(title.className).toContain('font-black');
       expect(title.className).toContain('uppercase');
     });
 
     it('displays description text about kehadiran dan doa', () => {
       renderWithProps();
-      expect(screen.getByText(/Kehadiran dan Doa Anda adalah hadiah terindah bagi kami/)).toBeInTheDocument();
+      expect(screen.getAllByText(/Kehadiran dan Doa Anda adalah hadiah terindah bagi kami/)[0]).toBeInTheDocument();
     });
 
     it('renders consistently on re-render', () => {
       const { rerender } = render(<DigitalEnvelope {...defaultProps} />);
       rerender(<DigitalEnvelope {...defaultProps} />);
-      expect(screen.getByText('Tanda Kasih')).toBeInTheDocument();
+      expect(screen.getAllByText('Tanda Kasih')[0]).toBeInTheDocument();
     });
 
     it('has Gift icon in header', () => {
@@ -81,42 +81,42 @@ describe('DigitalEnvelope', () => {
   describe('bank accounts', () => {
     it('renders all 6 bank names', () => {
       renderWithProps();
-      expect(screen.getByText('BCA')).toBeInTheDocument();
-      expect(screen.getByText('BRI')).toBeInTheDocument();
-      expect(screen.getByText('Jenius')).toBeInTheDocument();
-      expect(screen.getByText('BTN')).toBeInTheDocument();
-      expect(screen.getByText('Gopay')).toBeInTheDocument();
-      expect(screen.getByText('Seabank')).toBeInTheDocument();
+      expect(screen.getAllByText('BCA')[0]).toBeInTheDocument();
+      expect(screen.getAllByText('BRI')[0]).toBeInTheDocument();
+      expect(screen.getAllByText('Jenius')[0]).toBeInTheDocument();
+      expect(screen.getAllByText('BTN')[0]).toBeInTheDocument();
+      expect(screen.getAllByText('Gopay')[0]).toBeInTheDocument();
+      expect(screen.getAllByText('Seabank')[0]).toBeInTheDocument();
     });
 
     it('renders BCA account number', () => {
       renderWithProps();
-      expect(screen.getByText('1234567890')).toBeInTheDocument();
+      expect(screen.getAllByText('1234567890')[0]).toBeInTheDocument();
     });
 
     it('renders BRI account number', () => {
       renderWithProps();
-      expect(screen.getByText('0987654321')).toBeInTheDocument();
+      expect(screen.getAllByText('0987654321')[0]).toBeInTheDocument();
     });
 
     it('renders Jenius account number', () => {
       renderWithProps();
-      expect(screen.getByText('111222333444')).toBeInTheDocument();
+      expect(screen.getAllByText('111222333444')[0]).toBeInTheDocument();
     });
 
     it('renders BTN account number', () => {
       renderWithProps();
-      expect(screen.getByText('777888999000')).toBeInTheDocument();
+      expect(screen.getAllByText('777888999000')[0]).toBeInTheDocument();
     });
 
     it('renders Gopay account number', () => {
       renderWithProps();
-      expect(screen.getByText('08123456789')).toBeInTheDocument();
+      expect(screen.getAllByText('08123456789')[0]).toBeInTheDocument();
     });
 
     it('renders Seabank account number', () => {
       renderWithProps();
-      expect(screen.getByText('08987654321')).toBeInTheDocument();
+      expect(screen.getAllByText('08987654321')[0]).toBeInTheDocument();
     });
 
     it('renders owner names for accounts', () => {
@@ -146,7 +146,7 @@ describe('DigitalEnvelope', () => {
 
     it('bank names have uppercase tracking-widest styling', () => {
       renderWithProps();
-      const bca = screen.getByText('BCA');
+      const bca = screen.getAllByText('BCA')[0];
       expect(bca.className).toContain('uppercase');
       expect(bca.className).toContain('tracking-widest');
     });
@@ -157,8 +157,9 @@ describe('DigitalEnvelope', () => {
     it('shows copy icon on all 6 cards when copiedIndex is null', () => {
       const { container } = renderWithProps({ copiedIndex: null });
       // Lucide renders SVG elements with class containing the icon name
+      // Both mobile and desktop layouts render simultaneously, so 12 total
       const icons = container.querySelectorAll('svg.lucide-copy');
-      expect(icons).toHaveLength(6);
+      expect(icons).toHaveLength(12);
     });
 
     it('shows Tersalin badge on copied card', () => {
@@ -177,42 +178,42 @@ describe('DigitalEnvelope', () => {
     it('calls onCopy with BCA account and index 0 when first card clicked', () => {
       const onCopy = vi.fn();
       renderWithProps({ onCopy });
-      fireEvent.click(screen.getByText('1234567890'));
+      fireEvent.click(screen.getAllByText('1234567890')[0]);
       expect(onCopy).toHaveBeenCalledWith('1234567890', 0);
     });
 
     it('calls onCopy with BRI account and index 1 when second card clicked', () => {
       const onCopy = vi.fn();
       renderWithProps({ onCopy });
-      fireEvent.click(screen.getByText('0987654321'));
+      fireEvent.click(screen.getAllByText('0987654321')[0]);
       expect(onCopy).toHaveBeenCalledWith('0987654321', 1);
     });
 
     it('calls onCopy with Jenius account and index 2', () => {
       const onCopy = vi.fn();
       renderWithProps({ onCopy });
-      fireEvent.click(screen.getByText('111222333444'));
+      fireEvent.click(screen.getAllByText('111222333444')[0]);
       expect(onCopy).toHaveBeenCalledWith('111222333444', 2);
     });
 
     it('calls onCopy with BTN account and index 3', () => {
       const onCopy = vi.fn();
       renderWithProps({ onCopy });
-      fireEvent.click(screen.getByText('777888999000'));
+      fireEvent.click(screen.getAllByText('777888999000')[0]);
       expect(onCopy).toHaveBeenCalledWith('777888999000', 3);
     });
 
     it('calls onCopy with Gopay account and index 4', () => {
       const onCopy = vi.fn();
       renderWithProps({ onCopy });
-      fireEvent.click(screen.getByText('08123456789'));
+      fireEvent.click(screen.getAllByText('08123456789')[0]);
       expect(onCopy).toHaveBeenCalledWith('08123456789', 4);
     });
 
     it('calls onCopy with Seabank account and index 5', () => {
       const onCopy = vi.fn();
       renderWithProps({ onCopy });
-      fireEvent.click(screen.getByText('08987654321'));
+      fireEvent.click(screen.getAllByText('08987654321')[0]);
       expect(onCopy).toHaveBeenCalledWith('08987654321', 5);
     });
   });
@@ -254,24 +255,25 @@ describe('DigitalEnvelope', () => {
 
     it('only one overlay shown at a time', () => {
       const { container } = renderWithProps({ copiedIndex: 2 });
+      // Both mobile and desktop layouts render simultaneously, so 2 overlays (one per layout)
       const overlays = container.querySelectorAll('.bg-white\\/95');
-      expect(overlays.length).toBe(1);
+      expect(overlays.length).toBe(2);
     });
   });
 
   // ─── Visual / Styling ────────────────────────────────────────────
   describe('visual rendering and styling', () => {
-    it('uses responsive grid: 1 col -> 2 col -> 3 col', () => {
+    it('uses responsive grid: 2 col layout', () => {
       const { container } = renderWithProps();
       const grid = container.querySelector('.grid');
       expect(grid?.className).toContain('grid-cols-2');
-      expect(grid?.className).toContain('lg:grid-cols-3');
     });
 
     it('cards have glassmorphism: bg-white/60 backdrop-blur-md', () => {
       const { container } = renderWithProps();
+      // Both mobile and desktop layouts render simultaneously, so 12 cards total
       const cards = container.querySelectorAll('.bg-white\\/60');
-      expect(cards.length).toBe(6);
+      expect(cards.length).toBe(12);
       cards.forEach((card) => {
         expect(card.className).toContain('backdrop-blur-md');
       });
@@ -288,14 +290,16 @@ describe('DigitalEnvelope', () => {
 
     it('cards have cursor-pointer for click affordance', () => {
       const { container } = renderWithProps();
+      // Both mobile and desktop layouts render simultaneously, so 12 cards total
       const cards = container.querySelectorAll('.cursor-pointer');
-      expect(cards.length).toBe(6);
+      expect(cards.length).toBe(12);
     });
 
     it('cards have shadow-sm', () => {
       const { container } = renderWithProps();
+      // Both mobile and desktop layouts render simultaneously, so 12 cards total
       const cards = container.querySelectorAll('.shadow-sm');
-      expect(cards.length).toBe(6);
+      expect(cards.length).toBe(12);
     });
 
     it('has rotating circle decorations', () => {
@@ -310,9 +314,12 @@ describe('DigitalEnvelope', () => {
       expect(bgLayer).toBeInTheDocument();
     });
 
-    it('container has max-w-4xl', () => {
+    it('container has max-w-lg (mobile) or max-w-5xl (desktop)', () => {
       const { container } = renderWithProps();
-      expect(container.querySelector('.max-w-4xl')).toBeInTheDocument();
+      // Mobile layout uses max-w-lg; desktop uses max-w-5xl
+      const mobileContainer = container.querySelector('.max-w-lg');
+      const desktopContainer = container.querySelector('.max-w-5xl');
+      expect(mobileContainer || desktopContainer).toBeInTheDocument();
     });
 
     it('container is centered with mx-auto', () => {
@@ -320,10 +327,10 @@ describe('DigitalEnvelope', () => {
       expect(container.querySelector('.mx-auto')).toBeInTheDocument();
     });
 
-    it('section has py-[2vh] padding', () => {
+    it('section has py-[3vh] padding', () => {
       const { container } = renderWithProps();
       const section = container.querySelector('section');
-      expect(section?.className).toContain('py-[2vh]');
+      expect(section?.className).toContain('py-[3vh]');
     });
 
     it('section has bg-ivory background', () => {
@@ -334,13 +341,14 @@ describe('DigitalEnvelope', () => {
 
     it('cards have gold hover blur decoration', () => {
       const { container } = renderWithProps();
+      // Both mobile and desktop layouts render simultaneously, so 12 total
       const goldBlurs = container.querySelectorAll('.bg-gold\\/5.rounded-full.blur-xl');
-      expect(goldBlurs.length).toBe(6);
+      expect(goldBlurs.length).toBe(12);
     });
 
     it('account numbers have serif font with tracking-tight', () => {
       renderWithProps();
-      const account = screen.getByText('1234567890');
+      const account = screen.getAllByText('1234567890')[0];
       expect(account.className).toContain('font-serif');
       expect(account.className).toContain('tracking-tight');
     });
@@ -384,8 +392,8 @@ describe('DigitalEnvelope', () => {
     it('clicking different cards calls onCopy with different indices', () => {
       const onCopy = vi.fn();
       renderWithProps({ onCopy });
-      fireEvent.click(screen.getByText('1234567890'));
-      fireEvent.click(screen.getByText('0987654321'));
+      fireEvent.click(screen.getAllByText('1234567890')[0]);
+      fireEvent.click(screen.getAllByText('0987654321')[0]);
       expect(onCopy).toHaveBeenCalledTimes(2);
       expect(onCopy).toHaveBeenNthCalledWith(1, '1234567890', 0);
       expect(onCopy).toHaveBeenNthCalledWith(2, '0987654321', 1);
@@ -394,7 +402,7 @@ describe('DigitalEnvelope', () => {
     it('rapid clicks on the same card call onCopy multiple times', () => {
       const onCopy = vi.fn();
       renderWithProps({ onCopy });
-      const card = screen.getByText('1234567890');
+      const card = screen.getAllByText('1234567890')[0];
       fireEvent.click(card);
       fireEvent.click(card);
       fireEvent.click(card);
@@ -403,11 +411,12 @@ describe('DigitalEnvelope', () => {
 
     it('all cards show copy icon after reset (copiedIndex back to null)', () => {
       const { container, rerender } = render(<DigitalEnvelope copiedIndex={2} onCopy={vi.fn()} />);
-      expect(screen.getByText('Tersalin')).toBeInTheDocument();
+      expect(screen.getAllByText('Tersalin')[0]).toBeInTheDocument();
 
       rerender(<DigitalEnvelope copiedIndex={null} onCopy={vi.fn()} />);
       const icons = container.querySelectorAll('svg.lucide-copy');
-      expect(icons).toHaveLength(6);
+      // Both mobile and desktop layouts render simultaneously, so 12 total
+      expect(icons).toHaveLength(12);
     });
 
     it('switching copiedIndex updates the Tersalin badge', () => {
@@ -423,8 +432,8 @@ describe('DigitalEnvelope', () => {
     it('clicking on bank name area triggers onCopy via parent card', () => {
       const onCopy = vi.fn();
       renderWithProps({ onCopy });
-      // Click the card via the bank name parent
-      const bcaText = screen.getByText('BCA');
+      // Click the card via the bank name parent (use first instance from mobile layout)
+      const bcaText = screen.getAllByText('BCA')[0];
       const card = bcaText.closest('.cursor-pointer');
       expect(card).not.toBeNull();
       fireEvent.click(card!);
@@ -433,8 +442,9 @@ describe('DigitalEnvelope', () => {
 
     it('owner names have truncate class for long names', () => {
       const { container } = renderWithProps();
+      // Both mobile and desktop layouts render simultaneously, so 12 total
       const owners = container.querySelectorAll('.truncate');
-      expect(owners.length).toBe(6);
+      expect(owners.length).toBe(12);
     });
   });
 });

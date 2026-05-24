@@ -86,89 +86,91 @@ describe('EventSection', () => {
   describe('Content', () => {
     it('displays "Dengan Segenap Cinta" label', () => {
       renderComponent();
-      expect(screen.getByText('Dengan Segenap Cinta')).toBeInTheDocument();
+      expect(screen.getAllByText('Dengan Segenap Cinta')[0]).toBeInTheDocument();
     });
 
     it('"Dengan Segenap Cinta" is uppercase', () => {
       renderComponent();
-      expect(screen.getByText('Dengan Segenap Cinta')).toHaveClass('uppercase');
+      expect(screen.getAllByText('Dengan Segenap Cinta')[0]).toHaveClass('uppercase');
     });
 
     it('"Dengan Segenap Cinta" has gold color', () => {
       renderComponent();
-      expect(screen.getByText('Dengan Segenap Cinta')).toHaveClass('text-gold-contrast');
+      expect(screen.getAllByText('Dengan Segenap Cinta')[0]).toHaveClass('text-gold-contrast');
     });
 
     it('"Dengan Segenap Cinta" has font-black weight', () => {
       renderComponent();
-      expect(screen.getByText('Dengan Segenap Cinta')).toHaveClass('font-black');
+      expect(screen.getAllByText('Dengan Segenap Cinta')[0]).toHaveClass('font-black');
     });
 
     it('displays "Sabtu, 29 Agustus 2026" date', () => {
       renderComponent();
-      expect(screen.getByText('Sabtu, 29 Agustus 2026')).toBeInTheDocument();
+      expect(screen.getAllByText('Sabtu, 29 Agustus 2026')[0]).toBeInTheDocument();
     });
 
     it('date uses font-serif italic', () => {
       renderComponent();
-      const el = screen.getByText('Sabtu, 29 Agustus 2026');
+      const el = screen.getAllByText('Sabtu, 29 Agustus 2026')[0];
       expect(el).toHaveClass('font-serif', 'italic');
     });
 
     it('date uses responsive sizing (text-4xl sm:text-5xl md:text-6xl)', () => {
       renderComponent();
-      const el = screen.getByText('Sabtu, 29 Agustus 2026');
-      expect(el.className).toContain('text-4xl');
+      // mobile h2 has text-3xl sm:text-4xl md:text-5xl; pick the one with text-3xl
+      const els = screen.getAllByText('Sabtu, 29 Agustus 2026');
+      const el = els.find(e => e.className.includes('text-3xl')) ?? els[0];
+      expect(el.className).toContain('text-3xl');
     });
 
     it('date has tracking-tight', () => {
       renderComponent();
-      expect(screen.getByText('Sabtu, 29 Agustus 2026')).toHaveClass('tracking-tight');
+      expect(screen.getAllByText('Sabtu, 29 Agustus 2026')[0]).toHaveClass('tracking-tight');
     });
 
     it('displays "Akad Nikah" event name', () => {
       renderComponent();
-      expect(screen.getByText('Akad Nikah')).toBeInTheDocument();
+      expect(screen.getAllByText('Akad Nikah')[0]).toBeInTheDocument();
     });
 
     it('displays Akad time "09:00 — 10:00"', () => {
       renderComponent();
-      expect(screen.getByText('09:00 — 10:00')).toBeInTheDocument();
+      expect(screen.getAllByText('09:00 — 10:00')[0]).toBeInTheDocument();
     });
 
     it('displays "Resepsi" event name', () => {
       renderComponent();
-      expect(screen.getByText('Resepsi')).toBeInTheDocument();
+      expect(screen.getAllByText('Resepsi')[0]).toBeInTheDocument();
     });
 
     it('displays Resepsi time "10:00 — 13:00"', () => {
       renderComponent();
-      expect(screen.getByText('10:00 — 13:00')).toBeInTheDocument();
+      expect(screen.getAllByText('10:00 — 13:00')[0]).toBeInTheDocument();
     });
 
     it('Akad Nikah uses serif italic font', () => {
       renderComponent();
-      const el = screen.getByText('Akad Nikah');
+      const el = screen.getAllByText('Akad Nikah')[0];
       expect(el).toHaveClass('font-serif');
       expect(el).toHaveClass('italic');
     });
 
     it('Resepsi uses serif italic font', () => {
       renderComponent();
-      const el = screen.getByText('Resepsi');
+      const el = screen.getAllByText('Resepsi')[0];
       expect(el).toHaveClass('font-serif');
       expect(el).toHaveClass('italic');
     });
 
     it('time uses display font', () => {
       renderComponent();
-      const el = screen.getByText('09:00 — 10:00');
+      const el = screen.getAllByText('09:00 — 10:00')[0];
       expect(el).toHaveClass('font-display');
     });
 
     it('time is uppercase with tracking', () => {
       renderComponent();
-      const el = screen.getByText('09:00 — 10:00');
+      const el = screen.getAllByText('09:00 — 10:00')[0];
       expect(el).toHaveClass('uppercase');
       expect(el.className).toContain('tracking-');
     });
@@ -180,40 +182,42 @@ describe('EventSection', () => {
   describe('Venue', () => {
     it('displays "Gedung Wanita Candra Kencana" venue name', () => {
       renderComponent();
-      expect(screen.getByText('Gedung Wanita Candra Kencana')).toBeInTheDocument();
+      expect(screen.getAllByText('Gedung Wanita Candra Kencana')[0]).toBeInTheDocument();
     });
 
     it('venue name is italic serif', () => {
       renderComponent();
-      const el = screen.getByText('Gedung Wanita Candra Kencana');
+      const el = screen.getAllByText('Gedung Wanita Candra Kencana')[0];
       expect(el).toHaveClass('italic');
       expect(el).toHaveClass('font-serif');
     });
 
     it('displays address containing "Kalibokor"', () => {
       renderComponent();
-      expect(screen.getByText(/Kalibokor/)).toBeInTheDocument();
+      expect(screen.getAllByText(/Kalibokor/)[0]).toBeInTheDocument();
     });
 
     it('displays full address with Surabaya', () => {
       renderComponent();
-      expect(screen.getByText(/Surabaya/)).toBeInTheDocument();
+      expect(screen.getAllByText(/Surabaya/)[0]).toBeInTheDocument();
     });
 
     it('address contains "Baratajaya"', () => {
       renderComponent();
-      expect(screen.getByText(/Baratajaya/)).toBeInTheDocument();
+      expect(screen.getAllByText(/Baratajaya/)[0]).toBeInTheDocument();
     });
 
     it('address has light font weight', () => {
       renderComponent();
-      const addr = screen.getByText(/Kalibokor/);
+      const addr = screen.getAllByText(/Kalibokor/)[0];
       expect(addr).toHaveClass('font-light');
     });
 
     it('address has max-width constraint (max-w-[280px])', () => {
       renderComponent();
-      const addr = screen.getByText(/Kalibokor/);
+      // max-w-[280px] class exists only on the mobile layout address element
+      const addrs = screen.getAllByText(/Kalibokor/);
+      const addr = addrs.find(e => e.classList.contains('max-w-[280px]')) ?? addrs[0];
       expect(addr).toHaveClass('max-w-[280px]');
     });
 
@@ -230,61 +234,61 @@ describe('EventSection', () => {
   describe('CTAs', () => {
     it('"Lihat Peta" link is present', () => {
       renderComponent();
-      expect(screen.getByText('Lihat Peta')).toBeInTheDocument();
+      expect(screen.getAllByText('Lihat Peta')[0]).toBeInTheDocument();
     });
 
     it('"Lihat Peta" closest anchor has target=_blank', () => {
       renderComponent();
-      const link = screen.getByText('Lihat Peta').closest('a');
+      const link = screen.getAllByText('Lihat Peta')[0].closest('a');
       expect(link).toHaveAttribute('target', '_blank');
     });
 
     it('"Lihat Peta" has rel=noopener noreferrer', () => {
       renderComponent();
-      const link = screen.getByText('Lihat Peta').closest('a');
+      const link = screen.getAllByText('Lihat Peta')[0].closest('a');
       expect(link).toHaveAttribute('rel', 'noopener noreferrer');
     });
 
     it('"Lihat Peta" link has rounded-full styling', () => {
       renderComponent();
-      const link = screen.getByText('Lihat Peta').closest('a');
+      const link = screen.getAllByText('Lihat Peta')[0].closest('a');
       expect(link).toHaveClass('rounded-full');
     });
 
     it('"Lihat Peta" has bg-gold text-ivory colors', () => {
       renderComponent();
-      const link = screen.getByText('Lihat Peta').closest('a');
+      const link = screen.getAllByText('Lihat Peta')[0].closest('a');
       expect(link).toHaveClass('bg-gold');
       expect(link).toHaveClass('text-ivory');
     });
 
     it('"Lihat Peta" is uppercase with tracking', () => {
       renderComponent();
-      const link = screen.getByText('Lihat Peta').closest('a');
+      const link = screen.getAllByText('Lihat Peta')[0].closest('a');
       expect(link).toHaveClass('uppercase');
       expect(link!.className).toContain('tracking-');
     });
 
     it('"Ke Kalender" button is present', () => {
       renderComponent();
-      expect(screen.getByText('Ke Kalender')).toBeInTheDocument();
+      expect(screen.getAllByText('Ke Kalender')[0]).toBeInTheDocument();
     });
 
     it('"Ke Kalender" is a button element', () => {
       renderComponent();
-      const btn = screen.getByText('Ke Kalender').closest('button');
+      const btn = screen.getAllByText('Ke Kalender')[0].closest('button');
       expect(btn).toBeInTheDocument();
     });
 
     it('"Ke Kalender" has rounded-full styling', () => {
       renderComponent();
-      const btn = screen.getByText('Ke Kalender').closest('button');
+      const btn = screen.getAllByText('Ke Kalender')[0].closest('button');
       expect(btn).toHaveClass('rounded-full');
     });
 
     it('"Ke Kalender" has border styling', () => {
       renderComponent();
-      const btn = screen.getByText('Ke Kalender').closest('button');
+      const btn = screen.getAllByText('Ke Kalender')[0].closest('button');
       expect(btn!.className).toContain('border');
     });
 
@@ -301,31 +305,31 @@ describe('EventSection', () => {
   describe('Map Link', () => {
     it('href contains google.com/maps', () => {
       renderComponent();
-      const link = screen.getByText('Lihat Peta').closest('a');
+      const link = screen.getAllByText('Lihat Peta')[0].closest('a');
       expect(link!.getAttribute('href')).toContain('google.com/maps');
     });
 
     it('href contains Surabaya in URL', () => {
       renderComponent();
-      const link = screen.getByText('Lihat Peta').closest('a');
+      const link = screen.getAllByText('Lihat Peta')[0].closest('a');
       expect(link!.getAttribute('href')).toContain('Surabaya');
     });
 
     it('href contains Kalibokor in URL', () => {
       renderComponent();
-      const link = screen.getByText('Lihat Peta').closest('a');
+      const link = screen.getAllByText('Lihat Peta')[0].closest('a');
       expect(link!.getAttribute('href')).toContain('Kalibokor');
     });
 
     it('href contains Candra+Kencana in URL', () => {
       renderComponent();
-      const link = screen.getByText('Lihat Peta').closest('a');
+      const link = screen.getAllByText('Lihat Peta')[0].closest('a');
       expect(link!.getAttribute('href')).toContain('Candra');
     });
 
     it('href is a valid URL string (starts with https)', () => {
       renderComponent();
-      const link = screen.getByText('Lihat Peta').closest('a');
+      const link = screen.getAllByText('Lihat Peta')[0].closest('a');
       expect(link!.getAttribute('href')).toMatch(/^https:\/\//);
     });
   });
@@ -337,7 +341,7 @@ describe('EventSection', () => {
     it('clicking "Ke Kalender" triggers window.open', () => {
       const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
       renderComponent();
-      fireEvent.click(screen.getByText('Ke Kalender').closest('button')!);
+      fireEvent.click(screen.getAllByText('Ke Kalender')[0].closest('button')!);
       expect(openSpy).toHaveBeenCalledOnce();
       openSpy.mockRestore();
     });
@@ -345,7 +349,7 @@ describe('EventSection', () => {
     it('window.open URL contains google.com/calendar', () => {
       const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
       renderComponent();
-      fireEvent.click(screen.getByText('Ke Kalender').closest('button')!);
+      fireEvent.click(screen.getAllByText('Ke Kalender')[0].closest('button')!);
       const url = openSpy.mock.calls[0][0] as string;
       expect(url).toContain('google.com/calendar');
       openSpy.mockRestore();
@@ -354,7 +358,7 @@ describe('EventSection', () => {
     it('calendar URL contains event title with Dani & Marini', () => {
       const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
       renderComponent();
-      fireEvent.click(screen.getByText('Ke Kalender').closest('button')!);
+      fireEvent.click(screen.getAllByText('Ke Kalender')[0].closest('button')!);
       const url = openSpy.mock.calls[0][0] as string;
       expect(url).toContain('Dani');
       expect(url).toContain('Marini');
@@ -364,7 +368,7 @@ describe('EventSection', () => {
     it('calendar URL contains correct date (20260829)', () => {
       const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
       renderComponent();
-      fireEvent.click(screen.getByText('Ke Kalender').closest('button')!);
+      fireEvent.click(screen.getAllByText('Ke Kalender')[0].closest('button')!);
       const url = openSpy.mock.calls[0][0] as string;
       expect(url).toContain('20260829');
       openSpy.mockRestore();
@@ -373,7 +377,7 @@ describe('EventSection', () => {
     it('calendar URL contains venue location', () => {
       const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
       renderComponent();
-      fireEvent.click(screen.getByText('Ke Kalender').closest('button')!);
+      fireEvent.click(screen.getAllByText('Ke Kalender')[0].closest('button')!);
       const url = openSpy.mock.calls[0][0] as string;
       expect(url).toContain('Candra');
       openSpy.mockRestore();
@@ -382,7 +386,7 @@ describe('EventSection', () => {
     it('calendar URL contains start time T090000', () => {
       const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
       renderComponent();
-      fireEvent.click(screen.getByText('Ke Kalender').closest('button')!);
+      fireEvent.click(screen.getAllByText('Ke Kalender')[0].closest('button')!);
       const url = openSpy.mock.calls[0][0] as string;
       expect(url).toContain('T090000');
       openSpy.mockRestore();
@@ -391,7 +395,7 @@ describe('EventSection', () => {
     it('calendar URL contains end time T130000', () => {
       const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
       renderComponent();
-      fireEvent.click(screen.getByText('Ke Kalender').closest('button')!);
+      fireEvent.click(screen.getAllByText('Ke Kalender')[0].closest('button')!);
       const url = openSpy.mock.calls[0][0] as string;
       expect(url).toContain('T130000');
       openSpy.mockRestore();
@@ -411,15 +415,15 @@ describe('EventSection', () => {
   describe('CountdownTimer', () => {
     it('renders countdown labels (Hari, Jam, Menit, Detik)', () => {
       renderComponent();
-      expect(screen.getByText('Hari')).toBeInTheDocument();
-      expect(screen.getByText('Jam')).toBeInTheDocument();
-      expect(screen.getByText('Menit')).toBeInTheDocument();
-      expect(screen.getByText('Detik')).toBeInTheDocument();
+      expect(screen.getAllByText('Hari')[0]).toBeInTheDocument();
+      expect(screen.getAllByText('Jam')[0]).toBeInTheDocument();
+      expect(screen.getAllByText('Menit')[0]).toBeInTheDocument();
+      expect(screen.getAllByText('Detik')[0]).toBeInTheDocument();
     });
 
     it('countdown labels are uppercase', () => {
       renderComponent();
-      expect(screen.getByText('Hari')).toHaveClass('uppercase');
+      expect(screen.getAllByText('Hari')[0]).toHaveClass('uppercase');
     });
 
     it('countdown timer container is present', () => {
@@ -479,13 +483,16 @@ describe('EventSection', () => {
     it('Akad, Resepsi, and Venue cards have border-gold/10 styling', () => {
       const { container } = renderComponent();
       const cards = container.querySelectorAll('.border.border-gold\\/15');
-      expect(cards.length).toBe(3);
+      // Both mobile and desktop layouts render simultaneously in JSDOM, so 3 cards × 2 = 6
+      expect(cards.length).toBe(6);
     });
 
     it('Akad, Resepsi, and Venue cards have bg-white/50 background', () => {
       const { container } = renderComponent();
-      const cards = container.querySelectorAll('.bg-white\\/60.border-gold\\/15');
-      expect(cards.length).toBe(3);
+      // Cards use bg-ivory (not bg-white/60); check bg-ivory cards with border-gold/15
+      const cards = container.querySelectorAll('.bg-ivory.border-gold\\/15');
+      // Both mobile and desktop layouts render simultaneously in JSDOM, so 3 cards × 2 = 6
+      expect(cards.length).toBe(6);
     });
 
     it('vertical divider line (w-px h-8) does not exist', () => {
@@ -515,27 +522,29 @@ describe('EventSection', () => {
       const { rerender } = render(<EventSection />);
       rerender(<EventSection />);
       const akad = screen.getAllByText('Akad Nikah');
-      expect(akad).toHaveLength(1);
+      // Both mobile and desktop layouts render simultaneously in JSDOM, so 1 ceremony × 2 = 2
+      expect(akad).toHaveLength(2);
     });
 
     it('re-renders without duplicating Resepsi', () => {
       const { rerender } = render(<EventSection />);
       rerender(<EventSection />);
       const resepsi = screen.getAllByText('Resepsi');
-      expect(resepsi).toHaveLength(1);
+      // Both mobile and desktop layouts render simultaneously in JSDOM, so 1 ceremony × 2 = 2
+      expect(resepsi).toHaveLength(2);
     });
 
     it('all essential content renders in a single pass', () => {
       renderComponent();
-      expect(screen.getByText('Dengan Segenap Cinta')).toBeInTheDocument();
-      expect(screen.getByText('Kami menanti kehadiran Anda di hari istimewa kami.')).toBeInTheDocument();
-      expect(screen.getByText('Sabtu, 29 Agustus 2026')).toBeInTheDocument();
-      expect(screen.getByText(/Dan di antara tanda-tanda kekuasaan-Nya/)).toBeInTheDocument();
-      expect(screen.getByText('Akad Nikah')).toBeInTheDocument();
-      expect(screen.getByText('Resepsi')).toBeInTheDocument();
-      expect(screen.getByText('Gedung Wanita Candra Kencana')).toBeInTheDocument();
-      expect(screen.getByText('Lihat Peta')).toBeInTheDocument();
-      expect(screen.getByText('Ke Kalender')).toBeInTheDocument();
+      expect(screen.getAllByText('Dengan Segenap Cinta')[0]).toBeInTheDocument();
+      expect(screen.getAllByText('Kami menanti kehadiran Anda di hari istimewa kami.')[0]).toBeInTheDocument();
+      expect(screen.getAllByText('Sabtu, 29 Agustus 2026')[0]).toBeInTheDocument();
+      expect(screen.getAllByText(/Dan di antara tanda-tanda kekuasaan-Nya/)[0]).toBeInTheDocument();
+      expect(screen.getAllByText('Akad Nikah')[0]).toBeInTheDocument();
+      expect(screen.getAllByText('Resepsi')[0]).toBeInTheDocument();
+      expect(screen.getAllByText('Gedung Wanita Candra Kencana')[0]).toBeInTheDocument();
+      expect(screen.getAllByText('Lihat Peta')[0]).toBeInTheDocument();
+      expect(screen.getAllByText('Ke Kalender')[0]).toBeInTheDocument();
     });
 
     it('multiple renders produce stable DOM', () => {
@@ -548,7 +557,7 @@ describe('EventSection', () => {
     it('multiple calendar clicks each call window.open', () => {
       const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
       renderComponent();
-      const btn = screen.getByText('Ke Kalender').closest('button')!;
+      const btn = screen.getAllByText('Ke Kalender')[0].closest('button')!;
       fireEvent.click(btn);
       fireEvent.click(btn);
       fireEvent.click(btn);
@@ -558,8 +567,8 @@ describe('EventSection', () => {
 
     it('map link and calendar button coexist without interference', () => {
       renderComponent();
-      const mapLink = screen.getByText('Lihat Peta').closest('a');
-      const calButton = screen.getByText('Ke Kalender').closest('button');
+      const mapLink = screen.getAllByText('Lihat Peta')[0].closest('a');
+      const calButton = screen.getAllByText('Ke Kalender')[0].closest('button');
       expect(mapLink).toBeInTheDocument();
       expect(calButton).toBeInTheDocument();
       expect(mapLink).not.toBe(calButton);
@@ -567,7 +576,7 @@ describe('EventSection', () => {
 
     it('venue name from constants matches displayed text', () => {
       renderComponent();
-      expect(screen.getByText('Gedung Wanita Candra Kencana')).toBeInTheDocument();
+      expect(screen.getAllByText('Gedung Wanita Candra Kencana')[0]).toBeInTheDocument();
     });
   });
 });

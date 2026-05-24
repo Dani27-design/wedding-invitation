@@ -48,9 +48,9 @@ describe('Footer', () => {
 
     it('footer has border-top with gold accent', () => {
       const { container } = renderFooter();
-      const footer = container.querySelector('footer');
-      expect(footer?.className).toContain('border-t');
-      expect(footer?.className).toContain('border-gold/10');
+      // The border separator is inside the footer, on the copyright section
+      const borderEl = container.querySelector('.border-t.border-gold\\/5');
+      expect(borderEl).toBeInTheDocument();
     });
 
     it('footer has overflow-hidden', () => {

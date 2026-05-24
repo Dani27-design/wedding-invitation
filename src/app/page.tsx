@@ -29,6 +29,7 @@ import { GalleryShowcase } from "@/components/ui/GalleryShowcase";
 import { BackgroundLayers } from "@/components/ui/BackgroundLayers";
 import { PetalEffect } from "@/components/ui/PetalEffect";
 import { FloatingPetals } from "@/components/ui/FloatingPetals";
+import { TestimonialSection } from "@/components/ui/TestimonialSection";
 import { BASE_URL } from "@/constants/baseUrl";
 
 const title = "Marinikah Invitation | Undangan Pernikahan Digital Premium";
@@ -230,7 +231,7 @@ export default function LandingPage() {
             />
 
             <div
-              className="relative w-[210px] sm:w-[240px] lg:w-[230px]"
+              className="relative w-[210px] sm:w-[240px] lg:w-[280px] [--iframe-scale:0.51] sm:[--iframe-scale:0.585] lg:[--iframe-scale:0.683]"
               style={{ aspectRatio: "320/660" }}
             >
               {/* SVG frame overlay */}
@@ -253,11 +254,11 @@ export default function LandingPage() {
                 }}
               >
                 {/* Status bar */}
-                <div className="shrink-0 bg-[#1C1C1E] flex items-end justify-between px-3 py-2 relative z-10">
-                  <span className="text-[7px] sm:text-[8px] text-white font-bold leading-none">
+                <div className="shrink-0 bg-[#1C1C1E] flex items-end justify-between px-3 py-2 relative z-10 lg:py-2.5 px-5">
+                  <span className="text-[7px] text-white font-bold leading-none">
                     9:41
                   </span>
-                  <div className="w-14 sm:w-16" />
+                  <div className="w-14" />
                   <div className="flex items-center gap-[2px]">
                     <svg
                       className="w-[11px] h-[7px]"
@@ -320,8 +321,8 @@ export default function LandingPage() {
                   <iframe
                     src="/dani-marini?to=Tamu+Spesial"
                     title="Demo undangan"
-                    className="absolute top-0 left-0 w-[375px] h-[700px] origin-top-left"
-                    style={{ transform: `scale(${192 / 375})` }}
+                    className="absolute top-0 left-0 border-0"
+                    style={{ width: 378, height: 700, transform: 'scale(var(--iframe-scale))', transformOrigin: '0 0' }}
                     loading="lazy"
                     sandbox="allow-scripts allow-same-origin"
                   />
@@ -341,7 +342,7 @@ export default function LandingPage() {
                         >
                           <path d="M8 2a4 4 0 0 0-4 4v2H3a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1h-1V6a4 4 0 0 0-4-4zm-2 4a2 2 0 1 1 4 0v2H6V6z" />
                         </svg>
-                        <span className="text-[6px] sm:text-[7px] text-white/80 truncate font-medium">
+                        <span className="text-[6px] text-white/80 truncate font-medium">
                           marinikah.com
                         </span>
                       </div>
@@ -378,7 +379,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── About ── */}
-      <section className="px-6 py-12">
+      <section className="p-6">
         <div className="max-w-md lg:max-w-2xl mx-auto text-center">
           <p className="text-xs uppercase tracking-[0.4em] text-gold-contrast font-black mb-2">
             Tentang Kami
@@ -398,7 +399,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Strengths ── */}
-      <section className="relative px-6 py-12 overflow-hidden">
+      <section className="relative p-6 overflow-hidden">
         <FloatingPetals />
 
         <div className="relative z-10 max-w-lg lg:max-w-5xl mx-auto">
@@ -458,7 +459,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Features ── */}
-      <section className="px-6 py-12 bg-paper border-y border-gold/10">
+      <section className="p-6 bg-paper border-y border-gold/10">
         <div className="max-w-2xl lg:max-w-4xl mx-auto">
           <div className="text-center mb-5">
             <p className="text-xs uppercase tracking-[0.4em] text-gold-contrast font-black mb-2">
@@ -497,7 +498,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Gallery Showcase ── */}
-      <section id="gallery" className="px-6 py-12 scroll-mt-4">
+      <section id="gallery" className="p-6 scroll-mt-4">
         <div className="max-w-2xl lg:max-w-6xl mx-auto">
           <div className="text-center mb-6">
             <p className="text-xs uppercase tracking-[0.4em] text-gold-contrast font-black mb-2">
@@ -579,8 +580,11 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── Testimonials ── */}
+      <TestimonialSection />
+
       {/* ── FAQ ── */}
-      <section className="px-6 py-8">
+      <section className="p-6">
         <div className="max-w-lg lg:max-w-4xl mx-auto">
           <div className="text-center mb-6">
             <p className="text-xs uppercase tracking-[0.4em] text-gold-contrast font-black mb-2">
@@ -615,7 +619,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Consultation ── */}
-      <section className="relative px-6 py-14 overflow-hidden bg-ink text-ivory">
+      <section className="relative p-6 overflow-hidden bg-ink text-ivory">
         <div className="absolute inset-0 bg-gradient-to-b from-ink via-ink/95 to-ink" />
         <div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full"
@@ -657,7 +661,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Footer ── */}
-      <footer className="px-6 py-6 border-t border-gold/5">
+      <footer className="p-6 border-t border-gold/5">
         <div className="max-w-lg lg:max-w-5xl mx-auto">
           {/* Mobile: stacked centered / Desktop: horizontal row */}
           <div className="flex flex-col items-center gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-6">

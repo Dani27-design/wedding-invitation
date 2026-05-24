@@ -123,6 +123,13 @@ export interface CreditPerson {
   description: string;
 }
 
+export interface TestimonialDocument {
+  weddingSlug: string;
+  rating: number;
+  message: string;
+  createdAt: Timestamp;
+}
+
 export interface Guest {
   id: string;
   name: string;

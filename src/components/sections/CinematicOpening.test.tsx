@@ -86,14 +86,14 @@ describe('CinematicOpening', () => {
   describe('Content', () => {
     it('displays "Dani & Marini" couple names', () => {
       renderComponent();
-      expect(screen.getByText('Dani')).toBeInTheDocument();
-      expect(screen.getByText('Marini')).toBeInTheDocument();
+      expect(screen.getAllByText('Dani')[0]).toBeInTheDocument();
+      expect(screen.getAllByText('Marini')[0]).toBeInTheDocument();
     });
 
     it('couple names are inside an aria-hidden container (decorative, not a heading)', () => {
       renderComponent();
-      const dani = screen.getByText('Dani');
-      const marini = screen.getByText('Marini');
+      const dani = screen.getAllByText('Dani')[0];
+      const marini = screen.getAllByText('Marini')[0];
       expect(dani.tagName).toBe('SPAN');
       expect(marini.tagName).toBe('SPAN');
       expect(dani.closest('[aria-hidden="true"]')).not.toBeNull();
@@ -102,69 +102,71 @@ describe('CinematicOpening', () => {
 
     it('couple names use font-dayland', () => {
       renderComponent();
-      expect(screen.getByText('Dani')).toHaveClass('font-dayland');
-      expect(screen.getByText('Marini')).toHaveClass('font-dayland');
+      expect(screen.getAllByText('Dani')[0]).toHaveClass('font-dayland');
+      expect(screen.getAllByText('Marini')[0]).toHaveClass('font-dayland');
     });
 
     it('couple names use responsive sizing text-7xl md:text-9xl', () => {
       renderComponent();
-      const el = screen.getByText('Dani');
+      // mobile element has text-5xl; desktop element has text-8xl — find the mobile one
+      const els = screen.getAllByText('Dani');
+      const el = els.find(e => e.className.includes('text-5xl')) ?? els[0];
       expect(el.className).toContain('text-5xl');
     });
 
     it('couple names have text-ivory color', () => {
       renderComponent();
-      expect(screen.getByText('Dani')).toHaveClass('text-ivory');
-      expect(screen.getByText('Marini')).toHaveClass('text-ivory');
+      expect(screen.getAllByText('Dani')[0]).toHaveClass('text-ivory');
+      expect(screen.getAllByText('Marini')[0]).toHaveClass('text-ivory');
     });
 
     it('couple names have drop-shadow-2xl', () => {
       renderComponent();
-      expect(screen.getByText('Dani')).toHaveClass('drop-shadow-2xl');
-      expect(screen.getByText('Marini')).toHaveClass('drop-shadow-2xl');
+      expect(screen.getAllByText('Dani')[0]).toHaveClass('drop-shadow-2xl');
+      expect(screen.getAllByText('Marini')[0]).toHaveClass('drop-shadow-2xl');
     });
 
     it('displays the guest name prop', () => {
       renderComponent({ guestName: 'Budi Santoso' });
-      expect(screen.getByText('Budi Santoso')).toBeInTheDocument();
+      expect(screen.getAllByText('Budi Santoso')[0]).toBeInTheDocument();
     });
 
     it('displays "Turut Mengundang" invitation label', () => {
       renderComponent();
-      expect(screen.getByText('Turut Mengundang')).toBeInTheDocument();
+      expect(screen.getAllByText('Turut Mengundang')[0]).toBeInTheDocument();
     });
 
     it('"Turut Mengundang" label has uppercase styling', () => {
       renderComponent();
-      expect(screen.getByText('Turut Mengundang')).toHaveClass('uppercase');
+      expect(screen.getAllByText('Turut Mengundang')[0]).toHaveClass('uppercase');
     });
 
     it('"Turut Mengundang" label has gold color', () => {
       renderComponent();
-      const el = screen.getByText('Turut Mengundang');
+      const el = screen.getAllByText('Turut Mengundang')[0];
       expect(el.className).toContain('text-gold');
     });
 
     it('displays "Surabaya" location', () => {
       renderComponent();
-      expect(screen.getByText('Surabaya')).toBeInTheDocument();
+      expect(screen.getAllByText('Surabaya')[0]).toBeInTheDocument();
     });
 
     it('"Surabaya" is uppercase with wide tracking', () => {
       renderComponent();
-      const el = screen.getByText('Surabaya');
+      const el = screen.getAllByText('Surabaya')[0];
       expect(el).toHaveClass('uppercase');
       expect(el.className).toContain('tracking-');
     });
 
     it('displays "29 Agustus 2026" date', () => {
       renderComponent();
-      expect(screen.getByText('29 Agustus 2026')).toBeInTheDocument();
+      expect(screen.getAllByText('29 Agustus 2026')[0]).toBeInTheDocument();
     });
 
     it('date is in italic serif font', () => {
       renderComponent();
-      const el = screen.getByText('29 Agustus 2026');
+      const el = screen.getAllByText('29 Agustus 2026')[0];
       expect(el).toHaveClass('italic');
       expect(el).toHaveClass('font-serif');
     });
@@ -176,20 +178,20 @@ describe('CinematicOpening', () => {
   describe('Button', () => {
     it('renders the opening button', () => {
       renderComponent();
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getAllByRole('button')[0]).toBeInTheDocument();
     });
 
     it('calls onOpen callback when button is clicked', () => {
       const onOpen = vi.fn();
       renderComponent({ onOpen });
-      fireEvent.click(screen.getByRole('button'));
+      fireEvent.click(screen.getAllByRole('button')[0]);
       expect(onOpen).toHaveBeenCalledOnce();
     });
 
     it('calls onOpen exactly once regardless of multiple clicks', () => {
       const onOpen = vi.fn();
       renderComponent({ onOpen });
-      const btn = screen.getByRole('button');
+      const btn = screen.getAllByRole('button')[0];
       fireEvent.click(btn);
       fireEvent.click(btn);
       expect(onOpen).toHaveBeenCalledTimes(1);
@@ -203,7 +205,7 @@ describe('CinematicOpening', () => {
 
     it('button has transition-all for smooth hover effects', () => {
       renderComponent();
-      expect(screen.getByRole('button')).toHaveClass('transition-all');
+      expect(screen.getAllByRole('button')[0]).toHaveClass('transition-all');
     });
 
     it('does not call onOpen on render without click', () => {
@@ -219,48 +221,52 @@ describe('CinematicOpening', () => {
   describe('Guest Name', () => {
     it('renders a custom guest name', () => {
       renderComponent({ guestName: 'Andi Prasetyo' });
-      expect(screen.getByText('Andi Prasetyo')).toBeInTheDocument();
+      expect(screen.getAllByText('Andi Prasetyo')[0]).toBeInTheDocument();
     });
 
     it('renders the default guest name', () => {
       renderComponent({ guestName: 'Tamu Terkasih Kami' });
-      expect(screen.getByText('Tamu Terkasih Kami')).toBeInTheDocument();
+      expect(screen.getAllByText('Tamu Terkasih Kami')[0]).toBeInTheDocument();
     });
 
     it('guest name has break-words class for overflow prevention', () => {
       renderComponent({ guestName: 'Superlongnamewithoutspaces' });
-      const el = screen.getByText('Superlongnamewithoutspaces');
+      // break-words class exists only on the mobile layout element
+      const els = screen.getAllByText('Superlongnamewithoutspaces');
+      const el = els.find(e => e.classList.contains('break-words')) ?? els[0];
       expect(el).toHaveClass('break-words');
     });
 
     it('guest name has max-w-[85vw] constraint', () => {
       renderComponent({ guestName: 'Some Name' });
-      const el = screen.getByText('Some Name');
+      // max-w-[85vw] class exists only on the mobile layout element
+      const els = screen.getAllByText('Some Name');
+      const el = els.find(e => e.classList.contains('max-w-[85vw]')) ?? els[0];
       expect(el).toHaveClass('max-w-[85vw]');
     });
 
     it('guest name uses italic font-display', () => {
       renderComponent({ guestName: 'Test' });
-      const el = screen.getByText('Test');
+      const el = screen.getAllByText('Test')[0];
       expect(el).toHaveClass('italic');
       expect(el).toHaveClass('font-display');
     });
 
     it('guest name uses responsive text size', () => {
       renderComponent({ guestName: 'Responsive' });
-      const el = screen.getByText('Responsive');
+      const el = screen.getAllByText('Responsive')[0];
       expect(el.className).toContain('text-3xl');
     });
 
     it('guest name is inside a p element', () => {
       renderComponent({ guestName: 'Heading Check' });
-      const el = screen.getByText('Heading Check');
+      const el = screen.getAllByText('Heading Check')[0];
       expect(el.tagName).toBe('P');
     });
 
     it('guest name has ivory text color', () => {
       renderComponent({ guestName: 'Color Check' });
-      const el = screen.getByText('Color Check');
+      const el = screen.getAllByText('Color Check')[0];
       expect(el.className).toContain('text-ivory');
     });
   });
@@ -336,13 +342,13 @@ describe('CinematicOpening', () => {
     it('handles very long guest name without breaking layout', () => {
       const longName = 'A'.repeat(200);
       const { container } = renderComponent({ guestName: longName });
-      expect(screen.getByText(longName)).toBeInTheDocument();
+      expect(screen.getAllByText(longName)[0]).toBeInTheDocument();
       expect(container.firstChild).toHaveClass('fixed');
     });
 
     it('handles special characters in guest name', () => {
       renderComponent({ guestName: 'Dr. H. M. Ahmad & Family <3>' });
-      expect(screen.getByText('Dr. H. M. Ahmad & Family <3>')).toBeInTheDocument();
+      expect(screen.getAllByText('Dr. H. M. Ahmad & Family <3>')[0]).toBeInTheDocument();
     });
 
     it('handles empty string guest name gracefully', () => {
@@ -353,22 +359,22 @@ describe('CinematicOpening', () => {
 
     it('handles unicode characters in guest name', () => {
       renderComponent({ guestName: 'Muhammad Fikri bin Abdullah' });
-      expect(screen.getByText('Muhammad Fikri bin Abdullah')).toBeInTheDocument();
+      expect(screen.getAllByText('Muhammad Fikri bin Abdullah')[0]).toBeInTheDocument();
     });
 
     it('handles Arabic script guest name', () => {
       renderComponent({ guestName: 'محمد فكري' });
-      expect(screen.getByText('محمد فكري')).toBeInTheDocument();
+      expect(screen.getAllByText('محمد فكري')[0]).toBeInTheDocument();
     });
 
     it('handles Japanese script guest name', () => {
       renderComponent({ guestName: 'タナカ ユキ' });
-      expect(screen.getByText('タナカ ユキ')).toBeInTheDocument();
+      expect(screen.getAllByText('タナカ ユキ')[0]).toBeInTheDocument();
     });
 
     it('handles emoji in guest name', () => {
       renderComponent({ guestName: 'Budi & Sari ❤️' });
-      expect(screen.getByText('Budi & Sari ❤️')).toBeInTheDocument();
+      expect(screen.getAllByText('Budi & Sari ❤️')[0]).toBeInTheDocument();
     });
 
     it('handles guest name with only whitespace', () => {
@@ -384,16 +390,16 @@ describe('CinematicOpening', () => {
     it('handles rapid multiple clicks on button', () => {
       const onOpen = vi.fn();
       renderComponent({ onOpen });
-      const btn = screen.getByRole('button');
+      const btn = screen.getAllByRole('button')[0];
       for (let i = 0; i < 10; i++) fireEvent.click(btn);
       expect(onOpen).toHaveBeenCalledTimes(1);
     });
 
     it('re-renders with new guest name without errors', () => {
       const { rerender } = render(<CinematicOpening guestName="First" onOpen={vi.fn()} />);
-      expect(screen.getByText('First')).toBeInTheDocument();
+      expect(screen.getAllByText('First')[0]).toBeInTheDocument();
       rerender(<CinematicOpening guestName="Second" onOpen={vi.fn()} />);
-      expect(screen.getByText('Second')).toBeInTheDocument();
+      expect(screen.getAllByText('Second')[0]).toBeInTheDocument();
       expect(screen.queryByText('First')).not.toBeInTheDocument();
     });
 
@@ -402,7 +408,7 @@ describe('CinematicOpening', () => {
       const second = vi.fn();
       const { rerender } = render(<CinematicOpening guestName="Test" onOpen={first} />);
       rerender(<CinematicOpening guestName="Test" onOpen={second} />);
-      fireEvent.click(screen.getByRole('button'));
+      fireEvent.click(screen.getAllByRole('button')[0]);
       expect(first).not.toHaveBeenCalled();
       expect(second).toHaveBeenCalledOnce();
     });

@@ -62,12 +62,14 @@ describe('RSVPSection', () => {
 
     it('displays "RSVP & Wishes" title text', () => {
       renderWithProps();
-      expect(screen.getByText('Ucapan & Doa')).toBeInTheDocument();
+      // Both mobile and desktop layouts render "Ucapan & Doa"; use getAllByText
+      expect(screen.getAllByText('Ucapan & Doa')[0]).toBeInTheDocument();
     });
 
     it('title has uppercase tracking styling', () => {
       renderWithProps();
-      const title = screen.getByText('Ucapan & Doa');
+      // Both layouts render the title; pick the first occurrence
+      const title = screen.getAllByText('Ucapan & Doa')[0];
       expect(title.className).toContain('uppercase');
       expect(title.className).toContain('tracking-');
     });
@@ -75,7 +77,7 @@ describe('RSVPSection', () => {
     it('renders consistently on re-render without errors', () => {
       const { rerender } = render(<RSVPSection {...defaultProps} />);
       rerender(<RSVPSection {...defaultProps} />);
-      expect(screen.getByText('Ucapan & Doa')).toBeInTheDocument();
+      expect(screen.getAllByText('Ucapan & Doa')[0]).toBeInTheDocument();
     });
 
     it('renders MessageSquare icon in header', () => {
@@ -90,20 +92,21 @@ describe('RSVPSection', () => {
     it('renders wish cards for each currentWish entry', () => {
       renderWithProps();
       const firstWish = SEED_WISHES[0];
-      expect(screen.getByText(firstWish.name)).toBeInTheDocument();
+      // Both mobile and desktop layouts render the same wish; use getAllByText
+      expect(screen.getAllByText(firstWish.name)[0]).toBeInTheDocument();
     });
 
     it('renders all 5 current wishes', () => {
       renderWithProps();
       SEED_WISHES.slice(0, 5).forEach((wish) => {
-        expect(screen.getByText(wish.name)).toBeInTheDocument();
+        expect(screen.getAllByText(wish.name)[0]).toBeInTheDocument();
       });
     });
 
     it('displays wish messages in quotes', () => {
       renderWithProps();
       SEED_WISHES.slice(0, 5).forEach((wish) => {
-        expect(screen.getByText(`"${wish.message}"`)).toBeInTheDocument();
+        expect(screen.getAllByText(`"${wish.message}"`)[0]).toBeInTheDocument();
       });
     });
 
@@ -111,20 +114,23 @@ describe('RSVPSection', () => {
       const yesWish = SEED_WISHES.filter((w) => w.attendance === 'yes').slice(0, 3);
       renderWithProps({ currentWishes: yesWish });
       const hadirBadges = screen.getAllByText('Hadir');
-      expect(hadirBadges.length).toBe(yesWish.length);
+      // Both mobile and desktop layouts render each badge, so count is doubled
+      expect(hadirBadges.length).toBe(yesWish.length * 2);
     });
 
     it('displays attendance badge "Absen" for no attendance', () => {
       const noWish = SEED_WISHES.filter((w) => w.attendance === 'no').slice(0, 2);
       renderWithProps({ currentWishes: noWish, wishes: noWish });
       const absenBadges = screen.getAllByText('Berhalangan');
-      expect(absenBadges.length).toBe(noWish.length);
+      // Both mobile and desktop layouts render each badge, so count is doubled
+      expect(absenBadges.length).toBe(noWish.length * 2);
     });
 
     it('attendance badge "Hadir" has gold styling', () => {
       const yesWish = SEED_WISHES.filter((w) => w.attendance === 'yes').slice(0, 1);
       renderWithProps({ currentWishes: yesWish });
-      const badge = screen.getByText('Hadir');
+      // Both layouts render the badge; pick the first occurrence
+      const badge = screen.getAllByText('Hadir')[0];
       expect(badge.className).toContain('bg-gold/10');
       expect(badge.className).toContain('text-gold');
     });
@@ -132,7 +138,8 @@ describe('RSVPSection', () => {
     it('attendance badge "Absen" has ink styling', () => {
       const noWish = SEED_WISHES.filter((w) => w.attendance === 'no').slice(0, 1);
       renderWithProps({ currentWishes: noWish, wishes: noWish });
-      const badge = screen.getByText('Berhalangan');
+      // Both layouts render the badge; pick the first occurrence
+      const badge = screen.getAllByText('Berhalangan')[0];
       expect(badge.className).toContain('bg-ink/5');
       expect(badge.className).toContain('text-ink/60');
     });
@@ -147,13 +154,15 @@ describe('RSVPSection', () => {
     it('wish cards have white background with border', () => {
       const { container } = renderWithProps();
       const cards = container.querySelectorAll('.bg-white\\/60');
-      expect(cards.length).toBe(5);
+      // Both mobile and desktop layouts render the cards, so count is doubled
+      expect(cards.length).toBe(10);
     });
 
     it('wish messages have serif italic font', () => {
       renderWithProps();
       const firstMsg = SEED_WISHES[0].message;
-      const msgEl = screen.getByText(`"${firstMsg}"`);
+      // Both layouts render the message; pick the first occurrence
+      const msgEl = screen.getAllByText(`"${firstMsg}"`)[0];
       expect(msgEl.className).toContain('font-serif');
       expect(msgEl.className).toContain('italic');
     });
@@ -161,7 +170,8 @@ describe('RSVPSection', () => {
     it('wish messages are clamped to 2 lines', () => {
       renderWithProps();
       const firstMsg = SEED_WISHES[0].message;
-      const msgEl = screen.getByText(`"${firstMsg}"`);
+      // Both layouts render the message; pick the first occurrence
+      const msgEl = screen.getAllByText(`"${firstMsg}"`)[0];
       expect(msgEl.className).toContain('line-clamp-2');
     });
   });
@@ -170,12 +180,14 @@ describe('RSVPSection', () => {
   describe('empty state', () => {
     it('shows "Belum ada doa." when wishes array is empty', () => {
       renderWithProps({ wishes: [], currentWishes: [], totalPages: 0 });
-      expect(screen.getByText('Ruang ini masih menunggu cerita pertama.')).toBeInTheDocument();
+      // Both mobile and desktop layouts render the empty state text
+      expect(screen.getAllByText('Ruang ini masih menunggu cerita pertama.')[0]).toBeInTheDocument();
     });
 
     it('empty state text has serif italic font', () => {
       renderWithProps({ wishes: [], currentWishes: [], totalPages: 0 });
-      const text = screen.getByText('Ruang ini masih menunggu cerita pertama.');
+      // Both layouts render the text; pick the first occurrence
+      const text = screen.getAllByText('Ruang ini masih menunggu cerita pertama.')[0];
       expect(text.className).toContain('font-serif');
       expect(text.className).toContain('italic');
     });
@@ -215,26 +227,30 @@ describe('RSVPSection', () => {
   describe('FAB (Kirim Doa button)', () => {
     it('renders "Kirim Doa" button with aria-label', () => {
       renderWithProps();
-      expect(screen.getByLabelText('Kirim Doa')).toBeInTheDocument();
+      // Both mobile (circular FAB) and desktop (text button) have aria-label="Kirim Doa"
+      expect(screen.getAllByLabelText('Kirim Doa')[0]).toBeInTheDocument();
     });
 
     it('FAB is a button element', () => {
       renderWithProps();
-      const fab = screen.getByLabelText('Kirim Doa');
+      // Pick the first button (mobile circular FAB)
+      const fab = screen.getAllByLabelText('Kirim Doa')[0];
       expect(fab.tagName).toBe('BUTTON');
     });
 
     it('calls onOpenRSVP when FAB is clicked', () => {
       const onOpenRSVP = vi.fn();
       renderWithProps({ onOpenRSVP });
-      fireEvent.click(screen.getByLabelText('Kirim Doa'));
+      // Click the first (mobile) button
+      fireEvent.click(screen.getAllByLabelText('Kirim Doa')[0]);
       expect(onOpenRSVP).toHaveBeenCalledOnce();
     });
 
     it('calls onOpenRSVP exactly once per click', () => {
       const onOpenRSVP = vi.fn();
       renderWithProps({ onOpenRSVP });
-      const fab = screen.getByLabelText('Kirim Doa');
+      // Use the first (mobile) button for repeated click testing
+      const fab = screen.getAllByLabelText('Kirim Doa')[0];
       fireEvent.click(fab);
       fireEvent.click(fab);
       fireEvent.click(fab);
@@ -243,33 +259,38 @@ describe('RSVPSection', () => {
 
     it('FAB has gold gradient styling', () => {
       renderWithProps();
-      const fab = screen.getByLabelText('Kirim Doa');
+      // Pick the first (mobile circular FAB) button
+      const fab = screen.getAllByLabelText('Kirim Doa')[0];
       expect(fab.className).toContain('bg-gradient-to-br');
       expect(fab.className).toContain('from-gold');
     });
 
     it('FAB has rounded-full shape', () => {
       renderWithProps();
-      const fab = screen.getByLabelText('Kirim Doa');
+      // Pick the first (mobile circular FAB) button
+      const fab = screen.getAllByLabelText('Kirim Doa')[0];
       expect(fab.className).toContain('rounded-full');
     });
 
     it('FAB has shadow for depth effect', () => {
       renderWithProps();
-      const fab = screen.getByLabelText('Kirim Doa');
+      // Pick the first (mobile circular FAB) button
+      const fab = screen.getAllByLabelText('Kirim Doa')[0];
       expect(fab.className).toContain('shadow-');
     });
 
     it('FAB has white border for glass effect', () => {
       renderWithProps();
-      const fab = screen.getByLabelText('Kirim Doa');
+      // Pick the first (mobile circular FAB) button
+      const fab = screen.getAllByLabelText('Kirim Doa')[0];
       expect(fab.className).toContain('border');
       expect(fab.className).toContain('border-white/20');
     });
 
     it('FAB has title attribute "Kirim Doa"', () => {
       renderWithProps();
-      const fab = screen.getByLabelText('Kirim Doa');
+      // Only the mobile circular FAB has the title attribute
+      const fab = screen.getAllByLabelText('Kirim Doa')[0];
       expect(fab).toHaveAttribute('title', 'Kirim Doa');
     });
   });
@@ -278,48 +299,56 @@ describe('RSVPSection', () => {
   describe('pagination', () => {
     it('shows pagination when totalPages > 1', () => {
       renderWithProps({ totalPages: 3 });
-      expect(screen.getByLabelText('Halaman sebelumnya')).toBeInTheDocument();
-      expect(screen.getByLabelText('Halaman selanjutnya')).toBeInTheDocument();
+      // Both mobile and desktop layouts render pagination buttons
+      expect(screen.getAllByLabelText('Halaman sebelumnya')[0]).toBeInTheDocument();
+      expect(screen.getAllByLabelText('Halaman selanjutnya')[0]).toBeInTheDocument();
     });
 
     it('prev button has aria-label "Halaman sebelumnya"', () => {
       renderWithProps();
-      expect(screen.getByLabelText('Halaman sebelumnya')).toBeInTheDocument();
+      expect(screen.getAllByLabelText('Halaman sebelumnya')[0]).toBeInTheDocument();
     });
 
     it('next button has aria-label "Halaman selanjutnya"', () => {
       renderWithProps();
-      expect(screen.getByLabelText('Halaman selanjutnya')).toBeInTheDocument();
+      expect(screen.getAllByLabelText('Halaman selanjutnya')[0]).toBeInTheDocument();
     });
 
     it('prev button is disabled on page 1', () => {
       renderWithProps({ currentPage: 1 });
-      expect(screen.getByLabelText('Halaman sebelumnya')).toBeDisabled();
+      // All instances of the prev button should be disabled on page 1
+      screen.getAllByLabelText('Halaman sebelumnya').forEach((btn) => {
+        expect(btn).toBeDisabled();
+      });
     });
 
     it('next button is disabled on last page', () => {
       renderWithProps({ currentPage: 3, totalPages: 3 });
-      expect(screen.getByLabelText('Halaman selanjutnya')).toBeDisabled();
+      // All instances of the next button should be disabled on the last page
+      screen.getAllByLabelText('Halaman selanjutnya').forEach((btn) => {
+        expect(btn).toBeDisabled();
+      });
     });
 
     it('prev button is enabled on page 2', () => {
       renderWithProps({ currentPage: 2, totalPages: 3 });
-      expect(screen.getByLabelText('Halaman sebelumnya')).not.toBeDisabled();
+      expect(screen.getAllByLabelText('Halaman sebelumnya')[0]).not.toBeDisabled();
     });
 
     it('next button is enabled when not on last page', () => {
       renderWithProps({ currentPage: 1, totalPages: 3 });
-      expect(screen.getByLabelText('Halaman selanjutnya')).not.toBeDisabled();
+      expect(screen.getAllByLabelText('Halaman selanjutnya')[0]).not.toBeDisabled();
     });
 
     it('displays page indicator "X / Y"', () => {
       renderWithProps({ currentPage: 2, totalPages: 5 });
-      expect(screen.getByText('Bab 2 dari 5')).toBeInTheDocument();
+      // Both layouts render the page indicator
+      expect(screen.getAllByText('Bab 2 dari 5')[0]).toBeInTheDocument();
     });
 
     it('displays page indicator "1 / 3" on first page', () => {
       renderWithProps({ currentPage: 1, totalPages: 3 });
-      expect(screen.getByText('Bab 1 dari 3')).toBeInTheDocument();
+      expect(screen.getAllByText('Bab 1 dari 3')[0]).toBeInTheDocument();
     });
 
     it('hides pagination when totalPages is 1', () => {
@@ -345,7 +374,8 @@ describe('RSVPSection', () => {
     it('clicking next button calls setCurrentPage', () => {
       const setCurrentPage = vi.fn();
       renderWithProps({ setCurrentPage, currentPage: 1, totalPages: 3 });
-      fireEvent.click(screen.getByLabelText('Halaman selanjutnya'));
+      // Click the first (mobile) next button
+      fireEvent.click(screen.getAllByLabelText('Halaman selanjutnya')[0]);
       expect(setCurrentPage).toHaveBeenCalledOnce();
       // setCurrentPage is called with a function (p) => p + 1
       const fn = setCurrentPage.mock.calls[0][0];
@@ -356,7 +386,8 @@ describe('RSVPSection', () => {
     it('clicking prev button calls setCurrentPage', () => {
       const setCurrentPage = vi.fn();
       renderWithProps({ setCurrentPage, currentPage: 2, totalPages: 3 });
-      fireEvent.click(screen.getByLabelText('Halaman sebelumnya'));
+      // Click the first (mobile) prev button
+      fireEvent.click(screen.getAllByLabelText('Halaman sebelumnya')[0]);
       expect(setCurrentPage).toHaveBeenCalledOnce();
       const fn = setCurrentPage.mock.calls[0][0];
       expect(typeof fn).toBe('function');
@@ -366,7 +397,7 @@ describe('RSVPSection', () => {
     it('next button increments page by 1 via callback', () => {
       const setCurrentPage = vi.fn();
       renderWithProps({ setCurrentPage, currentPage: 1, totalPages: 5 });
-      fireEvent.click(screen.getByLabelText('Halaman selanjutnya'));
+      fireEvent.click(screen.getAllByLabelText('Halaman selanjutnya')[0]);
       const fn = setCurrentPage.mock.calls[0][0];
       expect(fn(3)).toBe(4);
       expect(fn(4)).toBe(5);
@@ -375,7 +406,7 @@ describe('RSVPSection', () => {
     it('prev button decrements page by 1 via callback', () => {
       const setCurrentPage = vi.fn();
       renderWithProps({ setCurrentPage, currentPage: 3, totalPages: 5 });
-      fireEvent.click(screen.getByLabelText('Halaman sebelumnya'));
+      fireEvent.click(screen.getAllByLabelText('Halaman sebelumnya')[0]);
       const fn = setCurrentPage.mock.calls[0][0];
       expect(fn(3)).toBe(2);
       expect(fn(1)).toBe(0);
@@ -384,12 +415,12 @@ describe('RSVPSection', () => {
     it('does not call setCurrentPage when prev is disabled (page 1)', () => {
       const setCurrentPage = vi.fn();
       renderWithProps({ setCurrentPage, currentPage: 1, totalPages: 3 });
-      fireEvent.click(screen.getByLabelText('Halaman sebelumnya'));
+      fireEvent.click(screen.getAllByLabelText('Halaman sebelumnya')[0]);
       // Disabled buttons still fire events but browser prevents default
       // The button is disabled so it should not trigger the handler
       // Note: disabled buttons don't fire click events in real DOM
       // but testing-library may still call handler — check the button is disabled
-      expect(screen.getByLabelText('Halaman sebelumnya')).toBeDisabled();
+      expect(screen.getAllByLabelText('Halaman sebelumnya')[0]).toBeDisabled();
     });
   });
 
@@ -422,7 +453,8 @@ describe('RSVPSection', () => {
     it('pagination buttons have bubble-glow class', () => {
       const { container } = renderWithProps();
       const bubbleGlows = container.querySelectorAll('.bubble-glow');
-      expect(bubbleGlows.length).toBe(2);
+      // Both mobile and desktop layouts render 2 pagination buttons each
+      expect(bubbleGlows.length).toBe(4);
     });
 
     it('wish grid uses responsive 1-col mobile, 2-col desktop', () => {
@@ -432,9 +464,10 @@ describe('RSVPSection', () => {
       expect(grid?.className).toContain('md:grid-cols-2');
     });
 
-    it('container has max-w-4xl', () => {
+    it('container has max-w-lg or max-w-5xl', () => {
       const { container } = renderWithProps();
-      const maxW = container.querySelector('.max-w-4xl');
+      // Mobile layout uses max-w-lg, desktop uses max-w-5xl
+      const maxW = container.querySelector('.max-w-lg') || container.querySelector('.max-w-5xl');
       expect(maxW).toBeInTheDocument();
     });
 
@@ -444,10 +477,10 @@ describe('RSVPSection', () => {
       expect(centered).toBeInTheDocument();
     });
 
-    it('section has py-6 vertical padding', () => {
+    it('section has py-[3vh] vertical padding', () => {
       const { container } = renderWithProps();
       const section = container.querySelector('section');
-      expect(section?.className).toContain('py-[2vh]');
+      expect(section?.className).toContain('py-[3vh]');
     });
 
     it('wish cards have rounded corners', () => {
@@ -459,7 +492,8 @@ describe('RSVPSection', () => {
     it('wish cards have hover border effect', () => {
       const { container } = renderWithProps();
       const cards = container.querySelectorAll('.hover\\:border-gold\\/20');
-      expect(cards.length).toBe(5);
+      // Both mobile and desktop layouts render 5 cards each
+      expect(cards.length).toBe(10);
     });
   });
 
@@ -468,13 +502,15 @@ describe('RSVPSection', () => {
     it('renders with a single wish', () => {
       const singleWish = [SEED_WISHES[0]];
       renderWithProps({ wishes: singleWish, currentWishes: singleWish, totalPages: 1 });
-      expect(screen.getByText(singleWish[0].name)).toBeInTheDocument();
+      // Both layouts render the name; use getAllByText
+      expect(screen.getAllByText(singleWish[0].name)[0]).toBeInTheDocument();
     });
 
     it('renders with many wishes (full SEED_WISHES as current)', () => {
       renderWithProps({ currentWishes: SEED_WISHES, totalPages: 1 });
       SEED_WISHES.forEach((wish) => {
-        expect(screen.getByText(wish.name)).toBeInTheDocument();
+        // Both layouts render each name; use getAllByText
+        expect(screen.getAllByText(wish.name)[0]).toBeInTheDocument();
       });
     });
 
@@ -521,7 +557,8 @@ describe('RSVPSection', () => {
         currentWishes: longMsgWish,
         totalPages: 1,
       });
-      const msgEl = screen.getByText(`"${'A'.repeat(500)}"`);
+      // Both layouts render the message; pick the first occurrence
+      const msgEl = screen.getAllByText(`"${'A'.repeat(500)}"`)[0];
       expect(msgEl.className).toContain('line-clamp-2');
     });
 
@@ -529,11 +566,11 @@ describe('RSVPSection', () => {
       const { rerender } = render(
         <RSVPSection {...defaultProps} wishes={[]} currentWishes={[]} totalPages={0} />
       );
-      expect(screen.getByText('Ruang ini masih menunggu cerita pertama.')).toBeInTheDocument();
+      expect(screen.getAllByText('Ruang ini masih menunggu cerita pertama.').length).toBeGreaterThanOrEqual(1);
 
       rerender(<RSVPSection {...defaultProps} />);
       expect(screen.queryByText('Ruang ini masih menunggu cerita pertama.')).not.toBeInTheDocument();
-      expect(screen.getByText(SEED_WISHES[0].name)).toBeInTheDocument();
+      expect(screen.getAllByText(SEED_WISHES[0].name).length).toBeGreaterThanOrEqual(1);
     });
 
     it('handles mixed attendance wishes correctly', () => {
@@ -542,25 +579,26 @@ describe('RSVPSection', () => {
         { id: 'm2', name: 'No Person', attendance: 'no', message: 'Sorry!', createdAt: Date.now() },
       ];
       renderWithProps({ wishes: mixed, currentWishes: mixed, totalPages: 1 });
-      expect(screen.getByText('Hadir')).toBeInTheDocument();
-      expect(screen.getByText('Berhalangan')).toBeInTheDocument();
+      expect(screen.getAllByText('Hadir').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Berhalangan').length).toBeGreaterThanOrEqual(1);
     });
 
     it('each wish card has a unique key via id', () => {
       // Verify no duplicate warnings by rendering without error
       const { container } = renderWithProps();
       const cards = container.querySelectorAll('.bg-white\\/60');
-      expect(cards.length).toBe(defaultProps.currentWishes.length);
+      // Mobile + desktop layouts both render cards
+      expect(cards.length).toBe(defaultProps.currentWishes.length * 2);
     });
 
     it('page indicator updates with different pages', () => {
       const { rerender } = render(
         <RSVPSection {...defaultProps} currentPage={1} totalPages={4} />
       );
-      expect(screen.getByText('Bab 1 dari 4')).toBeInTheDocument();
+      expect(screen.getAllByText('Bab 1 dari 4').length).toBeGreaterThanOrEqual(1);
 
       rerender(<RSVPSection {...defaultProps} currentPage={3} totalPages={4} />);
-      expect(screen.getByText('Bab 3 dari 4')).toBeInTheDocument();
+      expect(screen.getAllByText('Bab 3 dari 4').length).toBeGreaterThanOrEqual(1);
     });
   });
 });

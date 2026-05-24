@@ -11,9 +11,9 @@ import { auth } from '@/lib/firebase-auth';
 import { UserDocument, WeddingDocument } from '@/types/firestore';
 import { ConfirmDeleteModal } from '@/components/admin/ConfirmDeleteModal';
 import { THEME_DEFAULTS } from '@/constants/themeDefaults';
-import { LogOut, Users, FileText, Search, ExternalLink, Trash2, Check, X, UserRound, Globe, Archive, UserPlus } from 'lucide-react';
+import { LogOut, Users, FileText, Search, ExternalLink, Trash2, Check, X, UserRound, Globe, Archive, UserPlus, Star } from 'lucide-react';
 
-const TABS = ['Pendaftar', 'Undangan', 'Pengguna'] as const;
+const TABS = ['Pendaftar', 'Undangan', 'Pengguna', 'Testimoni'] as const;
 
 function createPlaceholderWedding(adminUid: string): Omit<WeddingDocument, 'createdAt' | 'updatedAt'> {
   const defaults = THEME_DEFAULTS.cinematic;
@@ -94,6 +94,8 @@ export default function SuperAdminPage() {
   const [assignSearch, setAssignSearch] = useState('');
   const [assignError, setAssignError] = useState('');
   const [isAssigning, setIsAssigning] = useState(false);
+  const [testimonials, setTestimonials] = useState<{ id: string; weddingSlug: string; rating: number; message: string; coupleName: string }[]>([]);
+  const [deleteTestimonialTarget, setDeleteTestimonialTarget] = useState<string | null>(null);
 
   useEffect(() => {
     if (isLoading || !authUser || userDoc?.role !== 'super') return;
@@ -103,18 +105,31 @@ export default function SuperAdminPage() {
   async function loadData() {
     setIsDataLoading(true);
     try {
-      const [pendingSnap, customerSnap, weddingsSnap, allUsersSnap] = await Promise.all([
+      const [pendingSnap, customerSnap, weddingsSnap, allUsersSnap, testimonialSnap] = await Promise.all([
         getDocs(query(collection(db, 'users'), where('role', '==', 'pending'), orderBy('createdAt', 'desc'))),
         getDocs(query(collection(db, 'users'), where('role', '==', 'customer'))),
         getDocs(collection(db, 'weddings')),
         getDocs(query(collection(db, 'users'), orderBy('createdAt', 'desc'))),
+        getDocs(query(collection(db, 'testimonials'), orderBy('createdAt', 'desc'))),
       ]);
 
+      const weddingList = weddingsSnap.docs.map((d) => ({ slug: d.id, data: d.data() as WeddingDocument }));
       setPendingUsers(pendingSnap.docs.map((d) => d.data() as UserDocument));
       setCustomerUsers(customerSnap.docs.map((d) => d.data() as UserDocument));
-      setWeddings(weddingsSnap.docs.map((d) => ({ slug: d.id, data: d.data() as WeddingDocument })));
+      setWeddings(weddingList);
       setAllUsers(allUsersSnap.docs.map((d) => d.data() as UserDocument));
       setSuperAdmins(allUsersSnap.docs.filter((d) => d.data().role === 'super').map((d) => d.data() as UserDocument));
+      setTestimonials(testimonialSnap.docs.map(d => {
+        const data = d.data();
+        const w = weddingList.find(w => w.slug === data.weddingSlug);
+        return {
+          id: d.id,
+          weddingSlug: data.weddingSlug,
+          rating: data.rating,
+          message: data.message,
+          coupleName: w ? `${w.data.groomNickname} & ${w.data.brideNickname}` : data.weddingSlug,
+        };
+      }));
     } catch (error) {
       console.error('[SuperAdmin] Load error:', (error as Error).message);
     } finally {
@@ -250,6 +265,15 @@ export default function SuperAdminPage() {
       await loadData();
     } catch (error) {
       console.error('[SuperAdmin] Toggle status error:', (error as Error).message);
+    }
+  }
+
+  async function handleDeleteTestimonial(id: string) {
+    try {
+      await deleteDoc(doc(db, 'testimonials', id));
+      setTestimonials(prev => prev.filter(t => t.id !== id));
+    } catch (error) {
+      console.error('[SuperAdmin] Delete testimonial error:', (error as Error).message);
     }
   }
 
@@ -412,7 +436,7 @@ export default function SuperAdminPage() {
           )}
 
           {/* Tabs */}
-          <div role="tablist" className="flex gap-1">
+          <div role="tablist" className="flex gap-1 overflow-x-auto no-scrollbar">
             {TABS.map((tab, i) => (
               <button
                 key={tab}
@@ -433,7 +457,7 @@ export default function SuperAdminPage() {
                   document.getElementById(`super-tab-${target}`)?.focus();
                   setActiveTab(target);
                 }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold tracking-wider transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold tracking-wider transition-all flex-shrink-0 ${
                   i === activeTab ? 'bg-gold text-ivory' : 'text-ink/40 hover:text-ink/70'
                 }`}
               >
@@ -587,7 +611,7 @@ export default function SuperAdminPage() {
               </div>
             )}
           </div>
-        ) : (
+        ) : activeTab === 2 ? (
           /* ─── Users Tab ─── */
           <div className="space-y-2">
             {allUsers.length === 0 ? (
@@ -636,6 +660,35 @@ export default function SuperAdminPage() {
                         </button>
                       </div>
                     )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          /* ─── Testimoni Tab ─── */
+          <div className="space-y-2">
+            {testimonials.length === 0 ? (
+              <p className="text-center text-xs text-ink/30 tracking-widest uppercase py-10">Belum ada testimoni</p>
+            ) : (
+              <div className="space-y-2">
+                {testimonials.map(t => (
+                  <div key={t.id} className="bg-white/60 px-4 py-3 rounded-xl border border-gold/10 flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="text-sm font-serif text-ink truncate">{t.coupleName}</p>
+                        <div className="flex gap-0.5 shrink-0">
+                          {[1, 2, 3, 4, 5].map(s => (
+                            <Star key={s} className={`w-2.5 h-2.5 ${s <= t.rating ? 'text-gold fill-gold' : 'text-gold/20'}`} />
+                          ))}
+                        </div>
+                      </div>
+                      <p className="font-serif italic text-xs text-ink/60 line-clamp-2">"{t.message}"</p>
+                      <p className="text-[10px] text-ink/30 mt-1">/{t.weddingSlug}</p>
+                    </div>
+                    <button onClick={() => setDeleteTestimonialTarget(t.id)} className="text-red-300 hover:text-red-500 transition-colors shrink-0" aria-label={`Hapus testimoni ${t.coupleName}`}>
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -762,6 +815,13 @@ export default function SuperAdminPage() {
         variant="warning"
         onConfirm={() => { if (toggleStatusTarget) handleToggleStatus(toggleStatusTarget.slug, toggleStatusTarget.current); setToggleStatusTarget(null); }}
         onCancel={() => setToggleStatusTarget(null)}
+      />
+
+      <ConfirmDeleteModal
+        isOpen={deleteTestimonialTarget !== null}
+        message="Hapus testimoni ini?"
+        onConfirm={() => { if (deleteTestimonialTarget) handleDeleteTestimonial(deleteTestimonialTarget); setDeleteTestimonialTarget(null); }}
+        onCancel={() => setDeleteTestimonialTarget(null)}
       />
 
       {/* Add Admin Modal */}

@@ -58,10 +58,10 @@ describe('PhotoGallery', () => {
       expect(section?.className).toContain('overflow-hidden');
     });
 
-    it('section has py-6 padding', () => {
+    it('section has py-[3vh] padding', () => {
       const { container } = renderGallery();
       const section = container.querySelector('section');
-      expect(section?.className).toContain('py-[2vh]');
+      expect(section?.className).toContain('py-[3vh]');
     });
 
     it('renders consistently on re-render', () => {

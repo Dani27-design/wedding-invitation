@@ -85,6 +85,26 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'super';
     }
 
+    // ─── Testimonials ────────────────────────────────────────
+    match /testimonials/{testimonialId} {
+      // Anyone can read testimonials (public)
+      allow read: if true;
+      // Authenticated users can create a testimonial
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly(['weddingSlug', 'rating', 'message', 'createdAt'])
+        && request.resource.data.weddingSlug is string
+        && request.resource.data.rating is int
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5
+        && request.resource.data.message is string
+        && request.resource.data.message.size() <= 500;
+      // Testimonials cannot be updated
+      allow update: if false;
+      // Only super admin can delete testimonials
+      allow delete: if request.auth != null
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'super';
+    }
+
     // ─── Story Comments ──────────────────────────────────────
     match /story-comments/{commentId} {
       // Anyone can read comments

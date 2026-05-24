@@ -21,11 +21,12 @@ import { CustomizeForm } from '@/components/admin/CustomizeForm';
 import { CreditForm } from '@/components/admin/CreditForm';
 import { StoryInteractionsForm } from '@/components/admin/StoryInteractionsForm';
 import { WishesForm } from '@/components/admin/WishesForm';
+import { TestimonialForm } from '@/components/admin/TestimonialForm';
 import { GuestTab } from '@/components/admin/GuestTab';
 import { ConfirmDeleteModal } from '@/components/admin/ConfirmDeleteModal';
 import { motion, AnimatePresence } from 'motion/react';
 import NextImage from 'next/image';
-import { CheckCircle2, AlertCircle, Loader2, X, LogOut, Users, Calendar, BookHeart, Image, UserRound, Gift, Images, Award, Palette, MessageCircle, Heart, Copy, Check, Eye } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Loader2, X, LogOut, Users, Calendar, BookHeart, Image, UserRound, Gift, Images, Award, Palette, MessageCircle, Heart, Copy, Check, Eye, Star } from 'lucide-react';
 import { BASE_URL } from '@/constants/baseUrl';
 
 const TABS = [
@@ -40,6 +41,7 @@ const TABS = [
   { label: 'Tema', icon: Palette },
   { label: 'Interaksi', icon: MessageCircle },
   { label: 'Ucapan', icon: Heart },
+  { label: 'Testimoni', icon: Star },
   { label: 'Preview', icon: Eye },
 ] as const;
 
@@ -406,7 +408,8 @@ export default function AdminPage() {
       case 8: return <CustomizeForm data={wedding} slug={slug ?? ''} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} />;
       case 9: return <StoryInteractionsForm data={wedding} slug={slug ?? ''} />;
       case 10: return <WishesForm slug={slug ?? ''} />;
-      case 11: return (
+      case 11: return <TestimonialForm slug={slug ?? ''} />;
+      case 12: return (
         <div className="flex flex-col items-center justify-start">
           <p className="text-xs text-ink/40 text-center mb-1">Tautan dan tombol tidak aktif dalam mode ini.</p>
           {/* Phone frame */}

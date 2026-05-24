@@ -124,34 +124,41 @@ describe('CountdownTimer', () => {
   // 5. Gold aura element
   // ---------------------------------------------------------------------------
   describe('gold aura / pulse element', () => {
-    it('has static gold aura element (no animate-pulse for performance)', () => {
+    it('has ivory background time boxes', () => {
       const { container } = render(<CountdownTimer targetDate="2030-01-01T00:00:00" />);
-      const auras = container.querySelectorAll('.bg-gold\\/10');
-      expect(auras.length).toBeGreaterThanOrEqual(1);
+      const boxes = container.querySelectorAll('.bg-ivory');
+      expect(boxes.length).toBeGreaterThanOrEqual(1);
     });
 
-    it('aura has gold background', () => {
+    it('time boxes have gold border', () => {
       const { container } = render(<CountdownTimer targetDate="2030-01-01T00:00:00" />);
-      const auras = container.querySelectorAll('.bg-gold\\/10');
-      expect(auras.length).toBeGreaterThanOrEqual(1);
+      const borders = container.querySelectorAll('[class*="border-gold"]');
+      expect(borders.length).toBeGreaterThanOrEqual(1);
     });
 
-    it('aura has no blur-xl (removed for performance)', () => {
+    it('has no blur-xl (removed for performance)', () => {
       const { container } = render(<CountdownTimer targetDate="2030-01-01T00:00:00" />);
       const blurs = container.querySelectorAll('.blur-xl');
       expect(blurs.length).toBe(0);
     });
 
-    it('aura has rounded-full', () => {
+    it('time boxes have shadow', () => {
       const { container } = render(<CountdownTimer targetDate="2030-01-01T00:00:00" />);
-      const auras = container.querySelectorAll('.rounded-full');
-      expect(auras.length).toBeGreaterThanOrEqual(1);
+      const shadows = container.querySelectorAll('.shadow-sm');
+      expect(shadows.length).toBeGreaterThanOrEqual(1);
     });
 
-    it('aura has negative z-index (behind text)', () => {
+    it('time boxes use abstract shapes (varied border-radius)', () => {
       const { container } = render(<CountdownTimer targetDate="2030-01-01T00:00:00" />);
-      const auras = container.querySelectorAll('.-z-10');
-      expect(auras.length).toBeGreaterThanOrEqual(1);
+      // SHAPES uses Tailwind arbitrary values like rounded-[2.5rem_1rem_2.5rem_1rem].
+      // querySelectorAll with [class*="rounded-["] is invalid CSS — the "[" must be escaped.
+      // Instead, find all time-box divs (bg-ivory) and check that at least one has a
+      // class that starts with "rounded-[" (arbitrary border-radius value).
+      const boxes = Array.from(container.querySelectorAll('.bg-ivory'));
+      const hasArbitraryRounded = boxes.some((el) =>
+        Array.from(el.classList).some((cls) => cls.startsWith('rounded-['))
+      );
+      expect(hasArbitraryRounded).toBe(true);
     });
   });
 

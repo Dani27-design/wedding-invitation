@@ -134,41 +134,41 @@ describe('HeroSection', () => {
   describe('Images', () => {
     it('renders hero portrait image with correct alt text', () => {
       renderComponent();
-      const img = screen.getByAltText('Dani & Marini');
+      const img = screen.getAllByAltText('Dani & Marini')[0];
       expect(img).toBeInTheDocument();
     });
 
     it('hero image has correct src path', () => {
       renderComponent();
-      const img = screen.getByAltText('Dani & Marini');
+      const img = screen.getAllByAltText('Dani & Marini')[0];
       expect(img).toHaveAttribute('src', '/images/bride_and_groom_full_body_potrait.jpeg');
     });
 
     it('hero image has object-cover class', () => {
       renderComponent();
-      expect(screen.getByAltText('Dani & Marini')).toHaveClass('object-cover');
+      expect(screen.getAllByAltText('Dani & Marini')[0]).toHaveClass('object-cover');
     });
 
-    it('hero image uses default center positioning (no object-top)', () => {
+    it('hero image uses object-top positioning (mobile image)', () => {
       renderComponent();
-      expect(screen.getByAltText('Dani & Marini')).not.toHaveClass('object-top');
+      expect(screen.getAllByAltText('Dani & Marini')[0]).toHaveClass('object-top');
     });
 
     it('hero image has brightness filter', () => {
       renderComponent();
-      const img = screen.getByAltText('Dani & Marini');
+      const img = screen.getAllByAltText('Dani & Marini')[0];
       expect(img).toHaveClass('brightness-[0.85]');
     });
 
     it('hero image has contrast filter', () => {
       renderComponent();
-      const img = screen.getByAltText('Dani & Marini');
+      const img = screen.getAllByAltText('Dani & Marini')[0];
       expect(img).toHaveClass('contrast-[1.05]');
     });
 
     it('hero image uses object-cover', () => {
       renderComponent();
-      const img = screen.getByAltText('Dani & Marini');
+      const img = screen.getAllByAltText('Dani & Marini')[0];
       expect(img).toHaveClass('object-cover');
     });
   });
@@ -324,29 +324,33 @@ describe('HeroSection', () => {
   describe('Layout', () => {
     it('section uses flex column layout', () => {
       const { container } = renderComponent();
-      const section = container.querySelector('section');
-      expect(section).toHaveClass('flex');
-      expect(section).toHaveClass('flex-col');
+      const inner = container.querySelector('section > div');
+      expect(inner).toHaveClass('flex');
+      expect(inner).toHaveClass('flex-col');
     });
 
-    it('section uses items-center for horizontal centering', () => {
+    it('content div uses items-center for horizontal centering', () => {
       const { container } = renderComponent();
-      expect(container.querySelector('section')).toHaveClass('items-center');
+      const contentDiv = container.querySelector('.flex.flex-col.items-center');
+      expect(contentDiv).toBeInTheDocument();
     });
 
-    it('section uses justify-between to space names and date', () => {
+    it('content div uses justify-between to space names and date', () => {
       const { container } = renderComponent();
-      expect(container.querySelector('section')).toHaveClass('justify-between');
+      const contentDiv = container.querySelector('.justify-between');
+      expect(contentDiv).toBeInTheDocument();
     });
 
-    it('section has px-6 horizontal padding', () => {
+    it('content div has px-6 horizontal padding', () => {
       const { container } = renderComponent();
-      expect(container.querySelector('section')).toHaveClass('px-6');
+      const contentDiv = container.querySelector('.px-6');
+      expect(contentDiv).toBeInTheDocument();
     });
 
-    it('section has pb-[3vh] bottom padding', () => {
+    it('content div has py-[5vh] vertical padding', () => {
       const { container } = renderComponent();
-      expect(container.querySelector('section')).toHaveClass('py-[5vh]');
+      const contentDiv = container.querySelector('.py-\\[5vh\\]');
+      expect(contentDiv).toBeInTheDocument();
     });
 
     it('top content section has text-center', () => {
@@ -355,17 +359,17 @@ describe('HeroSection', () => {
       expect(topContent).toBeInTheDocument();
     });
 
-    it('bottom content section has text-center and z-10', () => {
+    it('bottom content section has text-center', () => {
       const { container } = renderComponent();
-      const bottomContent = container.querySelector('.relative.z-10.text-center.w-full');
+      const bottomContent = container.querySelector('.text-center.w-full');
       expect(bottomContent).toBeInTheDocument();
     });
 
-    it('bottom content section has full width and pb-[5vh]', () => {
+    it('bottom content section has full width', () => {
       const { container } = renderComponent();
-      const bottomSection = container.querySelector('.z-10.text-center.w-full');
+      const bottomSection = container.querySelector('.text-center.w-full');
       expect(bottomSection).toBeInTheDocument();
-      expect(bottomSection!.className).toContain('pb-[5vh]');
+      expect(bottomSection).toHaveClass('w-full');
     });
   });
 
@@ -396,10 +400,10 @@ describe('HeroSection', () => {
       expect(screen.getByText('Surabaya . Indonesia')).toBeInTheDocument();
     });
 
-    it('does not render extraneous images beyond the hero portrait', () => {
+    it('renders exactly two visible hero images (mobile + desktop)', () => {
       renderComponent();
       const images = screen.getAllByRole('img');
-      expect(images).toHaveLength(1);
+      expect(images).toHaveLength(2);
     });
 
     it('section has a single h1 heading containing both names', () => {

@@ -1,8 +1,34 @@
 'use client';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Upload, X, FileSpreadsheet, AlertCircle } from 'lucide-react';
+import { Upload, X, FileSpreadsheet, AlertCircle, Download } from 'lucide-react';
 import { parseFile, parseGuestData, ImportedGuest } from '@/utils/guestImport';
+
+function downloadTemplate(format: 'csv' | 'xlsx') {
+  if (format === 'csv') {
+    const csv = 'Nama,No HP,Alamat,Kategori\nBudi Santoso,081234567890,Jl. Contoh No. 1,pria\nSiti Aminah,089876543210,Jl. Contoh No. 2,wanita';
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'template-tamu.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  } else {
+    import('xlsx').then(({ utils, writeFile }) => {
+      const data = [
+        ['Nama', 'No HP', 'Alamat', 'Kategori'],
+        ['Budi Santoso', '081234567890', 'Jl. Contoh No. 1', 'pria'],
+        ['Siti Aminah', '089876543210', 'Jl. Contoh No. 2', 'wanita'],
+      ];
+      const ws = utils.aoa_to_sheet(data);
+      ws['!cols'] = [{ wch: 25 }, { wch: 18 }, { wch: 30 }, { wch: 10 }];
+      const wb = utils.book_new();
+      utils.book_append_sheet(wb, ws, 'Tamu');
+      writeFile(wb, 'template-tamu.xlsx');
+    });
+  }
+}
 
 interface GuestImportModalProps {
   isOpen: boolean;
@@ -82,24 +108,45 @@ export function GuestImportModal({ isOpen, onClose, onImport }: GuestImportModal
             className="relative bg-white rounded-[2rem] p-6 shadow-2xl border border-gold/10 w-full max-w-md max-h-[85vh] overflow-y-auto"
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-serif italic text-lg text-ink">Import Tamu</h3>
-              <button onClick={onClose} className="p-1 text-ink/20 hover:text-ink/40">
+              <h3 className="text-lg text-ink">Import Tamu</h3>
+              <button onClick={onClose} className="p-1 text-ink/80 hover:text-ink/80">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {step === 'upload' && (
               <div className="space-y-4">
-                <p className="text-xs text-ink/60 leading-relaxed">
+                <p className="text-xs text-ink/80 leading-relaxed">
                   Upload file CSV atau Excel (.xlsx) dengan kolom: <strong>Nama</strong> (wajib), No HP, Alamat, Kategori.
                 </p>
+
+                {/* Download template */}
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] text-ink/80">Unduh template:</span>
+                  <button
+                    type="button"
+                    onClick={() => downloadTemplate('csv')}
+                    className="flex items-center gap-1 px-2.5 py-1 border border-gold/20 rounded-lg text-[11px] text-gold font-bold hover:bg-gold/5 transition-colors"
+                  >
+                    <Download className="w-3 h-3" />
+                    CSV
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => downloadTemplate('xlsx')}
+                    className="flex items-center gap-1 px-2.5 py-1 border border-gold/20 rounded-lg text-[11px] text-gold font-bold hover:bg-gold/5 transition-colors"
+                  >
+                    <Download className="w-3 h-3" />
+                    Excel
+                  </button>
+                </div>
 
                 <label className="flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed border-gold/30 rounded-2xl cursor-pointer hover:bg-gold/5 transition-colors">
                   <FileSpreadsheet className="w-8 h-8 text-gold/60" />
                   <span className="text-xs font-black text-gold uppercase tracking-widest">
                     {isProcessing ? 'Memproses...' : file ? file.name : 'Pilih File'}
                   </span>
-                  <span className="text-[9px] text-ink/30">CSV atau Excel (.xlsx)</span>
+                  <span className="text-[9px] text-ink/80">CSV atau Excel (.xlsx)</span>
                   <input
                     type="file"
                     accept=".csv,.xlsx,.xls"
@@ -126,7 +173,7 @@ export function GuestImportModal({ isOpen, onClose, onImport }: GuestImportModal
             {step === 'preview' && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs text-ink/60">
+                  <p className="text-xs text-ink/80">
                     <strong className="text-ink">{preview.length}</strong> tamu ditemukan
                   </p>
                   <button onClick={handleReset} className="text-[10px] text-gold underline underline-offset-4">
@@ -138,16 +185,16 @@ export function GuestImportModal({ isOpen, onClose, onImport }: GuestImportModal
                   <table className="w-full text-xs">
                     <thead className="bg-paper/80 sticky top-0">
                       <tr>
-                        <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-ink/40 font-black">Nama</th>
-                        <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-ink/40 font-black">HP</th>
-                        <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-ink/40 font-black">Pihak</th>
+                        <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-ink/80 font-black">Nama</th>
+                        <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-ink/80 font-black">HP</th>
+                        <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-ink/80 font-black">Pihak</th>
                       </tr>
                     </thead>
                     <tbody>
                       {preview.slice(0, 50).map((g, i) => (
                         <tr key={i} className="border-t border-gold/5">
                           <td className="px-3 py-2 text-ink truncate max-w-[120px]">{g.name}</td>
-                          <td className="px-3 py-2 text-ink/60">{g.phone || '—'}</td>
+                          <td className="px-3 py-2 text-ink/80">{g.phone || '—'}</td>
                           <td className="px-3 py-2">
                             <span className={`text-[8px] px-1.5 py-0.5 rounded-full uppercase font-black ${
                               g.category === 'pria' ? 'bg-blue-50 text-blue-600' : 'bg-pink-50 text-pink-600'
@@ -160,7 +207,7 @@ export function GuestImportModal({ isOpen, onClose, onImport }: GuestImportModal
                     </tbody>
                   </table>
                   {preview.length > 50 && (
-                    <p className="text-[9px] text-ink/30 text-center py-2">...dan {preview.length - 50} tamu lainnya</p>
+                    <p className="text-[9px] text-ink/80 text-center py-2">...dan {preview.length - 50} tamu lainnya</p>
                   )}
                 </div>
 
@@ -171,7 +218,7 @@ export function GuestImportModal({ isOpen, onClose, onImport }: GuestImportModal
                 <div className="flex gap-3">
                   <button
                     onClick={onClose}
-                    className="flex-1 py-2.5 border border-gold/20 text-ink/60 rounded-full text-[10px] font-black uppercase tracking-[0.2em]"
+                    className="flex-1 py-2.5 border border-gold/20 text-ink/80 rounded-full text-[10px] font-black uppercase tracking-[0.2em]"
                   >
                     Batal
                   </button>

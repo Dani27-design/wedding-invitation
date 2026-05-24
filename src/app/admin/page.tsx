@@ -382,7 +382,7 @@ export default function SuperAdminPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-ivory flex items-center justify-center">
-        <p className="text-sm text-ink/40 tracking-widest uppercase">Memuat...</p>
+        <p className="text-sm text-ink/80 tracking-widest uppercase">Memuat...</p>
       </div>
     );
   }
@@ -392,8 +392,8 @@ export default function SuperAdminPage() {
   if (userDoc?.role !== 'super') {
     return (
       <div className="min-h-screen bg-ivory flex flex-col items-center justify-center px-8 text-center">
-        <h1 className="font-serif italic text-2xl text-ink mb-2">Akses Ditolak</h1>
-        <p className="text-xs text-ink/40 mb-4">Halaman ini hanya untuk super admin.</p>
+        <h1 className="text-2xl text-ink mb-2">Akses Ditolak</h1>
+        <p className="text-xs text-ink/80 mb-4">Halaman ini hanya untuk super admin.</p>
         <button onClick={() => { signOut(auth); router.push('/login'); }} className="text-xs text-gold underline underline-offset-4">Keluar</button>
       </div>
     );
@@ -414,7 +414,7 @@ export default function SuperAdminPage() {
       <header className="sticky top-0 z-50 bg-ivory/90 backdrop-blur-md border-b border-gold/10 px-4 py-2">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center justify-between mb-2">
-            <p className="font-serif italic text-sm text-ink font-bold">Marinikah Invitation</p>
+            <p className="text-sm text-ink">Marinikah Invitation</p>
             <button
               onClick={() => setShowLogoutConfirm(true)}
               className="w-7 h-7 flex items-center justify-center rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors"
@@ -426,11 +426,11 @@ export default function SuperAdminPage() {
 
           {/* Stats row */}
           {!isDataLoading && (
-            <div className="flex items-center gap-4 mb-2 text-[10px] text-ink/40 font-bold uppercase tracking-wider">
+            <div className="flex items-center gap-4 mb-2 text-[10px] text-ink/80 font-bold uppercase tracking-wider">
               <span className={pendingUsers.length > 0 ? 'text-red-500' : ''}>{pendingUsers.length} pendaftar</span>
-              <span className="text-ink/15">|</span>
+              <span className="text-ink/80">|</span>
               <span>{weddings.length} undangan</span>
-              <span className="text-ink/15">|</span>
+              <span className="text-ink/80">|</span>
               <span className="text-green-600">{publishedCount} aktif</span>
             </div>
           )}
@@ -458,7 +458,7 @@ export default function SuperAdminPage() {
                   setActiveTab(target);
                 }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold tracking-wider transition-all flex-shrink-0 ${
-                  i === activeTab ? 'bg-gold text-ivory' : 'text-ink/40 hover:text-ink/70'
+                  i === activeTab ? 'bg-gold text-ivory' : 'text-ink/80 hover:text-ink/80'
                 }`}
               >
                 {i === 0 ? <Users className="w-3 h-3" /> : i === 1 ? <FileText className="w-3 h-3" /> : <UserRound className="w-3 h-3" />}
@@ -474,22 +474,22 @@ export default function SuperAdminPage() {
 
       <main role="tabpanel" id="super-admin-tabpanel" aria-labelledby={`super-tab-${activeTab}`} className="max-w-2xl mx-auto px-4 py-4">
         {isDataLoading ? (
-          <p className="text-center text-xs text-ink/30 tracking-widest uppercase py-10">Memuat data...</p>
+          <p className="text-center text-xs text-ink/80 tracking-widest uppercase py-10">Memuat data...</p>
         ) : activeTab === 0 ? (
           /* ─── Pending Users Tab ─── */
           <div className="space-y-2">
             {pendingUsers.length === 0 ? (
-              <p className="text-center text-xs text-ink/30 tracking-widest uppercase py-10">Tidak ada pendaftar baru</p>
+              <p className="text-center text-xs text-ink/80 tracking-widest uppercase py-10">Tidak ada pendaftar baru</p>
             ) : (
               pendingUsers.map((u) => (
                 <div key={u.uid} className="flex items-center gap-3 px-3 py-2.5 bg-white/50 border border-gold/10 rounded-2xl">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <p className="text-sm text-ink truncate font-medium">{u.displayName}</p>
-                      <span className="text-[8px] px-1.5 py-0.5 rounded-full uppercase font-bold tracking-wider bg-ink/5 text-ink/30 flex-shrink-0">{u.provider}</span>
+                      <span className="text-[8px] px-1.5 py-0.5 rounded-full uppercase font-bold tracking-wider bg-ink/5 text-ink/80 flex-shrink-0">{u.provider}</span>
                     </div>
-                    <p className="text-[10px] text-ink/35 truncate">{u.email}</p>
-                    {u.createdAt && <p className="text-[9px] text-ink/25">{formatDate(u.createdAt)}</p>}
+                    <p className="text-[10px] text-ink/80 truncate">{u.email}</p>
+                    {u.createdAt && <p className="text-[9px] text-ink/80">{formatDate(u.createdAt)}</p>}
                   </div>
                   <div className="flex gap-1.5 flex-shrink-0">
                     <button
@@ -517,7 +517,7 @@ export default function SuperAdminPage() {
             {/* Search */}
             {weddings.length > 3 && (
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink/30" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink/80" />
                 <input
                   type="text"
                   value={searchQuery}
@@ -530,7 +530,7 @@ export default function SuperAdminPage() {
             )}
 
             {filteredWeddings.length === 0 ? (
-              <p className="text-center text-xs text-ink/30 tracking-widest uppercase py-10">
+              <p className="text-center text-xs text-ink/80 tracking-widest uppercase py-10">
                 {weddings.length === 0 ? 'Belum ada undangan' : 'Tidak ada hasil'}
               </p>
             ) : (
@@ -544,24 +544,24 @@ export default function SuperAdminPage() {
                             {w.data.groomNickname} & {w.data.brideNickname}
                           </Link>
                           <span className={`text-[8px] px-1.5 py-0.5 rounded-full uppercase font-bold tracking-wider flex-shrink-0 ${
-                            w.data.status === 'published' ? 'text-green-600 bg-green-50' : w.data.status === 'archived' ? 'text-ink/30 bg-ink/5' : 'text-gold bg-gold/10'
+                            w.data.status === 'published' ? 'text-green-600 bg-green-50' : w.data.status === 'archived' ? 'text-ink/80 bg-ink/5' : 'text-gold bg-gold/10'
                           }`}>
                             {w.data.status}
                           </span>
                         </div>
-                        <p className="text-[10px] text-ink/30 truncate">/{w.slug}{w.data.eventDate && ` · ${w.data.eventDate}`}{w.data.eventCity && ` · ${w.data.eventCity}`}</p>
+                        <p className="text-[10px] text-ink/80 truncate">/{w.slug}{w.data.eventDate && ` · ${w.data.eventDate}`}{w.data.eventCity && ` · ${w.data.eventCity}`}</p>
                       </div>
                       <div className="flex gap-1 flex-shrink-0">
                         <button
                           onClick={() => setToggleStatusTarget({ slug: w.slug, current: w.data.status })}
-                          className={`w-7 h-7 flex items-center justify-center rounded-lg transition-colors ${w.data.status === 'published' ? 'text-green-500 hover:bg-green-50' : 'text-ink/30 hover:text-gold hover:bg-gold/5'}`}
+                          className={`w-7 h-7 flex items-center justify-center rounded-lg transition-colors ${w.data.status === 'published' ? 'text-green-500 hover:bg-green-50' : 'text-ink/80 hover:text-gold hover:bg-gold/5'}`}
                           aria-label={w.data.status === 'published' ? `Arsipkan ${w.slug}` : `Publikasikan ${w.slug}`}
                         >
                           {w.data.status === 'published' ? <Globe className="w-3.5 h-3.5" /> : <Archive className="w-3.5 h-3.5" />}
                         </button>
                         <Link
                           href={`/admin/${w.slug}`}
-                          className="w-7 h-7 flex items-center justify-center rounded-lg text-ink/30 hover:text-gold hover:bg-gold/5 transition-colors"
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-ink/80 hover:text-gold hover:bg-gold/5 transition-colors"
                           aria-label={`Kelola ${w.slug}`}
                         >
                           <ExternalLink className="w-3.5 h-3.5" />
@@ -580,7 +580,7 @@ export default function SuperAdminPage() {
                       {(w.data.adminIds ?? []).map((uid) => {
                         const email = customerUsers.find((cu) => cu?.uid === uid)?.email ?? superAdmins.find((sa) => sa?.uid === uid)?.email ?? uid;
                         return (
-                          <span key={uid} className="inline-flex items-center gap-1 text-[9px] text-ink/35 bg-ink/5 px-2 py-0.5 rounded-full">
+                          <span key={uid} className="inline-flex items-center gap-1 text-[9px] text-ink/80 bg-ink/5 px-2 py-0.5 rounded-full">
                             {email}
                             <button
                               onClick={() => setRemoveAdminTarget({ slug: w.slug, uid })}
@@ -593,7 +593,7 @@ export default function SuperAdminPage() {
                         );
                       })}
                       {(w.data.adminIds ?? []).length === 0 && (
-                        <span className="text-[9px] text-ink/20">Belum ada admin</span>
+                        <span className="text-[9px] text-ink/80">Belum ada admin</span>
                       )}
                       {(w.data.adminIds ?? []).length < 2 && (
                         <button
@@ -615,7 +615,7 @@ export default function SuperAdminPage() {
           /* ─── Users Tab ─── */
           <div className="space-y-2">
             {allUsers.length === 0 ? (
-              <p className="text-center text-xs text-ink/30 tracking-widest uppercase py-10">Belum ada pengguna</p>
+              <p className="text-center text-xs text-ink/80 tracking-widest uppercase py-10">Belum ada pengguna</p>
             ) : (
               <div className="border border-gold/10 rounded-2xl overflow-hidden divide-y divide-gold/5">
                 {allUsers.map((u) => (
@@ -624,13 +624,13 @@ export default function SuperAdminPage() {
                       <div className="flex items-center gap-2">
                         <p className="text-sm text-ink truncate">{u.displayName}</p>
                         <span className={`text-[8px] px-1.5 py-0.5 rounded-full uppercase font-bold tracking-wider flex-shrink-0 ${
-                          u.role === 'super' ? 'text-gold bg-gold/10' : u.role === 'customer' ? 'text-green-600 bg-green-50' : 'text-ink/40 bg-ink/5'
+                          u.role === 'super' ? 'text-gold bg-gold/10' : u.role === 'customer' ? 'text-green-600 bg-green-50' : 'text-ink/80 bg-ink/5'
                         }`}>
                           {u.role}
                         </span>
                       </div>
-                      <p className="text-[10px] text-ink/35 truncate">{u.email}</p>
-                      <div className="flex items-center gap-2 text-[9px] text-ink/25">
+                      <p className="text-[10px] text-ink/80 truncate">{u.email}</p>
+                      <div className="flex items-center gap-2 text-[9px] text-ink/80">
                         {u.createdAt && <span>{formatDate(u.createdAt)}</span>}
                         {u.assignedWeddingSlug && (
                           <>
@@ -669,22 +669,22 @@ export default function SuperAdminPage() {
           /* ─── Testimoni Tab ─── */
           <div className="space-y-2">
             {testimonials.length === 0 ? (
-              <p className="text-center text-xs text-ink/30 tracking-widest uppercase py-10">Belum ada testimoni</p>
+              <p className="text-center text-xs text-ink/80 tracking-widest uppercase py-10">Belum ada testimoni</p>
             ) : (
               <div className="space-y-2">
                 {testimonials.map(t => (
                   <div key={t.id} className="bg-white/60 px-4 py-3 rounded-xl border border-gold/10 flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <p className="text-sm font-serif text-ink truncate">{t.coupleName}</p>
+                        <p className="text-sm text-ink truncate">{t.coupleName}</p>
                         <div className="flex gap-0.5 shrink-0">
                           {[1, 2, 3, 4, 5].map(s => (
                             <Star key={s} className={`w-2.5 h-2.5 ${s <= t.rating ? 'text-gold fill-gold' : 'text-gold/20'}`} />
                           ))}
                         </div>
                       </div>
-                      <p className="font-serif italic text-xs text-ink/60 line-clamp-2">"{t.message}"</p>
-                      <p className="text-[10px] text-ink/30 mt-1">/{t.weddingSlug}</p>
+                      <p className="font-bold text-xs text-ink/80 line-clamp-2">"{t.message}"</p>
+                      <p className="text-[10px] text-ink/80 mt-1">/{t.weddingSlug}</p>
                     </div>
                     <button onClick={() => setDeleteTestimonialTarget(t.id)} className="text-red-300 hover:text-red-500 transition-colors shrink-0" aria-label={`Hapus testimoni ${t.coupleName}`}>
                       <Trash2 className="w-3.5 h-3.5" />
@@ -702,14 +702,14 @@ export default function SuperAdminPage() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
           <div className="absolute inset-0 bg-ink/40 backdrop-blur-sm" onClick={() => setAcceptingUser(null)} />
           <div className="relative bg-white rounded-[2rem] p-6 shadow-2xl border border-gold/10 w-full max-w-sm">
-            <h3 className="font-serif italic text-lg text-ink mb-1">Terima Pendaftaran</h3>
-            <p className="text-xs text-ink/40 mb-4">{acceptingUser.displayName} ({acceptingUser.email})</p>
+            <h3 className="text-lg text-ink mb-1">Terima Pendaftaran</h3>
+            <p className="text-xs text-ink/80 mb-4">{acceptingUser.displayName} ({acceptingUser.email})</p>
 
             <div className="flex gap-2 mb-4">
               <button
                 onClick={() => setAcceptMode('new')}
                 className={`flex-1 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider border transition-colors ${
-                  acceptMode === 'new' ? 'bg-gold text-ivory border-gold' : 'border-gold/20 text-ink/60'
+                  acceptMode === 'new' ? 'bg-gold text-ivory border-gold' : 'border-gold/20 text-ink/80'
                 }`}
               >
                 Undangan Baru
@@ -717,7 +717,7 @@ export default function SuperAdminPage() {
               <button
                 onClick={() => setAcceptMode('existing')}
                 className={`flex-1 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider border transition-colors ${
-                  acceptMode === 'existing' ? 'bg-gold text-ivory border-gold' : 'border-gold/20 text-ink/60'
+                  acceptMode === 'existing' ? 'bg-gold text-ivory border-gold' : 'border-gold/20 text-ink/80'
                 }`}
               >
                 Tambah ke Undangan
@@ -737,7 +737,7 @@ export default function SuperAdminPage() {
                   placeholder="contoh: dani-marini"
                   className="w-full px-3 py-2 border border-gold/20 rounded-xl text-sm bg-white focus:outline-none focus:border-gold/50"
                 />
-                <p className="text-[10px] text-ink/30 mt-1">Hanya huruf kecil, angka, dan tanda hubung</p>
+                <p className="text-[10px] text-ink/80 mt-1">Hanya huruf kecil, angka, dan tanda hubung</p>
               </div>
             ) : (
               <div>
@@ -767,7 +767,7 @@ export default function SuperAdminPage() {
             <div className="flex gap-3 mt-5">
               <button
                 onClick={() => { setAcceptingUser(null); setAcceptError(''); }}
-                className="flex-1 py-2.5 border border-gold/20 text-ink/60 rounded-full text-[10px] font-black uppercase tracking-[0.2em]"
+                className="flex-1 py-2.5 border border-gold/20 text-ink/80 rounded-full text-[10px] font-black uppercase tracking-[0.2em]"
               >
                 Batal
               </button>
@@ -837,8 +837,8 @@ export default function SuperAdminPage() {
           <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
             <div className="absolute inset-0 bg-ink/40 backdrop-blur-sm" onClick={() => setAddAdminTarget(null)} />
             <div className="relative bg-white rounded-[2rem] p-6 shadow-2xl border border-gold/10 w-full max-w-sm">
-              <h3 className="font-serif italic text-lg text-ink mb-1">Tambah Admin</h3>
-              <p className="text-xs text-ink/40 mb-3">Undangan: /{addAdminTarget}</p>
+              <h3 className="text-lg text-ink mb-1">Tambah Admin</h3>
+              <p className="text-xs text-ink/80 mb-3">Undangan: /{addAdminTarget}</p>
 
               <input
                 type="text"
@@ -850,15 +850,15 @@ export default function SuperAdminPage() {
 
               <div className="max-h-40 overflow-y-auto border border-gold/10 rounded-xl divide-y divide-gold/5">
                 {filtered.length === 0 ? (
-                  <p className="text-xs text-ink/30 text-center py-4">{q ? 'Tidak ditemukan' : 'Tidak ada pengguna tersedia'}</p>
+                  <p className="text-xs text-ink/80 text-center py-4">{q ? 'Tidak ditemukan' : 'Tidak ada pengguna tersedia'}</p>
                 ) : filtered.map((u) => (
                   <button
                     key={u.uid}
                     onClick={() => setAddAdminSelectedUid(u.uid)}
-                    className={`w-full text-left px-3 py-2 text-xs transition-colors ${addAdminSelectedUid === u.uid ? 'bg-gold/10 text-gold' : 'hover:bg-ivory text-ink/70'}`}
+                    className={`w-full text-left px-3 py-2 text-xs transition-colors ${addAdminSelectedUid === u.uid ? 'bg-gold/10 text-gold' : 'hover:bg-ivory text-ink/80'}`}
                   >
                     <p className="font-medium truncate">{u.displayName}</p>
-                    <p className="text-[10px] text-ink/40 truncate">{u.email}</p>
+                    <p className="text-[10px] text-ink/80 truncate">{u.email}</p>
                   </button>
                 ))}
               </div>
@@ -868,7 +868,7 @@ export default function SuperAdminPage() {
               <div className="flex gap-3 mt-4">
                 <button
                   onClick={() => { setAddAdminTarget(null); setAddAdminError(''); setAddAdminSearch(''); }}
-                  className="flex-1 py-2.5 border border-gold/20 text-ink/60 rounded-full text-[10px] font-black uppercase tracking-[0.2em]"
+                  className="flex-1 py-2.5 border border-gold/20 text-ink/80 rounded-full text-[10px] font-black uppercase tracking-[0.2em]"
                 >
                   Batal
                 </button>
@@ -895,8 +895,8 @@ export default function SuperAdminPage() {
           <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
             <div className="absolute inset-0 bg-ink/40 backdrop-blur-sm" onClick={() => setAssignUserTarget(null)} />
             <div className="relative bg-white rounded-[2rem] p-6 shadow-2xl border border-gold/10 w-full max-w-sm">
-              <h3 className="font-serif italic text-lg text-ink mb-1">Hubungkan ke Undangan</h3>
-              <p className="text-xs text-ink/40 mb-3">{assignUserTarget.displayName} ({assignUserTarget.email})</p>
+              <h3 className="text-lg text-ink mb-1">Hubungkan ke Undangan</h3>
+              <p className="text-xs text-ink/80 mb-3">{assignUserTarget.displayName} ({assignUserTarget.email})</p>
 
               <input
                 type="text"
@@ -908,15 +908,15 @@ export default function SuperAdminPage() {
 
               <div className="max-h-40 overflow-y-auto border border-gold/10 rounded-xl divide-y divide-gold/5">
                 {filtered.length === 0 ? (
-                  <p className="text-xs text-ink/30 text-center py-4">{q ? 'Tidak ditemukan' : 'Tidak ada undangan tersedia'}</p>
+                  <p className="text-xs text-ink/80 text-center py-4">{q ? 'Tidak ditemukan' : 'Tidak ada undangan tersedia'}</p>
                 ) : filtered.map((w) => (
                   <button
                     key={w.slug}
                     onClick={() => setAssignSelectedSlug(w.slug)}
-                    className={`w-full text-left px-3 py-2 text-xs transition-colors ${assignSelectedSlug === w.slug ? 'bg-gold/10 text-gold' : 'hover:bg-ivory text-ink/70'}`}
+                    className={`w-full text-left px-3 py-2 text-xs transition-colors ${assignSelectedSlug === w.slug ? 'bg-gold/10 text-gold' : 'hover:bg-ivory text-ink/80'}`}
                   >
                     <p className="font-medium truncate">{w.data.groomNickname} & {w.data.brideNickname}</p>
-                    <p className="text-[10px] text-ink/40 truncate">/{w.slug}{w.data.eventCity && ` · ${w.data.eventCity}`}</p>
+                    <p className="text-[10px] text-ink/80 truncate">/{w.slug}{w.data.eventCity && ` · ${w.data.eventCity}`}</p>
                   </button>
                 ))}
               </div>
@@ -926,7 +926,7 @@ export default function SuperAdminPage() {
               <div className="flex gap-3 mt-4">
                 <button
                   onClick={() => { setAssignUserTarget(null); setAssignError(''); setAssignSearch(''); }}
-                  className="flex-1 py-2.5 border border-gold/20 text-ink/60 rounded-full text-[10px] font-black uppercase tracking-[0.2em]"
+                  className="flex-1 py-2.5 border border-gold/20 text-ink/80 rounded-full text-[10px] font-black uppercase tracking-[0.2em]"
                 >
                   Batal
                 </button>

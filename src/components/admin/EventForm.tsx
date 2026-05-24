@@ -9,9 +9,11 @@ interface EventFormProps {
   onSave: (fields: Partial<WeddingDocument>, files?: Record<string, File>, urlsToDelete?: string[]) => void;
   isSaving?: boolean;
   onDirty?: () => void;
+  step?: number;
+  totalSteps?: number;
 }
 
-export function EventForm({ data, onSave, isSaving, onDirty }: EventFormProps) {
+export function EventForm({ data, onSave, isSaving, onDirty, step, totalSteps }: EventFormProps) {
   const [eventDate, setEventDate] = useState(data?.eventDate ?? '');
   const [eventCity, setEventCity] = useState(data?.eventCity ?? '');
   const [venueName, setVenueName] = useState(data?.venueName ?? '');
@@ -39,55 +41,106 @@ export function EventForm({ data, onSave, isSaving, onDirty }: EventFormProps) {
     });
   };
 
-  const inputClass = 'w-full px-3 py-2 border border-gold/20 rounded-lg text-sm bg-white focus:outline-none focus:border-gold/50';
+  const inputClass = 'w-full px-3 py-2.5 border border-gold/20 rounded-xl text-sm bg-white focus:outline-none focus:border-gold/50 transition-colors';
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <fieldset className="space-y-2">
-        <legend className="text-xs uppercase tracking-[0.3em] text-gold font-black mb-1">Tanggal & Lokasi</legend>
-        <input type="date" value={eventDate} onChange={(e) => { setEventDate(e.target.value); onDirty?.(); }} required aria-label="Tanggal Acara" className={inputClass} />
-        <input value={eventCity} onChange={(e) => { setEventCity(e.target.value); onDirty?.(); }} placeholder="Kota" required maxLength={50} aria-label="Kota" className={inputClass} />
-        <input value={venueName} onChange={(e) => { setVenueName(e.target.value); onDirty?.(); }} placeholder="Nama Gedung" required maxLength={100} aria-label="Nama Gedung" className={inputClass} />
-        <input value={venueAddress} onChange={(e) => { setVenueAddress(e.target.value); onDirty?.(); }} placeholder="Alamat Lengkap" required maxLength={200} aria-label="Alamat Lengkap" className={inputClass} />
-        <input value={venueMapsUrl} onChange={(e) => { setVenueMapsUrl(e.target.value); onDirty?.(); }} placeholder="Google Maps URL" type="url" maxLength={500} aria-label="Google Maps URL" className={inputClass} />
-      </fieldset>
-
-      <fieldset className="space-y-2">
-        <div className="flex items-center justify-between mb-1">
-          <legend className="text-xs uppercase tracking-[0.3em] text-gold font-black">Rangkaian Acara</legend>
-          <span className="text-[10px] text-ink/30 font-mono">{ceremonies.length} acara</span>
+      {/* Date & Location card */}
+      <div className="bg-white rounded-2xl border border-gold/10 shadow-sm overflow-hidden">
+        <div className="border-l-4 border-gold px-4 py-3 bg-gold/[0.03]">
+          <h3 className="font-base text-[13px] text-ink">Tanggal & Lokasi Acara</h3>
         </div>
-        {ceremonies.map((c, i) => (
-          <div key={i} className="p-3 border border-gold/10 rounded-2xl bg-white/40 space-y-2">
-            <div className="flex gap-2 items-center">
-              <input value={c.name} onChange={(e) => updateCeremony(i, 'name', e.target.value)} placeholder="Nama Acara" maxLength={50} aria-label={`Nama Acara ${i + 1}`} className={`${inputClass} flex-1`} />
-              <button
-                type="button"
-                onClick={() => setDeleteTarget(i)}
-                className="w-7 h-7 flex items-center justify-center rounded-lg text-red-300 hover:text-red-500 hover:bg-red-50 transition-colors flex-shrink-0"
-                aria-label={`Hapus acara ${i + 1}`}
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            </div>
-            <div className="flex gap-2">
-              <input type="time" value={c.start} onChange={(e) => updateCeremony(i, 'start', e.target.value)} aria-label={`Jam Mulai Acara ${i + 1}`} className={`${inputClass} flex-1`} />
-              <input type="time" value={c.end} onChange={(e) => updateCeremony(i, 'end', e.target.value)} aria-label={`Jam Selesai Acara ${i + 1}`} className={`${inputClass} flex-1`} />
-            </div>
+        <div className="p-4 space-y-4">
+          <div>
+            <label htmlFor="event-date" className="text-[11px] text-ink/80 font-medium block mb-1.5">
+              Tanggal Acara <span className="text-red-400">*</span>
+            </label>
+            <input id="event-date" type="date" value={eventDate} onChange={(e) => { setEventDate(e.target.value); onDirty?.(); }} required className={inputClass} />
           </div>
-        ))}
-      </fieldset>
+          <div>
+            <label htmlFor="event-city" className="text-[11px] text-ink/80 font-medium block mb-1.5">
+              Kota <span className="text-red-400">*</span>
+            </label>
+            <input id="event-city" value={eventCity} onChange={(e) => { setEventCity(e.target.value); onDirty?.(); }} placeholder="Contoh: Surabaya" required maxLength={50} className={inputClass} />
+          </div>
+          <div>
+            <label htmlFor="venue-name" className="text-[11px] text-ink/80 font-medium block mb-1.5">
+              Nama Gedung <span className="text-red-400">*</span>
+            </label>
+            <input id="venue-name" value={venueName} onChange={(e) => { setVenueName(e.target.value); onDirty?.(); }} placeholder="Contoh: Ballroom Grand Hotel" required maxLength={100} className={inputClass} />
+          </div>
+          <div>
+            <label htmlFor="venue-address" className="text-[11px] text-ink/80 font-medium block mb-1.5">
+              Alamat Lengkap <span className="text-red-400">*</span>
+            </label>
+            <input id="venue-address" value={venueAddress} onChange={(e) => { setVenueAddress(e.target.value); onDirty?.(); }} placeholder="Contoh: Jl. Raya No. 123, Surabaya" required maxLength={200} className={inputClass} />
+          </div>
+          <div>
+            <label htmlFor="venue-maps" className="text-[11px] text-ink/80 font-medium block mb-1.5">Google Maps URL</label>
+            <input id="venue-maps" value={venueMapsUrl} onChange={(e) => { setVenueMapsUrl(e.target.value); onDirty?.(); }} placeholder="https://maps.google.com/..." type="url" maxLength={500} className={inputClass} />
+          </div>
+        </div>
+      </div>
 
-      <button
-        type="button"
-        onClick={addCeremony}
-        className="w-full py-2.5 border-2 border-dashed border-gold/25 rounded-2xl flex items-center justify-center gap-2 hover:bg-gold/5 transition-all text-gold"
-      >
-        <Plus className="w-4 h-4" />
-        <span className="text-[10px] font-black uppercase tracking-widest">Tambah Acara</span>
-      </button>
+      {/* Ceremonies card */}
+      <div className="bg-white rounded-2xl border border-gold/10 shadow-sm overflow-hidden">
+        <div className="border-l-4 border-gold px-4 py-3 bg-gold/[0.03] flex items-center justify-between">
+          <h3 className="font-base text-[13px] text-ink">Rangkaian Acara</h3>
+          <span className="text-[10px] text-ink/80 font-mono">{ceremonies.length} acara</span>
+        </div>
+        <div className="p-4 space-y-3">
+          {ceremonies.map((c, i) => (
+            <div key={i} className="p-3 border border-gold/10 rounded-xl bg-ivory/30 space-y-2">
+              <div className="flex gap-2 items-center">
+                <input value={c.name} onChange={(e) => updateCeremony(i, 'name', e.target.value)} placeholder="Nama Acara" maxLength={50} aria-label={`Nama Acara ${i + 1}`} className={`${inputClass} flex-1`} />
+                <button
+                  type="button"
+                  onClick={() => setDeleteTarget(i)}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg text-red-300 hover:text-red-500 hover:bg-red-50 transition-colors flex-shrink-0"
+                  aria-label={`Hapus acara ${i + 1}`}
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <label className="text-[10px] text-ink/80 block mb-1">Mulai</label>
+                  <input type="time" value={c.start} onChange={(e) => updateCeremony(i, 'start', e.target.value)} aria-label={`Jam Mulai Acara ${i + 1}`} className={inputClass} />
+                </div>
+                <div className="flex-1">
+                  <label className="text-[10px] text-ink/80 block mb-1">Selesai</label>
+                  <input type="time" value={c.end} onChange={(e) => updateCeremony(i, 'end', e.target.value)} aria-label={`Jam Selesai Acara ${i + 1}`} className={inputClass} />
+                </div>
+              </div>
+            </div>
+          ))}
 
-      <button type="submit" disabled={isSaving} className="w-full py-3 bg-gold text-ivory rounded-full text-xs tracking-[0.3em] font-black uppercase disabled:opacity-50 shadow-lg shadow-gold/20">{isSaving ? 'Menyimpan...' : 'Simpan'}</button>
+          <button
+            type="button"
+            onClick={addCeremony}
+            className="w-full py-2.5 border-2 border-dashed border-gold/25 rounded-xl flex items-center justify-center gap-2 hover:bg-gold/5 transition-all text-gold"
+          >
+            <Plus className="w-4 h-4" />
+            <span className="text-[11px] font-bold">Tambah Acara</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Progress bar */}
+      {step != null && totalSteps != null && totalSteps > 0 && (() => {
+        const pct = Math.round(((step + 1) / totalSteps) * 100);
+        const barColor = pct <= 25 ? 'bg-red-400' : pct <= 50 ? 'bg-orange-400' : pct <= 75 ? 'bg-yellow-400' : 'bg-green-500';
+        return (
+          <div className="space-y-1">
+            <div className="h-2 bg-ink/5 rounded-full overflow-hidden">
+              <div className={`h-full rounded-full transition-all duration-500 ${barColor}`} style={{ width: `${pct}%` }} />
+            </div>
+            <p className="text-[10px] text-ink/80 text-right">{step + 1} dari {totalSteps}</p>
+          </div>
+        );
+      })()}
+
+      <button type="submit" disabled={isSaving} className="w-full py-3 bg-gold text-ivory rounded-full text-xs tracking-[0.3em] font-black uppercase disabled:opacity-50 shadow-lg shadow-gold/20">{isSaving ? 'Menyimpan...' : 'Simpan & Lanjutkan'}</button>
       <ConfirmDeleteModal
         isOpen={deleteTarget !== null}
         message="Apakah Anda yakin ingin menghapus acara ini?"

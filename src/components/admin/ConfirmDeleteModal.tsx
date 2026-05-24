@@ -33,13 +33,13 @@ export function ConfirmDeleteModal({ isOpen, message, onConfirm, onCancel, title
             <div className="flex flex-col items-center gap-4 py-4">
               <AlertCircle className={`w-12 h-12 ${variant === 'danger' ? 'text-red-400' : 'text-gold'}`} />
               <div className="space-y-1">
-                <h3 className="font-serif italic text-lg text-ink">{title ?? 'Konfirmasi Hapus'}</h3>
-                <p className="text-xs text-ink/60 leading-relaxed">{message}</p>
+                <h3 className="text-lg text-ink">{title ?? 'Konfirmasi Hapus'}</h3>
+                <p className="text-xs text-ink/80 leading-relaxed">{message}</p>
               </div>
               <div className="flex gap-3 mt-4 w-full">
                 <button
                   onClick={onCancel}
-                  className="flex-1 py-2.5 border border-gold/20 text-ink/60 rounded-full text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 transition-transform"
+                  className="flex-1 py-2.5 border border-gold/20 text-ink/80 rounded-full text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 transition-transform"
                 >
                   Batal
                 </button>

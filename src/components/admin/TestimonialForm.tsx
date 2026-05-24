@@ -70,7 +70,7 @@ export function TestimonialForm({ slug }: TestimonialFormProps) {
   };
 
   if (isLoading) {
-    return <p className="text-xs text-ink/40 text-center py-8">Memuat...</p>;
+    return <p className="text-xs text-ink/80 text-center py-8">Memuat...</p>;
   }
 
   const inputClass = 'w-full px-3 py-2 border border-gold/20 rounded-lg text-sm bg-white focus:outline-none focus:border-gold/50';
@@ -79,14 +79,14 @@ export function TestimonialForm({ slug }: TestimonialFormProps) {
     <div className="space-y-4">
       <div className="text-center">
         <p className="text-xs uppercase tracking-[0.3em] text-gold font-black mb-1">Testimoni</p>
-        <p className="font-serif italic text-xs text-ink/60">
+        <p className="text-xs text-ink/80">
           {existing ? 'Testimoni Anda sudah terkirim. Anda dapat memperbarui atau menghapusnya.' : 'Bagikan pengalaman Anda menggunakan Marinikah Invitation.'}
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="text-xs text-ink/60 block mb-2">Rating</label>
+          {/* <label className="text-xs text-ink/80 block mb-2">Rating</label> */}
           <div className="flex gap-1 justify-center">
             {[1, 2, 3, 4, 5].map(star => (
               <button

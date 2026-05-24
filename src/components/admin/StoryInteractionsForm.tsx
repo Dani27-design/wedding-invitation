@@ -105,7 +105,7 @@ export function StoryInteractionsForm({ data, slug }: StoryInteractionsFormProps
   const goPrev = () => { if (isSearching) setSearchPage(p => p - 1); else fetchComments(page - 1); };
   const goNext = () => { if (isSearching) setSearchPage(p => p + 1); else fetchComments(page + 1); };
 
-  if (loading && !isSearching) return <p className="text-xs text-ink/40 tracking-widest uppercase text-center py-10">Memuat...</p>;
+  if (loading && !isSearching) return <p className="text-xs text-ink/80 tracking-widest uppercase text-center py-10">Memuat...</p>;
 
   const totalLikes = likes.reduce((a, b) => a + b, 0);
 
@@ -115,13 +115,13 @@ export function StoryInteractionsForm({ data, slug }: StoryInteractionsFormProps
       <div className="flex gap-1">
         <button
           onClick={() => setInnerTab('likes')}
-          className={`px-3 py-1.5 rounded-full text-xs font-bold tracking-wider transition-all ${innerTab === 'likes' ? 'bg-gold text-ivory' : 'text-ink/40 hover:text-ink/70'}`}
+          className={`px-3 py-1.5 rounded-full text-xs font-bold tracking-wider transition-all ${innerTab === 'likes' ? 'bg-gold text-ivory' : 'text-ink/80 hover:text-ink/80'}`}
         >
           Suka {totalLikes > 0 && <span className="ml-1 text-[9px]">({totalLikes})</span>}
         </button>
         <button
           onClick={() => setInnerTab('comments')}
-          className={`px-3 py-1.5 rounded-full text-xs font-bold tracking-wider transition-all ${innerTab === 'comments' ? 'bg-gold text-ivory' : 'text-ink/40 hover:text-ink/70'}`}
+          className={`px-3 py-1.5 rounded-full text-xs font-bold tracking-wider transition-all ${innerTab === 'comments' ? 'bg-gold text-ivory' : 'text-ink/80 hover:text-ink/80'}`}
         >
           Komentar
         </button>
@@ -134,13 +134,13 @@ export function StoryInteractionsForm({ data, slug }: StoryInteractionsFormProps
             <div className="border border-gold/10 rounded-2xl overflow-hidden divide-y divide-gold/5">
               {likes.map((count, i) => (
                 <div key={i} className="flex items-center justify-between px-3 py-1.5 bg-white/40">
-                  <span className="text-[10px] text-ink/60">{slides[i]?.year || `Slide ${i + 1}`}</span>
+                  <span className="text-[10px] text-ink/80">{slides[i]?.year || `Slide ${i + 1}`}</span>
                   <span className="text-[10px] font-bold text-gold">{count}</span>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-[10px] text-ink/25">Belum ada suka</p>
+            <p className="text-[10px] text-ink/80">Belum ada suka</p>
           )}
         </div>
       ) : (
@@ -148,7 +148,7 @@ export function StoryInteractionsForm({ data, slug }: StoryInteractionsFormProps
         <div className="space-y-1.5">
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink/30" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink/80" />
             <input
               type="text"
               value={searchQuery}
@@ -158,7 +158,7 @@ export function StoryInteractionsForm({ data, slug }: StoryInteractionsFormProps
               className="w-full pl-9 pr-8 py-2 border border-gold/20 rounded-full text-xs bg-white focus:outline-none focus:border-gold/50"
             />
             {searchQuery && (
-              <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink/30 hover:text-ink/60" aria-label="Hapus pencarian">
+              <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink/80 hover:text-ink/80" aria-label="Hapus pencarian">
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
@@ -166,7 +166,7 @@ export function StoryInteractionsForm({ data, slug }: StoryInteractionsFormProps
 
           {/* Count */}
           <div className="flex justify-end">
-            <span className="text-[10px] text-ink/30 font-mono">{isSearching ? `${filteredComments.length} hasil` : comments.length}</span>
+            <span className="text-[10px] text-ink/80 font-mono">{isSearching ? `${filteredComments.length} hasil` : comments.length}</span>
           </div>
 
           {displayComments.length > 0 ? (
@@ -178,7 +178,7 @@ export function StoryInteractionsForm({ data, slug }: StoryInteractionsFormProps
                       <span className="text-[10px] font-black truncate">{c.name}</span>
                       <span className="text-[8px] bg-gold/8 text-gold/70 px-1.5 py-0.5 rounded font-bold flex-shrink-0">{slides[c.slideIndex]?.year || `Slide ${c.slideIndex + 1}`}</span>
                     </div>
-                    <p className="text-[11px] text-ink/50 mt-0.5 leading-snug">{c.text}</p>
+                    <p className="text-[11px] text-ink/80 mt-0.5 leading-snug">{c.text}</p>
                   </div>
                   <button onClick={() => setDeleteTarget(c.id)} className="w-6 h-6 flex items-center justify-center rounded-lg text-red-300 hover:text-red-500 hover:bg-red-50 transition-colors flex-shrink-0 mt-0.5" aria-label="Hapus komentar">
                     <Trash2 className="w-3 h-3" />
@@ -187,17 +187,17 @@ export function StoryInteractionsForm({ data, slug }: StoryInteractionsFormProps
               ))}
             </div>
           ) : (
-            <p className="text-[10px] text-ink/25">{isSearching ? 'Tidak ditemukan' : 'Belum ada komentar'}</p>
+            <p className="text-[10px] text-ink/80">{isSearching ? 'Tidak ditemukan' : 'Belum ada komentar'}</p>
           )}
 
           {/* Pagination */}
           {(canPrev || canNext) && (
             <div className="flex items-center justify-center gap-4 pt-1">
-              <button onClick={goPrev} disabled={!canPrev} className="w-7 h-7 flex items-center justify-center rounded-full border border-gold/20 text-ink/40 hover:text-gold hover:border-gold/40 transition-colors disabled:opacity-20" aria-label="Halaman sebelumnya">
+              <button onClick={goPrev} disabled={!canPrev} className="w-7 h-7 flex items-center justify-center rounded-full border border-gold/20 text-ink/80 hover:text-gold hover:border-gold/40 transition-colors disabled:opacity-20" aria-label="Halaman sebelumnya">
                 <ChevronLeft className="w-3.5 h-3.5" />
               </button>
-              <span className="text-[10px] text-ink/40 font-bold uppercase tracking-widest">Hal. {activePage + 1}</span>
-              <button onClick={goNext} disabled={!canNext} className="w-7 h-7 flex items-center justify-center rounded-full border border-gold/20 text-ink/40 hover:text-gold hover:border-gold/40 transition-colors disabled:opacity-20" aria-label="Halaman berikutnya">
+              <span className="text-[10px] text-ink/80 font-bold uppercase tracking-widest">Hal. {activePage + 1}</span>
+              <button onClick={goNext} disabled={!canNext} className="w-7 h-7 flex items-center justify-center rounded-full border border-gold/20 text-ink/80 hover:text-gold hover:border-gold/40 transition-colors disabled:opacity-20" aria-label="Halaman berikutnya">
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>

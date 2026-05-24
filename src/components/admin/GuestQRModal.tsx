@@ -80,7 +80,7 @@ export function GuestQRModal({ isOpen, guestName, coupleName, invitationUrl, wha
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             className="relative bg-white rounded-[2rem] p-6 shadow-2xl border border-gold/10 w-full max-w-sm"
           >
-            <button onClick={onClose} className="absolute top-4 right-4 p-2 text-ink/20 hover:text-ink/40">
+            <button onClick={onClose} className="absolute top-4 right-4 p-2 text-ink/80 hover:text-ink/80">
               <X className="w-5 h-5" />
             </button>
 
@@ -97,7 +97,7 @@ export function GuestQRModal({ isOpen, guestName, coupleName, invitationUrl, wha
             <div className="flex gap-2">
               <button
                 onClick={handlePrint}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-gold/20 text-ink/70 rounded-full text-[10px] font-black uppercase tracking-[0.15em] hover:bg-gold/5 transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-gold/20 text-ink/80 rounded-full text-[10px] font-black uppercase tracking-[0.15em] hover:bg-gold/5 transition-colors"
               >
                 <Printer className="w-3.5 h-3.5" />
                 Print
@@ -105,7 +105,7 @@ export function GuestQRModal({ isOpen, guestName, coupleName, invitationUrl, wha
               <button
                 onClick={handleDownload}
                 disabled={isDownloading}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-gold/20 text-ink/70 rounded-full text-[10px] font-black uppercase tracking-[0.15em] hover:bg-gold/5 transition-colors disabled:opacity-50"
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-gold/20 text-ink/80 rounded-full text-[10px] font-black uppercase tracking-[0.15em] hover:bg-gold/5 transition-colors disabled:opacity-50"
               >
                 {isDownloading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
                 Unduh

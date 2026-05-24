@@ -93,18 +93,18 @@ export function WishesForm({ slug }: WishesFormProps) {
   const goPrev = () => { if (isSearching) setSearchPage(p => p - 1); else fetchWishes(page - 1); };
   const goNext = () => { if (isSearching) setSearchPage(p => p + 1); else fetchWishes(page + 1); };
 
-  if (loading && wishes.length === 0 && !isSearching) return <p className="text-xs text-ink/40 tracking-widest uppercase text-center py-10">Memuat...</p>;
+  if (loading && wishes.length === 0 && !isSearching) return <p className="text-xs text-ink/80 tracking-widest uppercase text-center py-10">Memuat...</p>;
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h2 className="text-xs uppercase tracking-[0.3em] text-gold font-black">Ucapan</h2>
-        <span className="text-[10px] text-ink/30 font-mono">{isSearching ? `${filteredWishes.length} hasil` : `Hal. ${page + 1}`}</span>
+        <span className="text-[10px] text-ink/80 font-mono">{isSearching ? `${filteredWishes.length} hasil` : `Hal. ${page + 1}`}</span>
       </div>
 
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink/30" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink/80" />
         <input
           type="text"
           value={searchQuery}
@@ -114,7 +114,7 @@ export function WishesForm({ slug }: WishesFormProps) {
           className="w-full pl-9 pr-8 py-2 border border-gold/20 rounded-full text-xs bg-white focus:outline-none focus:border-gold/50"
         />
         {searchQuery && (
-          <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink/30 hover:text-ink/60" aria-label="Hapus pencarian">
+          <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink/80 hover:text-ink/80" aria-label="Hapus pencarian">
             <X className="w-3.5 h-3.5" />
           </button>
         )}
@@ -131,7 +131,7 @@ export function WishesForm({ slug }: WishesFormProps) {
                     {w.attendance === 'yes' ? 'Hadir' : 'Tidak'}
                   </span>
                 </div>
-                <p className="text-[11px] text-ink/50 mt-0.5 leading-snug">{w.message}</p>
+                <p className="text-[11px] text-ink/80 mt-0.5 leading-snug">{w.message}</p>
               </div>
               <button onClick={() => setDeleteTarget(w.id)} className="w-6 h-6 flex items-center justify-center rounded-lg text-red-300 hover:text-red-500 hover:bg-red-50 transition-colors flex-shrink-0 mt-0.5" aria-label="Hapus ucapan">
                 <Trash2 className="w-3 h-3" />
@@ -140,17 +140,17 @@ export function WishesForm({ slug }: WishesFormProps) {
           ))}
         </div>
       ) : (
-        <p className="text-[10px] text-ink/25">{isSearching ? 'Tidak ditemukan' : 'Belum ada ucapan'}</p>
+        <p className="text-[10px] text-ink/80">{isSearching ? 'Tidak ditemukan' : 'Belum ada ucapan'}</p>
       )}
 
       {/* Pagination */}
       {(canPrev || canNext) && (
         <div className="flex items-center justify-center gap-4 pt-1">
-          <button onClick={goPrev} disabled={!canPrev} className="w-7 h-7 flex items-center justify-center rounded-full border border-gold/20 text-ink/40 hover:text-gold hover:border-gold/40 transition-colors disabled:opacity-20" aria-label="Halaman sebelumnya">
+          <button onClick={goPrev} disabled={!canPrev} className="w-7 h-7 flex items-center justify-center rounded-full border border-gold/20 text-ink/80 hover:text-gold hover:border-gold/40 transition-colors disabled:opacity-20" aria-label="Halaman sebelumnya">
             <ChevronLeft className="w-3.5 h-3.5" />
           </button>
-          <span className="text-[10px] text-ink/40 font-bold uppercase tracking-widest">Hal. {activePage + 1}</span>
-          <button onClick={goNext} disabled={!canNext} className="w-7 h-7 flex items-center justify-center rounded-full border border-gold/20 text-ink/40 hover:text-gold hover:border-gold/40 transition-colors disabled:opacity-20" aria-label="Halaman berikutnya">
+          <span className="text-[10px] text-ink/80 font-bold uppercase tracking-widest">Hal. {activePage + 1}</span>
+          <button onClick={goNext} disabled={!canNext} className="w-7 h-7 flex items-center justify-center rounded-full border border-gold/20 text-ink/80 hover:text-gold hover:border-gold/40 transition-colors disabled:opacity-20" aria-label="Halaman berikutnya">
             <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>

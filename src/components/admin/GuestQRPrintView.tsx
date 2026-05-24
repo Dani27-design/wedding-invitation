@@ -1,6 +1,7 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { Printer, X } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Printer, X, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Guest } from '@/types/firestore';
 import { BASE_URL } from '@/constants/baseUrl';
 import { GuestQRCard } from './GuestQRCard';
@@ -23,7 +24,6 @@ export function GuestQRPrintView({ isOpen, guests, slug, coupleName, onClose }: 
     if (!isOpen || guests.length === 0) return;
     let cancelled = false;
 
-    // Release guests in batches so the browser can render progressively
     const allBatches: Guest[][] = [];
     for (let i = 0; i < guests.length; i += BATCH_SIZE) {
       allBatches.push(guests.slice(i, i + BATCH_SIZE));
@@ -46,78 +46,141 @@ export function GuestQRPrintView({ isOpen, guests, slug, coupleName, onClose }: 
     return () => { cancelled = true; };
   }, [isOpen, guests]);
 
-  if (!isOpen) return null;
-
   const isReady = readyCount >= guests.length;
   const progress = guests.length > 0 ? Math.round((readyCount / guests.length) * 100) : 0;
   const visibleGuests = batches.flat();
 
+  const handlePrint = useCallback(() => {
+    window.print();
+  }, []);
+
+  if (!isOpen) return null;
+
   return (
-    <div className="fixed inset-0 z-[200] bg-ivory overflow-y-auto">
-      {/* Header (hidden in print) */}
-      <div className="sticky top-0 z-10 bg-ivory/90 backdrop-blur-md border-b border-gold/10 px-4 py-3 print:hidden">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div>
-            <h1 className="font-serif italic text-lg text-ink">Print QR Code</h1>
-            <p className="text-[10px] text-ink/40">{guests.length} tamu — {coupleName}</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => window.print()}
-              disabled={!isReady}
-              className="flex items-center gap-1.5 px-4 py-2 bg-gold text-ivory rounded-full text-[10px] uppercase tracking-[0.2em] font-black shadow-md hover:scale-105 transition-transform disabled:opacity-50"
-            >
-              <Printer className="w-3.5 h-3.5" />
-              Print
-            </button>
-            <button onClick={onClose} className="p-2 text-ink/40 hover:text-ink transition-colors" aria-label="Tutup">
+    <>
+      {/* Confirmation modal */}
+      <AnimatePresence>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center px-6 print:hidden">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 bg-ink/40 backdrop-blur-sm"
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            className="relative bg-white rounded-[2rem] p-6 shadow-2xl border border-gold/10 w-full max-w-xs text-center"
+          >
+            <button onClick={onClose} className="absolute top-4 right-4 p-1 text-ink/80 hover:text-ink" aria-label="Tutup">
               <X className="w-5 h-5" />
             </button>
-          </div>
+
+            <div className="flex flex-col items-center gap-3 py-4">
+              {!isReady ? (
+                <>
+                  <Loader2 className="w-10 h-10 text-gold animate-spin" />
+                  <h3 className="text-lg text-ink">Menyiapkan QR Code</h3>
+                  <div className="w-full space-y-1">
+                    <div className="h-1.5 bg-ink/5 rounded-full overflow-hidden">
+                      <div className="h-full bg-gold rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
+                    </div>
+                    <p className="text-[10px] text-ink/80">{Math.min(readyCount, guests.length)} dari {guests.length} tamu</p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Printer className="w-10 h-10 text-gold" />
+                  <h3 className="text-lg text-ink">Print QR Code</h3>
+                  <p className="text-xs text-ink/80">
+                    {guests.length} kartu QR siap dicetak
+                  </p>
+                  <p className="text-[10px] text-ink/80">{coupleName}</p>
+                  <button
+                    onClick={handlePrint}
+                    className="mt-2 px-8 py-2.5 bg-gold text-ivory rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-gold/20 hover:scale-105 transition-transform"
+                  >
+                    Print Sekarang
+                  </button>
+                </>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      </AnimatePresence>
+
+      {/* Hidden print-only content */}
+      <div className="hidden print:block" id="qr-print-view">
+        <div className="flex flex-wrap justify-center" id="qr-card-grid">
+          {visibleGuests.map((guest) => (
+            <div key={guest.id}>
+              <GuestQRCard
+                guestName={guest.name}
+                coupleName={coupleName}
+                invitationUrl={`${BASE_URL}/${slug}?to=${encodeURIComponent(guest.name)}`}
+                compact
+              />
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Generating progress */}
-      {!isReady && (
-        <div className="max-w-4xl mx-auto px-4 py-8 text-center print:hidden">
-          <div className="w-12 h-12 border-2 border-gold/30 border-t-gold rounded-full animate-spin mx-auto mb-4" />
-          <p className="font-serif italic text-sm text-ink/60 mb-2">Menyiapkan kartu...</p>
-          <div className="w-48 h-1.5 bg-ink/5 rounded-full mx-auto overflow-hidden">
-            <div className="h-full bg-gold rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
-          </div>
-          <p className="text-[9px] text-ink/30 mt-1">{progress}% — {Math.min(readyCount, guests.length)} dari {guests.length}</p>
-        </div>
-      )}
-
-      {/* QR Card Grid */}
-      {visibleGuests.length > 0 && (
-        <div className="max-w-4xl mx-auto px-4 py-6 print:max-w-none print:px-2 print:py-2">
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 print:gap-2 print:grid-cols-3 justify-items-center">
-            {visibleGuests.map((guest) => (
-              <div key={guest.id} className="break-inside-avoid">
-                <GuestQRCard
-                  guestName={guest.name}
-                  coupleName={coupleName}
-                  invitationUrl={`${BASE_URL}/${slug}?to=${encodeURIComponent(guest.name)}`}
-                  compact
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Print-specific styles */}
+      {/* Print styles */}
       <style jsx global>{`
         @media print {
-          body > *:not(.fixed) { visibility: hidden; }
-          .fixed { position: static !important; overflow: visible !important; }
-          .fixed > * { visibility: visible; }
-          .print\\:hidden { display: none !important; }
-          .break-inside-avoid { break-inside: avoid; page-break-inside: avoid; }
-          @page { margin: 8mm; }
+          body * {
+            visibility: hidden !important;
+          }
+          #qr-print-view,
+          #qr-print-view * {
+            visibility: visible !important;
+          }
+          #qr-print-view {
+            display: block !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: auto !important;
+            overflow: visible !important;
+            z-index: 99999 !important;
+            background: white !important;
+          }
+          #qr-print-view * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+          }
+          #qr-card-grid {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            justify-content: center !important;
+            align-content: flex-start !important;
+            gap: 1.5mm !important;
+            padding: 0 !important;
+          }
+          #qr-card-grid > div {
+            width: 65mm !important;
+            height: 71mm !important;
+            flex-shrink: 0 !important;
+          }
+          #qr-card-grid > div > div {
+            width: 100% !important;
+            height: 100% !important;
+            padding: 3mm !important;
+            border-radius: 3mm !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+          }
+          @page {
+            margin: 3mm;
+            size: A4;
+          }
         }
       `}</style>
-    </div>
+    </>
   );
 }

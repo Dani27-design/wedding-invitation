@@ -33,8 +33,8 @@ export function CompressionModal({ isOpen, current, total, currentFileName }: Co
               <Loader2 className="w-10 h-10 text-gold animate-spin" />
 
               <div className="space-y-1">
-                <h3 className="font-serif italic text-lg text-ink">Mengompres Media</h3>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-black">
+                <h3 className="text-lg text-ink">Mengompres Media</h3>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/80 font-black">
                   {current} / {total} file
                 </p>
               </div>
@@ -48,7 +48,7 @@ export function CompressionModal({ isOpen, current, total, currentFileName }: Co
                     transition={{ duration: 0.3, ease: 'easeOut' }}
                   />
                 </div>
-                <p className="text-[10px] text-ink/30 truncate">{currentFileName}</p>
+                <p className="text-[10px] text-ink/80 truncate">{currentFileName}</p>
               </div>
             </div>
           </motion.div>

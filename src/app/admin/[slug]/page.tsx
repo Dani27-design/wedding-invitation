@@ -26,23 +26,25 @@ import { GuestTab } from '@/components/admin/GuestTab';
 import { ConfirmDeleteModal } from '@/components/admin/ConfirmDeleteModal';
 import { motion, AnimatePresence } from 'motion/react';
 import NextImage from 'next/image';
-import { CheckCircle2, AlertCircle, Loader2, X, LogOut, Users, Calendar, BookHeart, Image, UserRound, Gift, Images, Award, Palette, MessageCircle, Heart, Copy, Check, Eye, Star } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Loader2, X, LogOut, Users, Calendar, BookHeart, Image, UserRound, Gift, Images, Award, Palette, MessageCircle, MessageSquare, Heart, Copy, Check, Eye, Star } from 'lucide-react';
+import { GuestListTab } from '@/components/admin/GuestListTab';
 import { BASE_URL } from '@/constants/baseUrl';
 
 const TABS = [
   { label: 'Pasangan', icon: UserRound },
   { label: 'Acara', icon: Calendar },
-  { label: 'Cerita', icon: BookHeart },
   { label: 'Media', icon: Image },
-  { label: 'Tamu', icon: Users },
-  { label: 'Hadiah', icon: Gift },
+  { label: 'Cerita', icon: BookHeart },
   { label: 'Galeri', icon: Images },
+  { label: 'Hadiah', icon: Gift },
   { label: 'Kredit', icon: Award },
   { label: 'Tema', icon: Palette },
+  { label: 'Pesan', icon: MessageSquare },
+  { label: 'Preview', icon: Eye },
+  { label: 'Tamu', icon: Users },
   { label: 'Interaksi', icon: MessageCircle },
   { label: 'Ucapan', icon: Heart },
   { label: 'Testimoni', icon: Star },
-  { label: 'Preview', icon: Eye },
 ] as const;
 
 
@@ -72,7 +74,7 @@ function SaveStatusModal({ status, onClose, uploadProgress }: SaveStatusModalPro
             <button
               aria-label="Tutup"
               onClick={onClose}
-              className="absolute top-4 right-4 p-2 text-ink/20 hover:text-ink/40 transition-colors"
+              className="absolute top-4 right-4 p-2 text-ink/80 hover:text-ink/80 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -90,12 +92,12 @@ function SaveStatusModal({ status, onClose, uploadProgress }: SaveStatusModalPro
             )}
 
             <div className="space-y-1 w-full">
-              <h3 className="font-serif italic text-xl text-ink">
+              <h3 className="text-xl text-ink">
                 {status === 'saving' && 'Sedang Menyimpan...'}
                 {status === 'success' && 'Berhasil Disimpan'}
                 {status === 'error' && 'Gagal Menyimpan'}
               </h3>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-black">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/80 font-black">
                 {status === 'saving' && !uploadProgress && 'Harap tunggu sebentar'}
                 {status === 'saving' && uploadProgress && `Mengunggah: ${uploadProgress.fileName}`}
                 {status === 'success' && 'Semua perubahan telah diperbarui'}
@@ -109,7 +111,7 @@ function SaveStatusModal({ status, onClose, uploadProgress }: SaveStatusModalPro
                       style={{ width: `${uploadProgress.percent}%` }}
                     />
                   </div>
-                  <p className="text-[9px] text-ink/30 mt-1 font-sans">{uploadProgress.percent}%</p>
+                  <p className="text-[9px] text-ink/80 mt-1 font-sans">{uploadProgress.percent}%</p>
                 </div>
               )}
             </div>
@@ -152,15 +154,15 @@ function ConfirmModal({ onConfirm, onCancel }: ConfirmModalProps) {
         <div className="flex flex-col items-center gap-4 py-4">
           <AlertCircle className="w-12 h-12 text-gold" />
           <div className="space-y-1">
-            <h3 className="font-serif italic text-xl text-ink">Perubahan Belum Disimpan</h3>
-            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-black">
+            <h3 className="text-xl text-ink">Perubahan Belum Disimpan</h3>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/80 font-black">
               Yakin ingin berpindah tab?
             </p>
           </div>
           <div className="flex gap-3 mt-4 w-full">
             <button
               onClick={onCancel}
-              className="flex-1 py-2.5 border border-gold/20 text-ink/60 rounded-full text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 transition-transform"
+              className="flex-1 py-2.5 border border-gold/20 text-ink/80 rounded-full text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 transition-transform"
             >
               Batal
             </button>
@@ -198,16 +200,16 @@ export default function AdminPage() {
   const tabComplete = wedding ? [
     !!(wedding.groomPhoto || wedding.bridePhoto || (wedding.groomNickname && wedding.groomNickname !== 'Pria')),
     !!(wedding.eventDate && wedding.eventCity && wedding.venueName),
-    wedding.story.length > 0,
     !!(wedding.heroImage && wedding.openingImage),
-    true, // Tamu — managed on separate page, always "ready"
-    wedding.giftAccounts.length > 0,
+    wedding.story.length > 0,
     wedding.gallery.length > 0,
+    wedding.giftAccounts.length > 0,
     wedding.credits.length > 0,
     true, // Tema always has defaults
+    true, // Pesan — greeting template always has defaults
   ] : [];
   const completedCount = tabComplete.filter(Boolean).length;
-  const totalEditable = 9; // First 9 tabs are editable; last 2 are read-only
+  const totalEditable = 9; // First 9 tabs (0-8) are editable content forms
 
   // Warn user before leaving page with unsaved changes
   useEffect(() => {
@@ -219,12 +221,22 @@ export default function AdminPage() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasSaved]);
 
-  // Auto-dismiss success modal after 1.5s
+  // Scroll to top when tab changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentStep]);
+
+  // Auto-dismiss success modal after 1.5s and advance to next tab
   useEffect(() => {
     if (saveStatus !== 'success') return;
-    const timer = setTimeout(() => setSaveStatus('idle'), 1500);
+    const timer = setTimeout(() => {
+      setSaveStatus('idle');
+      if (currentStep < totalEditable) {
+        setCurrentStep(currentStep + 1);
+      }
+    }, 1500);
     return () => clearTimeout(timer);
-  }, [saveStatus]);
+  }, [saveStatus, currentStep]);
 
   const handleLogout = async () => {
     try {
@@ -368,7 +380,7 @@ export default function AdminPage() {
   if (isAuthLoading) {
     return (
       <div className="min-h-screen bg-ivory flex items-center justify-center">
-        <p className="text-sm text-ink/40 tracking-widest uppercase">Memuat...</p>
+        <p className="text-sm text-ink/80 tracking-widest uppercase">Memuat...</p>
       </div>
     );
   }
@@ -380,8 +392,8 @@ export default function AdminPage() {
   if (!isAuthorized && !isWeddingLoading) {
     return (
       <div className="min-h-screen bg-ivory flex flex-col items-center justify-center px-8 text-center">
-        <h1 className="font-serif italic text-2xl text-ink mb-2">Akses Ditolak</h1>
-        <p className="text-xs text-ink/40 mb-4">Anda tidak memiliki akses ke undangan ini.</p>
+        <h1 className="text-2xl text-ink mb-2">Akses Ditolak</h1>
+        <p className="text-xs text-ink/80 mb-4">Anda tidak memiliki akses ke undangan ini.</p>
         <button onClick={handleLogout} className="text-xs text-gold underline underline-offset-4">Keluar</button>
       </div>
     );
@@ -391,27 +403,24 @@ export default function AdminPage() {
     if (isWeddingLoading) {
       return (
         <div className="text-center py-20">
-          <p className="text-xs text-ink/30 tracking-widest uppercase">Memuat data...</p>
+          <p className="text-xs text-ink/80 tracking-widest uppercase">Memuat data...</p>
         </div>
       );
     }
 
     switch (currentStep) {
-      case 0: return <CoupleForm data={wedding} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} />;
-      case 1: return <EventForm data={wedding} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} />;
-      case 2: return <StoryForm data={wedding} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} />;
-      case 3: return <MediaForm data={wedding} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} />;
-      case 4: return <GuestTab data={wedding} slug={slug ?? ''} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} />;
-      case 5: return <GiftForm data={wedding} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} />;
-      case 6: return <GalleryForm data={wedding} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} />;
-      case 7: return <CreditForm data={wedding} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} />;
-      case 8: return <CustomizeForm data={wedding} slug={slug ?? ''} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} />;
-      case 9: return <StoryInteractionsForm data={wedding} slug={slug ?? ''} />;
-      case 10: return <WishesForm slug={slug ?? ''} />;
-      case 11: return <TestimonialForm slug={slug ?? ''} />;
-      case 12: return (
+      case 0: return <CoupleForm data={wedding} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} step={currentStep} totalSteps={totalEditable} />;
+      case 1: return <EventForm data={wedding} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} step={currentStep} totalSteps={totalEditable} />;
+      case 2: return <MediaForm data={wedding} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} step={currentStep} totalSteps={totalEditable} />;
+      case 3: return <StoryForm data={wedding} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} step={currentStep} totalSteps={totalEditable} />;
+      case 4: return <GalleryForm data={wedding} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} step={currentStep} totalSteps={totalEditable} />;
+      case 5: return <GiftForm data={wedding} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} step={currentStep} totalSteps={totalEditable} />;
+      case 6: return <CreditForm data={wedding} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} step={currentStep} totalSteps={totalEditable} />;
+      case 7: return <CustomizeForm data={wedding} slug={slug ?? ''} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} step={currentStep} totalSteps={totalEditable} />;
+      case 8: return <GuestTab data={wedding} slug={slug ?? ''} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} step={currentStep} totalSteps={totalEditable} />;
+      case 9: return (
         <div className="flex flex-col items-center justify-start">
-          <p className="text-xs text-ink/40 text-center mb-1">Tautan dan tombol tidak aktif dalam mode ini.</p>
+          <p className="text-xs text-ink/80 text-center mb-1">Tautan dan tombol tidak aktif dalam mode ini.</p>
           {/* Phone frame */}
           <div className="relative w-full max-w-lg">
             {/* Notch */}
@@ -432,6 +441,10 @@ export default function AdminPage() {
           </div>
         </div>
       );
+      case 10: return <GuestListTab slug={slug ?? ''} wedding={wedding} />;
+      case 11: return <StoryInteractionsForm data={wedding} slug={slug ?? ''} />;
+      case 12: return <WishesForm slug={slug ?? ''} />;
+      case 13: return <TestimonialForm slug={slug ?? ''} />;
       default: return null;
     }
 
@@ -445,17 +458,17 @@ export default function AdminPage() {
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-1 min-w-0">
               <NextImage src="/images/logo-1.png" alt="Marinikah Invitation" width={100} height={40} className="h-8 w-auto flex-shrink-0" />
-              <p className="text-[10px] text-ink/35 truncate">/{slug}</p>
+              <p className="text-[10px] text-ink/80 truncate">/{slug}</p>
               <button
                 onClick={() => { navigator.clipboard.writeText(`${BASE_URL}/${slug}`); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-                className="flex-shrink-0 w-5 h-5 flex items-center justify-center rounded text-ink/25 hover:text-gold transition-colors"
+                className="flex-shrink-0 w-5 h-5 flex items-center justify-center rounded text-ink/80 hover:text-gold transition-colors"
                 aria-label="Salin URL"
               >
                 {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
               </button>
               <button
                 onClick={() => setShowStatusInfo(true)}
-                className={`flex-shrink-0 text-[9px] uppercase tracking-widest font-bold px-1.5 py-0.5 rounded-full border transition-colors ${wedding?.status === 'published' ? 'text-green-600 border-green-600/30 bg-green-50' : 'text-ink/40 border-ink/10 bg-ink/5'}`}
+                className={`flex-shrink-0 text-[9px] uppercase tracking-widest font-bold px-1.5 py-0.5 rounded-full border transition-colors ${wedding?.status === 'published' ? 'text-green-600 border-green-600/30 bg-green-50' : 'text-ink/80 border-ink/10 bg-ink/5'}`}
                 aria-label="Status undangan"
               >
                 {wedding?.status === 'published' ? 'Aktif' : 'Arsip'}
@@ -508,7 +521,7 @@ export default function AdminPage() {
                   className={`relative flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl transition-all flex-shrink-0 ${
                     isActive
                       ? 'text-gold bg-gold/10'
-                      : 'text-ink/25 hover:text-ink/50'
+                      : 'text-ink/80 hover:text-ink/80'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -531,7 +544,13 @@ export default function AdminPage() {
         {saveStatus !== 'idle' && (
           <SaveStatusModal
             status={saveStatus}
-            onClose={() => setSaveStatus('idle')}
+            onClose={() => {
+              const wasSuccess = saveStatus === 'success';
+              setSaveStatus('idle');
+              if (wasSuccess && currentStep < totalEditable) {
+                setCurrentStep(currentStep + 1);
+              }
+            }}
             uploadProgress={uploadProgress}
           />
         )}
@@ -569,10 +588,10 @@ export default function AdminPage() {
               <div className="flex flex-col items-center gap-4 py-4">
                 <AlertCircle className="w-12 h-12 text-gold" />
                 <div className="space-y-1">
-                  <h3 className="font-serif italic text-xl text-ink">
+                  <h3 className="text-xl text-ink">
                     {wedding?.status === 'published' ? 'Arsipkan Undangan?' : 'Publikasikan Undangan?'}
                   </h3>
-                  <p className="text-xs text-ink/60 leading-relaxed">
+                  <p className="text-xs text-ink/80 leading-relaxed">
                     {wedding?.status === 'published'
                       ? 'Mengarsipkan undangan ini akan menyembunyikannya dari tamu.'
                       : 'Undangan akan terlihat oleh semua tamu yang memiliki tautan.'}
@@ -581,7 +600,7 @@ export default function AdminPage() {
                 <div className="flex gap-3 mt-4 w-full">
                   <button
                     onClick={() => setShowStatusConfirm(false)}
-                    className="flex-1 py-2.5 border border-gold/20 text-ink/60 rounded-full text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 transition-transform"
+                    className="flex-1 py-2.5 border border-gold/20 text-ink/80 rounded-full text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 transition-transform"
                   >
                     Batal
                   </button>
@@ -621,16 +640,16 @@ export default function AdminPage() {
                     <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center">
                       <Check className="w-6 h-6 text-green-500" />
                     </div>
-                    <h3 className="font-serif italic text-lg text-ink">Undangan Aktif</h3>
-                    <p className="text-xs text-ink/60 leading-relaxed">Undangan Anda sudah dipublikasikan dan dapat diakses oleh semua tamu melalui tautan yang telah dibagikan. Untuk mengirim undangan via WhatsApp atau menambahkan tamu, buka tab <strong className="text-ink">Tamu</strong>.</p>
+                    <h3 className="text-lg text-ink">Undangan Aktif</h3>
+                    <p className="text-xs text-ink/80 leading-relaxed">Undangan Anda sudah dipublikasikan dan dapat diakses oleh semua tamu melalui tautan yang telah dibagikan. Untuk mengirim undangan via WhatsApp atau menambahkan tamu, buka tab <strong className="text-ink">Tamu</strong>.</p>
                   </>
                 ) : (
                   <>
                     <div className="w-12 h-12 rounded-full bg-ink/5 flex items-center justify-center">
-                      <X className="w-6 h-6 text-ink/30" />
+                      <X className="w-6 h-6 text-ink/80" />
                     </div>
-                    <h3 className="font-serif italic text-lg text-ink">Undangan Belum Aktif</h3>
-                    <p className="text-xs text-ink/60 leading-relaxed">Undangan Anda belum dipublikasikan. Hubungi admin untuk mengaktifkan undangan. Setelah aktif, Anda dapat mengirim undangan via WhatsApp atau menambahkan tamu melalui tab <strong className="text-ink">Tamu</strong>.</p>
+                    <h3 className="text-lg text-ink">Undangan Belum Aktif</h3>
+                    <p className="text-xs text-ink/80 leading-relaxed">Undangan Anda belum dipublikasikan. Hubungi admin untuk mengaktifkan undangan. Setelah aktif, Anda dapat mengirim undangan via WhatsApp atau menambahkan tamu melalui tab <strong className="text-ink">Tamu</strong>.</p>
                   </>
                 )}
                 <button

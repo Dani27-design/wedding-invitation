@@ -11,12 +11,14 @@ interface GalleryFormProps {
   onSave: (fields: Partial<WeddingDocument>, files?: Record<string, File>, urlsToDelete?: string[]) => void;
   isSaving?: boolean;
   onDirty?: () => void;
+  step?: number;
+  totalSteps?: number;
 }
 
 const MAX_IMAGE_SIZE = 25 * 1024 * 1024;
 const MAX_IMAGES = 30;
 
-export function GalleryForm({ data, onSave, isSaving, onDirty }: GalleryFormProps) {
+export function GalleryForm({ data, onSave, isSaving, onDirty, step, totalSteps }: GalleryFormProps) {
   const [error, setError] = useState('');
   const [images, setImages] = useState<{ url: string; file?: File }[]>(
     data?.gallery?.map(url => ({ url })) ?? []
@@ -86,65 +88,77 @@ export function GalleryForm({ data, onSave, isSaving, onDirty }: GalleryFormProp
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
-      <div className="flex items-center justify-between mb-1">
-        <h2 className="text-xs uppercase tracking-[0.3em] text-gold font-black">Galeri Foto</h2>
-        <span className="text-[10px] text-ink/30 font-mono">{images.length}/{MAX_IMAGES}</span>
-      </div>
-
-      {images.length > 0 ? (
-        <div className="grid grid-cols-3 gap-2">
-          {images.map((img, i) => (
-            <div key={i} className="relative aspect-square rounded-xl overflow-hidden border border-gold/10 group">
-              <img src={img.url} alt={`Gallery ${i + 1}`} className="w-full h-full object-cover" />
-
-              {/* Actions — always visible */}
-              <div className="absolute top-1 right-1">
-                <button type="button" onClick={() => setDeleteTarget(i)} className="w-5 h-5 bg-red-500/80 text-white rounded-full flex items-center justify-center" aria-label="Hapus foto">
-                  <Trash2 className="w-2.5 h-2.5" />
-                </button>
-              </div>
-              {images.length > 1 && (
-                <div className="absolute top-1 left-1 flex flex-col gap-0.5">
-                  {i > 0 && (
-                    <button type="button" onClick={() => moveImage(i, i - 1)} className="w-5 h-5 bg-ink/50 text-white rounded-full flex items-center justify-center" aria-label="Pindah ke atas">
-                      <ChevronUp className="w-3 h-3" />
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="bg-white rounded-2xl border border-gold/10 shadow-sm overflow-hidden">
+        <div className="border-l-4 border-gold px-4 py-3 bg-gold/[0.03] flex items-center justify-between">
+          <h3 className="font-base text-[13px] text-ink">Galeri Foto</h3>
+          <span className="text-[10px] text-ink/80 font-mono">{images.length}/{MAX_IMAGES}</span>
+        </div>
+        <div className="p-4">
+          {images.length > 0 ? (
+            <div className="grid grid-cols-3 gap-2">
+              {images.map((img, i) => (
+                <div key={i} className="relative aspect-square rounded-xl overflow-hidden border border-gold/10 group">
+                  <img src={img.url} alt={`Gallery ${i + 1}`} className="w-full h-full object-cover" />
+                  <div className="absolute top-1 right-1">
+                    <button type="button" onClick={() => setDeleteTarget(i)} className="w-5 h-5 bg-red-500/80 text-white rounded-full flex items-center justify-center" aria-label="Hapus foto">
+                      <Trash2 className="w-2.5 h-2.5" />
                     </button>
+                  </div>
+                  {images.length > 1 && (
+                    <div className="absolute top-1 left-1 flex flex-col gap-0.5">
+                      {i > 0 && (
+                        <button type="button" onClick={() => moveImage(i, i - 1)} className="w-5 h-5 bg-ink/50 text-white rounded-full flex items-center justify-center" aria-label="Pindah ke atas">
+                          <ChevronUp className="w-3 h-3" />
+                        </button>
+                      )}
+                      {i < images.length - 1 && (
+                        <button type="button" onClick={() => moveImage(i, i + 1)} className="w-5 h-5 bg-ink/50 text-white rounded-full flex items-center justify-center" aria-label="Pindah ke bawah">
+                          <ChevronDown className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
                   )}
-                  {i < images.length - 1 && (
-                    <button type="button" onClick={() => moveImage(i, i + 1)} className="w-5 h-5 bg-ink/50 text-white rounded-full flex items-center justify-center" aria-label="Pindah ke bawah">
-                      <ChevronDown className="w-3 h-3" />
-                    </button>
+                  {img.file && (
+                    <span className="absolute top-1 left-1 px-1.5 py-0.5 bg-gold/80 text-ivory text-[7px] font-black uppercase rounded-md">Baru</span>
                   )}
                 </div>
-              )}
+              ))}
 
-              {/* New badge */}
-              {img.file && (
-                <span className="absolute top-1 left-1 px-1.5 py-0.5 bg-gold/80 text-ivory text-[7px] font-black uppercase rounded-md">Baru</span>
+              {images.length < MAX_IMAGES && (
+                <label className="aspect-square border-2 border-dashed border-gold/20 rounded-xl flex flex-col items-center justify-center gap-1 cursor-pointer hover:bg-gold/5 transition-colors">
+                  <Plus className="w-5 h-5 text-gold/70" />
+                  <input type="file" accept="image/*" multiple onChange={(e) => handleAdd(e.target.files)} className="hidden" />
+                </label>
               )}
             </div>
-          ))}
-
-          {/* Add button as grid item */}
-          {images.length < MAX_IMAGES && (
-            <label className="aspect-square border-2 border-dashed border-gold/20 rounded-xl flex flex-col items-center justify-center gap-1 cursor-pointer hover:bg-gold/5 transition-colors">
-              <Plus className="w-5 h-5 text-gold/40" />
+          ) : (
+            <label className="flex flex-col items-center justify-center gap-2 py-8 border-2 border-dashed border-gold/15 rounded-xl cursor-pointer hover:bg-gold/5 transition-colors">
+              <Upload className="w-6 h-6 text-gold/70" />
+              <span className="text-[11px] text-ink/80">Ketuk untuk menambah foto</span>
               <input type="file" accept="image/*" multiple onChange={(e) => handleAdd(e.target.files)} className="hidden" />
             </label>
           )}
         </div>
-      ) : (
-        <label className="flex flex-col items-center justify-center gap-2 py-8 border-2 border-dashed border-gold/15 rounded-2xl cursor-pointer hover:bg-gold/5 transition-colors">
-          <Upload className="w-6 h-6 text-gold/20" />
-          <span className="text-[10px] text-ink/30 tracking-wider">Ketuk untuk menambah foto</span>
-          <input type="file" accept="image/*" multiple onChange={(e) => handleAdd(e.target.files)} className="hidden" />
-        </label>
-      )}
+      </div>
 
       {error && <p className="text-xs text-red-500 text-center">{error}</p>}
       {compressionInfo && <p className="text-[10px] text-green-600 text-center">{compressionInfo}</p>}
-      <button type="submit" disabled={isSaving || isCompressing} className="w-full py-3 bg-gold text-ivory rounded-full text-xs tracking-[0.3em] font-black uppercase disabled:opacity-50 shadow-lg shadow-gold/20">{isSaving ? 'Menyimpan...' : 'Simpan'}</button>
+
+      {step != null && totalSteps != null && totalSteps > 0 && (() => {
+        const pct = Math.round(((step + 1) / totalSteps) * 100);
+        const barColor = pct <= 25 ? 'bg-red-400' : pct <= 50 ? 'bg-orange-400' : pct <= 75 ? 'bg-yellow-400' : 'bg-green-500';
+        return (
+          <div className="space-y-1">
+            <div className="h-2 bg-ink/5 rounded-full overflow-hidden">
+              <div className={`h-full rounded-full transition-all duration-500 ${barColor}`} style={{ width: `${pct}%` }} />
+            </div>
+            <p className="text-[10px] text-ink/80 text-right">{step + 1} dari {totalSteps}</p>
+          </div>
+        );
+      })()}
+
+      <button type="submit" disabled={isSaving || isCompressing} className="w-full py-3 bg-gold text-ivory rounded-full text-xs tracking-[0.3em] font-black uppercase disabled:opacity-50 shadow-lg shadow-gold/20">{isSaving ? 'Menyimpan...' : 'Simpan & Lanjutkan'}</button>
       <CompressionModal isOpen={isCompressing} current={compressProgress.current} total={compressProgress.total} currentFileName={compressProgress.fileName} />
       <ConfirmDeleteModal
         isOpen={deleteTarget !== null}

@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Star } from 'lucide-react';
-import { collection, query, orderBy, limit, getDocs, doc, getDoc } from 'firebase/firestore';
+import { collection, query, orderBy, limit, getDocs, where, documentId } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 
 interface Testimonial {
@@ -24,26 +24,36 @@ export function TestimonialSection() {
       try {
         const q = query(collection(db, 'testimonials'), orderBy('createdAt', 'desc'), limit(12));
         const snapshot = await getDocs(q);
+        if (snapshot.empty) { if (!cancelled) setTestimonials([]); return; }
+
+        // Batch-fetch all unique wedding docs in a single query (max 12 slugs, well within Firestore 'in' limit of 30)
+        const uniqueSlugs = [...new Set(snapshot.docs.map(d => d.data().weddingSlug))];
+        const weddingsSnap = await getDocs(query(collection(db, 'weddings'), where(documentId(), 'in', uniqueSlugs)));
+        const weddingMap = new Map<string, { groomNickname: string; brideNickname: string; groomPhoto: string; bridePhoto: string }>();
+        for (const wDoc of weddingsSnap.docs) {
+          const w = wDoc.data();
+          weddingMap.set(wDoc.id, { groomNickname: w.groomNickname, brideNickname: w.brideNickname, groomPhoto: w.groomPhoto || '', bridePhoto: w.bridePhoto || '' });
+        }
+
         const results: Testimonial[] = [];
         for (const d of snapshot.docs) {
           const data = d.data();
-          const weddingDoc = await getDoc(doc(db, 'weddings', data.weddingSlug));
-          if (weddingDoc.exists()) {
-            const w = weddingDoc.data();
+          const w = weddingMap.get(data.weddingSlug);
+          if (w) {
             results.push({
               id: d.id,
               weddingSlug: data.weddingSlug,
               rating: data.rating,
               message: data.message,
               coupleName: `${w.groomNickname} & ${w.brideNickname}`,
-              groomPhoto: w.groomPhoto || '',
-              bridePhoto: w.bridePhoto || '',
+              groomPhoto: w.groomPhoto,
+              bridePhoto: w.bridePhoto,
             });
           }
         }
         if (!cancelled) setTestimonials(results);
-      } catch {
-        // silent fail
+      } catch (error) {
+        console.error('[Testimonials] Load error:', (error as Error).message);
       } finally {
         if (!cancelled) setIsLoading(false);
       }
@@ -51,7 +61,41 @@ export function TestimonialSection() {
     return () => { cancelled = true; };
   }, []);
 
-  if (isLoading || testimonials.length === 0) return null;
+  if (!isLoading && testimonials.length === 0) return null;
+
+  if (isLoading) {
+    return (
+      <section className="p-6" aria-busy="true">
+        <div className="max-w-2xl lg:max-w-5xl mx-auto">
+          <div className="text-center mb-6">
+            <div className="h-3 w-24 bg-ink/5 rounded-full mx-auto mb-3 animate-pulse" />
+            <div className="h-6 w-64 bg-ink/5 rounded-full mx-auto animate-pulse" />
+          </div>
+          <div className="flex gap-4 justify-center">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="w-[280px] sm:w-[320px] bg-white/70 rounded-2xl border border-gold/10 p-5 flex-shrink-0">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="flex items-center flex-shrink-0">
+                    <div className="w-9 h-9 rounded-full bg-ink/5 animate-pulse" />
+                    <div className="w-9 h-9 rounded-full bg-ink/5 animate-pulse -ml-3" />
+                  </div>
+                  <div className="space-y-1.5 flex-1">
+                    <div className="h-3 w-24 bg-ink/5 rounded-full animate-pulse" />
+                    <div className="h-2 w-16 bg-ink/5 rounded-full animate-pulse" />
+                  </div>
+                </div>
+                <div className="border-t border-gold/10 my-3" />
+                <div className="space-y-2">
+                  <div className="h-3 w-full bg-ink/5 rounded-full animate-pulse" />
+                  <div className="h-3 w-3/4 bg-ink/5 rounded-full animate-pulse" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="p-6">
@@ -78,7 +122,7 @@ export function TestimonialSection() {
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
                       src={t.groomPhoto}
-                      alt=""
+                      alt={t.coupleName}
                       className="w-9 h-9 rounded-full object-cover border-2 border-white shadow-sm relative z-10"
                     />
                   ) : (
@@ -88,7 +132,7 @@ export function TestimonialSection() {
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
                       src={t.bridePhoto}
-                      alt=""
+                      alt={t.coupleName}
                       className="w-9 h-9 rounded-full object-cover border-2 border-white shadow-sm -ml-3 relative z-0"
                     />
                   ) : (

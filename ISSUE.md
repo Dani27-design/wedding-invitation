@@ -1,382 +1,350 @@
 # Known Issues
 
-> **Open issues: 0** | Last audited: 2026-05-17
->
-> Audit scope: Deep production-grade audit of Guest Management system — security, performance, data integrity, edge cases, and UX.
+> Audit date: 2026-05-25
+> Scope: Invitation page, Company profile page, Admin panel
 
 ---
 
-## Admin Form — Bug Fixes
+## Critical
 
-### ~~ADM-001: "Perubahan Belum Disimpan" modal triggered unnecessarily on tab switch~~ FIXED
+### ~~1. N+1 Firestore Query in TestimonialSection~~ ✅ FIXED
 
-**Root cause:** Three bugs in `[slug]/page.tsx` tab navigation:
-1. `setHasSaved(false)` called on every tab click — marked form as "dirty" even without edits
-2. Same `setHasSaved(false)` on keyboard (arrow key) navigation
-3. ConfirmModal `onConfirm` set `setHasSaved(false)` instead of `true` — created infinite modal loop
+**Problem:** Each testimonial triggers an individual `getDoc()` for its wedding data — 12 testimonials = 13 Firestore reads.
 
-**Resolution:** Removed `setHasSaved(false)` from tab click and keyboard handlers. Fixed `onConfirm` to `setHasSaved(true)`. Moved `setHasSaved(false)` to `handleSave` catch block only (correct: only mark dirty on save failure). Added `onDirty` callback prop to all 9 editable form components — each form now calls `onDirty()` on user-initiated changes (field edits, file uploads, add/remove items), giving the parent accurate dirty tracking.
+**Root Cause:** `src/components/ui/TestimonialSection.tsx` — sequential `getDoc()` inside a `for` loop.
 
-**Files changed:** `[slug]/page.tsx`, `CoupleForm`, `EventForm`, `StoryForm`, `MediaForm`, `GuestTab`, `GiftForm`, `GalleryForm`, `CreditForm`, `CustomizeForm` (10 files)
+**Impact:** Slow testimonial loading (1-3s), excessive Firestore read costs, poor LCP on company profile page.
 
----
-
-### ~~ADM-004: StoryForm hard to reorder, scan, and manage slides~~ FIXED
-
-**Root cause:** No reorder capability (had to delete+recreate to change order). Collapsed slides showed only "Tahap N" + year — no thumbnail, no text preview, no media indicators. Delete button hidden inside expanded view. Two stacked upload sections (photo + video) made expanded view very tall.
-
-**Resolution:** Full UX redesign of `StoryForm.tsx`:
-- **Reorder:** Up/down arrow buttons on each slide header (same pattern as GalleryForm). Tracks expanded slide index through moves.
-- **Rich collapsed preview:** 40x40 photo thumbnail, year text, text snippet (truncated), green/blue dots for image/video indicators. Users can scan all slides at a glance.
-- **Delete on header:** Trash button always visible in header row — no need to expand.
-- **Compact media uploads:** Photo and video side by side in 2-column grid (was stacked vertically). Upload buttons say "Ganti" when media exists.
-- **Smarter expand state:** Deleting a slide adjusts the expanded index so the wrong slide doesn't suddenly open.
-- **Slide count:** Shows "N slide" counter in header.
-
-**Files changed:** `StoryForm.tsx` (1 file)
+**Solution:** Replaced with batch query using `where(documentId(), 'in', uniqueSlugs)`. Now uses exactly 2 Firestore reads regardless of testimonial count. Unique slugs are deduplicated before querying.
 
 ---
 
-### ~~ADM-008: CreditForm lacks icon picker, max limit, and developer restriction~~ FIXED
+### ~~2. Guest Data Not Reset on Slug Change in GuestListTab~~ ✅ FIXED
 
-**Root cause:** Credits tab used a dropdown with only 3 roles (developer/designer/other), no limit on number of credits, and anyone could select "developer" role.
+**Problem:** When slug changes, `allGuests`, search query, filter, and cursors from the previous wedding could persist.
 
-**Resolution:**
-- Created shared `src/constants/creditIcons.ts` with 24 icon options (Code, Palette, Camera, Music, Video, Heart, Sparkles, Flower, Star, Gem, Pen, Brush, Scissors, Book, Gift, Cake, Church, Car, Plane, MapPin, Sun, Moon, Crown, Ribbon)
-- `CreditForm` now shows a 6-column icon picker grid instead of a dropdown. Selected icon highlighted with gold ring.
-- Max 2 credits enforced — "Tambah" button hidden when 2 credits exist, counter shows `N/2`
-- Developer role (`Code` icon) only appears when credit name matches "M. Daniansyah C." via `restricted: true` flag
-- `Footer.tsx` on invitation page updated to use `CREDIT_ICON_MAP` from shared constants — supports all 24 icons with Heart fallback
-- No database schema change — `role` field stays as string, just stores more values (e.g., `'camera'`, `'music'`, `'flower'`)
+**Root Cause:** `src/components/admin/GuestListTab.tsx` — slug-change effect did not reset client-side filter state.
 
-**Files changed:** `creditIcons.ts` (new), `CreditForm.tsx`, `Footer.tsx` (3 files)
+**Impact:** Low in practice (Next.js remounts on URL change), but defensive fix prevents issues if component is reused without remount.
+
+**Solution:** Added `setAllGuests(null)`, `setSearchQuery('')`, `setFilterCategory('all')`, and `cursorsRef.current = [null]` to the slug-change effect. All state fully resets on slug change.
 
 ---
 
-### ~~LP-006: Landing page missing About and FAQ sections; brand rename to Marinikah Invitation~~ FIXED
+### ~~3. Missing Image Optimization in GalleryShowcase~~ ✅ FIXED
 
-**Root cause:** No About section to introduce the brand story. No FAQ section to address common questions before consultation. Brand name was "Marinikah" but should be "Marinikah Invitation" across all pages.
+**Problem:** Gallery showcase on company profile uses raw `<img>` tags without `next/image`, `sizes`, `loading="lazy"`, or format optimization.
 
-**Resolution:**
-- Added **About section** between Hero and Strengths: "Berawal dari satu pertanyaan sederhana" with brand origin story
-- Added **FAQ section** between Features and Consultation: 6 collapsible `<details>` items (pricing/consultation, setup time, app requirement, editing, sharing, guest limits)
-- Renamed "Marinikah" → "Marinikah Invitation" across 7 files: `page.tsx`, `login/page.tsx`, `register/page.tsx`, `error.tsx`, `ConsultationForm.tsx`, `manifest.ts`, `layout.tsx`
-- Updated metadata (title, siteName, JSON-LD), footer brand, copyright, OG image alt
-- FAQ uses existing `<details>` pattern with `+` icon that rotates on open
+**Root Cause:** `src/components/ui/GalleryShowcase.tsx` — plain `<img>` elements for 13 gallery images (~4.5MB total).
 
-Page flow: Hero → About → Strengths → Features → FAQ → Consultation → Footer
+**Impact:** No AVIF/WebP serving, no responsive srcset, oversized images on mobile, slower page load.
 
-**Files changed:** `page.tsx`, `login/page.tsx`, `register/page.tsx`, `error.tsx`, `ConsultationForm.tsx`, `manifest.ts`, `layout.tsx` (7 files)
+**Solution:** Replaced gallery images with `next/image` using `fill` mode, responsive `sizes` attributes, and `loading="lazy"`. iPhone frame SVG kept as raw `<img>` (2KB decorative). Zoom modal kept as `motion.img` (animation compatibility). Plain images wrapped in aspect-ratio container for proper `fill` layout.
 
 ---
 
-### ~~ADM-007: Super admin page uninformative and poorly designed~~ FIXED
+## High
 
-**Root cause:** Header was bare ("Super Admin" + "Keluar" text). Two separate sticky bars. No dashboard stats. Pendaftar cards had no registration timestamps. Undangan cards had no event date or search. Logout was a text button. No users list tab. "Hapus admin" was inline red text link.
+### ~~4. Desktop Hero Images Not Optimized (Invitation Page)~~ ✅ FIXED
 
-**Resolution:** Full redesign of `src/app/admin/page.tsx`:
-- **Single compact header** with "Marinikah Invitation" brand, LogOut icon button, stats row (pendaftar count in red, total undangan, active count in green), and tabs with icons
-- **3 tabs:** Pendaftar (Users icon), Undangan (FileText icon), Pengguna (UserRound icon, new)
-- **Pendaftar tab:** Registration date shown via `formatDate()`, provider badge, icon buttons (Check/X) instead of text buttons
-- **Undangan tab:** Search filter (slug, couple name, city), couple name as primary display, event date + city inline, status badges (published/draft/archived with distinct colors), admin emails as removable pill chips, ExternalLink icon to manage
-- **Pengguna tab (new):** Lists all users with role badge (super=gold, customer=green, pending=gray), email, registration date, assigned wedding slug as link
-- Stats row highlights pending count in red when > 0
+**Problem:** Desktop viewport uses plain `<img>` tags for hero blurred background and contained image instead of `next/image`.
 
-**Files changed:** `src/app/admin/page.tsx` (1 file)
+**Root Cause:** `src/components/sections/HeroSection.tsx` — 2 raw `<img>` tags on desktop (blurred bg + contained photo).
+
+**Impact:** Desktop LCP 200-500ms slower. No AVIF/WebP format, no responsive srcset.
+
+**Solution:** Replaced both desktop images with `<Image fill priority sizes="..." placeholder="blur">`. Blurred bg uses `sizes="60vw"`, contained photo uses `sizes="(max-width: 1280px) 55vw, 60vw"`. Desktop contained wrapped in relative container for `fill` mode. Both get AVIF/WebP, responsive srcset, and priority loading.
 
 ---
 
-### ~~SEO-003: Missing security headers~~ FIXED
+### ~~5. Sequential Image Compression in Admin Forms~~ ✅ FIXED
 
-**Root cause:** Only `Cross-Origin-Opener-Policy` header was configured. Missing `X-Content-Type-Options`, `X-Frame-Options`, and `Referrer-Policy` — standard security headers that prevent MIME sniffing, clickjacking, and referrer leakage.
+**Problem:** Image compression runs sequentially with `await` — 2 photos take 2x as long as parallel.
 
-**Resolution:** Added 3 security headers to `next.config.ts` `headers()`:
-- `X-Content-Type-Options: nosniff` — prevents browsers from MIME-sniffing responses
-- `X-Frame-Options: SAMEORIGIN` — prevents clickjacking via iframe embedding from other domains
-- `Referrer-Policy: strict-origin-when-cross-origin` — limits referrer data sent to third parties
+**Root Cause:** `CoupleForm`, `MediaForm`, `GalleryForm`, `StoryForm` — `for` loop with `await compressImage(file)`.
 
-**Files changed:** `next.config.ts` (1 file)
+**Impact:** With 5 images, users wait 5-15 seconds instead of 1-3 seconds.
 
----
-
-### ~~SEO-002: Brand name inconsistency and missing OG image~~ FIXED
-
-**Root cause:** Entire codebase used "Wedding DM" as brand name, but logo assets (`logo-1.png`, `logo-1.png`) show the brand is "marinikah". OG image and Twitter image fields were empty on landing page, preventing rich social previews.
-
-**Resolution:**
-- Renamed all "Wedding DM" references to "Marinikah" across 6 files: `page.tsx`, `login/page.tsx`, `register/page.tsx`, `error.tsx`, `ConsultationForm.tsx`, `manifest.ts`, `layout.tsx`
-- Added `logo-1.png` as OG image (1200×630) and Twitter image (`summary_large_image`) on landing page
-- Updated manifest: name "Marinikah - Undangan Pernikahan Digital", short_name "Marinikah"
-- Updated root layout metadata with Marinikah branding
-- Footer brand rendered as lowercase "marinikah" matching the logo wordmark style
-
-**Files changed:** `page.tsx`, `login/page.tsx`, `register/page.tsx`, `error.tsx`, `ConsultationForm.tsx`, `manifest.ts`, `layout.tsx` (7 files)
+**Solution:** Added `compressImageBatch()` in `src/utils/compressImage.ts` — worker-based concurrency pool (3 parallel). Each completed file updates progress callback for CompressionModal. All 4 forms updated to use batch compression. Speed improvement: ~2x for 2 files, ~3x for 5 files, ~10x for 30 files.
 
 ---
 
-### ~~SEO-001: Landing page missing OpenGraph, Twitter Cards, canonical, and structured data~~ FIXED
+### ~~6. Memory Leak in StoryForm Blob URLs~~ ✅ FIXED
 
-**Root cause:** Company profile page had title and description but no OpenGraph tags, no Twitter Card tags, no canonical URL, no JSON-LD structured data. Social sharing (WhatsApp, Facebook, Twitter) showed no rich preview. Landing page was also missing from the sitemap.
+**Problem:** Blob URLs created via `URL.createObjectURL()` could leak if component unmounts between creation and state update.
 
-**Resolution:**
-- Added `openGraph` (title, description, url, siteName, type, locale) and `twitter` (card, title, description) to landing page metadata
-- Added `alternates.canonical` pointing to `BASE_URL`
-- Added JSON-LD `WebApplication` + `Organization` schema with service description and free offer
-- Added landing page (`/`) to sitemap with `priority: 1.0` — sitemap now returns static pages even if Firestore query fails
-- Improved gallery alt texts: "Foto kenangan 1" → "Galeri {groom} & {bride} - foto 1" (contextual)
-- Improved story slide alt texts: "Memory" → "{groom} & {bride} - {year}" (contextual)
-- Created global `error.tsx` with noindex, "Coba Lagi" reset button, and "Halaman Utama" link
+**Root Cause:** `src/components/admin/StoryForm.tsx` — existing cleanup was comprehensive but relied on `slidesRef.current` which has a narrow race condition window on unmount.
 
-**Files changed:** `page.tsx`, `sitemap.ts`, `PhotoGallery.tsx`, `CinematicStory.tsx`, `error.tsx` (new) — 5 files
+**Impact:** Low in practice (race condition requires unmount in same tick as blob creation), but defensive fix eliminates any possibility.
+
+**Solution:** Added `blobUrlsRef` (Set) to track all created blob URLs. All `URL.createObjectURL`/`revokeObjectURL` calls go through `createBlobUrl`/`revokeBlobUrl` helpers that maintain the set. Unmount effect revokes everything remaining in the set regardless of slide state. Removed `slidesRef` (no longer needed).
 
 ---
 
-### ~~LP-001: Landing page lacks visual depth, product showcase, and social proof~~ FIXED
+### ~~7. Super Admin N+1 User Lookups~~ ✅ FIXED
 
-**Root cause:** Hero was text on solid dark background with invisible decorative blurs (5%/3% opacity). No product screenshot, no social proof, no visual hooks. Feature cards were plain with no hover interaction. Footer had no navigation. Two sections repeated the same CTA pattern.
+**Problem:** For every wedding's admin IDs, the code does linear `Array.find()` through users — O(N×M) complexity.
 
-**Resolution:** Full redesign of `src/app/page.tsx`:
-- **Hero:** Added `BackgroundLayers` (grain + light-sweep textures), `PetalEffect` (falling petals animation), increased decorative glow opacity (10%/8%), added center glow. Added live demo phone mockup iframe (180×320, scaled 0.48, `pointer-events-none`, `loading="lazy"`).
-- **Social proof stats:** New section with 3 stat counters (100+ Pasangan, 10.000+ Tamu, 4.9 Rating) with icons.
-- **Feature cards:** Added glassmorphism (`bg-white/60 backdrop-blur-sm`), hover lift effect (`hover:-translate-y-1`), hover border/shadow transition.
-- **Demo section:** Dark section with interactive phone mockup iframe (220×390, scrollable) + "Buka Layar Penuh" link.
-- **Final CTA:** Added "Gratis Untuk Memulai" pricing hint label, decorative background blobs.
-- **Footer:** Added navigation links (Demo, Daftar, Masuk), copyright with dynamic year, secondary border separator, `bg-paper/30` background.
+**Root Cause:** `src/app/admin/page.tsx` — `customerUsers.find()` and `superAdmins.find()` called per admin per wedding in render loop.
 
-**Components reused:** `BackgroundLayers`, `PetalEffect` (existing, no new deps). All assets from existing codebase.
+**Impact:** With 100 weddings × 50 users = 5,000+ array lookups. Visible UI lag when rendering wedding list.
 
-**Files changed:** `src/app/page.tsx` (1 file)
+**Solution:** Removed `customerUsers` and `superAdmins` state (redundant with `allUsers`). Added `useMemo` `userMap: Map<uid, UserDocument>` built from `allUsers` — O(N) once, O(1) per lookup. Removed 1 redundant Firestore query. Removed dead `getAdminEmails` function. All `.find()` lookups replaced with `userMap.get()`.
 
 ---
 
-### ~~LP-002: Landing page has redundant sections and duplicate CTAs~~ FIXED
+### ~~8. No Search Debounce in Super Admin Page~~ ✅ FIXED
 
-**Root cause:** Two demo iframes (hero + demo section) showing identical content. Three demo links (hero, demo section, footer). Two registration CTAs with different wording. Demo section repeated the hero's dark layout with a second phone mockup.
+**Problem:** Wedding search filters on every keystroke without debouncing.
 
-**Resolution:** Simplified from 7 sections to 5:
-- **Removed** entire demo section (redundant with hero mockup)
-- **Hero mockup** made clickable (wrapped in `<Link>` to demo, with hover border/shadow) — replaces the "Buka Layar Penuh" link
-- **Removed** demo link from footer nav (hero + "Lihat Demo" button are sufficient)
-- **Tightened spacing** — `py-20` → `py-16`, `py-12` → `py-10`, `space-y-8` → `space-y-6`
+**Root Cause:** `src/app/admin/page.tsx` — `useMemo` recalculated on every `searchQuery` change.
 
-Flow is now: **See it (hero+mockup) → Trust it (stats) → Learn it (features) → Do it (CTA) → Footer**
+**Impact:** Unnecessary re-renders and string operations on every character typed.
 
-**Files changed:** `src/app/page.tsx` (1 file)
+**Solution:** Added `debouncedSearch` state with 300ms `useEffect` debounce. Input stays controlled by `searchQuery` (no typing lag), but `filteredWeddings` memo only recalculates when `debouncedSearch` settles. Timer cleaned up on each keystroke.
 
 ---
 
-### ~~LP-003: Landing page not responsive across different mobile devices~~ FIXED
+### ~~9. Testimonial Photos Missing Alt Text~~ ✅ FIXED
 
-**Root cause:** Multiple responsive issues: `py-auto` (invalid CSS, does nothing) on hero section; phone mockup and rotating rings used fixed pixel widths (180px, 260px, 300px) that don't scale on narrow screens; feature chips forced 2 columns on small screens causing text overflow; `p-6` used instead of `px-6 py-*` in several sections (strengths, features, consultation, footer) giving insufficient vertical padding.
+**Problem:** Couple photos in testimonial cards have empty `alt=""`, treating them as decorative when they're content-relevant.
 
-**Resolution:**
-- Hero: `py-auto` → `py-16` (valid padding)
-- Phone mockup: `w-[180px]` → `w-[45vw] max-w-[180px] aspect-[9/16]` (scales on small screens)
-- Rotating rings: fixed `w-[260px]`/`w-[300px]` → `w-[70vw] max-w-[260px]`/`w-[80vw] max-w-[300px]`
-- Feature chips: `grid-cols-2` → `grid-cols-1 sm:grid-cols-2 md:grid-cols-3` (single column on mobile)
-- Section padding fixed: strengths `px-6 py-12`, features `px-6 py-12`, consultation `px-6 py-14`, footer `px-6 py-8`
+**Root Cause:** `src/components/ui/TestimonialSection.tsx` — `alt=""` on groom and bride photos.
 
-**Files changed:** `src/app/page.tsx` (1 file)
+**Impact:** Screen readers skip photos. SEO: Google can't index photo context. WCAG 2.1 Level A violation.
+
+**Solution:** Changed both groom and bride photo `alt=""` to `alt={t.coupleName}` (e.g. "Dani & Marini"). Tests updated to verify descriptive alt text is present.
 
 ---
 
-### ~~LP-004: Landing page copywriting and section redesign~~ FIXED
+### ~~10. Silent Error Handling in TestimonialSection~~ ✅ FIXED
 
-**Resolution:** Complete copywriting overhaul across all sections with formal, elegant Indonesian tone. Replaced generic CTA section with WhatsApp consultation form (`ConsultationForm.tsx`). Redesigned strengths section with 5 genuine competitive advantages based on codebase analysis. Expanded features to 24 items in 2 grouped categories. Redesigned footer with brand, navigation with gold dot separators, heart divider, and copyright.
+**Problem:** Firestore query failures are silently caught with no logging or user feedback.
 
-**Files changed:** `src/app/page.tsx`, `src/components/ui/ConsultationForm.tsx` (new)
+**Root Cause:** `src/components/ui/TestimonialSection.tsx` — `catch { // silent fail }` with no logging.
 
----
+**Impact:** No observability into database errors. Masks quota/permission issues in production.
 
-### ~~LP-005: Login and register pages inconsistent with company profile design~~ FIXED
-
-**Root cause:** Auth pages used light ivory background, basic white inputs, and generic copywriting ("Masuk", "Daftar", "Buat Akun Baru") that didn't match the dark, elegant company profile aesthetic.
-
-**Resolution:** Both pages redesigned with dark ink background, gold/rose decorative glows, dark-themed inputs (`bg-ivory/10 border-ivory/10 text-ivory`), gold primary buttons with shadow, and "Wedding DM" brand link to homepage. Copywriting updated: login heading "Selamat Datang Kembali", register heading "Mulai Perjalanan Anda", success page "Terima kasih telah mendaftar" with consolidated single-paragraph explanation. Google buttons changed to "Lanjutkan dengan Google".
-
-**Files changed:** `src/app/login/page.tsx`, `src/app/register/page.tsx` (2 files)
+**Solution:** Added `console.error('[Testimonials] Load error:', error.message)` matching project convention. Section still gracefully disappears on error (correct UX for public landing page). Test updated to verify error is logged.
 
 ---
 
-### ~~ADM-005: MediaForm takes excessive vertical space with verbose layout~~ FIXED
+### ~~11. Firestore Listener Cleanup Issues in useWishes~~ ✅ FIXED
 
-**Root cause:** Each of 4 media items was a tall stacked card (~200px+) with header, description, full-width preview (160px), and oversized upload button. Single-column layout wasted horizontal space.
+**Problem:** `onSnapshot` success and error callbacks could fire after unmount, calling state setters on unmounted component.
 
-**Resolution:** Redesigned to a **2x2 grid** of compact cards. Each card has: square thumbnail area with the preview (image/audio), hover-to-reveal upload overlay button, compact label + filename below. Removed verbose description text (labels are self-explanatory). Twibbon "Buat Otomatis" button stays as compact action. Page height reduced ~60%.
+**Root Cause:** `src/hooks/useWishes.ts` — `cancelled` flag existed but was only checked before `onSnapshot` setup, not inside the callbacks themselves.
 
-**Files changed:** `MediaForm.tsx` (1 file)
+**Impact:** Potential state update on unmounted component during rapid navigation.
 
----
-
-### ~~ADM-006: `router.push` during render causes React hooks order error~~ FIXED
-
-**Root cause:** `router.push('/login')` called directly in render body (before any early return) triggered "Cannot update a component while rendering another component" and "Rendered more hooks than during previous render" when the `useEffect` was placed after the early `return`.
-
-**Resolution:** Moved auth redirect to `useEffect(() => { if (!loading && !user) router.push('/login') }, [...])` placed **before** all early returns, ensuring consistent hook count across renders. Fixed in all 3 admin pages (`[slug]/page.tsx`, `[slug]/guests/page.tsx`, `admin/page.tsx`).
-
-**Files changed:** `[slug]/page.tsx`, `[slug]/guests/page.tsx`, `admin/page.tsx` (3 files)
+**Solution:** Added `if (cancelled) return;` guard at the top of both `onSnapshot` success and error callbacks. Now state setters are never called after cleanup runs.
 
 ---
 
-### ~~ADM-002: QR download saves raw QR image without card frame~~ FIXED
+### ~~12. Story Like Button Race Condition~~ ✅ FIXED
 
-**Root cause:** `handleDownload` in `GuestQRModal` grabbed the raw `<img>` src (280x280 QR data URL) — no frame, names, or branding.
+**Problem:** Rapid clicks on like button cause optimistic updates that get out of sync with Firestore.
 
-**Resolution:** Created `generateQRCardPNG()` in `qrGenerate.ts` that renders a full aesthetic card on canvas (600x860 @2x retina) with gradient background, floral ornaments, couple name, QR code, guest name, and decorative elements. Download button now uses this function with loading state.
+**Root Cause:** `src/hooks/useStoryLikes.ts` — no guard against concurrent transactions on the same slide.
 
----
+**Impact:** Like count UI becomes inconsistent with Firestore after rapid clicking.
 
-### ~~ADM-003: QR card design lacks aesthetic quality compared to twibbon frame~~ FIXED
-
-**Root cause:** `GuestQRCard` used flat ivory background, generic Lucide Heart icons, and plain borders — visually inconsistent with the twibbon overlay's artistic floral design.
-
-**Resolution:** Full redesign of QR card system:
-- Extracted shared floral drawing primitives (`drawPetal`, `drawArtisticFlower`, `drawFlowerCluster`, `drawScatteredPetals`, `drawGoldDust`) into `src/utils/floralDraw.ts`
-- Refactored `twibbonOverlay.ts` to import from shared utility (57 tests still pass)
-- `GuestQRCard` now renders a `<canvas>` layer with live twibbon-style flowers (corner clusters, scattered petals, gold dust) behind content
-- Card uses warm gradient background, SVG heart/star ornaments, corner arc accents on QR box, inner decorative border
-- `generateQRCardPNG` (download) uses same shared flowers for pixel-perfect matching
-- `GuestQRPrintView` reuses `GuestQRCard compact` prop (3-column grid) — no duplicated markup
-- Added `compact` prop for smaller print-optimized cards
-
-**Files changed:** `floralDraw.ts` (new), `twibbonOverlay.ts`, `GuestQRCard.tsx`, `GuestQRModal.tsx`, `GuestQRPrintView.tsx`, `qrGenerate.ts` (6 files)
+**Solution:** Added `pendingRef` (Set) to track in-flight transactions per slide index. `incrementLike` returns early if slide already has a pending transaction. Pending flag cleared in `finally` block. Different slides can still be liked concurrently. 2 new tests added: "ignores rapid clicks while transaction is pending" and "allows clicks on different slides concurrently".
 
 ---
 
-## Critical (P0) — Must fix before production
+## Medium
 
-### ~~GMS-001: XSS vulnerability in QR print window via innerHTML injection~~ FIXED
+### ~~13. Canvas Memory Not Cleaned in MediaForm~~ ✅ FIXED
 
-**Resolution:** Added `escapeHtml()` function that escapes `<`, `>`, `&`, `"` in the `<title>` tag (the actual injection vector — React already escapes the body content). Also added `sanitizeFilename()` for the download filename to strip non-alphanumeric characters. The `content.innerHTML` in the body was already safe (React-escaped) but the template literal title was vulnerable to breakout injection.
+**Problem:** Twibbon overlay generation creates 1080×1920 canvas elements that remain in memory after blob creation.
 
----
+**Root Cause:** `src/components/admin/MediaForm.tsx` — `document.createElement('canvas')` pixel buffer (~8MB) never freed.
 
-### ~~GMS-002: Guest phone numbers publicly readable — no authentication required~~ FIXED
+**Impact:** Each generation uses ~8MB. Generating 5 overlays leaves 40MB unused.
 
-**Resolution:** Changed guest sub-collection read rule from `allow read: if true` to require authentication + adminIds/super admin check (same as write rule). Guest data (names, phones, addresses) is now only accessible to the wedding's own admins. No guest-facing code reads this collection — verified via grep. Zero functional impact.
-
----
-
-### ~~GMS-003: Memory explosion in bulk QR print with 500+ guests~~ FIXED
-
-**Resolution:** Rewrote `GuestQRPrintView.tsx` with batched generation (20 QRs per batch with `setTimeout(0)` yielding to browser event loop between batches). QR cards now render progressively as each batch completes (user sees cards appearing incrementally). Progress updates per batch (not per item — reduces re-renders from 500 to ~25 for 500 guests). Each QR generation wrapped in try/catch — failed QRs show "Gagal" placeholder without stopping the batch. Added `truncate max-w-[250px]` on guest name to prevent layout overflow. Print button disabled until generation complete.
+**Solution:** Moved `canvas` declaration before `try` block. Added `canvas.width = 0; canvas.height = 0;` in `finally` block to immediately free the pixel buffer regardless of success/failure. Blob is independent of canvas once created.
 
 ---
 
-### ~~GMS-004: Batch guest import has no rollback on partial failure~~ FIXED
+### ~~14. No Upload Cancellation in Storage~~ ✅ FIXED
 
-**Resolution:** Replaced `Promise.all(addDoc(...))` with Firestore `writeBatch()`. Imports are now split into 500-doc chunks (Firestore batch limit), each committed atomically — either all 500 in a chunk succeed or none do. Returns `{ success, failed }` count to caller. Added input sanitization in batch: name trimmed + max 100 chars, phone max 20 chars, address max 200 chars, category validated. Import handler shows error if any batch fails: "X tamu berhasil diimport, Y gagal."
+**Problem:** Large file uploads continue in the background after user navigates away from admin panel.
 
----
+**Root Cause:** `src/lib/storage.ts` — `uploadBytesResumable` task never exposed for cancellation.
 
-## High (P1) — Significant risk
+**Impact:** 50MB video uploads waste bandwidth after user leaves page.
 
-### ~~GMS-005: No input validation on guest name — empty strings and extreme lengths accepted~~ FIXED
-
-**Resolution:** Added `sanitizeGuestFields()` helper in `lib/guests.ts` — trims and caps all string fields (name: 100, phone: 20, address: 200, category: validated). Applied to `addGuest` (throws error if name empty after trim), `updateGuest` (sanitizes on update), and `addGuestsBatch` (already had sanitization from GMS-004). Three layers of defense: HTML maxLength on inputs → form-level validation → lib-level sanitization.
+**Solution:** Changed `uploadFile()` to return `{ promise, cancel }` instead of `Promise<string>`. Admin page stores cancel functions in `activeUploadsRef` during upload loop. `useEffect` cleanup calls all active cancel functions on unmount. Cancel functions cleared in `finally` block after save completes.
 
 ---
 
-### ~~GMS-006: Phone number format not normalized — duplicates and broken WhatsApp links~~ FIXED
+### ~~15. All Guests Loaded at Once for Search~~ ✅ FIXED
 
-**Resolution:** Created `normalizePhone()` in `lib/guests.ts` — strips all non-digit characters, converts leading `0` to `62`, handles `+620` edge case. Integrated into `sanitizeGuestFields` so ALL writes (addGuest, updateGuest, addGuestsBatch) produce consistent format. WhatsApp URL generation simplified (phone already normalized — no runtime strip/replace needed). Search now works reliably on normalized digits.
+**Problem:** First search in GuestListTab shows "no results" while guest data is still loading, with silent error handling.
 
----
+**Root Cause:** `src/components/admin/GuestListTab.tsx` — no loading state during `getGuests()` fetch, `.catch(() => {})` swallows errors.
 
-### ~~GMS-007: Import column detection fails with special characters in headers~~ FIXED
+**Impact:** Misleading UX — user sees empty state when data is actually loading. Errors invisible in production.
 
-**Resolution:** Rewrote column detection: `normalizeHeader` now replaces common separators (`_`, `.`, `/`, `-`, `()`) with spaces before removing remaining chars (preserves word boundaries). `detectColumn` uses `includes()` matching instead of exact `===`. Candidates reordered longest-first to prevent false positives (e.g., "nama tamu" checked before "nama"). Headers like "Pihak (Pria/Wanita)" → "pihak pria wanita" → includes "pihak" ✓.
-
----
-
-### ~~GMS-008: No file size limit on import — large files crash browser~~ FIXED
-
-**Resolution:** Added file size check at the start of `handleFileSelect`: rejects files > 5MB with error "File terlalu besar. Maksimal 5MB." before any ArrayBuffer loading or parsing begins. Prevents browser memory crash.
+**Solution:** Added `isSearchLoading` state. Shows "Mencari..." while `allGuests` is being fetched. Added `console.error` for fetch failures. Full guest fetch is the correct approach for this project scale (Firestore doesn't support substring search) — `allGuests` is cached after first fetch and cleared only on mutation.
 
 ---
 
-### ~~GMS-009: QR generation silently fails on long names — no error handling~~ FIXED
+### ~~16. File Deletion Without Error Feedback~~ ✅ FIXED
 
-**Resolution:** Wrapped both `generateQRDataURL` and `generateQRSVG` in try/catch — returns empty string on failure instead of rejecting. `GuestQRCard` now tracks `qrError` state: if QR generation returns empty, shows "QR tidak dapat dibuat. Nama terlalu panjang." error message instead of infinite spinner. Bulk print (GMS-003 fix) already handles empty dataUrl with "Gagal" placeholder.
+**Problem:** Old file cleanup after save silently fails with no way for the caller to detect failures.
 
----
+**Root Cause:** `src/lib/storage.ts` — `deleteFile()` returned `void`, catching all errors internally.
 
-## Medium (P2) — Should fix for quality
+**Impact:** Admin sees "success" but old files may remain, consuming storage quota. No monitoring visibility.
 
-### ~~GMS-010: No duplicate guest detection on import or manual add~~ FIXED
-
-**Resolution:** Added duplicate name detection in manual add flow. When user submits a name that already exists in the guest list, shows warning: "Tamu 'X' sudah ada. Klik Simpan lagi untuk tetap menambahkan." User must click Save a second time to confirm (warn, not block — handles legitimate duplicate names in Indonesian culture). `duplicateWarning` state resets on form open. Import duplicate detection deferred (user can see duplicates in list visually after import).
+**Solution:** Changed `deleteFile()` return type to `Promise<boolean>` — returns `true` on success, `false` on error (still catches errors internally, never throws). Admin page collects deletion results and logs summary warning: `console.warn('[Admin] N file(s) failed to clean up')`. 4 new storage tests added for return value verification.
 
 ---
 
-### ~~GMS-011: Progress bar in bulk print causes 1000 re-renders~~ FIXED (by GMS-003)
+### ~~17. No Custom Font Preconnect for Dynamic Wedding Pages~~ ✅ FIXED
 
-**Resolution:** Already resolved by the GMS-003 batched generation fix. Progress now updates once per batch of 20 (not per item). 500 guests = ~25 progress updates (not 500). Acceptable performance.
+**Problem:** Custom Google Fonts loaded via `<link rel="stylesheet">` without `<link rel="preconnect">`.
 
----
+**Root Cause:** `src/app/[slug]/page.tsx` — font stylesheet injected without preconnect hint for `fonts.googleapis.com` and `fonts.gstatic.com`.
 
-### ~~GMS-012: Excel import loses leading zeros on phone numbers~~ FIXED
+**Impact:** Font loading happens late in critical path. Potential FOUT (Flash of Unstyled Text) and CLS.
 
-**Resolution:** Two-layer fix: (1) Added `raw: false` to `parseFile()` SheetJS options — returns cell values as formatted strings, preserving text-formatted leading zeros. (2) Extended `normalizePhone()` to handle bare numbers starting with `8` and 9-12 digits long — auto-prepends `62` (Indonesian mobile assumption, safe for target market). So even if Excel strips the zero, `812345678` → `62812345678` correctly.
-
----
-
-### ~~GMS-013: Template preview shows different URL encoding than actual WhatsApp link~~ FIXED
-
-**Resolution:** Changed preview link from hardcoded `Budi+Santoso` to `encodeURIComponent('Budi Santoso')` — now shows `Budi%20Santoso` matching actual WhatsApp URL behavior. One-line fix.
+**Solution:** Added `<link rel="preconnect" href="https://fonts.googleapis.com" />` and `<link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />` conditionally — only when wedding uses custom (non-default) fonts. DNS + TCP + TLS now happen in parallel with CSS fetch.
 
 ---
 
-### ~~GMS-014: Guest name overflow breaks QR card print layout~~ FIXED
+### ~~18. CLS from Testimonial Section Loading~~ ✅ FIXED
 
-**Resolution:** Added `line-clamp-2 max-w-[260px]` to guest name in `GuestQRCard.tsx`. Long names wrap gracefully to 2 lines with ellipsis overflow — handles formal Indonesian names like "Muhammad Daniansyah Chusyaidin, S.Kom" without breaking the card layout. Bulk print card (GuestQRPrintView) already had `truncate max-w-[250px]` from GMS-003 fix.
+**Problem:** Testimonials section renders `null` while loading, then suddenly appears with full content.
 
----
+**Root Cause:** `src/components/ui/TestimonialSection.tsx` — loading and empty states conflated in single `return null`.
 
-## Summary
+**Impact:** Page layout shifts when testimonials load. FAQ section below jumps up then pushes down.
 
-| Priority | Count | Focus |
-|----------|-------|-------|
-| P0 Critical | 4 | XSS, data exposure, memory crash, partial writes |
-| P1 High | 5 | Validation, phone normalization, import parsing, file size, QR errors |
-| P2 Medium | 5 | Duplicates, re-renders, Excel zeros, preview mismatch, layout overflow |
-| **Total** | **14** | |
+**Solution:** Split into two conditions: loading shows skeleton section (3 placeholder cards with `animate-pulse`, matching real card dimensions and `aria-busy="true"`), empty returns `null`. Skeleton reserves the same height as real content, preventing CLS. Test updated to verify skeleton renders during loading.
 
 ---
 
-## Design Tradeoffs (Intentional, Not Bugs)
+### ~~19. Story Comment Misattachment on Slide Change~~ ✅ FIXED
 
-- **Client-side pagination:** All guests loaded at once, filtered in memory. Fine for <1000 guests per wedding. Would need cursor-based Firestore pagination at scale.
-- **Sequential QR generation:** Intentionally serial to avoid CPU spike. Parallel would be faster but risks browser throttling.
-- **No real-time listener on guests:** Uses one-shot `getDocs` instead of `onSnapshot`. Reduces Firestore costs but means list doesn't auto-update if two admins edit simultaneously.
+**Problem:** If user opens comment form on slide 1 then swipes to slide 2, submitting attaches the comment to slide 2 instead of slide 1.
 
----
+**Root Cause:** `src/components/sections/CinematicStory.tsx` — `addComment` from `useStoryComments` is bound to `activeSlide`, which changes on swipe. Comment form stays open but writes to the wrong slide.
 
-## Security Verdict
+**Impact:** Comments attached to wrong story slides.
 
-| Area | Status |
-|------|--------|
-| Write authorization | SECURE — only admins can write |
-| Read authorization | VULNERABLE — guests publicly readable (GMS-002) |
-| XSS protection | VULNERABLE — print window injection (GMS-001) |
-| Input validation | WEAK — no server-side or client-side validation |
-| Data isolation | PARTIAL — write isolated, read not |
+**Solution:** Added `useEffect` that resets `commentInput` to `null` whenever `activeSlide` changes. Comment form closes on slide change, preventing misattachment. User must reopen form on the new slide to comment there.
 
 ---
 
-## Performance Verdict
+### ~~20. Comment Listeners May Stack on Rapid Slide Navigation~~ ✅ FIXED
 
-| Scenario | Status |
-|----------|--------|
-| 100 guests | SMOOTH — no issues |
-| 500 guests | ACCEPTABLE — import/export fine, bulk print slow (~15s) |
-| 1000 guests | RISKY — bulk print may crash mobile, memory ~10MB |
-| 5000+ guests | BROKEN — client-side filtering too slow, no pagination |
+**Problem:** Changing `slideIndex` rapidly could cause stale `onSnapshot` callbacks to update state with data from the wrong slide.
+
+**Root Cause:** `src/hooks/useStoryComments.ts` — `onSnapshot` success and error callbacks had no guard against firing after cleanup.
+
+**Impact:** Potential stale comment data displayed on wrong slide during rapid navigation.
+
+**Solution:** Added `cancelled` flag inside the `useEffect`. Both `onSnapshot` callbacks check `if (cancelled) return;` before calling state setters. Cleanup sets `cancelled = true` before calling `unsubscribe()`. Same proven pattern as `useWishes` (issue #11).
 
 ---
 
-## Final Verdict
+### ~~21. QR Generation Not Cached~~ ✅ FIXED
 
-**SAFE WITH RISKS** — Confidence: **62/100**
+**Problem:** `generateQRDataURL()` is called without caching, even for identical URLs.
 
-The guest management system is functional for typical use (50-200 guests per wedding) but has critical security vulnerabilities (public data, XSS) and will degrade under scale. Must fix P0 issues before accepting real customer data with phone numbers.
+**Root Cause:** `src/utils/qrGenerate.ts` — no memoization, every call runs full QR generation.
+
+**Impact:** Printing 100 cards triggers 100 separate CPU-intensive QR generations. Remounting components regenerates already-computed QR codes.
+
+**Solution:** Added module-level `Map<string, string>` cache in `generateQRDataURL`. Cache hit returns instantly, cache miss generates and stores. Empty results (errors) are not cached to allow retry. Both `GuestQRCard` and `generateQRCardPNG` benefit from the cache. ~500KB memory for 100 cached entries.
+
+---
+
+### ~~22. Hero Logo Missing Priority on Company Profile~~ ✅ FIXED
+
+**Problem:** Logo in hero section (above fold) loads with default lazy loading instead of priority.
+
+**Root Cause:** `src/app/page.tsx` — hero `NextImage` without `priority` prop.
+
+**Impact:** Logo may flash in after page paint, affecting LCP.
+
+**Solution:** Added `priority` prop to hero logo `NextImage`. Footer logo (below fold) left unchanged — lazy loading is correct there.
+
+---
+
+## Low
+
+### ~~23. FloatingController Resize Without Debounce~~ ✅ FIXED
+
+**Problem:** Drag constraint recalculation fires on every pixel of window resize.
+
+**Root Cause:** `src/components/features/FloatingController.tsx` — resize listener calls `setConstraints` on every pixel change.
+
+**Impact:** Multiple re-renders during device rotation or resize.
+
+**Solution:** Added 200ms debounce on resize handler via `setTimeout`/`clearTimeout`. Initial calculation on mount remains immediate. Timer cleaned up on unmount.
+
+---
+
+### ~~24. Audio Retry May Leak on Repeated Open/Close~~ ✅ FIXED
+
+**Problem:** `retryPlay()` uses recursive setTimeout without cancellation token.
+
+**Root Cause:** `src/app/[slug]/wedding-client.tsx` — retry `setTimeout` IDs never stored, can't be cancelled on unmount.
+
+**Impact:** Stale `setIsPlaying` calls if component unmounts during retry chain.
+
+**Solution:** Added `retryTimerRef` alongside existing `copyTimerRef`/`submitTimerRef`. `retryPlay` stores each `setTimeout` ID in the ref. Unmount cleanup clears `retryTimerRef.current`. Same proven pattern as other timer refs in the component.
+
+---
+
+### ~~25. No Timeout on Firestore Queries~~ ✅ FIXED
+
+**Problem:** Server-side Firestore query has no timeout — page SSR hangs up to 60s on Firestore outage.
+
+**Root Cause:** `src/app/[slug]/page.tsx` — `adminDb.doc().get()` uses gRPC with ~60s default timeout.
+
+**Impact:** Users see loading state for up to 60s on Firestore outage.
+
+**Solution:** Wrapped `adminDb.doc().get()` in `Promise.race()` with 10-second timeout. On timeout, `getWedding` returns `null` → page shows 404 instead of hanging. Client-side hooks (`useWishes`, `useStoryComments`) already handle failures gracefully via Firestore SDK offline behavior — no changes needed.
+
+---
+
+### ~~26. OG Image Dimension Mismatch on Wedding Pages~~ ✅ FIXED
+
+**Problem:** OG image declares 1200×630 dimensions but actual `heroImage` is user-uploaded with unknown dimensions.
+
+**Root Cause:** `src/app/[slug]/page.tsx` — hardcoded `width: 1200, height: 630` on dynamic user-uploaded image.
+
+**Impact:** Social media previews may crop/scale incorrectly based on wrong dimension hints.
+
+**Solution:** Removed `width` and `height` from OG image object. Social platforms auto-detect dimensions by fetching the image — correct behavior for dynamic user-uploaded images. `url` and `alt` retained.
+
+---
+
+### ~~27. Smooth Scroll Delay on Admin Tab Switch~~ ✅ FIXED
+
+**Problem:** `window.scrollTo({ behavior: 'smooth' })` adds 500-800ms visual delay before new form appears.
+
+**Root Cause:** `src/app/admin/[slug]/page.tsx` — smooth scroll animation on every `currentStep` change.
+
+**Impact:** Feels slow when switching between admin tabs.
+
+**Solution:** Changed `behavior: 'smooth'` to `behavior: 'instant'`. Tab content swaps and scrolls to top immediately — matches user expectation for tab switching.
+
+---
+
+### ~~28. ConsultationForm Missing Label Association~~ ✅ FIXED
+
+**Problem:** Form inputs use `aria-label` instead of associated `<label>` elements.
+
+**Root Cause:** `src/components/ui/ConsultationForm.tsx` — no `id` or `<label htmlFor>` on inputs.
+
+**Impact:** No proper label association for accessibility tools.
+
+**Solution:** Added `id` to both inputs (`consult-name`, `consult-message`) and `<label htmlFor className="sr-only">` for each. Removed `aria-label` (redundant with `<label>`). Visually hidden labels preserve the compact dark-themed design. No UI change.
+
+---

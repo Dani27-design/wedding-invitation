@@ -92,6 +92,55 @@ export async function compressImage(
   }
 }
 
+interface BatchEntry {
+  key: string;
+  file: File;
+  options?: CompressOptions;
+}
+
+interface BatchResult {
+  files: Record<string, File>;
+  infos: string[];
+}
+
+/**
+ * Compress multiple images in parallel with concurrency limit.
+ * Calls onProgress as each file completes for progress tracking.
+ */
+export async function compressImageBatch(
+  entries: BatchEntry[],
+  onProgress: (current: number, total: number, fileName: string) => void,
+  concurrency = 3,
+): Promise<BatchResult> {
+  const files: Record<string, File> = {};
+  const infos: string[] = [];
+  const total = entries.length;
+  let completed = 0;
+  let nextIndex = 0;
+
+  async function processEntry(entry: BatchEntry): Promise<void> {
+    const result = await compressImage(entry.file, entry.options);
+    files[entry.key] = result.file;
+    if (result.wasCompressed) {
+      infos.push(`${entry.key}: ${formatFileSize(result.originalSize)} → ${formatFileSize(result.compressedSize)}`);
+    }
+    completed++;
+    onProgress(completed, total, entry.file.name);
+  }
+
+  async function worker(): Promise<void> {
+    while (nextIndex < entries.length) {
+      const entry = entries[nextIndex++];
+      await processEntry(entry);
+    }
+  }
+
+  const workers = Array.from({ length: Math.min(concurrency, entries.length) }, () => worker());
+  await Promise.all(workers);
+
+  return { files, infos };
+}
+
 /** Format bytes to human-readable string */
 export function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;

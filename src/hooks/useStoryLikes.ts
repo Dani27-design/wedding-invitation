@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { doc, getDoc, runTransaction, setDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { StoryLikesDocument } from '../types/firestore';
@@ -7,6 +7,7 @@ import { StoryLikesDocument } from '../types/firestore';
 export function useStoryLikes(slug: string, enabled: boolean = true) {
   const [likes, setLikes] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const pendingRef = useRef<Set<number>>(new Set());
 
   useEffect(() => {
     if (!enabled) return;
@@ -29,6 +30,10 @@ export function useStoryLikes(slug: string, enabled: boolean = true) {
 
   const incrementLike = useCallback(
     async (slideIndex: number) => {
+      // Ignore rapid clicks while a transaction is in flight for this slide
+      if (pendingRef.current.has(slideIndex)) return;
+      pendingRef.current.add(slideIndex);
+
       setLikes((prev) => prev.map((v, i) => (i === slideIndex ? v + 1 : v)));
 
       const ref = doc(db, 'story-likes', slug);
@@ -36,14 +41,12 @@ export function useStoryLikes(slug: string, enabled: boolean = true) {
         await runTransaction(db, async (transaction) => {
           const snap = await transaction.get(ref);
           if (!snap.exists()) {
-            // Create document with likes array sized to include slideIndex
             const fresh = new Array(slideIndex + 1).fill(0);
             fresh[slideIndex] = 1;
             transaction.set(ref, { likes: fresh });
             return;
           }
           const data = snap.data() as StoryLikesDocument;
-          // Pad array if new slides were added since document was created
           const updated = [...data.likes];
           while (updated.length <= slideIndex) updated.push(0);
           updated[slideIndex] = (updated[slideIndex] ?? 0) + 1;
@@ -52,6 +55,8 @@ export function useStoryLikes(slug: string, enabled: boolean = true) {
       } catch (error) {
         setLikes((prev) => prev.map((v, i) => (i === slideIndex ? v - 1 : v)));
         console.error('[useStoryLikes] Transaction error:', (error as Error).message);
+      } finally {
+        pendingRef.current.delete(slideIndex);
       }
     },
     [slug]

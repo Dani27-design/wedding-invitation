@@ -65,11 +65,23 @@ export default function SuperAdminPage() {
   const [activeTab, setActiveTab] = useState(0);
   const [pendingUsers, setPendingUsers] = useState<UserDocument[]>([]);
   const [weddings, setWeddings] = useState<{ slug: string; data: WeddingDocument }[]>([]);
-  const [customerUsers, setCustomerUsers] = useState<UserDocument[]>([]);
-  const [superAdmins, setSuperAdmins] = useState<UserDocument[]>([]);
   const [allUsers, setAllUsers] = useState<UserDocument[]>([]);
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Debounce search query — filter runs 300ms after user stops typing
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // O(1) user lookup map — replaces linear .find() calls
+  const userMap = useMemo(() => {
+    const map = new Map<string, UserDocument>();
+    for (const u of allUsers) map.set(u.uid, u);
+    return map;
+  }, [allUsers]);
 
   // Accept modal state
   const [acceptingUser, setAcceptingUser] = useState<UserDocument | null>(null);
@@ -105,9 +117,8 @@ export default function SuperAdminPage() {
   async function loadData() {
     setIsDataLoading(true);
     try {
-      const [pendingSnap, customerSnap, weddingsSnap, allUsersSnap, testimonialSnap] = await Promise.all([
+      const [pendingSnap, weddingsSnap, allUsersSnap, testimonialSnap] = await Promise.all([
         getDocs(query(collection(db, 'users'), where('role', '==', 'pending'), orderBy('createdAt', 'desc'))),
-        getDocs(query(collection(db, 'users'), where('role', '==', 'customer'))),
         getDocs(collection(db, 'weddings')),
         getDocs(query(collection(db, 'users'), orderBy('createdAt', 'desc'))),
         getDocs(query(collection(db, 'testimonials'), orderBy('createdAt', 'desc'))),
@@ -115,10 +126,8 @@ export default function SuperAdminPage() {
 
       const weddingList = weddingsSnap.docs.map((d) => ({ slug: d.id, data: d.data() as WeddingDocument }));
       setPendingUsers(pendingSnap.docs.map((d) => d.data() as UserDocument));
-      setCustomerUsers(customerSnap.docs.map((d) => d.data() as UserDocument));
       setWeddings(weddingList);
       setAllUsers(allUsersSnap.docs.map((d) => d.data() as UserDocument));
-      setSuperAdmins(allUsersSnap.docs.filter((d) => d.data().role === 'super').map((d) => d.data() as UserDocument));
       setTestimonials(testimonialSnap.docs.map(d => {
         const data = d.data();
         const w = weddingList.find(w => w.slug === data.weddingSlug);
@@ -138,15 +147,15 @@ export default function SuperAdminPage() {
   }
 
   const filteredWeddings = useMemo(() => {
-    if (!searchQuery.trim()) return weddings;
-    const q = searchQuery.toLowerCase();
+    if (!debouncedSearch.trim()) return weddings;
+    const q = debouncedSearch.toLowerCase();
     return weddings.filter((w) =>
       w.slug.includes(q) ||
       w.data.groomNickname.toLowerCase().includes(q) ||
       w.data.brideNickname.toLowerCase().includes(q) ||
       w.data.eventCity.toLowerCase().includes(q)
     );
-  }, [weddings, searchQuery]);
+  }, [weddings, debouncedSearch]);
 
   async function handleAccept() {
     if (!acceptingUser) return;
@@ -307,7 +316,7 @@ export default function SuperAdminPage() {
       if (currentIds.length >= 2) throw new Error('Undangan sudah memiliki 2 admin (maksimal)');
 
       // Remove from old wedding first (1 user = 1 invitation)
-      const selectedUser = allUsers.find((u) => u.uid === addAdminSelectedUid);
+      const selectedUser = userMap.get(addAdminSelectedUid);
       if (selectedUser?.assignedWeddingSlug && selectedUser.assignedWeddingSlug !== addAdminTarget) {
         const oldWedding = weddings.find((w) => w.slug === selectedUser.assignedWeddingSlug);
         if (oldWedding) {
@@ -398,13 +407,6 @@ export default function SuperAdminPage() {
       </div>
     );
   }
-
-  const getAdminEmails = (adminIds: string[]) => {
-    return adminIds.map((id) => {
-      const u = customerUsers.find((cu) => cu.uid === id);
-      return u?.email ?? id;
-    });
-  };
 
   const publishedCount = weddings.filter((w) => w.data.status === 'published').length;
 
@@ -578,7 +580,7 @@ export default function SuperAdminPage() {
                     {/* Admin list */}
                     <div className="flex flex-wrap gap-1.5">
                       {(w.data.adminIds ?? []).map((uid) => {
-                        const email = customerUsers.find((cu) => cu?.uid === uid)?.email ?? superAdmins.find((sa) => sa?.uid === uid)?.email ?? uid;
+                        const email = userMap.get(uid)?.email ?? uid;
                         return (
                           <span key={uid} className="inline-flex items-center gap-1 text-[9px] text-ink/80 bg-ink/5 px-2 py-0.5 rounded-full">
                             {email}

@@ -3,15 +3,20 @@ import { storage } from './firebase-storage';
 
 export type UploadProgressCallback = (percent: number) => void;
 
-export async function uploadFile(
+export interface UploadHandle {
+  promise: Promise<string>;
+  cancel: () => void;
+}
+
+export function uploadFile(
   path: string,
   file: File,
   onProgress?: UploadProgressCallback,
-): Promise<string> {
+): UploadHandle {
   const fileRef = ref(storage, path);
   const task = uploadBytesResumable(fileRef, file);
 
-  return new Promise((resolve, reject) => {
+  const promise = new Promise<string>((resolve, reject) => {
     task.on(
       'state_changed',
       (snapshot) => {
@@ -29,16 +34,19 @@ export async function uploadFile(
       },
     );
   });
+
+  return { promise, cancel: () => task.cancel() };
 }
 
-export async function deleteFile(url: string) {
-  if (!url) return;
-  try { if (new URL(url).hostname !== 'firebasestorage.googleapis.com') return; } catch { return; }
+export async function deleteFile(url: string): Promise<boolean> {
+  if (!url) return true;
+  try { if (new URL(url).hostname !== 'firebasestorage.googleapis.com') return true; } catch { return true; }
   try {
     const fileRef = ref(storage, url);
     await deleteObject(fileRef);
+    return true;
   } catch (error) {
-    // Ignore if file already deleted or not found
     console.error('[Storage] Delete error:', (error as Error).message);
+    return false;
   }
 }

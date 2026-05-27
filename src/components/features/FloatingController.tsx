@@ -26,8 +26,16 @@ export const FloatingController = ({ isToolsOpen, setIsToolsOpen, isPlaying, tog
       bottom: 0,
     });
     update();
-    window.addEventListener('resize', update);
-    return () => window.removeEventListener('resize', update);
+    let timer: ReturnType<typeof setTimeout>;
+    const debouncedUpdate = () => {
+      clearTimeout(timer);
+      timer = setTimeout(update, 200);
+    };
+    window.addEventListener('resize', debouncedUpdate);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', debouncedUpdate);
+    };
   }, []);
 
   return (

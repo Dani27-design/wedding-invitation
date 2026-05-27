@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { WeddingDocument } from '../../types/firestore';
 import { Plus, Trash2, ChevronUp, ChevronDown, Upload } from 'lucide-react';
-import { compressImage, formatFileSize } from '../../utils/compressImage';
+import { compressImageBatch } from '../../utils/compressImage';
 import { CompressionModal } from './CompressionModal';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
@@ -61,28 +61,26 @@ export function GalleryForm({ data, onSave, isSaving, onDirty, step, totalSteps 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const files: Record<string, File> = {};
-    const imageEntries = images.map((img, i) => img.file ? { idx: i, file: img.file } : null).filter(Boolean) as { idx: number; file: File }[];
-    if (imageEntries.length > 0) {
+    let files: Record<string, File> | undefined;
+    const batchEntries = images
+      .map((img, i) => img.file ? { key: `gallery-${i}`, file: img.file } : null)
+      .filter(Boolean) as { key: string; file: File }[];
+    if (batchEntries.length > 0) {
       setIsCompressing(true);
       setCompressionInfo('');
       try {
-        const infos: string[] = [];
-        for (let i = 0; i < imageEntries.length; i++) {
-          const { idx, file } = imageEntries[i];
-          setCompressProgress({ current: i + 1, total: imageEntries.length, fileName: file.name });
-          const result = await compressImage(file);
-          files[`gallery-${idx}`] = result.file;
-          if (result.wasCompressed) infos.push(`Foto ${idx + 1}: ${formatFileSize(result.originalSize)} → ${formatFileSize(result.compressedSize)}`);
-        }
-        if (infos.length > 0) setCompressionInfo(infos.join(' | '));
+        const result = await compressImageBatch(batchEntries, (current, total, fileName) => {
+          setCompressProgress({ current, total, fileName });
+        });
+        files = result.files;
+        if (result.infos.length > 0) setCompressionInfo(result.infos.join(' | '));
       } finally {
         setIsCompressing(false);
       }
     }
     onSave(
       { gallery: images.map(img => img.url) },
-      Object.keys(files).length > 0 ? files : undefined,
+      files && Object.keys(files).length > 0 ? files : undefined,
       urlsToDelete.length > 0 ? urlsToDelete : undefined,
     );
   };

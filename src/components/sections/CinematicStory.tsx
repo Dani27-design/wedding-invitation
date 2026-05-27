@@ -55,6 +55,11 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
     });
   }, [activeSlide]);
 
+  // Close comment form when slide changes to prevent misattachment
+  useEffect(() => {
+    setCommentInput(null);
+  }, [activeSlide]);
+
   if (slides.length === 0) return null;
 
   const goToSlide = (index: number) => {

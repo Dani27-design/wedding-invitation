@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { WeddingDocument, StorySlide } from '../../types/firestore';
 import { Plus, Trash2, Upload, Film, ChevronDown, ChevronUp, Image as ImageIcon } from 'lucide-react';
-import { compressImage, formatFileSize } from '../../utils/compressImage';
+import { compressImageBatch, formatFileSize } from '../../utils/compressImage';
 import { CompressionModal } from './CompressionModal';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
@@ -31,15 +31,24 @@ export function StoryForm({ data, onSave, isSaving, onDirty, step, totalSteps }:
   const [compressProgress, setCompressProgress] = useState({ current: 0, total: 0, fileName: '' });
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
   const [expandedSlide, setExpandedSlide] = useState<number>(0);
-  const slidesRef = useRef(slides);
-  slidesRef.current = slides;
+  // Track all blob URLs for guaranteed cleanup on unmount
+  const blobUrlsRef = useRef<Set<string>>(new Set());
+
+  const createBlobUrl = (file: File): string => {
+    const url = URL.createObjectURL(file);
+    blobUrlsRef.current.add(url);
+    return url;
+  };
+
+  const revokeBlobUrl = (url: string) => {
+    URL.revokeObjectURL(url);
+    blobUrlsRef.current.delete(url);
+  };
 
   useEffect(() => {
     return () => {
-      slidesRef.current.forEach((s) => {
-        if (s.videoPreview) URL.revokeObjectURL(s.videoPreview);
-        if (s.bgImage && s.bgImage.startsWith('blob:')) URL.revokeObjectURL(s.bgImage);
-      });
+      blobUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+      blobUrlsRef.current.clear();
     };
   }, []);
 
@@ -51,8 +60,8 @@ export function StoryForm({ data, onSave, isSaving, onDirty, step, totalSteps }:
 
   const removeSlide = (i: number) => {
     const slide = slides[i];
-    if (slide.videoPreview) URL.revokeObjectURL(slide.videoPreview);
-    if (slide.bgImage && slide.bgImage.startsWith('blob:')) URL.revokeObjectURL(slide.bgImage);
+    if (slide.videoPreview) revokeBlobUrl(slide.videoPreview);
+    if (slide.bgImage && slide.bgImage.startsWith('blob:')) revokeBlobUrl(slide.bgImage);
     if (slide.bgImage && slide.bgImage.includes('firebasestorage.googleapis.com')) {
       setUrlsToDelete(prev => [...prev, slide.bgImage!]);
     }
@@ -87,8 +96,8 @@ export function StoryForm({ data, onSave, isSaving, onDirty, step, totalSteps }:
     if (file.size > MAX_IMAGE_SIZE) { setError('Ukuran foto maksimal 25MB'); return; }
     setError('');
     const oldBg = slides[i]?.bgImage;
-    if (oldBg && oldBg.startsWith('blob:')) URL.revokeObjectURL(oldBg);
-    const url = URL.createObjectURL(file);
+    if (oldBg && oldBg.startsWith('blob:')) revokeBlobUrl(oldBg);
+    const url = createBlobUrl(file);
     setSlides(slides.map((s, idx) => idx === i ? { ...s, bgImage: url, file } : s));
     onDirty?.();
   };
@@ -98,15 +107,15 @@ export function StoryForm({ data, onSave, isSaving, onDirty, step, totalSteps }:
     if (file.size > MAX_VIDEO_SIZE) { setError(`Ukuran video maksimal 50MB. File ini ${formatFileSize(file.size)}.`); return; }
     setError('');
     const oldPreview = slides[i]?.videoPreview;
-    if (oldPreview) URL.revokeObjectURL(oldPreview);
-    const url = URL.createObjectURL(file);
+    if (oldPreview) revokeBlobUrl(oldPreview);
+    const url = createBlobUrl(file);
     setSlides(slides.map((s, idx) => idx === i ? { ...s, videoPreview: url, videoFile: file } : s));
     onDirty?.();
   };
 
   const removeVideo = (i: number) => {
     const slide = slides[i];
-    if (slide.videoPreview) URL.revokeObjectURL(slide.videoPreview);
+    if (slide.videoPreview) revokeBlobUrl(slide.videoPreview);
     if (slide.bgVideo && slide.bgVideo.includes('firebasestorage.googleapis.com')) {
       setUrlsToDelete(prev => [...prev, slide.bgVideo!]);
     }
@@ -118,24 +127,18 @@ export function StoryForm({ data, onSave, isSaving, onDirty, step, totalSteps }:
     e.preventDefault();
     const files: Record<string, File> = {};
     const filtered = slides.filter(s => s.year.trim());
-    const imageSlides = filtered.filter(s => s.file).map((s, _, arr) => ({ slide: s, total: arr.length }));
-    if (imageSlides.length > 0) {
+    const batchEntries = filtered
+      .map((s, i) => s.file ? { key: `storyBg-${i}`, file: s.file } : null)
+      .filter(Boolean) as { key: string; file: File }[];
+    if (batchEntries.length > 0) {
       setIsCompressing(true);
       setCompressionInfo('');
       try {
-        const infos: string[] = [];
-        let idx = 0;
-        for (let i = 0; i < filtered.length; i++) {
-          const s = filtered[i];
-          if (s.file) {
-            idx++;
-            setCompressProgress({ current: idx, total: imageSlides.length, fileName: s.file.name });
-            const result = await compressImage(s.file);
-            files[`storyBg-${i}`] = result.file;
-            if (result.wasCompressed) infos.push(`Slide ${i + 1}: ${formatFileSize(result.originalSize)} → ${formatFileSize(result.compressedSize)}`);
-          }
-        }
-        if (infos.length > 0) setCompressionInfo(infos.join(' | '));
+        const result = await compressImageBatch(batchEntries, (current, total, fileName) => {
+          setCompressProgress({ current, total, fileName });
+        });
+        Object.assign(files, result.files);
+        if (result.infos.length > 0) setCompressionInfo(result.infos.join(' | '));
       } finally {
         setIsCompressing(false);
       }

@@ -96,6 +96,7 @@ export function WeddingClient({ wedding, slug }: WeddingClientProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const submitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [viewportHeight, setViewportHeight] = useState(667);
 
   useEffect(() => {
@@ -111,6 +112,7 @@ export function WeddingClient({ wedding, slug }: WeddingClientProps) {
       clearTimeout(resizeTimer);
       if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
       if (submitTimerRef.current) clearTimeout(submitTimerRef.current);
+      if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
     };
   }, []);
 
@@ -165,7 +167,9 @@ export function WeddingClient({ wedding, slug }: WeddingClientProps) {
         }
         audioRef.current.play()
           .then(() => setIsPlaying(true))
-          .catch(() => setTimeout(() => retryPlay(attempts - 1), 500));
+          .catch(() => {
+            retryTimerRef.current = setTimeout(() => retryPlay(attempts - 1), 500);
+          });
       };
       retryPlay(3);
     }

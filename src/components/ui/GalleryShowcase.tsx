@@ -2,12 +2,16 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import NextImage from 'next/image';
 
 interface GalleryGroup {
   label: string;
   items: { src: string; alt: string }[];
   phoneFrame?: boolean;
 }
+
+const PHONE_FRAME_SIZES = '(max-width: 640px) 128px, (max-width: 1024px) 155px, 14vw';
+const PLAIN_SIZES = '(max-width: 640px) 120px, (max-width: 1024px) 150px, 14vw';
 
 export function GalleryShowcase({ groups }: { groups: GalleryGroup[] }) {
   const [selected, setSelected] = useState<string | null>(null);
@@ -29,13 +33,27 @@ export function GalleryShowcase({ groups }: { groups: GalleryGroup[] }) {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src="/images/iphone-frame.svg" alt="" aria-hidden="true" className="absolute inset-0 w-full h-full z-10 pointer-events-none" />
                     <div className="absolute overflow-hidden bg-white" style={{ top: '2.1%', left: '4.4%', width: '91.2%', height: '95.8%', borderRadius: '13.1% / 6.4%' }}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={src} alt={alt} className="w-full h-full object-contain object-top" />
+                      <NextImage
+                        src={src}
+                        alt={alt}
+                        fill
+                        sizes={PHONE_FRAME_SIZES}
+                        loading="lazy"
+                        className="object-contain object-top"
+                      />
                     </div>
                   </div>
                 ) : (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img src={src} alt={alt} className="w-full block" />
+                  <div className="relative w-full" style={{ aspectRatio: '9/16' }}>
+                    <NextImage
+                      src={src}
+                      alt={alt}
+                      fill
+                      sizes={PLAIN_SIZES}
+                      loading="lazy"
+                      className="object-cover"
+                    />
+                  </div>
                 )}
               </button>
             ))}
@@ -43,7 +61,7 @@ export function GalleryShowcase({ groups }: { groups: GalleryGroup[] }) {
         </div>
       ))}
 
-      {/* Zoom modal */}
+      {/* Zoom modal — keeps motion.img for animation compatibility */}
       <AnimatePresence>
         {selected && (
           <motion.div
@@ -60,6 +78,7 @@ export function GalleryShowcase({ groups }: { groups: GalleryGroup[] }) {
             >
               <X className="w-5 h-5" />
             </button>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <motion.img
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}

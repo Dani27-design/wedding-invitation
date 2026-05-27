@@ -1,12 +1,19 @@
+const qrCache = new Map<string, string>();
+
 export async function generateQRDataURL(text: string): Promise<string> {
+  const cached = qrCache.get(text);
+  if (cached) return cached;
+
   try {
     const QRCode = await import('qrcode');
-    return await QRCode.toDataURL(text, {
+    const result = await QRCode.toDataURL(text, {
       width: 280,
       margin: 2,
       color: { dark: '#1A1A1A', light: '#FFFFFF' },
       errorCorrectionLevel: 'M',
     });
+    if (result) qrCache.set(text, result);
+    return result;
   } catch {
     return '';
   }

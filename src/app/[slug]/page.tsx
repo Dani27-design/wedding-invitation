@@ -30,9 +30,14 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
+const FIRESTORE_TIMEOUT = 10_000;
+
 const getWedding = cache(async (slug: string): Promise<WeddingDocument | null> => {
   try {
-    const doc = await adminDb.doc(`weddings/${slug}`).get();
+    const timeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Firestore read timeout (10s)')), FIRESTORE_TIMEOUT)
+    );
+    const doc = await Promise.race([adminDb.doc(`weddings/${slug}`).get(), timeout]);
     if (!doc.exists) return null;
     return doc.data() as WeddingDocument;
   } catch (error) {
@@ -57,7 +62,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     openGraph: {
       title,
       description,
-      images: wedding.heroImage ? [{ url: wedding.heroImage, width: 1200, height: 630, alt: `${wedding.groomNickname} & ${wedding.brideNickname}` }] : [],
+      images: wedding.heroImage ? [{ url: wedding.heroImage, alt: `${wedding.groomNickname} & ${wedding.brideNickname}` }] : [],
       type: 'website',
       locale: 'id_ID',
     },
@@ -186,7 +191,11 @@ export default async function WeddingPage({ params }: PageProps) {
     <>
       <style href="wedding-theme" precedence="high">{themeCSS}</style>
       {customFontsUrl && (
-        <link rel="stylesheet" href={customFontsUrl} precedence="default" />
+        <>
+          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+          <link rel="stylesheet" href={customFontsUrl} precedence="default" />
+        </>
       )}
       <script
         type="application/ld+json"

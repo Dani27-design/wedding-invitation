@@ -11,6 +11,7 @@ export function useStoryComments(weddingId: string, slideIndex: number, enabled:
 
   useEffect(() => {
     if (!enabled) return;
+    let cancelled = false;
 
     const q = query(
       collection(db, 'story-comments'),
@@ -23,6 +24,7 @@ export function useStoryComments(weddingId: string, slideIndex: number, enabled:
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
+        if (cancelled) return;
         const data = snapshot.docs.map((doc) => {
           const d = doc.data();
           return { name: d.name, text: d.text };
@@ -31,12 +33,13 @@ export function useStoryComments(weddingId: string, slideIndex: number, enabled:
         setIsLoading(false);
       },
       (error) => {
+        if (cancelled) return;
         console.error('[useStoryComments] Firestore error:', error.message);
         setIsLoading(false);
       }
     );
 
-    return unsubscribe;
+    return () => { cancelled = true; unsubscribe(); };
   }, [weddingId, slideIndex, enabled]);
 
   const addComment = useCallback(

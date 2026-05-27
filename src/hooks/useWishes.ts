@@ -30,6 +30,7 @@ export function useWishes(weddingId: string, enabled: boolean = true) {
       unsubscribe = onSnapshot(
         q,
         (snapshot) => {
+          if (cancelled) return;
           const data = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
@@ -38,6 +39,7 @@ export function useWishes(weddingId: string, enabled: boolean = true) {
           setIsLoading(false);
         },
         (error) => {
+          if (cancelled) return;
           console.error('[useWishes] Firestore error:', error.message);
           setIsLoading(false);
         }

@@ -15,21 +15,23 @@ export function ConsultationForm() {
 
   return (
     <div className="space-y-3 max-w-sm mx-auto">
+      <label htmlFor="consult-name" className="sr-only">Nama</label>
       <input
+        id="consult-name"
         value={name}
         onChange={(e) => setName(e.target.value)}
         placeholder="Nama Anda"
         maxLength={50}
-        aria-label="Nama"
         className="w-full px-4 py-3 bg-ivory/10 border border-ivory/10 rounded-xl text-sm text-ivory placeholder:text-ivory/25 focus:outline-none focus:border-gold/40 transition-colors"
       />
+      <label htmlFor="consult-message" className="sr-only">Pesan konsultasi</label>
       <textarea
+        id="consult-message"
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         placeholder="Tulis pertanyaan atau pesan Anda..."
         rows={3}
         maxLength={500}
-        aria-label="Pesan konsultasi"
         className="w-full px-4 py-3 bg-ivory/10 border border-ivory/10 rounded-xl text-sm text-ivory placeholder:text-ivory/25 focus:outline-none focus:border-gold/40 transition-colors resize-none"
       />
       <button

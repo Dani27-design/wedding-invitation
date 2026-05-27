@@ -62,9 +62,14 @@ export const HeroSection = memo(() => {
         {/* Desktop: blurred photo fills the column background */}
         {wedding?.heroImage && (
           <div className="hidden lg:block absolute inset-0 z-0">
-            <img
+            <Image
               src={wedding.heroImage}
-              className="w-full h-full object-cover object-top scale-110 blur-sm brightness-105"
+              fill
+              sizes="60vw"
+              priority
+              placeholder="blur"
+              blurDataURL={SHIMMER_IVORY}
+              className="object-cover object-top scale-110 blur-sm brightness-105"
               alt=""
               aria-hidden="true"
             />
@@ -88,11 +93,19 @@ export const HeroSection = memo(() => {
                 alt={`${wedding?.groomNickname ?? ''} & ${wedding?.brideNickname ?? ''}`}
               />
               {/* Desktop: contained photo, full visible */}
-              <img
-                src={wedding.heroImage}
-                className="hidden lg:block max-h-full w-auto object-contain rounded-xl relative z-10"
-                alt={`${wedding?.groomNickname ?? ''} & ${wedding?.brideNickname ?? ''}`}
-              />
+              <div className="hidden lg:block relative z-10 w-full h-full">
+                <Image
+                  src={wedding.heroImage}
+                  fill
+                  priority
+                  sizes="(max-width: 1280px) 55vw, 60vw"
+                  placeholder="blur"
+                  blurDataURL={SHIMMER_IVORY}
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                  className="object-contain rounded-xl"
+                  alt={`${wedding?.groomNickname ?? ''} & ${wedding?.brideNickname ?? ''}`}
+                />
+              </div>
             </>
           )}
           {/* Mobile: bottom fade */}

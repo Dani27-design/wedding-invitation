@@ -191,6 +191,7 @@ export default function LandingPage() {
               alt="Marinikah Invitation"
               width={120}
               height={30}
+              priority
               className="mx-auto lg:mx-0 my-0 p-0"
             />
             <h1 className="font-display text-2xl sm:text-4xl md:text-5xl lg:text-6xl text-ivory leading-tight font-bold italic">

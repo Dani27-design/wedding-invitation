@@ -299,6 +299,49 @@ describe('hooks/useStoryLikes', () => {
       expect(result.current.likes[0]).toBe(13);
     });
 
+    it('ignores rapid clicks while transaction is pending for same slide', async () => {
+      mockGetDoc.mockResolvedValue(createMockSnap(true, { likes: [10, 20, 30] }));
+      // Make transaction take time — resolve via manual control
+      let resolveTransaction: () => void;
+      mockRunTransaction.mockImplementation(() => new Promise<void>((resolve) => { resolveTransaction = resolve; }));
+
+      const { result } = renderHook(() => useStoryLikes(SLUG));
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      // Fire 3 rapid clicks without awaiting
+      act(() => { result.current.incrementLike(0); });
+      act(() => { result.current.incrementLike(0); });
+      act(() => { result.current.incrementLike(0); });
+
+      // Only first click should have taken effect (optimistic +1)
+      expect(result.current.likes[0]).toBe(11);
+      // Only 1 transaction should have been started
+      expect(mockRunTransaction).toHaveBeenCalledTimes(1);
+
+      // Resolve the pending transaction
+      await act(async () => { resolveTransaction!(); });
+    });
+
+    it('allows clicks on different slides concurrently', async () => {
+      mockGetDoc.mockResolvedValue(createMockSnap(true, { likes: [10, 20, 30] }));
+      let resolvers: (() => void)[] = [];
+      mockRunTransaction.mockImplementation(() => new Promise<void>((resolve) => { resolvers.push(resolve); }));
+
+      const { result } = renderHook(() => useStoryLikes(SLUG));
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      // Click slide 0 and slide 2 — different slides, both should work
+      act(() => { result.current.incrementLike(0); });
+      act(() => { result.current.incrementLike(2); });
+
+      expect(result.current.likes[0]).toBe(11);
+      expect(result.current.likes[2]).toBe(31);
+      expect(mockRunTransaction).toHaveBeenCalledTimes(2);
+
+      // Resolve both
+      await act(async () => { resolvers.forEach(r => r()); });
+    });
+
     it('calls runTransaction with db', async () => {
       mockGetDoc.mockResolvedValue(createMockSnap(true, { likes: [10, 20, 30] }));
       mockRunTransaction.mockResolvedValue(undefined);

@@ -42,6 +42,7 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState<'all' | 'pria' | 'wanita'>('all');
   const [allGuests, setAllGuests] = useState<Guest[] | null>(null);
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [filterPage, setFilterPage] = useState(0);
 
   const [showPageSizeMenu, setShowPageSizeMenu] = useState(false);
@@ -82,6 +83,10 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
 
   useEffect(() => {
     if (slug) {
+      setAllGuests(null);
+      setSearchQuery('');
+      setFilterCategory('all');
+      cursorsRef.current = [null];
       loadPage(0);
       refreshCounts();
     }
@@ -89,7 +94,11 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
 
   useEffect(() => {
     if (isFiltering && !allGuests && slug) {
-      getGuests(slug).then(setAllGuests).catch(() => {});
+      setIsSearchLoading(true);
+      getGuests(slug)
+        .then(setAllGuests)
+        .catch((error) => { console.error('[GuestListTab] Search load error:', (error as Error).message); })
+        .finally(() => setIsSearchLoading(false));
     }
   }, [isFiltering, allGuests, slug]);
 
@@ -349,8 +358,8 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
           </div>
 
           {/* Guest list */}
-          {isLoading && !isFiltering ? (
-            <p className="text-center text-xs text-ink/80 tracking-widest uppercase py-10">Memuat...</p>
+          {(isLoading && !isFiltering) || isSearchLoading ? (
+            <p className="text-center text-xs text-ink/80 tracking-widest uppercase py-10">{isSearchLoading ? 'Mencari...' : 'Memuat...'}</p>
           ) : visibleGuests.length === 0 ? (
             <div className="text-center py-12 border-2 border-dashed border-gold/10 rounded-xl">
               <p className="text-xs text-ink/80 tracking-wider mb-3">

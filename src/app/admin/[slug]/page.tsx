@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { signOut } from 'firebase/auth';
 import { doc, updateDoc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { auth } from '@/lib/firebase-auth';
-import { uploadFile, deleteFile, UploadProgressCallback } from '@/lib/storage';
+import { uploadFile, deleteFile } from '@/lib/storage';
 import { useWedding } from '@/hooks/useWedding';
 import { useUser } from '@/hooks/useUser';
 import { WeddingDocument, StorySlide } from '@/types/firestore';
@@ -194,6 +194,12 @@ export default function AdminPage() {
 
   const { wedding, isLoading: isWeddingLoading } = useWedding(slug ?? '');
 
+  // Track active upload tasks for cancellation on unmount
+  const activeUploadsRef = useRef<(() => void)[]>([]);
+  useEffect(() => {
+    return () => { activeUploadsRef.current.forEach(cancel => cancel()); };
+  }, []);
+
   const handleDirty = useCallback(() => setHasSaved(false), []);
 
   // Tab completion indicators (true = has meaningful data)
@@ -223,7 +229,7 @@ export default function AdminPage() {
 
   // Scroll to top when tab changes
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: 'instant' });
   }, [currentStep]);
 
   // Auto-dismiss success modal after 1.5s and advance to next tab
@@ -293,9 +299,11 @@ export default function AdminPage() {
           const ext = file.name.split('.').pop() ?? 'bin';
           const path = `weddings/${slug}/${key}-${Date.now()}.${ext}`;
           setUploadProgress({ fileName: file.name, percent: 0 });
-          const url = await uploadFile(path, file, (percent) => {
+          const handle = uploadFile(path, file, (percent) => {
             setUploadProgress({ fileName: file.name, percent });
           });
+          activeUploadsRef.current.push(handle.cancel);
+          const url = await handle.promise;
 
           if (key === 'groomPhoto' || key === 'bridePhoto' || key === 'musicUrl' || key === 'heroImage' || key === 'openingImage' || key === 'twibbonOverlay') {
             updates[key] = url;
@@ -363,13 +371,20 @@ export default function AdminPage() {
       revalidateWedding(slug);
 
       // 4. Cleanup old files AFTER document update succeeds
+      let deleteFailed = 0;
       for (const oldUrl of oldUrlsToCleanup) {
-        await deleteFile(oldUrl);
+        const ok = await deleteFile(oldUrl);
+        if (!ok) deleteFailed++;
+      }
+      if (deleteFailed > 0) {
+        console.warn(`[Admin] ${deleteFailed} file(s) failed to clean up from storage`);
       }
     } catch (error) {
       console.error('[Admin] Save error:', (error as Error).message);
       setSaveStatus('error');
       setHasSaved(false);
+    } finally {
+      activeUploadsRef.current = [];
     }
   }, [slug, wedding]);
 

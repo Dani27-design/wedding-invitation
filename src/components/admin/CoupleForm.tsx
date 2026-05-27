@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { WeddingDocument } from "../../types/firestore";
 import { Upload, Trash2, Plus, Camera } from "lucide-react";
-import { compressImage, formatFileSize } from "../../utils/compressImage";
+import { compressImageBatch } from "../../utils/compressImage";
 import { CompressionModal } from "./CompressionModal";
 
 interface CoupleFormProps {
@@ -112,24 +112,20 @@ export function CoupleForm({ data, onSave, isSaving, onDirty, step, totalSteps }
       }
     }
 
-    const files: Record<string, File> = {};
-    const fileEntries = [
-      groomPhotoFile ? ['groomPhoto', groomPhotoFile] as const : null,
-      bridePhotoFile ? ['bridePhoto', bridePhotoFile] as const : null,
-    ].filter(Boolean) as [string, File][];
-    if (fileEntries.length > 0) {
+    let files: Record<string, File> | undefined;
+    const batchEntries = [
+      groomPhotoFile ? { key: 'groomPhoto', file: groomPhotoFile } : null,
+      bridePhotoFile ? { key: 'bridePhoto', file: bridePhotoFile } : null,
+    ].filter(Boolean) as { key: string; file: File }[];
+    if (batchEntries.length > 0) {
       setIsCompressing(true);
       setCompressionInfo("");
       try {
-        const infos: string[] = [];
-        for (let i = 0; i < fileEntries.length; i++) {
-          const [key, file] = fileEntries[i];
-          setCompressProgress({ current: i + 1, total: fileEntries.length, fileName: file.name });
-          const result = await compressImage(file);
-          files[key] = result.file;
-          if (result.wasCompressed) infos.push(`${key}: ${formatFileSize(result.originalSize)} → ${formatFileSize(result.compressedSize)}`);
-        }
-        if (infos.length > 0) setCompressionInfo(infos.join(' | '));
+        const result = await compressImageBatch(batchEntries, (current, total, fileName) => {
+          setCompressProgress({ current, total, fileName });
+        });
+        files = result.files;
+        if (result.infos.length > 0) setCompressionInfo(result.infos.join(' | '));
       } finally {
         setIsCompressing(false);
       }
@@ -147,7 +143,7 @@ export function CoupleForm({ data, onSave, isSaving, onDirty, step, totalSteps }
         groomPhoto: groomPhotoPreview,
         bridePhoto: bridePhotoPreview,
       },
-      Object.keys(files).length > 0 ? files : undefined,
+      files && Object.keys(files).length > 0 ? files : undefined,
       urlsToDelete.length > 0 ? urlsToDelete : undefined,
     );
   };

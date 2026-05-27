@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { WeddingDocument } from '../../types/firestore';
 import { Upload, Music, Image as ImageIcon, Sparkles } from 'lucide-react';
-import { compressImage, formatFileSize } from '../../utils/compressImage';
+import { compressImageBatch } from '../../utils/compressImage';
 import { CompressionModal } from './CompressionModal';
 
 interface MediaFormProps {
@@ -64,10 +64,10 @@ export function MediaForm({ data, onSave, isSaving, onDirty, step, totalSteps }:
   const handleGenerateOverlay = async () => {
     if (!data) return;
     setIsGenerating(true);
+    const canvas = document.createElement('canvas');
     try {
       const { drawOverlay } = await import('../../utils/twibbonOverlay');
       const { deriveDateDisplay } = await import('../../utils/weddingDerived');
-      const canvas = document.createElement('canvas');
       canvas.width = 1080;
       canvas.height = 1920;
       const ctx = canvas.getContext('2d');
@@ -90,6 +90,8 @@ export function MediaForm({ data, onSave, isSaving, onDirty, step, totalSteps }:
         onDirty?.();
       }
     } finally {
+      canvas.width = 0;
+      canvas.height = 0;
       setIsGenerating(false);
     }
   };
@@ -104,16 +106,16 @@ export function MediaForm({ data, onSave, isSaving, onDirty, step, totalSteps }:
       setIsCompressing(true);
       setCompressionInfo('');
       try {
-        const infos: string[] = [];
-        for (let i = 0; i < imageEntries.length; i++) {
-          const [key, file] = imageEntries[i];
-          setCompressProgress({ current: i + 1, total: imageEntries.length, fileName: file.name });
-          const isPng = key === 'twibbonOverlay';
-          const result = await compressImage(file, isPng ? { maxWidth: 1080, maxHeight: 1920, forcePng: true } : undefined);
-          compressedFiles[key] = result.file;
-          if (result.wasCompressed) infos.push(`${key}: ${formatFileSize(result.originalSize)} → ${formatFileSize(result.compressedSize)}`);
-        }
-        if (infos.length > 0) setCompressionInfo(infos.join(' | '));
+        const batchEntries = imageEntries.map(([key, file]) => ({
+          key,
+          file,
+          options: key === 'twibbonOverlay' ? { maxWidth: 1080, maxHeight: 1920, forcePng: true } : undefined,
+        }));
+        const result = await compressImageBatch(batchEntries, (current, total, fileName) => {
+          setCompressProgress({ current, total, fileName });
+        });
+        Object.assign(compressedFiles, result.files);
+        if (result.infos.length > 0) setCompressionInfo(result.infos.join(' | '));
       } finally {
         setIsCompressing(false);
       }

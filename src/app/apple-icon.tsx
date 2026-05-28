@@ -1,9 +1,14 @@
 import { ImageResponse } from 'next/og';
+import { readFile } from 'fs/promises';
+import { join } from 'path';
 
 export const size = { width: 180, height: 180 };
 export const contentType = 'image/png';
 
-export default function AppleIcon() {
+export default async function AppleIcon() {
+  const logoData = await readFile(join(process.cwd(), 'public/images/logo-1.png'));
+  const logoBase64 = `data:image/png;base64,${logoData.toString('base64')}`;
+
   return new ImageResponse(
     (
       <div
@@ -17,12 +22,7 @@ export default function AppleIcon() {
           borderRadius: '22%',
         }}
       >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="120" height="120">
-          <path
-            d="M50 90 C25 65 5 50 5 30 A22 22 0 0 1 50 20 A22 22 0 0 1 95 30 C95 50 75 65 50 90Z"
-            fill="#B48D3E"
-          />
-        </svg>
+        <img src={logoBase64} width="140" height="93" style={{ objectFit: 'contain' }} />
       </div>
     ),
     { ...size },

@@ -2,6 +2,7 @@
 import { ReactNode, memo } from 'react';
 import { motion } from 'motion/react';
 import { Heart, Instagram, Linkedin, LucideIcon, MessageCircle } from 'lucide-react';
+import NextImage from 'next/image';
 import { CREDIT_ICON_MAP } from '../../constants/creditIcons';
 import { useWeddingContext } from '../../context/WeddingContext';
 import { deriveWhatsappUrl, deriveCopyright } from '../../utils/weddingDerived';
@@ -66,10 +67,21 @@ export const Footer = memo(() => {
           })}
         </div>
 
-        <div className="pt-1 border-t border-gold/5 mb-[2vh]">
-          <div className="flex justify-center items-center gap-2 mb-2"><Heart className="w-3 h-3 text-gold fill-gold" /></div>
+        <div>
+          <div className="flex justify-center items-center mb-1"><Heart className="w-3 h-3 text-gold fill-gold" /></div>
           <p className="text-xs text-ink/60 tracking-widest font-serif italic">{wedding ? deriveCopyright(wedding.eventDate) : ''}</p>
         </div>
+
+        {/* Vendor badge */}
+        <a
+          href="https://marinikah.vercel.app"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex flex-col items-center group cursor-pointer"
+        >
+          <NextImage src="/images/logo-2.png" alt="Marinikah" width={400} height={100} className="h-[100px] w-auto group-hover:scale-105 transition-all" />
+          <span className="-mt-4 text-[9px] text-ink/30 tracking-[0.2em] uppercase group-hover:text-gold/60 transition-colors">Dibuat dengan Marinikah Invitation</span>
+        </a>
       </motion.div>
     </div>
   </footer>

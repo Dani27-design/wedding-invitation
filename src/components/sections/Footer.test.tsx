@@ -214,10 +214,10 @@ describe('Footer', () => {
       });
     });
 
-    it('total social links count is 6', () => {
+    it('total external links count is 7 (6 social + 1 vendor badge)', () => {
       const { container } = renderFooter();
       const links = container.querySelectorAll('a[target="_blank"]');
-      expect(links.length).toBe(6);
+      expect(links.length).toBe(7);
     });
   });
 
@@ -472,7 +472,7 @@ describe('Footer', () => {
 
     it('social icons render as SVG elements', () => {
       const { container } = renderFooter();
-      const links = container.querySelectorAll('a[target="_blank"]');
+      const links = container.querySelectorAll('a[target="_blank"][aria-label]');
       links.forEach((link) => {
         const svg = link.querySelector('svg');
         expect(svg).toBeInTheDocument();

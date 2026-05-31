@@ -697,6 +697,12 @@ export default function LandingPage() {
               >
                 Masuk
               </Link>
+              <Link
+                href="/putra-putri"
+                className="px-4 py-1.5 bg-gold text-ivory rounded-full text-[10px] uppercase tracking-widest font-bold hover:scale-105 transition-transform shadow-sm shadow-gold/20"
+              >
+                Coba
+              </Link>
             </div>
 
             {/* Copyright */}

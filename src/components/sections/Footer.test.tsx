@@ -46,11 +46,10 @@ describe('Footer', () => {
       expect(footer?.className).toContain('bg-ivory');
     });
 
-    it('footer has border-top with gold accent', () => {
-      const { container } = renderFooter();
-      // The border separator is inside the footer, on the copyright section
-      const borderEl = container.querySelector('.border-t.border-gold\\/5');
-      expect(borderEl).toBeInTheDocument();
+    it('footer has vendor badge link', () => {
+      renderFooter();
+      const link = screen.getByText('Dibuat dengan Marinikah Invitation');
+      expect(link.closest('a')).toHaveAttribute('href', 'https://marinikah.vercel.app');
     });
 
     it('footer has overflow-hidden', () => {
@@ -327,10 +326,10 @@ describe('Footer', () => {
       expect(heart).toBeInTheDocument();
     });
 
-    it('copyright section has border-top separator', () => {
+    it('copyright section has heart icon', () => {
       const { container } = renderFooter();
-      const copyrightSection = container.querySelector('.border-t.border-gold\\/5');
-      expect(copyrightSection).toBeInTheDocument();
+      const heart = container.querySelector('.text-gold.fill-gold');
+      expect(heart).toBeInTheDocument();
     });
 
     it('copyright includes "Kami membangunnya bersama" text', () => {

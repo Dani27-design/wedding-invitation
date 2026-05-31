@@ -67,12 +67,9 @@ const weddingData = {
   // Event
   eventDate: '2026-08-29',
   eventCity: 'Surabaya',
-  venueName: 'Gedung Wanita Candra Kencana',
-  venueAddress: 'Jl. Kalibokor Selatan No.2, Baratajaya, Gubeng, Surabaya',
-  venueMapsUrl: 'https://www.google.com/maps/dir//GEDUNG+WANITA+Candra+Kencana,+Pucang+Sewu,+Jl.+Kalibokor+Selatan+No.2,+Baratajaya,+Kec.+Gubeng,+Surabaya,+Jawa+Timur+60284/@-7.3571367,112.7509655,15z/data=!4m8!4m7!1m0!1m5!1m1!1s0x2dd7fbb53b29cbb7:0xee33be91a97dbb70!2m2!1d112.7618051!2d-7.2878229?entry=ttu&g_ep=EgoyMDI2MDQyOC4wIKXMDSoASAFQAw%3D%3D',
   ceremonies: [
-    { name: 'Akad Nikah', start: '09:00', end: '10:00' },
-    { name: 'Resepsi', start: '10:00', end: '13:00' },
+    { name: 'Akad Nikah', date: '2026-08-29', start: '09:00', end: '10:00', venueName: 'Gedung Wanita Candra Kencana', venueAddress: 'Jl. Kalibokor Selatan No.2, Baratajaya, Gubeng, Surabaya', venueMapsUrl: 'https://www.google.com/maps/dir//GEDUNG+WANITA+Candra+Kencana,+Pucang+Sewu,+Jl.+Kalibokor+Selatan+No.2,+Baratajaya,+Kec.+Gubeng,+Surabaya,+Jawa+Timur+60284/@-7.3571367,112.7509655,15z/data=!4m8!4m7!1m0!1m5!1m1!1s0x2dd7fbb53b29cbb7:0xee33be91a97dbb70!2m2!1d112.7618051!2d-7.2878229?entry=ttu&g_ep=EgoyMDI2MDQyOC4wIKXMDSoASAFQAw%3D%3D' },
+    { name: 'Resepsi', date: '2026-08-29', start: '10:00', end: '13:00', venueName: 'Gedung Wanita Candra Kencana', venueAddress: 'Jl. Kalibokor Selatan No.2, Baratajaya, Gubeng, Surabaya', venueMapsUrl: 'https://www.google.com/maps/dir//GEDUNG+WANITA+Candra+Kencana,+Pucang+Sewu,+Jl.+Kalibokor+Selatan+No.2,+Baratajaya,+Kec.+Gubeng,+Surabaya,+Jawa+Timur+60284/@-7.3571367,112.7509655,15z/data=!4m8!4m7!1m0!1m5!1m1!1s0x2dd7fbb53b29cbb7:0xee33be91a97dbb70!2m2!1d112.7618051!2d-7.2878229?entry=ttu&g_ep=EgoyMDI2MDQyOC4wIKXMDSoASAFQAw%3D%3D' },
   ],
 
   // Story

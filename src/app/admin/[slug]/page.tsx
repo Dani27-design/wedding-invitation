@@ -205,7 +205,7 @@ export default function AdminPage() {
   // Tab completion indicators (true = has meaningful data)
   const tabComplete = wedding ? [
     !!(wedding.groomPhoto || wedding.bridePhoto || (wedding.groomNickname && wedding.groomNickname !== 'Pria')),
-    !!(wedding.eventDate && wedding.eventCity && wedding.venueName),
+    !!(wedding.eventDate && wedding.eventCity && wedding.ceremonies.length > 0),
     !!(wedding.heroImage && wedding.openingImage),
     wedding.story.length > 0,
     wedding.gallery.length > 0,

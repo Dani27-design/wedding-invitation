@@ -20,10 +20,9 @@ function createMockWedding(overrides: Partial<WeddingDocument> = {}): WeddingDoc
     brideNickname: 'Marini',
     eventDate: '2026-08-29',
     eventCity: 'Surabaya',
-    venueName: 'Gedung Wanita Candra Kencana',
     ceremonies: [
-      { name: 'Akad Nikah', start: '09:00', end: '10:00' },
-      { name: 'Resepsi', start: '10:00', end: '13:00' },
+      { name: 'Akad Nikah', date: '2026-08-29', start: '09:00', end: '10:00', venueName: 'Gedung Wanita Candra Kencana', venueAddress: 'Jl. Kalibokor Selatan No.2', venueMapsUrl: '' },
+      { name: 'Resepsi', date: '2026-08-29', start: '10:00', end: '13:00', venueName: 'Gedung Wanita Candra Kencana', venueAddress: 'Jl. Kalibokor Selatan No.2', venueMapsUrl: '' },
     ],
     theme: {
       template: 'cinematic',

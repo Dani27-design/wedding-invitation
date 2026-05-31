@@ -32,9 +32,6 @@ export interface WeddingDocument {
 
   eventDate: string;
   eventCity: string;
-  venueName: string;
-  venueAddress: string;
-  venueMapsUrl: string;
   ceremonies: Ceremony[];
 
   story: StorySlide[];
@@ -100,8 +97,12 @@ export interface StoryCommentDocument {
 
 export interface Ceremony {
   name: string;
+  date: string;
   start: string;
   end: string;
+  venueName: string;
+  venueAddress: string;
+  venueMapsUrl: string;
 }
 
 export interface StorySlide {

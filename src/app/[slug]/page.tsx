@@ -160,10 +160,10 @@ function buildJsonLd(wedding: WeddingDocument, slug: string) {
     eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
     location: {
       '@type': 'Place',
-      name: wedding.venueName,
+      name: firstCeremony?.venueName || wedding.eventCity,
       address: {
         '@type': 'PostalAddress',
-        streetAddress: wedding.venueAddress,
+        streetAddress: firstCeremony?.venueAddress || '',
         addressLocality: wedding.eventCity,
         addressCountry: 'ID',
       },

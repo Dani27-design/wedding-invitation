@@ -36,7 +36,8 @@ export function deriveCalendarUrl(wedding: SerializedWedding): string {
   const start = `${date}T${startTime}00`;
   const end = `${date}T${endTime}00`;
   const title = `Pernikahan ${wedding.groomNickname} & ${wedding.brideNickname}`;
-  const location = `${wedding.venueName}, ${wedding.eventCity}`;
+  const firstVenue = wedding.ceremonies[0]?.venueName ?? '';
+  const location = firstVenue ? `${firstVenue}, ${wedding.eventCity}` : wedding.eventCity;
   return `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${start}/${end}&details=Pernikahan+kami&location=${encodeURIComponent(location)}&sf=true&output=xml`;
 }
 

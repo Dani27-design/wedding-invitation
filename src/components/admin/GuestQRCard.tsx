@@ -124,10 +124,10 @@ export function GuestQRCard({ guestName, coupleName, invitationUrl, className = 
 
       {/* Footer */}
       <p className={`relative text-ink/80 uppercase tracking-[0.2em] font-sans font-bold ${compact ? 'text-[6px]' : 'text-[8px]'}`}>
-        Scan untuk membuka
+        Scan untuk membuka undangan
       </p>
       <p className={`relative text-ink/80 uppercase tracking-[0.2em] font-sans font-bold ${compact ? 'text-[6px]' : 'text-[8px]'}`}>
-        undangan pernikahan
+        atau check-in di venue
       </p>
     </div>
   );

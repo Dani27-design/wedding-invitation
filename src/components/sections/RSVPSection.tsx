@@ -118,7 +118,7 @@ export const RSVPSection = memo(({
                           {formatDate(wish.createdAt)}
                         </span>
                       </div>
-                      <p className="font-serif italic text-sm leading-[1.3] text-ink/70 line-clamp-2">
+                      <p className="font-serif italic text-sm leading-[1.3] text-ink/70 break-words">
                         "{wish.message}"
                       </p>
                     </motion.div>
@@ -225,7 +225,7 @@ export const RSVPSection = memo(({
                       </div>
                       <span className="text-xs text-ink/60 font-serif shrink-0">{formatDate(wish.createdAt)}</span>
                     </div>
-                    <p className="font-serif italic text-sm leading-[1.3] text-ink/70 line-clamp-2">"{wish.message}"</p>
+                    <p className="font-serif italic text-sm leading-[1.3] text-ink/70 break-words">"{wish.message}"</p>
                   </motion.div>
                 ))}
               </AnimatePresence>

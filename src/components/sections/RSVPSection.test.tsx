@@ -167,12 +167,11 @@ describe('RSVPSection', () => {
       expect(msgEl.className).toContain('italic');
     });
 
-    it('wish messages are clamped to 2 lines', () => {
+    it('wish messages have break-words for overflow protection', () => {
       renderWithProps();
       const firstMsg = SEED_WISHES[0].message;
-      // Both layouts render the message; pick the first occurrence
       const msgEl = screen.getAllByText(`"${firstMsg}"`)[0];
-      expect(msgEl.className).toContain('line-clamp-2');
+      expect(msgEl.className).toContain('break-words');
     });
   });
 
@@ -544,7 +543,7 @@ describe('RSVPSection', () => {
       expect(truncated.length).toBeGreaterThan(0);
     });
 
-    it('renders wish with very long message (clamped)', () => {
+    it('renders wish with very long message (word-wrapped)', () => {
       const longMsgWish: GuestWishes[] = [{
         id: 'longmsg',
         name: 'Test',
@@ -557,9 +556,8 @@ describe('RSVPSection', () => {
         currentWishes: longMsgWish,
         totalPages: 1,
       });
-      // Both layouts render the message; pick the first occurrence
       const msgEl = screen.getAllByText(`"${'A'.repeat(500)}"`)[0];
-      expect(msgEl.className).toContain('line-clamp-2');
+      expect(msgEl.className).toContain('break-words');
     });
 
     it('renders correctly when switching from empty to having wishes', () => {

@@ -104,12 +104,14 @@ export function EventForm({ data, onSave, isSaving, onDirty, step, totalSteps }:
                 </button>
               </div>
 
-              {/* Date + Time */}
+              {/* Date */}
+              <div>
+                <label className="text-[10px] text-ink/80 block mb-1">Tanggal</label>
+                <input type="date" value={c.date} onChange={(e) => updateCeremony(i, 'date', e.target.value)} aria-label={`Tanggal Acara ${i + 1}`} className={inputClass} />
+              </div>
+
+              {/* Time */}
               <div className="flex gap-2">
-                <div className="flex-1">
-                  <label className="text-[10px] text-ink/80 block mb-1">Tanggal</label>
-                  <input type="date" value={c.date} onChange={(e) => updateCeremony(i, 'date', e.target.value)} aria-label={`Tanggal Acara ${i + 1}`} className={inputClass} />
-                </div>
                 <div className="flex-1">
                   <label className="text-[10px] text-ink/80 block mb-1">Mulai</label>
                   <input type="time" value={c.start} onChange={(e) => updateCeremony(i, 'start', e.target.value)} aria-label={`Jam Mulai Acara ${i + 1}`} className={inputClass} />

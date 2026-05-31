@@ -97,7 +97,7 @@ function SaveStatusModal({ status, onClose, uploadProgress }: SaveStatusModalPro
                 {status === 'success' && 'Berhasil Disimpan'}
                 {status === 'error' && 'Gagal Menyimpan'}
               </h3>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/80 font-black">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/80 font-black break-words">
                 {status === 'saving' && !uploadProgress && 'Harap tunggu sebentar'}
                 {status === 'saving' && uploadProgress && `Mengunggah: ${uploadProgress.fileName}`}
                 {status === 'success' && 'Semua perubahan telah diperbarui'}

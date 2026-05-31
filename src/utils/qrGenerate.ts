@@ -257,9 +257,9 @@ export async function generateQRCardPNG(
   ctx.font = `bold ${6.5 * S}px sans-serif`;
   ctx.fillStyle = 'rgba(26, 26, 26, 0.28)';
   ctx.letterSpacing = `${1.5 * S}px`;
-  ctx.fillText('SCAN UNTUK MEMBUKA', W / 2, curY);
+  ctx.fillText('SCAN UNTUK MEMBUKA UNDANGAN', W / 2, curY);
   curY += 10 * S;
-  ctx.fillText('UNDANGAN PERNIKAHAN', W / 2, curY);
+  ctx.fillText('ATAU CHECK-IN DI VENUE', W / 2, curY);
   ctx.letterSpacing = '0px';
 
   return canvas.toDataURL('image/png');

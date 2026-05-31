@@ -31,7 +31,7 @@ export const RSVPModal = ({ isOpen, isSubmitSuccess, guestName, onClose, onSubmi
           initial={{ opacity: 0, scale: 0.95, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
-          className="relative w-full max-w-md max-h-[90vh] overflow-y-auto bg-ivory p-6 md:p-6 rounded-[2.5rem] border border-gold/20 shadow-2xl"
+          className="relative w-full max-w-md max-h-[90vh] overflow-y-auto overflow-x-hidden bg-ivory p-6 md:p-6 rounded-[2.5rem] border border-gold/20 shadow-2xl"
         >
           <div className="absolute -top-10 -right-10 pointer-events-none opacity-[0.03]">
             <Heart className="w-48 h-48 text-gold" fill="currentColor" />

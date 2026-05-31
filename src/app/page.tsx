@@ -320,7 +320,7 @@ export default function LandingPage() {
                 {/* Iframe */}
                 <div className="relative flex-1 overflow-hidden">
                   <iframe
-                    src="/dani-marini?to=Tamu+Spesial"
+                    src="/putra-putri?to=Tamu+Spesial"
                     title="Demo undangan"
                     className="absolute top-0 left-0 border-0"
                     style={{ width: 378, height: 700, transform: 'scale(var(--iframe-scale))', transformOrigin: '0 0' }}
@@ -344,7 +344,7 @@ export default function LandingPage() {
                           <path d="M8 2a4 4 0 0 0-4 4v2H3a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1h-1V6a4 4 0 0 0-4-4zm-2 4a2 2 0 1 1 4 0v2H6V6z" />
                         </svg>
                         <span className="text-[6px] text-white/80 truncate font-medium">
-                          marinikah.com
+                          {BASE_URL.replace(/^https?:\/\//, '')}
                         </span>
                       </div>
                       <svg
@@ -537,8 +537,16 @@ export default function LandingPage() {
                     alt: "Twibbon tamu",
                   },
                   {
+                    src: "/images/admin-landing/invitation-ucapan-preview.png",
+                    alt: "Ucapan tamu",
+                  },
+                  {
                     src: "/images/admin-landing/invitation-rsvp-preview.png",
                     alt: "RSVP dan ucapan",
+                  },
+                  {
+                    src: "/images/admin-landing/invitation-gallery-preview.png",
+                    alt: "Galeri foto",
                   },
                 ],
               },

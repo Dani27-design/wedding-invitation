@@ -21,9 +21,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="id"
       suppressHydrationWarning
-      className={`${cormorantGaramond.variable} ${montserrat.variable} ${playfairDisplay.variable} ${dayland.variable}`}
+      className={`${cormorantGaramond.variable} ${montserrat.variable} ${playfairDisplay.variable} ${dayland.variable} overflow-x-hidden`}
     >
-      <body>
+      <body className="overflow-x-hidden">
         <Providers>{children}</Providers>
       </body>
     </html>

@@ -120,10 +120,10 @@ describe('CinematicOpening', () => {
       expect(screen.getAllByText('Marini')[0]).toHaveClass('text-ivory');
     });
 
-    it('couple names have drop-shadow-2xl', () => {
+    it('couple names have gold text-shadow', () => {
       renderComponent();
-      expect(screen.getAllByText('Dani')[0]).toHaveClass('drop-shadow-2xl');
-      expect(screen.getAllByText('Marini')[0]).toHaveClass('drop-shadow-2xl');
+      expect(screen.getAllByText('Dani')[0].className).toContain('text-shadow');
+      expect(screen.getAllByText('Marini')[0].className).toContain('text-shadow');
     });
 
     it('displays the guest name prop', () => {

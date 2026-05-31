@@ -23,13 +23,13 @@ export const HeroSection = memo(() => {
             className="space-y-4 text-center lg:text-left"
           >
             <h1 className="space-y-4">
-              <span className="block font-dayland text-5xl sm:text-7xl md:text-9xl lg:text-8xl xl:text-9xl text-ivory lg:text-ink drop-shadow-2xl lg:drop-shadow-none">
+              <span className="block font-dayland text-5xl sm:text-7xl md:text-9xl lg:text-8xl xl:text-9xl text-ivory lg:text-ink [text-shadow:0_1px_4px_color-mix(in_srgb,var(--color-gold)_80%,transparent),0_0_15px_color-mix(in_srgb,var(--color-gold)_60%,transparent),0_0_50px_color-mix(in_srgb,var(--color-gold)_40%,transparent)]">
                 {wedding?.groomNickname}
               </span>
-              <span className="block font-dayland text-2xl sm:text-4xl md:text-6xl lg:text-5xl xl:text-6xl text-gold/70 drop-shadow-2xl lg:drop-shadow-none lg:text-center">
+              <span className="block font-dayland text-2xl sm:text-4xl md:text-6xl lg:text-5xl xl:text-6xl text-gold/70 [text-shadow:0_1px_4px_color-mix(in_srgb,var(--color-ink)_40%,transparent),0_0_12px_color-mix(in_srgb,var(--color-ink)_25%,transparent),0_0_40px_color-mix(in_srgb,var(--color-ink)_15%,transparent)] lg:text-center">
                 &
               </span>
-              <span className="block font-dayland text-5xl sm:text-7xl md:text-9xl lg:text-8xl xl:text-9xl text-ivory lg:text-ink drop-shadow-2xl lg:drop-shadow-none">
+              <span className="block font-dayland text-5xl sm:text-7xl md:text-9xl lg:text-8xl xl:text-9xl text-ivory lg:text-ink [text-shadow:0_1px_4px_color-mix(in_srgb,var(--color-gold)_80%,transparent),0_0_15px_color-mix(in_srgb,var(--color-gold)_60%,transparent),0_0_50px_color-mix(in_srgb,var(--color-gold)_40%,transparent)]">
                 {wedding?.brideNickname}
               </span>
             </h1>

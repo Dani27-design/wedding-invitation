@@ -699,7 +699,7 @@ export default function LandingPage() {
               </Link>
               <Link
                 href="/putra-putri"
-                className="px-4 py-1.5 bg-gold text-ivory rounded-full text-[10px] uppercase tracking-widest font-bold hover:scale-105 transition-transform shadow-sm shadow-gold/20"
+                className="px-4 py-1.5 border border-gold/20 rounded-full text-[10px] uppercase tracking-widest text-ink/60 font-bold hover:border-gold hover:text-gold transition-colors"
               >
                 Coba
               </Link>

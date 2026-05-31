@@ -109,11 +109,11 @@ export function TestimonialSection() {
           </h2>
         </div>
 
-        <div className={`flex gap-4 items-stretch justify-center overflow-x-auto no-scrollbar pb-2 -mx-6 px-6 lg:mx-0 lg:px-0 lg:overflow-visible ${testimonials.length >= 3 ? 'lg:grid lg:grid-cols-3' : ''}`}>
+        <div className={`flex gap-4 items-stretch overflow-x-auto no-scrollbar pb-2 -mx-6 px-6 lg:mx-0 lg:px-0 lg:overflow-visible ${testimonials.length >= 3 ? 'lg:grid lg:grid-cols-3' : 'justify-center'}`}>
           {testimonials.map(t => (
             <div
               key={t.id}
-              className="w-[280px] sm:w-[320px] lg:w-auto flex-shrink-0 lg:flex-shrink bg-white/70 rounded-2xl border border-gold/10 p-5 shadow-sm hover:shadow-md hover:shadow-gold/5 hover:-translate-y-1 transition-all duration-300"
+              className="min-w-[240px] max-w-[320px] w-[75vw] sm:w-[320px] lg:w-auto flex-shrink-0 lg:flex-shrink bg-white/70 rounded-2xl border border-gold/10 p-5 shadow-sm hover:shadow-md hover:shadow-gold/5 hover:-translate-y-1 transition-all duration-300"
             >
               {/* Couple info — photos inline with name */}
               <div className="flex items-center gap-3">
@@ -154,7 +154,7 @@ export function TestimonialSection() {
               {/* Divider */}
               <div className="border-t border-gold/10 my-3" />
               {/* Quote */}
-              <p className="font-serif italic text-lg text-ink/70 leading-relaxed line-clamp-4">
+              <p className="font-serif italic text-lg text-ink/70 leading-relaxed break-words">
                 <span className="text-xl text-gold/30 leading-none mr-1">&ldquo;</span>
                 {t.message}
                 <span className="text-xl text-gold/30 leading-none mr-1">&ldquo;</span>

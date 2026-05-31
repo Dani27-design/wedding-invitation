@@ -32,7 +32,7 @@ export const CoupleSection = memo(() => {
                 ],
               }}
               transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-              className="w-full h-full overflow-hidden shadow-2xl relative group"
+              className="w-full h-full overflow-hidden shadow-2xl shadow-gold/15 relative group"
             >
               {wedding?.groomPhoto && (
                 <Image
@@ -71,7 +71,7 @@ export const CoupleSection = memo(() => {
                 ],
               }}
               transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-              className="w-full h-full overflow-hidden shadow-2xl relative group bg-sepia"
+              className="w-full h-full overflow-hidden shadow-2xl shadow-gold/15 relative group bg-sepia"
             >
               {wedding?.bridePhoto && (
                 <Image

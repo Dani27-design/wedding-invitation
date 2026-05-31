@@ -32,7 +32,7 @@ export const DigitalEnvelope = memo(({ copiedIndex, onCopy }: DigitalEnvelopePro
 
         <div className="grid grid-cols-2 gap-2">
           {giftAccounts.map((gift, i) => (
-            <motion.div key={i} role="button" tabIndex={0} aria-label={`Salin nomor ${gift.bank} ${gift.account}`} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onCopy(gift.account, i); } }} whileHover={{ y: -3, scale: 1.01 }} onClick={() => onCopy(gift.account, i)} className="bg-white/60 backdrop-blur-md p-3 md:p-4 rounded-xl border border-white/60 flex flex-col items-center gap-1 group cursor-pointer shadow-sm transition-all relative overflow-hidden focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2">
+            <motion.div key={i} role="button" tabIndex={0} aria-label={`Salin nomor ${gift.bank} ${gift.account}`} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onCopy(gift.account, i); } }} whileHover={{ y: -3, scale: 1.01 }} onClick={() => onCopy(gift.account, i)} className="bg-white/60 backdrop-blur-md p-3 md:p-4 rounded-xl border border-white/60 flex flex-col items-center gap-1 group cursor-pointer shadow-sm shadow-gold/5 transition-all relative overflow-hidden focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2">
               <div className="absolute -top-4 -right-4 w-12 h-12 bg-gold/5 rounded-full blur-xl group-hover:scale-150 transition-transform duration-700" />
               
               {/* Top-Right Action Button */}
@@ -83,7 +83,7 @@ export const DigitalEnvelope = memo(({ copiedIndex, onCopy }: DigitalEnvelopePro
         <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, delay: 0.2 }} className="flex-1">
           <div className="grid grid-cols-2 gap-3">
             {giftAccounts.map((gift, i) => (
-              <motion.div key={i} role="button" tabIndex={0} aria-label={`Salin nomor ${gift.bank} ${gift.account}`} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onCopy(gift.account, i); } }} whileHover={{ y: -3, scale: 1.01 }} onClick={() => onCopy(gift.account, i)} className="bg-white/60 backdrop-blur-md p-4 rounded-xl border border-white/60 flex flex-col items-center gap-1 group cursor-pointer shadow-sm transition-all relative overflow-hidden focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2">
+              <motion.div key={i} role="button" tabIndex={0} aria-label={`Salin nomor ${gift.bank} ${gift.account}`} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onCopy(gift.account, i); } }} whileHover={{ y: -3, scale: 1.01 }} onClick={() => onCopy(gift.account, i)} className="bg-white/60 backdrop-blur-md p-4 rounded-xl border border-white/60 flex flex-col items-center gap-1 group cursor-pointer shadow-sm shadow-gold/5 transition-all relative overflow-hidden focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2">
                 <div className="absolute -top-4 -right-4 w-12 h-12 bg-gold/5 rounded-full blur-xl group-hover:scale-150 transition-transform duration-700" />
                 <div className="absolute top-2 right-2">
                   <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 ${copiedIndex === i ? 'bg-green-500 text-white' : 'bg-gold/5 text-gold/60 group-hover:bg-gold group-hover:text-white border border-gold/10'}`}>

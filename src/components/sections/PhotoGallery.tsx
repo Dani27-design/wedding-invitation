@@ -44,7 +44,7 @@ export const PhotoGallery = memo(({ onSelectPhoto }: PhotoGalleryProps) => {
                 transition={{ duration: 0.8, delay: Math.min(i * 0.1, 0.3) }}
                 whileHover={{ y: -10, scale: 1.02 }}
                 onClick={() => onSelectPhoto(item.src)}
-                className={`${item.span} relative group overflow-hidden shadow-2xl ${item.shape} cursor-zoom-in isolate transform-gpu [-webkit-mask-image:-webkit-radial-gradient(white,black)] focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2`}
+                className={`${item.span} relative group overflow-hidden shadow-2xl shadow-gold/15 ${item.shape} cursor-zoom-in isolate transform-gpu [-webkit-mask-image:-webkit-radial-gradient(white,black)] focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2`}
               >
                 <Image src={item.src} fill sizes="(max-width: 640px) 120px, (max-width: 768px) 150px, 210px" placeholder="blur" blurDataURL={SHIMMER_PAPER} onError={(e) => { e.currentTarget.style.display = 'none'; }} alt={`Galeri ${wedding?.groomNickname ?? ''} & ${wedding?.brideNickname ?? ''} - foto ${i + 1}`} className="object-cover transition-transform duration-1000 group-hover:scale-110 [backface-visibility:hidden]" referrerPolicy="no-referrer" />
                 <div className="absolute inset-0 bg-ink/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">

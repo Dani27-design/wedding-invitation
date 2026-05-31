@@ -99,7 +99,7 @@ export const RSVPSection = memo(({
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.95 }}
                       transition={{ duration: 0.25, delay: idx * 0.02 }}
-                      className="w-full bg-white/60 px-3 py-1 rounded-xl border border-gold/10 border-l-2 border-l-gold/30 relative group hover:border-gold/20 transition-all shadow-sm"
+                      className="w-full bg-white/60 px-3 py-1 rounded-xl border border-gold/10 border-l-2 border-l-gold/30 relative group hover:border-gold/20 transition-all shadow-sm shadow-gold/5"
                     >
                       <div className="flex justify-between items-center mb-1.5">
                         <div className="flex items-center gap-2 overflow-hidden">
@@ -214,7 +214,7 @@ export const RSVPSection = memo(({
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ duration: 0.25, delay: idx * 0.02 }}
-                    className="w-full bg-white/60 px-3 py-1 rounded-xl border border-gold/10 border-l-2 border-l-gold/30 relative group hover:border-gold/20 transition-all shadow-sm"
+                    className="w-full bg-white/60 px-3 py-1 rounded-xl border border-gold/10 border-l-2 border-l-gold/30 relative group hover:border-gold/20 transition-all shadow-sm shadow-gold/5"
                   >
                     <div className="flex justify-between items-center mb-1.5">
                       <div className="flex items-center gap-2 overflow-hidden">

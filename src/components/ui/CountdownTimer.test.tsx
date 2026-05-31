@@ -148,17 +148,11 @@ describe('CountdownTimer', () => {
       expect(shadows.length).toBeGreaterThanOrEqual(1);
     });
 
-    it('time boxes use abstract shapes (varied border-radius)', () => {
+    it('time boxes have animated blob backgrounds', () => {
       const { container } = render(<CountdownTimer targetDate="2030-01-01T00:00:00" />);
-      // SHAPES uses Tailwind arbitrary values like rounded-[2.5rem_1rem_2.5rem_1rem].
-      // querySelectorAll with [class*="rounded-["] is invalid CSS — the "[" must be escaped.
-      // Instead, find all time-box divs (bg-ivory) and check that at least one has a
-      // class that starts with "rounded-[" (arbitrary border-radius value).
-      const boxes = Array.from(container.querySelectorAll('.bg-ivory'));
-      const hasArbitraryRounded = boxes.some((el) =>
-        Array.from(el.classList).some((cls) => cls.startsWith('rounded-['))
-      );
-      expect(hasArbitraryRounded).toBe(true);
+      const blobs = container.querySelectorAll('.bg-ivory.border-gold\\/10');
+      // 4 time boxes each have an animated blob background
+      expect(blobs.length).toBe(4);
     });
   });
 

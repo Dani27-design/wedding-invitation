@@ -2,17 +2,36 @@
 import { motion } from 'motion/react';
 import { useCountdown } from '../../hooks/useCountdown';
 
-const SHAPES = [
-  'rounded-[2.5rem_1rem_2.5rem_1rem]',
-  'rounded-[1rem_2.5rem_1rem_2.5rem]',
-  'rounded-[2rem_1.5rem_2rem_1.5rem]',
-  'rounded-[1.5rem_2rem_1.5rem_2rem]',
+const BLOB_SHAPES = [
+  ["40% 60% 70% 30% / 40% 50% 60% 50%", "50% 50% 30% 70% / 50% 60% 40% 60%", "40% 60% 70% 30% / 40% 50% 60% 50%"],
+  ["50% 50% 30% 70% / 60% 40% 50% 50%", "40% 60% 60% 40% / 50% 50% 40% 60%", "50% 50% 30% 70% / 60% 40% 50% 50%"],
+  ["60% 40% 50% 50% / 40% 60% 50% 50%", "45% 55% 65% 35% / 55% 45% 50% 50%", "60% 40% 50% 50% / 40% 60% 50% 50%"],
+  ["45% 55% 60% 40% / 50% 50% 45% 55%", "55% 45% 40% 60% / 45% 55% 55% 45%", "45% 55% 60% 40% / 50% 50% 45% 55%"],
+];
+
+const RING_SHAPES = [
+  'rounded-[45%_55%_65%_35%]',
+  'rounded-[55%_45%_35%_65%]',
+  'rounded-[50%_50%_40%_60%]',
+  'rounded-[60%_40%_55%_45%]',
 ];
 
 const TimeBox = ({ value, label, index }: { value: number; label: string; index: number }) => (
   <div className="flex flex-col items-center flex-1 min-w-0">
-    <div className={`relative bg-ivory border border-gold/10 ${SHAPES[index % SHAPES.length]} w-16 h-16 md:w-20 md:h-20 flex items-center justify-center shadow-sm`}>
-      <span className="font-display text-3xl md:text-5xl text-gold-contrast block font-light leading-none tabular-nums">
+    <div className="relative w-16 h-16 md:w-20 md:h-20 flex items-center justify-center">
+      {/* Animated blob background */}
+      <motion.div
+        animate={{ borderRadius: BLOB_SHAPES[index % BLOB_SHAPES.length] }}
+        transition={{ duration: 8 + index * 2, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute inset-0 bg-ivory border border-gold/10 shadow-sm shadow-gold/10"
+      />
+      {/* Rotating ring */}
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 20 + index * 5, repeat: Infinity, ease: 'linear' }}
+        className={`absolute -inset-1.5 border border-gold/8 ${RING_SHAPES[index % RING_SHAPES.length]}`}
+      />
+      <span className="relative z-10 font-display text-3xl md:text-5xl text-gold-contrast block font-light leading-none tabular-nums">
         {value.toString().padStart(2, '0')}
       </span>
     </div>

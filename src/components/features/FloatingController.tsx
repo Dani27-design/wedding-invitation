@@ -81,7 +81,7 @@ export const FloatingController = ({ isToolsOpen, setIsToolsOpen, isPlaying, tog
             className="group flex items-center gap-3 pr-4 pl-3 py-2 bg-ivory/90 backdrop-blur-xl border border-rose-pastel/20 rounded-full shadow-xl hover:bg-white transition-all"
           >
             {isPlaying ? <Pause className="w-3.5 h-3.5 text-rose-pastel" /> : <Play className="w-3.5 h-3.5 text-rose-pastel" />}
-            <span className="font-sans text-[8px] tracking-[0.2em] uppercase text-ink font-bold">{isPlaying ? 'Senyapkan Musik' : 'Putar Musik'}</span>
+            <span className="font-sans text-[8px] tracking-[0.1em] sm:tracking-[0.2em] uppercase text-ink font-bold">{isPlaying ? 'Hentikan' : 'Putar Musik'}</span>
           </motion.button>
         </div>
       )}

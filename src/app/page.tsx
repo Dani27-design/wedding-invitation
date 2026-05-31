@@ -446,7 +446,7 @@ export default function LandingPage() {
                   className={`w-1 rounded-full bg-gradient-to-b ${color} flex-shrink-0`}
                 />
                 <div className="py-1">
-                  <p className="text-md font-serif font-semibold text-gold-contrast mb-0.5">
+                  <p className="text-md font-serif font-semibold text-gold-contrast mb-0.5 break-words">
                     {title}
                   </p>
                   <p className="text-sm text-ink/70 leading-relaxed font-base">
@@ -486,7 +486,7 @@ export default function LandingPage() {
                       <div className="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center">
                         <Icon className="w-3.5 h-3.5 text-gold" />
                       </div>
-                      <span className="text-[10px] text-ink/70 leading-tight">
+                      <span className="text-[10px] text-ink/70 leading-tight break-words">
                         {title}
                       </span>
                     </div>
@@ -707,10 +707,10 @@ export default function LandingPage() {
 
             {/* Copyright */}
             <div className="text-center lg:text-right">
-              <p className="text-[12px] text-ink/70">
+              <p className="text-[12px] text-ink/70 break-words">
                 &copy; {new Date().getFullYear()} Marinikah Wedding Invitation
               </p>
-              <p className="text-[12px] text-ink/50 font-serif italic">
+              <p className="text-[12px] text-ink/50 font-serif italic break-words">
                 Build with Love by Marini & Dani
               </p>
             </div>

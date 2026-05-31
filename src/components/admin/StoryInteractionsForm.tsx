@@ -178,7 +178,7 @@ export function StoryInteractionsForm({ data, slug }: StoryInteractionsFormProps
                       <span className="text-[10px] font-black truncate">{c.name}</span>
                       <span className="text-[8px] bg-gold/8 text-gold/70 px-1.5 py-0.5 rounded font-bold flex-shrink-0">{slides[c.slideIndex]?.year || `Slide ${c.slideIndex + 1}`}</span>
                     </div>
-                    <p className="text-[11px] text-ink/80 mt-0.5 leading-snug">{c.text}</p>
+                    <p className="text-[11px] text-ink/80 mt-0.5 leading-snug break-words">{c.text}</p>
                   </div>
                   <button onClick={() => setDeleteTarget(c.id)} className="w-6 h-6 flex items-center justify-center rounded-lg text-red-300 hover:text-red-500 hover:bg-red-50 transition-colors flex-shrink-0 mt-0.5" aria-label="Hapus komentar">
                     <Trash2 className="w-3 h-3" />

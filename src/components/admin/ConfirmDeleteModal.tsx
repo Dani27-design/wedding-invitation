@@ -34,7 +34,7 @@ export function ConfirmDeleteModal({ isOpen, message, onConfirm, onCancel, title
               <AlertCircle className={`w-12 h-12 ${variant === 'danger' ? 'text-red-400' : 'text-gold'}`} />
               <div className="space-y-1">
                 <h3 className="text-lg text-ink">{title ?? 'Konfirmasi Hapus'}</h3>
-                <p className="text-xs text-ink/80 leading-relaxed">{message}</p>
+                <p className="text-xs text-ink/80 leading-relaxed break-words">{message}</p>
               </div>
               <div className="flex gap-3 mt-4 w-full">
                 <button

@@ -134,7 +134,7 @@ export default function RegisterPage() {
             <Link href="/" className="inline-block">
               <NextImage src="/images/logo-1.png" alt="Marinikah Invitation" width={160} height={80} className="mx-auto w-[140px] h-auto" />
             </Link>
-            <h1 className="font-serif italic text-xl text-ink my-2">Daftarkan diri dan Bagikan Kebahagiaan Momen Istimewa Kalian bersama Marinikah</h1>
+            <h1 className="font-serif italic text-lg sm:text-xl text-ink my-2 break-words">Daftarkan diri dan Bagikan Kebahagiaan Momen Istimewa Kalian bersama Marinikah</h1>
           </div>
 
           <form onSubmit={handleEmailRegister} className="space-y-3">
@@ -150,7 +150,7 @@ export default function RegisterPage() {
               <label htmlFor="reg-password" className="sr-only">Password</label>
               <input id="reg-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password (min 6 karakter)" required minLength={6} disabled={isLoading} className={inputClass} />
             </div>
-            {error && <p role="alert" className="text-sm text-red-500 text-center">{error}</p>}
+            {error && <p role="alert" className="text-sm text-red-500 text-center break-words">{error}</p>}
             <button type="submit" disabled={isLoading} className="w-full py-3 bg-gold text-ivory rounded-full text-xs tracking-[0.3em] font-black uppercase disabled:opacity-50 shadow-lg shadow-gold/20 hover:scale-105 transition-transform">
               {isLoading ? 'Memuat...' : 'Daftar'}
             </button>

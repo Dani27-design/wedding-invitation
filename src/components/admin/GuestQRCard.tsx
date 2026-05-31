@@ -87,7 +87,7 @@ export function GuestQRCard({ guestName, coupleName, invitationUrl, className = 
       </div>
 
       {/* Couple name */}
-      <p className={`relative font-dayland text-gold ${compact ? 'text-lg mb-2' : 'text-2xl mb-4'}`}>{coupleName}</p>
+      <p className={`relative font-dayland text-gold break-words ${compact ? 'text-lg mb-2 max-w-[190px]' : 'text-2xl mb-4 max-w-[260px]'}`}>{coupleName}</p>
 
       {/* QR Code container */}
       <div className={`relative bg-white/90 backdrop-blur-sm rounded-2xl border border-gold/10 shadow-[0_2px_12px_rgba(180,141,62,0.08)] ${compact ? 'p-2 mb-2' : 'p-3 mb-4'}`}>

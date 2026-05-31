@@ -55,7 +55,7 @@ export const Footer = memo(() => {
             return (
               <div key={credit.name} className="p-2 md:p-3 rounded-[1.5rem] md:rounded-[2.5rem] bg-paper/50 border border-gold/5 flex flex-col items-center justify-evenly">
                 <div className="w-8 h-8 md:w-12 md:h-12 rounded-full bg-gold/5 flex items-center justify-center mb-1 md:mb-2 text-gold/70"><RoleIcon className="w-4 h-4 md:w-5 md:h-5" /></div>
-                <h3 className="font-serif italic text-lg text-ink mb-1 md:mb-2">{credit.name}</h3>
+                <h3 className="font-serif italic text-lg text-ink mb-1 break-words md:mb-2">{credit.name}</h3>
                 <p className="font-serif text-xs text-ink/70 leading-relaxed mb-1 md:mb-2 max-w-[240px]">{credit.description}</p>
                 <div className="flex gap-4 opacity-30 hover:opacity-100 transition-opacity">
                   {creditSocials[i]?.map(({ href, Icon, label }, idx) => (
@@ -69,7 +69,7 @@ export const Footer = memo(() => {
 
         <div>
           <div className="flex justify-center items-center mb-1"><Heart className="w-3 h-3 text-gold fill-gold" /></div>
-          <p className="text-xs text-ink/60 tracking-widest font-serif italic">{wedding ? deriveCopyright(wedding.eventDate) : ''}</p>
+          <p className="text-xs text-ink/60 tracking-widest font-serif italic break-words">{wedding?.footerText || (wedding ? deriveCopyright(wedding.eventDate) : '')}</p>
         </div>
 
         {/* Vendor badge */}

@@ -54,7 +54,7 @@ export const RSVPModal = ({ isOpen, isSubmitSuccess, guestName, onClose, onSubmi
               <>
                 <div className="flex justify-between items-start mb-8">
                   <div className="space-y-1">
-                    <h4 className="font-serif italic text-xl text-ink">Setiap doa yang Anda titipkan akan kami simpan sebagai bagian dari perjalanan ini</h4>
+                    <h4 className="font-serif italic text-lg sm:text-xl text-ink break-words">Setiap doa yang Anda titipkan akan kami simpan sebagai bagian dari perjalanan ini</h4>
                   </div>
                   <button
                     aria-label="Tutup"
@@ -79,13 +79,13 @@ export const RSVPModal = ({ isOpen, isSubmitSuccess, guestName, onClose, onSubmi
                     <div className="flex gap-3">
                       <label className="flex-1 cursor-pointer">
                         <input type="radio" name="attendance" value="yes" defaultChecked className="sr-only peer" />
-                        <div className="w-full py-2.5 text-center border border-gold/20 rounded-xl peer-checked:border-gold peer-checked:bg-gold/5 transition-all text-ink/70 peer-checked:text-gold uppercase text-xs font-black tracking-widest leading-none">
+                        <div className="w-full py-2.5 text-center border border-gold/20 rounded-xl peer-checked:border-gold peer-checked:bg-gold/5 transition-all text-ink/70 peer-checked:text-gold uppercase text-xs font-black tracking-wider sm:tracking-widest leading-none">
                           Hadir
                         </div>
                       </label>
                       <label className="flex-1 cursor-pointer">
                         <input type="radio" name="attendance" value="no" className="sr-only peer" />
-                        <div className="w-full py-2.5 text-center border border-gold/20 rounded-xl peer-checked:border-gold peer-checked:bg-gold/5 transition-all text-ink/70 peer-checked:text-gold uppercase text-xs font-black tracking-widest leading-none">
+                        <div className="w-full py-2.5 text-center border border-gold/20 rounded-xl peer-checked:border-gold peer-checked:bg-gold/5 transition-all text-ink/70 peer-checked:text-gold uppercase text-xs font-black tracking-wider sm:tracking-widest leading-none">
                           Berhalangan
                         </div>
                       </label>

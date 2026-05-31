@@ -319,7 +319,7 @@ export function TwibbonCreator() {
       className="flex flex-col lg:flex-row h-fit w-full items-center lg:items-start justify-start lg:justify-center gap-[3vh] lg:gap-12 xl:gap-16 px-4 lg:px-12 xl:px-20 lg:max-w-5xl lg:mx-auto"
     >
       <div className="text-center lg:text-left shrink-0 lg:w-[280px] xl:w-[320px] lg:sticky lg:top-[20vh] lg:pt-8">
-        <p className="text-xs uppercase tracking-[0.4em] text-gold font-black mb-2">
+        <p className="text-xs uppercase tracking-[0.2em] sm:tracking-[0.4em] text-gold font-black mb-2">
           Twibbon Pernikahan Kami
         </p>
         <p className="font-serif italic text-[13px] leading-relaxed text-ink/70 max-w-[300px] mx-auto lg:mx-0">

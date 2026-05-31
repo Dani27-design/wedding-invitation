@@ -26,7 +26,7 @@ export const DigitalEnvelope = memo(({ copiedIndex, onCopy }: DigitalEnvelopePro
     <div className="lg:hidden container mx-auto px-6 max-w-lg relative z-10">
       <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center">
         <p className="text-xs uppercase tracking-[0.4em] text-gold-contrast font-black mb-2">Tanda Kasih</p>
-        <p className="font-serif italic text-sm leading-relaxed text-ink/70 max-w-[300px] mx-auto mb-[3vh]">
+        <p className="font-serif italic text-sm leading-relaxed text-ink/70 max-w-full sm:max-w-[300px] mx-auto mb-[3vh]">
           Kehadiran dan Doa Anda adalah hadiah terindah bagi kami. Namun jika berkenan memberi tanda kasih, kami menerimanya dengan penuh rasa terima kasih.
         </p>
 
@@ -43,9 +43,9 @@ export const DigitalEnvelope = memo(({ copiedIndex, onCopy }: DigitalEnvelopePro
               </div>
 
               <div className="relative z-10 w-full flex flex-col items-center text-center">
-                <p className="text-[10px] uppercase tracking-widest text-gold/70 font-bold mb-1">{gift.bank}</p>
+                <p className="text-[10px] uppercase tracking-wide sm:tracking-widest text-gold/70 font-bold mb-1 break-words">{gift.bank}</p>
                 <div className="flex flex-col items-center gap-1 mb-1">
-                  <span className="font-serif text-lg md:text-xl tracking-tight text-ink group-hover:text-gold transition-colors leading-none">{gift.account}</span>
+                  <span className="font-serif text-lg md:text-xl tracking-tight text-ink break-all group-hover:text-gold transition-colors leading-none">{gift.account}</span>
                 </div>
                 <div className="pt-0.5 border-t border-gold/5 w-full">
                   <p className="text-[10px] text-ink/60 tracking-tight font-serif truncate">{gift.owner}</p>
@@ -91,8 +91,8 @@ export const DigitalEnvelope = memo(({ copiedIndex, onCopy }: DigitalEnvelopePro
                   </div>
                 </div>
                 <div className="relative z-10 w-full flex flex-col items-center text-center">
-                  <p className="text-[10px] uppercase tracking-widest text-gold/70 font-bold mb-1">{gift.bank}</p>
-                  <span className="font-serif text-xl tracking-tight text-ink group-hover:text-gold transition-colors leading-none mb-1">{gift.account}</span>
+                  <p className="text-[10px] uppercase tracking-wide sm:tracking-widest text-gold/70 font-bold mb-1 break-words">{gift.bank}</p>
+                  <span className="font-serif text-xl tracking-tight text-ink break-all group-hover:text-gold transition-colors leading-none mb-1">{gift.account}</span>
                   <div className="pt-0.5 border-t border-gold/5 w-full">
                     <p className="text-[10px] text-ink/60 tracking-tight font-serif truncate">{gift.owner}</p>
                   </div>

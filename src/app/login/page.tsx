@@ -101,7 +101,7 @@ export default function LoginPage() {
               <NextImage src="/images/logo-1.png" alt="Marinikah Invitation" width={160} height={80} className="mx-auto w-[140px] h-auto" />
             </Link>
             {/* <h1 className="font-serif italic text-2xl text-ink mt-6 mb-1">Selamat Datang Kembali</h1> */}
-            <h1 className="font-serif italic text-xl text-ink my-2">Selamat Datang, Masuk dan Bagikan Kebahagiaan Momen Istimewa Kalian bersama Marinikah</h1>
+            <h1 className="font-serif italic text-lg sm:text-xl text-ink my-2 break-words">Selamat Datang, Masuk dan Bagikan Kebahagiaan Momen Istimewa Kalian bersama Marinikah</h1>
             {/* <p className="font-serif italic text-xl text-ink/80">Masuk untuk melanjutkan pengelolaan undangan Anda</p> */}
           </div>
 
@@ -125,7 +125,7 @@ export default function LoginPage() {
                 <p className="text-xs text-red-500 text-center mt-2">{resetError}</p>
               )}
             </div>
-            {error && <p role="alert" className="text-sm text-red-500 text-center">{error}</p>}
+            {error && <p role="alert" className="text-sm text-red-500 text-center break-words">{error}</p>}
             <button type="submit" disabled={isLoading} className="w-full py-3 bg-gold text-ivory rounded-full text-xs tracking-[0.3em] font-black uppercase disabled:opacity-50 shadow-lg shadow-gold/20 hover:scale-105 transition-transform">
               {isLoading ? 'Memuat...' : 'Masuk'}
             </button>

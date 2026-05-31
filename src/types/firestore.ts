@@ -50,6 +50,7 @@ export interface WeddingDocument {
   theme: WeddingTheme;
 
   credits: CreditPerson[];
+  footerText: string;
 
   greetingTemplate: string;
 }

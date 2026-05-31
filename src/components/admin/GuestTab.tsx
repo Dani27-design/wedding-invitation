@@ -94,7 +94,7 @@ export function GuestTab({ data, slug, onSave, isSaving, onDirty, step, totalSte
               Preview Pesan
             </summary>
             <div className="px-4 py-3 bg-paper/50 border-t border-gold/5">
-              <p className="text-xs text-ink/80 whitespace-pre-line leading-relaxed">{previewText}</p>
+              <p className="text-xs text-ink/80 whitespace-pre-line leading-relaxed break-words">{previewText}</p>
             </div>
           </details>
         </div>

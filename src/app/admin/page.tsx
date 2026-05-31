@@ -46,6 +46,7 @@ function createPlaceholderWedding(adminUid: string): Omit<WeddingDocument, 'crea
     quranReference: '',
     theme: defaults,
     credits: [],
+    footerText: '',
     greetingTemplate: 'Assalamualaikum Wr. Wb.\n\nKepada Yth.\n{nama}\n\nDengan memohon rahmat dan ridho Allah SWT, kami mengundang Bapak/Ibu/Saudara/i untuk hadir di acara pernikahan kami:\n\n{pengantin}\n\nBuka undangan:\n{link}\n\nMerupakan suatu kehormatan dan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir.\n\nWassalamualaikum Wr. Wb.',
   };
 }
@@ -579,7 +580,7 @@ export default function SuperAdminPage() {
                       {(w.data.adminIds ?? []).map((uid) => {
                         const email = userMap.get(uid)?.email ?? uid;
                         return (
-                          <span key={uid} className="inline-flex items-center gap-1 text-[9px] text-ink/80 bg-ink/5 px-2 py-0.5 rounded-full">
+                          <span key={uid} className="inline-flex items-center gap-1 text-[9px] text-ink/80 bg-ink/5 px-2 py-0.5 rounded-full max-w-full break-words">
                             {email}
                             <button
                               onClick={() => setRemoveAdminTarget({ slug: w.slug, uid })}
@@ -702,7 +703,7 @@ export default function SuperAdminPage() {
           <div className="absolute inset-0 bg-ink/40 backdrop-blur-sm" onClick={() => setAcceptingUser(null)} />
           <div className="relative bg-white rounded-[2rem] p-6 shadow-2xl border border-gold/10 w-full max-w-sm">
             <h3 className="text-lg text-ink mb-1">Terima Pendaftaran</h3>
-            <p className="text-xs text-ink/80 mb-4">{acceptingUser.displayName} ({acceptingUser.email})</p>
+            <p className="text-xs text-ink/80 mb-4 break-words">{acceptingUser.displayName} ({acceptingUser.email})</p>
 
             <div className="flex gap-2 mb-4">
               <button
@@ -895,7 +896,7 @@ export default function SuperAdminPage() {
             <div className="absolute inset-0 bg-ink/40 backdrop-blur-sm" onClick={() => setAssignUserTarget(null)} />
             <div className="relative bg-white rounded-[2rem] p-6 shadow-2xl border border-gold/10 w-full max-w-sm">
               <h3 className="text-lg text-ink mb-1">Hubungkan ke Undangan</h3>
-              <p className="text-xs text-ink/80 mb-3">{assignUserTarget.displayName} ({assignUserTarget.email})</p>
+              <p className="text-xs text-ink/80 mb-3 break-words">{assignUserTarget.displayName} ({assignUserTarget.email})</p>
 
               <input
                 type="text"

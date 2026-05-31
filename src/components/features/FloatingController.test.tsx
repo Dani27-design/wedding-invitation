@@ -181,9 +181,9 @@ describe('FloatingController', () => {
       expect(screen.queryByText('Putar Musik')).not.toBeInTheDocument();
     });
 
-    it('does not show Senyapkan Musik toggle', () => {
+    it('does not show Hentikan toggle', () => {
       render(<FloatingController {...createProps({ isPlaying: true })} />);
-      expect(screen.queryByText('Senyapkan Musik')).not.toBeInTheDocument();
+      expect(screen.queryByText('Hentikan')).not.toBeInTheDocument();
     });
 
     it('renders only the main button as a button element', () => {
@@ -273,9 +273,9 @@ describe('FloatingController', () => {
       expect(screen.getByText('Putar Musik')).toBeInTheDocument();
     });
 
-    it('shows "Senyapkan Musik" when isPlaying is true and menu open', () => {
+    it('shows "Hentikan" when isPlaying is true and menu open', () => {
       render(<FloatingController {...createProps({ isToolsOpen: true, isPlaying: true })} />);
-      expect(screen.getByText('Senyapkan Musik')).toBeInTheDocument();
+      expect(screen.getByText('Hentikan')).toBeInTheDocument();
     });
 
     it('does not show "Putar Musik" when playing', () => {
@@ -283,9 +283,9 @@ describe('FloatingController', () => {
       expect(screen.queryByText('Putar Musik')).not.toBeInTheDocument();
     });
 
-    it('does not show "Senyapkan Musik" when not playing', () => {
+    it('does not show "Hentikan" when not playing', () => {
       render(<FloatingController {...createProps({ isToolsOpen: true, isPlaying: false })} />);
-      expect(screen.queryByText('Senyapkan Musik')).not.toBeInTheDocument();
+      expect(screen.queryByText('Hentikan')).not.toBeInTheDocument();
     });
 
     it('calls toggleMusic when music button is clicked', () => {
@@ -295,10 +295,10 @@ describe('FloatingController', () => {
       expect(toggleMusic).toHaveBeenCalledTimes(1);
     });
 
-    it('calls toggleMusic when Senyapkan Musik is clicked', () => {
+    it('calls toggleMusic when Hentikan is clicked', () => {
       const toggleMusic = vi.fn();
       render(<FloatingController {...createProps({ isToolsOpen: true, isPlaying: true, toggleMusic })} />);
-      fireEvent.click(screen.getByText('Senyapkan Musik'));
+      fireEvent.click(screen.getByText('Hentikan'));
       expect(toggleMusic).toHaveBeenCalledTimes(1);
     });
 
@@ -503,7 +503,7 @@ describe('FloatingController', () => {
       expect(screen.getByText('Putar Musik')).toBeInTheDocument();
 
       rerender(<FloatingController {...createProps({ isToolsOpen: true, isPlaying: true })} />);
-      expect(screen.getByText('Senyapkan Musik')).toBeInTheDocument();
+      expect(screen.getByText('Hentikan')).toBeInTheDocument();
       expect(screen.queryByText('Putar Musik')).not.toBeInTheDocument();
     });
 
@@ -514,7 +514,7 @@ describe('FloatingController', () => {
       expect(screen.queryByText('Putar Musik')).not.toBeInTheDocument();
 
       rerender(<FloatingController {...createProps({ isPlaying: true })} />);
-      expect(screen.queryByText('Senyapkan Musik')).not.toBeInTheDocument();
+      expect(screen.queryByText('Hentikan')).not.toBeInTheDocument();
     });
 
     it('all four navigation labels have consistent styling', () => {
@@ -540,7 +540,7 @@ describe('FloatingController', () => {
         <FloatingController isToolsOpen={true} setIsToolsOpen={vi.fn()} isPlaying={true} toggleMusic={vi.fn()} />
       );
       expect(container.firstChild).toBeInTheDocument();
-      expect(screen.getByText('Senyapkan Musik')).toBeInTheDocument();
+      expect(screen.getByText('Hentikan')).toBeInTheDocument();
       expect(screen.getByLabelText('Tutup menu')).toBeInTheDocument();
     });
 

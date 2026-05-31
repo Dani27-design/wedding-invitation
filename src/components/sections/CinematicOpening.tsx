@@ -110,7 +110,7 @@ export const CinematicOpening = ({
             transition={{ delay: 1 }}
             className="flex flex-col gap-1"
           >
-            <span className="font-serif uppercase text-xs tracking-[0.4rem] text-gold">
+            <span className="font-serif uppercase text-xs tracking-[0.2rem] sm:tracking-[0.4rem] text-gold">
               {wedding?.eventCity}
             </span>
             <span className="font-serif italic text-sm text-ivory">
@@ -126,13 +126,13 @@ export const CinematicOpening = ({
             className="space-y-4 text-left"
           >
             <div aria-hidden="true" className="space-y-4">
-              <span className="block font-dayland text-8xl xl:text-9xl text-ivory [text-shadow:0_1px_4px_color-mix(in_srgb,var(--color-gold)_80%,transparent),0_0_15px_color-mix(in_srgb,var(--color-gold)_60%,transparent),0_0_50px_color-mix(in_srgb,var(--color-gold)_40%,transparent)]">
+              <span className="block font-dayland text-8xl xl:text-9xl text-ivory break-words max-w-full [text-shadow:0_1px_4px_color-mix(in_srgb,var(--color-gold)_80%,transparent),0_0_15px_color-mix(in_srgb,var(--color-gold)_60%,transparent),0_0_50px_color-mix(in_srgb,var(--color-gold)_40%,transparent)]">
                 {wedding?.groomNickname}
               </span>
               <span className="block font-dayland text-5xl xl:text-6xl text-gold/70 [text-shadow:0_1px_4px_color-mix(in_srgb,var(--color-ink)_40%,transparent),0_0_12px_color-mix(in_srgb,var(--color-ink)_25%,transparent),0_0_40px_color-mix(in_srgb,var(--color-ink)_15%,transparent)] text-center">
                 &
               </span>
-              <span className="block font-dayland text-8xl xl:text-9xl text-ivory [text-shadow:0_1px_4px_color-mix(in_srgb,var(--color-gold)_80%,transparent),0_0_15px_color-mix(in_srgb,var(--color-gold)_60%,transparent),0_0_50px_color-mix(in_srgb,var(--color-gold)_40%,transparent)]">
+              <span className="block font-dayland text-8xl xl:text-9xl text-ivory break-words max-w-full [text-shadow:0_1px_4px_color-mix(in_srgb,var(--color-gold)_80%,transparent),0_0_15px_color-mix(in_srgb,var(--color-gold)_60%,transparent),0_0_50px_color-mix(in_srgb,var(--color-gold)_40%,transparent)]">
                 {wedding?.brideNickname}
               </span>
             </div>
@@ -146,10 +146,10 @@ export const CinematicOpening = ({
             className="flex flex-col items-start gap-6"
           >
             <div className="space-y-2">
-              <p className="font-sans text-xs tracking-[0.3rem] uppercase text-gold/70 font-medium">
+              <p className="font-sans text-xs tracking-[0.15rem] sm:tracking-[0.3rem] uppercase text-gold/70 font-medium">
                 Turut Mengundang
               </p>
-              <p className="font-display italic text-3xl text-ivory font-light">
+              <p className="font-display italic text-3xl text-ivory font-light break-words max-w-[60vw]">
                 {guestName}
               </p>
             </div>
@@ -248,7 +248,7 @@ export const CinematicOpening = ({
           transition={{ delay: 1 }}
           className="flex flex-col gap-1"
         >
-          <span className="font-serif uppercase text-xs tracking-[0.4rem] text-gold">
+          <span className="font-serif uppercase text-xs tracking-[0.2rem] sm:tracking-[0.4rem] text-gold">
             {wedding?.eventCity}
           </span>
           <span className="font-serif italic text-sm text-ivory">
@@ -299,13 +299,13 @@ export const CinematicOpening = ({
             className="space-y-4 text-center"
           >
             <div aria-hidden="true" className="space-y-4">
-              <span className="block font-dayland text-5xl sm:text-7xl md:text-9xl text-ivory [text-shadow:0_1px_4px_color-mix(in_srgb,var(--color-gold)_80%,transparent),0_0_15px_color-mix(in_srgb,var(--color-gold)_60%,transparent),0_0_50px_color-mix(in_srgb,var(--color-gold)_40%,transparent)]">
+              <span className="block font-dayland text-5xl sm:text-7xl md:text-9xl text-ivory break-words max-w-[95vw] [text-shadow:0_1px_4px_color-mix(in_srgb,var(--color-gold)_80%,transparent),0_0_15px_color-mix(in_srgb,var(--color-gold)_60%,transparent),0_0_50px_color-mix(in_srgb,var(--color-gold)_40%,transparent)]">
                 {wedding?.groomNickname}
               </span>
               <span className="block font-dayland text-2xl sm:text-4xl md:text-6xl text-gold/70 [text-shadow:0_1px_4px_color-mix(in_srgb,var(--color-ink)_40%,transparent),0_0_12px_color-mix(in_srgb,var(--color-ink)_25%,transparent),0_0_40px_color-mix(in_srgb,var(--color-ink)_15%,transparent)]">
                 &
               </span>
-              <span className="block font-dayland text-5xl sm:text-7xl md:text-9xl text-ivory [text-shadow:0_1px_4px_color-mix(in_srgb,var(--color-gold)_80%,transparent),0_0_15px_color-mix(in_srgb,var(--color-gold)_60%,transparent),0_0_50px_color-mix(in_srgb,var(--color-gold)_40%,transparent)]">
+              <span className="block font-dayland text-5xl sm:text-7xl md:text-9xl text-ivory break-words max-w-[95vw] [text-shadow:0_1px_4px_color-mix(in_srgb,var(--color-gold)_80%,transparent),0_0_15px_color-mix(in_srgb,var(--color-gold)_60%,transparent),0_0_50px_color-mix(in_srgb,var(--color-gold)_40%,transparent)]">
                 {wedding?.brideNickname}
               </span>
             </div>
@@ -320,7 +320,7 @@ export const CinematicOpening = ({
             className="flex flex-col items-center text-center gap-6"
           >
             <div className="space-y-2">
-              <p className="font-sans text-xs tracking-[0.3rem] uppercase text-gold/70 font-medium">
+              <p className="font-sans text-xs tracking-[0.15rem] sm:tracking-[0.3rem] uppercase text-gold/70 font-medium">
                 Turut Mengundang
               </p>
               <p className="font-display italic text-3xl md:text-4xl text-ivory font-light max-w-[85vw] break-words">

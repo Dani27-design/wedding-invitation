@@ -56,7 +56,7 @@ describe('TwibbonCreator', () => {
       render(<TwibbonCreator />);
       const subtitle = screen.getByText('Twibbon Pernikahan Kami');
       expect(subtitle).toHaveClass('uppercase');
-      expect(subtitle).toHaveClass('tracking-[0.4em]');
+      expect(subtitle.className).toContain('tracking-');
       expect(subtitle).toHaveClass('font-black');
     });
 

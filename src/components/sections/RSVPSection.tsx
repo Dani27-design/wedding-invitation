@@ -114,7 +114,7 @@ export const RSVPSection = memo(({
                               : "Berhalangan"}
                           </span>
                         </div>
-                        <span className="text-xs text-ink/60 font-serif shrink-0">
+                        <span className="text-[10px] sm:text-xs text-ink/60 font-serif shrink-0 truncate max-w-[90px] sm:max-w-none">
                           {formatDate(wish.createdAt)}
                         </span>
                       </div>
@@ -223,7 +223,7 @@ export const RSVPSection = memo(({
                           {wish.attendance === "yes" ? "Hadir" : "Berhalangan"}
                         </span>
                       </div>
-                      <span className="text-xs text-ink/60 font-serif shrink-0">{formatDate(wish.createdAt)}</span>
+                      <span className="text-[10px] sm:text-xs text-ink/60 font-serif shrink-0 truncate max-w-[90px] sm:max-w-none">{formatDate(wish.createdAt)}</span>
                     </div>
                     <p className="font-serif italic text-sm leading-[1.3] text-ink/70 break-words">"{wish.message}"</p>
                   </motion.div>

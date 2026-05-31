@@ -4,6 +4,7 @@ import { WeddingDocument, CreditPerson } from '../../types/firestore';
 import { Plus, Trash2 } from 'lucide-react';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { CREDIT_ICONS, DEVELOPER_ALLOWED_NAME } from '../../constants/creditIcons';
+import { deriveCopyright } from '../../utils/weddingDerived';
 
 const MAX_CREDITS = 2;
 
@@ -20,6 +21,9 @@ export function CreditForm({ data, onSave, isSaving, onDirty, step, totalSteps }
   const [credits, setCredits] = useState<CreditPerson[]>(
     data?.credits ?? [{ name: '', role: 'heart', description: '' }]
   );
+  const [footerText, setFooterText] = useState(
+    data?.footerText || deriveCopyright(data?.eventDate ?? '')
+  );
 
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
 
@@ -32,7 +36,7 @@ export function CreditForm({ data, onSave, isSaving, onDirty, step, totalSteps }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ credits: credits.filter(c => c.name.trim()) });
+    onSave({ credits: credits.filter(c => c.name.trim()), footerText: footerText.trim() });
   };
 
   const inputClass = 'w-full px-3 py-2.5 border border-gold/20 rounded-xl text-sm bg-white focus:outline-none focus:border-gold/50 transition-colors';
@@ -110,6 +114,30 @@ export function CreditForm({ data, onSave, isSaving, onDirty, step, totalSteps }
               <Plus className="w-4 h-4" />
               <span className="text-[11px] font-bold">Tambah Kredit</span>
             </button>
+          )}
+        </div>
+      </div>
+
+      {/* Footer text card */}
+      <div className="bg-white rounded-2xl border border-gold/10 shadow-sm overflow-hidden">
+        <div className="border-l-4 border-gold px-4 py-3 bg-gold/[0.03]">
+          <h3 className="font-base text-[13px] text-ink">Teks Penutup</h3>
+        </div>
+        <div className="p-4">
+          <label htmlFor="footer-text" className="text-[11px] text-ink/80 font-medium block mb-1.5">
+            Teks yang ditampilkan di bagian bawah undangan
+          </label>
+          <textarea
+            id="footer-text"
+            value={footerText}
+            onChange={(e) => { setFooterText(e.target.value); onDirty?.(); }}
+            placeholder="Contoh: © 2026. Kami membangunnya bersama, dari perjalanan kami."
+            rows={2}
+            maxLength={200}
+            className={`${inputClass} resize-none`}
+          />
+          {footerText.length > 150 && (
+            <p className={`text-[9px] text-right mt-0.5 ${footerText.length >= 200 ? 'text-red-500' : 'text-gold'}`}>{footerText.length}/200</p>
           )}
         </div>
       </div>

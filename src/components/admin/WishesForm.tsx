@@ -131,7 +131,7 @@ export function WishesForm({ slug }: WishesFormProps) {
                     {w.attendance === 'yes' ? 'Hadir' : 'Tidak'}
                   </span>
                 </div>
-                <p className="text-[11px] text-ink/80 mt-0.5 leading-snug">{w.message}</p>
+                <p className="text-[11px] text-ink/80 mt-0.5 leading-snug break-words">{w.message}</p>
               </div>
               <button onClick={() => setDeleteTarget(w.id)} className="w-6 h-6 flex items-center justify-center rounded-lg text-red-300 hover:text-red-500 hover:bg-red-50 transition-colors flex-shrink-0 mt-0.5" aria-label="Hapus ucapan">
                 <Trash2 className="w-3 h-3" />

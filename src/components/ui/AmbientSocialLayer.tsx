@@ -121,7 +121,7 @@ export const AmbientSocialLayer = ({
               <Heart className={`${el.isBurst ? 'w-6 h-6' : 'w-3 h-3'} text-rose-pastel fill-rose-pastel/40 drop-shadow-sm`} />
             ) : (
               <span
-                className={`text-[10px] font-sans tracking-[0.1em] uppercase text-white/95 whitespace-nowrap bg-black/40 border ${el.isInstant ? 'border-rose-pastel/60 scale-110' : 'border-white/10'} px-4 py-2 rounded-full backdrop-blur-md shadow-2xl`}
+                className={`text-[10px] font-sans tracking-[0.1em] uppercase text-white/95 max-w-[280px] truncate bg-black/40 border ${el.isInstant ? 'border-rose-pastel/60 scale-110' : 'border-white/10'} px-4 py-2 rounded-full backdrop-blur-md shadow-2xl`}
               >
                 {el.text}
               </span>

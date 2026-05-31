@@ -152,6 +152,7 @@ const weddingData = {
       socialLinks: []
     },
   ],
+  footerText: '',
 };
 
 // ─── Story Likes ──────────────────────────────────────────────────────────────

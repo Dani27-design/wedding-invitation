@@ -37,7 +37,7 @@ const TABS = [
   { label: 'Cerita', icon: BookHeart },
   { label: 'Galeri', icon: Images },
   { label: 'Hadiah', icon: Gift },
-  { label: 'Kredit', icon: Award },
+  { label: 'Penutup', icon: Award },
   { label: 'Tema', icon: Palette },
   { label: 'Pesan', icon: MessageSquare },
   { label: 'Preview', icon: Eye },
@@ -656,7 +656,7 @@ export default function AdminPage() {
                       <Check className="w-6 h-6 text-green-500" />
                     </div>
                     <h3 className="text-lg text-ink">Undangan Aktif</h3>
-                    <p className="text-xs text-ink/80 leading-relaxed">Undangan Anda sudah dipublikasikan dan dapat diakses oleh semua tamu melalui tautan yang telah dibagikan. Untuk mengirim undangan via WhatsApp atau menambahkan tamu, buka tab <strong className="text-ink">Tamu</strong>.</p>
+                    <p className="text-xs text-ink/80 leading-relaxed break-words">Undangan Anda sudah dipublikasikan dan dapat diakses oleh semua tamu melalui tautan yang telah dibagikan. Untuk mengirim undangan via WhatsApp atau menambahkan tamu, buka tab <strong className="text-ink">Tamu</strong>.</p>
                   </>
                 ) : (
                   <>
@@ -664,7 +664,7 @@ export default function AdminPage() {
                       <X className="w-6 h-6 text-ink/80" />
                     </div>
                     <h3 className="text-lg text-ink">Undangan Belum Aktif</h3>
-                    <p className="text-xs text-ink/80 leading-relaxed">Undangan Anda belum dipublikasikan. Hubungi admin untuk mengaktifkan undangan. Setelah aktif, Anda dapat mengirim undangan via WhatsApp atau menambahkan tamu melalui tab <strong className="text-ink">Tamu</strong>.</p>
+                    <p className="text-xs text-ink/80 leading-relaxed break-words">Undangan Anda belum dipublikasikan. Hubungi admin untuk mengaktifkan undangan. Setelah aktif, Anda dapat mengirim undangan via WhatsApp atau menambahkan tamu melalui tab <strong className="text-ink">Tamu</strong>.</p>
                   </>
                 )}
                 <button

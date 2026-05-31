@@ -194,7 +194,7 @@ export function GuestImportModal({ isOpen, onClose, onImport }: GuestImportModal
                       {preview.slice(0, 50).map((g, i) => (
                         <tr key={i} className="border-t border-gold/5">
                           <td className="px-3 py-2 text-ink truncate max-w-[120px]">{g.name}</td>
-                          <td className="px-3 py-2 text-ink/80">{g.phone || '—'}</td>
+                          <td className="px-3 py-2 text-ink/80 break-words max-w-[100px]">{g.phone || '—'}</td>
                           <td className="px-3 py-2">
                             <span className={`text-[8px] px-1.5 py-0.5 rounded-full uppercase font-black ${
                               g.category === 'pria' ? 'bg-blue-50 text-blue-600' : 'bg-pink-50 text-pink-600'

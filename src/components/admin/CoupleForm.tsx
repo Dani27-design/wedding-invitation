@@ -305,7 +305,7 @@ export function CoupleForm({ data, onSave, isSaving, onDirty, step, totalSteps }
       {renderSide("groom", "Pengantin Pria", "Informasi Pengantin Pria", groomNickname, setGroomNickname, groomName, setGroomName, groomParents, setGroomParents, groomPhotoPreview, groomPhotoFile, groomSocialLinks)}
       {renderSide("bride", "Pengantin Wanita", "Informasi Pengantin Wanita", brideNickname, setBrideNickname, brideName, setBrideName, brideParents, setBrideParents, bridePhotoPreview, bridePhotoFile, brideSocialLinks)}
 
-      {error && <p className="text-xs text-red-500 text-center">{error}</p>}
+      {error && <p className="text-xs text-red-500 text-center break-words">{error}</p>}
       {compressionInfo && <p className="text-[10px] text-green-600 text-center">{compressionInfo}</p>}
 
       {/* Progress bar */}

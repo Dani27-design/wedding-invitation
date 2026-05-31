@@ -49,8 +49,8 @@ export const EventSection = memo(() => {
     {/* Mobile */}
     <div className="lg:hidden container mx-auto px-6 max-w-lg relative z-10 flex flex-col items-center text-center gap-[3vh]">
         <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 1.2, delay: 0.2 }} className="max-w-[300px]">
-          <p className="font-serif text-sm leading-relaxed text-gold mb-1" dir="rtl">{wedding?.quranArabic}</p>
-          <p className="font-serif italic text-xs leading-relaxed text-ink/60 mt-1">"{wedding?.quranTranslation}"</p>
+          <p className="font-serif text-sm leading-relaxed text-gold mb-1 break-words" dir="rtl">{wedding?.quranArabic}</p>
+          <p className="font-serif italic text-xs leading-relaxed text-ink/60 mt-1 break-words">"{wedding?.quranTranslation}"</p>
           <p className="text-xs uppercase tracking-[0.3em] text-gold/60 mt-1 font-medium">{wedding?.quranReference}</p>
         </motion.div>
 
@@ -74,7 +74,7 @@ export const EventSection = memo(() => {
           {ceremonies.map((c, i) => (
             <BlobCard key={`${c.name}-${i}`} blobIndex={i + 1} ringIndex={i + 1} className="w-full">
               <div className="py-5 px-6 text-center">
-                <span className="font-serif text-xl italic text-ink block mb-1">{c.name}</span>
+                <span className="font-serif text-xl italic text-ink block mb-1 break-words">{c.name}</span>
                 {c.date && c.date !== wedding?.eventDate && (
                   <p className="text-xs text-ink/60 mb-1">{deriveDateDisplay(c.date)}</p>
                 )}
@@ -84,7 +84,7 @@ export const EventSection = memo(() => {
                   <>
                     <div className="flex justify-center items-center gap-2 mt-3 mb-1">
                       <MapPin className="w-3.5 h-3.5 text-gold" />
-                      <p className="font-serif italic text-sm text-ink">{c.venueName}</p>
+                      <p className="font-serif italic text-sm text-ink break-words">{c.venueName}</p>
                     </div>
                     {c.venueAddress && <p className="text-xs text-ink/60 font-light max-w-[280px] mx-auto leading-relaxed">{c.venueAddress}</p>}
                     {c.venueMapsUrl && (
@@ -107,7 +107,7 @@ export const EventSection = memo(() => {
         {/* Left: quote + countdown */}
         <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }} className="flex-[1.2] text-left">
           <div className="max-w-md">
-            <p className="font-serif text-base leading-relaxed text-gold mb-1" dir="rtl">{wedding?.quranArabic}</p>
+            <p className="font-serif text-base leading-relaxed text-gold mb-1 break-words" dir="rtl">{wedding?.quranArabic}</p>
             <p className="font-serif italic text-sm leading-relaxed text-ink/60 mt-2">"{wedding?.quranTranslation}"</p>
             <p className="text-xs uppercase tracking-[0.3em] text-gold/60 mt-2 font-medium">{wedding?.quranReference}</p>
           </div>
@@ -132,7 +132,7 @@ export const EventSection = memo(() => {
           {ceremonies.map((c, i) => (
             <BlobCard key={`${c.name}-${i}`} blobIndex={i + 1} ringIndex={i + 1}>
               <div className="py-7 px-8 text-center">
-                <span className="font-serif text-2xl italic text-ink block mb-2">{c.name}</span>
+                <span className="font-serif text-2xl italic text-ink block mb-2 break-words">{c.name}</span>
                 {c.date && c.date !== wedding?.eventDate && (
                   <p className="text-sm text-ink/60 mb-2">{deriveDateDisplay(c.date)}</p>
                 )}
@@ -142,10 +142,10 @@ export const EventSection = memo(() => {
                   <>
                     <div className="flex justify-center items-center gap-2 mt-4 mb-2">
                       <MapPin className="w-4 h-4 text-gold" />
-                      <p className="font-serif italic text-lg text-ink">{c.venueName}</p>
+                      <p className="font-serif italic text-lg text-ink break-words">{c.venueName}</p>
                     </div>
                     {c.venueAddress && (
-                      <p className="text-sm text-ink/60 font-light leading-relaxed">{c.venueAddress}</p>
+                      <p className="text-sm text-ink/60 font-light leading-relaxed break-words">{c.venueAddress}</p>
                     )}
                     {c.venueMapsUrl && (
                       <a href={safeUrl(c.venueMapsUrl)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 mt-3 px-3.5 py-2 bg-gold text-ivory rounded-xl text-xs font-black uppercase tracking-widest shadow-md shadow-gold/20 hover:shadow-lg hover:shadow-gold/30 hover:scale-[1.02] transition-all">

@@ -341,12 +341,12 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
           </div>
 
           {/* Filter */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
             {(['all', 'pria', 'wanita'] as const).map((cat) => (
               <button
                 key={cat}
                 onClick={() => setFilterCategory(cat)}
-                className={`px-3 py-2 rounded-full text-[10px] font-black uppercase tracking-wider transition-colors whitespace-nowrap ${
+                className={`px-3 py-2 rounded-full text-[10px] font-black uppercase tracking-normal sm:tracking-wider transition-colors whitespace-nowrap flex-shrink-0 ${
                   filterCategory === cat
                     ? 'bg-gold text-ivory'
                     : 'text-ink/80 border border-gold/15 hover:text-ink'
@@ -393,7 +393,7 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
                         </span>
                       )}
                     </div>
-                    {guest.phone && <p className="text-[10px] text-ink/80 mt-0.5">{guest.phone}</p>}
+                    {guest.phone && <p className="text-[10px] text-ink/80 mt-0.5 break-words">{guest.phone}</p>}
                   </div>
                   <div className="flex items-center gap-0.5 flex-shrink-0">
                     {getWhatsAppUrl(guest) && (

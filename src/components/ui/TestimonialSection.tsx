@@ -109,7 +109,7 @@ export function TestimonialSection() {
           </h2>
         </div>
 
-        <div className={`flex gap-4 items-stretch overflow-x-auto no-scrollbar pb-2 -mx-6 px-6 lg:mx-0 lg:px-0 lg:overflow-visible ${testimonials.length >= 3 ? 'lg:grid lg:grid-cols-3' : 'justify-center'}`}>
+        <div className={`flex gap-4 items-stretch overflow-x-auto no-scrollbar pb-2 -mx-6 px-6 lg:mx-0 lg:px-0 lg:overflow-visible lg:justify-center ${testimonials.length >= 3 ? 'lg:grid lg:grid-cols-3' : ''}`}>
           {testimonials.map(t => (
             <div
               key={t.id}

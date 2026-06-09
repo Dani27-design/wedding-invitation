@@ -298,6 +298,9 @@ export const ssrMeta = onRequest(async (req, res) => {
 /**
  * Build the welcome email HTML for a new user.
  * Shared by onUserCreated (auto) and sendRegistrationEmail (manual).
+ * @param {string} displayName - User display name.
+ * @param {string} email - User email address.
+ * @return {string} Email HTML string.
  */
 function buildWelcomeEmailHtml(
   displayName: string,
@@ -353,6 +356,8 @@ function buildWelcomeEmailHtml(
 /**
  * Send the welcome email via nodemailer.
  * Shared by onUserCreated (auto) and sendRegistrationEmail (manual).
+ * @param {string} email - Recipient email address.
+ * @param {string} displayName - Recipient display name.
  */
 async function sendWelcomeEmail(
   email: string,

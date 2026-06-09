@@ -107,7 +107,7 @@ export default function RegisterPage() {
                 Kembali ke Halaman Masuk
               </Link>
               <a
-                href={`https://wa.me/6288883816403?text=${encodeURIComponent(`Halo Kak, saya ${name.trim() || 'calon pengantin'} telah mendaftar di Marinikah Invitation dengan email ${email}. Mohon untuk diaktifkan kak. Terima kasih.`)}`}
+                href={`https://wa.me/628883816403?text=${encodeURIComponent(`Halo Kak, saya ${name.trim() || 'calon pengantin'} telah mendaftar di Marinikah Invitation dengan email ${email}. Mohon untuk diaktifkan kak. Terima kasih.`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-block px-8 py-3 border border-ink/15 rounded-full text-xs font-black uppercase tracking-[0.2em] text-ink/60 hover:border-gold hover:text-gold transition-colors"

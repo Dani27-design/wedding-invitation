@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Send } from 'lucide-react';
 
-const WA_NUMBER = '6288883816403';
+const WA_NUMBER = '628883816403';
 
 export function ConsultationForm() {
   const [name, setName] = useState('');

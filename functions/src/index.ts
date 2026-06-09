@@ -1,6 +1,7 @@
 import {setGlobalOptions} from "firebase-functions";
 import {onRequest, onCall, HttpsError} from "firebase-functions/https";
 import {onObjectFinalized} from "firebase-functions/storage";
+import {onDocumentCreated} from "firebase-functions/firestore";
 import {initializeApp} from "firebase-admin/app";
 import {getFirestore} from "firebase-admin/firestore";
 import {getStorage} from "firebase-admin/storage";
@@ -295,7 +296,125 @@ export const ssrMeta = onRequest(async (req, res) => {
 });
 
 /**
- * Send registration info email to a pending user.
+ * Build the welcome email HTML for a new user.
+ * Shared by onUserCreated (auto) and sendRegistrationEmail (manual).
+ */
+function buildWelcomeEmailHtml(
+  displayName: string,
+  email: string,
+): string {
+  const waLink =
+    "https://wa.me/628883816403?text=" +
+    encodeURIComponent(
+      `Halo Kak, saya ${displayName} (${email}). ` +
+      "Saya ingin mengajukan slug untuk undangan saya. " +
+      "Terima kasih.",
+    );
+
+  return [
+    "<div style=\"font-family:sans-serif;max-width:480px;" +
+      "margin:0 auto;padding:24px\">",
+    `  <h2 style="color:#1A1A1A">Halo ${esc(displayName)},</h2>`,
+    "  <p style=\"color:#444;line-height:1.6\">",
+    "    Terima kasih sudah mendaftar di " +
+      "<strong>Marinikah Invitation</strong>.",
+    "  </p>",
+    "  <p style=\"color:#444;line-height:1.6\">",
+    "    Untuk mengaktifkan undangan Anda, silakan " +
+      "hubungi kami via WhatsApp untuk mengajukan " +
+      "<strong>slug</strong> (alamat URL) undangan Anda. " +
+      "Contoh: <code>dani-marini</code> akan menjadi " +
+      "<code>marinikah.com/dani-marini</code>.",
+    "  </p>",
+    "  <div style=\"text-align:center;margin:24px 0\">",
+    `    <a href="${waLink}" ` +
+      "style=\"display:inline-block;padding:12px 28px;" +
+      "background:#B48D3E;color:#fff;text-decoration:none;" +
+      "border-radius:999px;font-size:14px;" +
+      "font-weight:bold\">",
+    "      Hubungi Admin via WhatsApp",
+    "    </a>",
+    "  </div>",
+    "  <p style=\"color:#888;font-size:12px\">",
+    "    Atau hubungi langsung di: " +
+      "<a href=\"https://wa.me/628883816403\" " +
+      "style=\"color:#B48D3E\">+62 888-3816-403</a>",
+    "  </p>",
+    "  <hr style=\"border:none;border-top:1px solid #eee;" +
+      "margin:24px 0\" />",
+    "  <p style=\"color:#aaa;font-size:11px;" +
+      "text-align:center\">",
+    "    Marinikah Invitation",
+    "  </p>",
+    "</div>",
+  ].join("\n");
+}
+
+/**
+ * Send the welcome email via nodemailer.
+ * Shared by onUserCreated (auto) and sendRegistrationEmail (manual).
+ */
+async function sendWelcomeEmail(
+  email: string,
+  displayName: string,
+): Promise<void> {
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_APP_PASSWORD,
+    },
+  });
+
+  await transporter.sendMail({
+    from: `"Marinikah Invitation" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: "Selamat Datang di Marinikah Invitation!",
+    html: buildWelcomeEmailHtml(displayName, email),
+  });
+}
+
+/**
+ * Auto-send welcome email when a new user document is created.
+ * Triggers on users/{uid} document creation in Firestore.
+ */
+export const onUserCreated = onDocumentCreated(
+  {
+    document: "users/{uid}",
+    region: "asia-southeast2",
+    secrets: ["EMAIL_USER", "EMAIL_APP_PASSWORD"],
+  },
+  async (event) => {
+    const data = event.data?.data();
+    if (!data) return;
+
+    const email = data.email as string | undefined;
+    const displayName = data.displayName as string | undefined;
+
+    if (!email) {
+      console.warn(
+        "[onUserCreated] No email found for user:",
+        event.params.uid,
+      );
+      return;
+    }
+
+    try {
+      await sendWelcomeEmail(email, displayName || "Pengguna");
+      console.log(
+        `[onUserCreated] Welcome email sent to ${email}`,
+      );
+    } catch (error) {
+      console.error(
+        "[onUserCreated] Failed to send welcome email:",
+        error,
+      );
+    }
+  },
+);
+
+/**
+ * Resend registration info email to a pending user.
  * Callable only by super admins.
  */
 export const sendRegistrationEmail = onCall(
@@ -332,64 +451,7 @@ export const sendRegistrationEmail = onCall(
       );
     }
 
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_APP_PASSWORD,
-      },
-    });
-
-    const waLink =
-      "https://wa.me/628883816403?text=" +
-      encodeURIComponent(
-        `Halo Kak, saya ${displayName} (${email}). ` +
-        "Saya ingin mengajukan slug untuk undangan saya. " +
-        "Terima kasih.",
-      );
-
-    await transporter.sendMail({
-      from: `"Marinikah Invitation" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: "Selamat Datang di Marinikah Invitation!",
-      html: [
-        "<div style=\"font-family:sans-serif;max-width:480px;" +
-          "margin:0 auto;padding:24px\">",
-        `  <h2 style="color:#1A1A1A">Halo ${esc(displayName)},</h2>`,
-        "  <p style=\"color:#444;line-height:1.6\">",
-        "    Terima kasih sudah mendaftar di " +
-          "<strong>Marinikah Invitation</strong>.",
-        "  </p>",
-        "  <p style=\"color:#444;line-height:1.6\">",
-        "    Untuk mengaktifkan undangan Anda, silakan " +
-          "hubungi kami via WhatsApp untuk mengajukan " +
-          "<strong>slug</strong> (alamat URL) undangan Anda. " +
-          "Contoh: <code>dani-marini</code> akan menjadi " +
-          "<code>marinikah.com/dani-marini</code>.",
-        "  </p>",
-        "  <div style=\"text-align:center;margin:24px 0\">",
-        `    <a href="${waLink}" ` +
-          "style=\"display:inline-block;padding:12px 28px;" +
-          "background:#B48D3E;color:#fff;text-decoration:none;" +
-          "border-radius:999px;font-size:14px;" +
-          "font-weight:bold\">",
-        "      Hubungi Admin via WhatsApp",
-        "    </a>",
-        "  </div>",
-        "  <p style=\"color:#888;font-size:12px\">",
-        "    Atau hubungi langsung di: " +
-          "<a href=\"https://wa.me/628883816403\" " +
-          "style=\"color:#B48D3E\">+62 888-3816-403</a>",
-        "  </p>",
-        "  <hr style=\"border:none;border-top:1px solid #eee;" +
-          "margin:24px 0\" />",
-        "  <p style=\"color:#aaa;font-size:11px;" +
-          "text-align:center\">",
-        "    Marinikah Invitation",
-        "  </p>",
-        "</div>",
-      ].join("\n"),
-    });
+    await sendWelcomeEmail(email, displayName);
 
     return {success: true};
   },

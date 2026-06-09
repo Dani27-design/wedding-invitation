@@ -622,3 +622,17 @@
 **Solution:** Split into two rows — date input on its own full-width row, start/end time inputs on a second row with `flex gap-2`. Date gets full width (no more intrinsic width squeeze), time inputs share a row equally (~220px each).
 
 ---
+
+## Feature
+
+### ~~52. Auto-Send Welcome Email on User Registration~~ ✅ FIXED
+
+**Problem:** After a new user registered, the welcome email (with slug submission instructions and WhatsApp link) had to be manually sent by a super admin via the resend button.
+
+**Root Cause:** `functions/src/index.ts` — only had `sendRegistrationEmail` (an `onCall` function requiring super admin auth). No automatic trigger on user document creation.
+
+**Impact:** New users had to wait for a super admin to manually send the welcome email, causing delays in onboarding.
+
+**Solution:** Added `onUserCreated` Firestore trigger (`onDocumentCreated` on `users/{uid}`) that automatically sends the welcome email when a new user document is created during registration. Extracted shared `buildWelcomeEmailHtml` and `sendWelcomeEmail` helpers to avoid duplication with `sendRegistrationEmail` (kept as manual resend button for super admins). Added 12 tests covering both functions.
+
+---

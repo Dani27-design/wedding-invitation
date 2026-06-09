@@ -6,6 +6,7 @@ export default defineConfig({
   envPrefix: ['NEXT_PUBLIC_'],
   test: {
     environment: 'jsdom',
+    exclude: ['functions/**', 'node_modules/**'],
     setupFiles: ['./src/test/setup.ts'],
     globals: true,
     env: {

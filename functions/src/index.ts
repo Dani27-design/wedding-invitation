@@ -1,5 +1,5 @@
 import {setGlobalOptions} from "firebase-functions";
-import {onRequest} from "firebase-functions/https";
+import {onRequest, onCall, HttpsError} from "firebase-functions/https";
 import {onObjectFinalized} from "firebase-functions/storage";
 import {initializeApp} from "firebase-admin/app";
 import {getFirestore} from "firebase-admin/firestore";
@@ -9,6 +9,7 @@ import * as os from "os";
 import * as fs from "fs";
 import ffmpegInstaller from "@ffmpeg-installer/ffmpeg";
 import ffmpeg from "fluent-ffmpeg";
+import * as nodemailer from "nodemailer";
 
 ffmpeg.setFfmpegPath(ffmpegInstaller.path);
 
@@ -292,3 +293,104 @@ export const ssrMeta = onRequest(async (req, res) => {
     res.status(500).send("Internal error");
   }
 });
+
+/**
+ * Send registration info email to a pending user.
+ * Callable only by super admins.
+ */
+export const sendRegistrationEmail = onCall(
+  {
+    region: "asia-southeast2",
+    secrets: ["EMAIL_USER", "EMAIL_APP_PASSWORD"],
+  },
+  async (request) => {
+    // Verify caller is authenticated
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Login diperlukan");
+    }
+
+    // Verify caller is super admin
+    const callerSnap = await db
+      .doc(`users/${request.auth.uid}`)
+      .get();
+    if (callerSnap.data()?.role !== "super") {
+      throw new HttpsError(
+        "permission-denied",
+        "Hanya super admin",
+      );
+    }
+
+    const {email, displayName} = request.data as {
+      email: string;
+      displayName: string;
+    };
+
+    if (!email) {
+      throw new HttpsError(
+        "invalid-argument",
+        "Email wajib diisi",
+      );
+    }
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_APP_PASSWORD,
+      },
+    });
+
+    const waLink =
+      "https://wa.me/628883816403?text=" +
+      encodeURIComponent(
+        `Halo Kak, saya ${displayName} (${email}). ` +
+        "Saya ingin mengajukan slug untuk undangan saya. " +
+        "Terima kasih.",
+      );
+
+    await transporter.sendMail({
+      from: `"Marinikah Invitation" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Selamat Datang di Marinikah Invitation!",
+      html: [
+        "<div style=\"font-family:sans-serif;max-width:480px;" +
+          "margin:0 auto;padding:24px\">",
+        `  <h2 style="color:#1A1A1A">Halo ${esc(displayName)},</h2>`,
+        "  <p style=\"color:#444;line-height:1.6\">",
+        "    Terima kasih sudah mendaftar di " +
+          "<strong>Marinikah Invitation</strong>.",
+        "  </p>",
+        "  <p style=\"color:#444;line-height:1.6\">",
+        "    Untuk mengaktifkan undangan Anda, silakan " +
+          "hubungi kami via WhatsApp untuk mengajukan " +
+          "<strong>slug</strong> (alamat URL) undangan Anda. " +
+          "Contoh: <code>dani-marini</code> akan menjadi " +
+          "<code>marinikah.com/dani-marini</code>.",
+        "  </p>",
+        "  <div style=\"text-align:center;margin:24px 0\">",
+        `    <a href="${waLink}" ` +
+          "style=\"display:inline-block;padding:12px 28px;" +
+          "background:#B48D3E;color:#fff;text-decoration:none;" +
+          "border-radius:999px;font-size:14px;" +
+          "font-weight:bold\">",
+        "      Hubungi Admin via WhatsApp",
+        "    </a>",
+        "  </div>",
+        "  <p style=\"color:#888;font-size:12px\">",
+        "    Atau hubungi langsung di: " +
+          "<a href=\"https://wa.me/628883816403\" " +
+          "style=\"color:#B48D3E\">+62 888-3816-403</a>",
+        "  </p>",
+        "  <hr style=\"border:none;border-top:1px solid #eee;" +
+          "margin:24px 0\" />",
+        "  <p style=\"color:#aaa;font-size:11px;" +
+          "text-align:center\">",
+        "    Marinikah Invitation",
+        "  </p>",
+        "</div>",
+      ].join("\n"),
+    });
+
+    return {success: true};
+  },
+);

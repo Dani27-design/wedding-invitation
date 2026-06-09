@@ -11,7 +11,9 @@ import { auth } from '@/lib/firebase-auth';
 import { UserDocument, WeddingDocument } from '@/types/firestore';
 import { ConfirmDeleteModal } from '@/components/admin/ConfirmDeleteModal';
 import { THEME_DEFAULTS } from '@/constants/themeDefaults';
-import { LogOut, Users, FileText, Search, ExternalLink, Trash2, Check, X, UserRound, Globe, Archive, UserPlus, Star } from 'lucide-react';
+import { LogOut, Users, FileText, Search, ExternalLink, Trash2, Check, X, UserRound, Globe, Archive, UserPlus, Star, Mail } from 'lucide-react';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '@/lib/firebase';
 
 const TABS = ['Pendaftar', 'Undangan', 'Pengguna', 'Testimoni'] as const;
 
@@ -106,6 +108,22 @@ export default function SuperAdminPage() {
   const [isAssigning, setIsAssigning] = useState(false);
   const [testimonials, setTestimonials] = useState<{ id: string; weddingSlug: string; rating: number; message: string; coupleName: string }[]>([]);
   const [deleteTestimonialTarget, setDeleteTestimonialTarget] = useState<string | null>(null);
+  const [emailSending, setEmailSending] = useState<string | null>(null);
+  const [emailSent, setEmailSent] = useState<Set<string>>(new Set());
+
+  async function handleSendEmail(user: UserDocument) {
+    setEmailSending(user.uid);
+    try {
+      const sendEmail = httpsCallable(functions, 'sendRegistrationEmail');
+      await sendEmail({ email: user.email, displayName: user.displayName });
+      setEmailSent((prev) => new Set(prev).add(user.uid));
+    } catch (error) {
+      console.error('[SuperAdmin] Send email error:', (error as Error).message);
+      alert('Gagal mengirim email: ' + (error as Error).message);
+    } finally {
+      setEmailSending(null);
+    }
+  }
 
   useEffect(() => {
     if (isLoading || !authUser || userDoc?.role !== 'super') return;
@@ -492,6 +510,18 @@ export default function SuperAdminPage() {
                     {u.createdAt && <p className="text-[9px] text-ink/80">{formatDate(u.createdAt)}</p>}
                   </div>
                   <div className="flex gap-1.5 flex-shrink-0">
+                    <button
+                      onClick={() => handleSendEmail(u)}
+                      disabled={emailSending === u.uid || emailSent.has(u.uid)}
+                      className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${
+                        emailSent.has(u.uid)
+                          ? 'bg-blue-50 text-blue-400 cursor-default'
+                          : 'text-blue-300 hover:text-blue-500 hover:bg-blue-50'
+                      } disabled:opacity-50`}
+                      aria-label={`Kirim email ke ${u.displayName}`}
+                    >
+                      <Mail className={`w-4 h-4 ${emailSending === u.uid ? 'animate-pulse' : ''}`} />
+                    </button>
                     <button
                       onClick={() => setAcceptingUser(u)}
                       className="w-8 h-8 flex items-center justify-center rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition-colors"

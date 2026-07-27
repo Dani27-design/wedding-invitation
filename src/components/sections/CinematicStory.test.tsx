@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 const STORY_SLIDES = [
   { year: '2016 — 2017', text: 'Berawal dari chat sederhana,\nlalu kita dipertemukan di dunia nyata.\n\nCappucino cincau dan Indomaret Point—\njadi saksi awal cerita kita.', bgImage: '/images/bride_face_potrait.jpeg' },
@@ -13,6 +13,7 @@ const STORY_SLIDES = [
 const MOCK_LIKES = [142, 167, 128, 155, 139, 163];
 const mockIncrementLike = vi.fn();
 const mockAddComment = vi.fn();
+let mockTextHeights: Map<string, { clientHeight: number; scrollHeight: number }>;
 
 vi.mock('../../context/WeddingContext', () => ({
   useWeddingContext: () => ({
@@ -47,6 +48,20 @@ function renderStory() {
 describe('CinematicStory', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockTextHeights = new Map();
+  });
+
+  beforeEach(() => {
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockImplementation(function () {
+      return mockTextHeights.get(this.textContent ?? '')?.clientHeight ?? 54;
+    });
+    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockImplementation(function () {
+      return mockTextHeights.get(this.textContent ?? '')?.scrollHeight ?? 54;
+    });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   // ─── Basic Rendering ───────────────────────────────────────────────
@@ -594,6 +609,55 @@ describe('CinematicStory', () => {
       const { container } = renderStory();
       const section = container.querySelector('.scroll-snap-container');
       expect(section).toBeInTheDocument();
+    });
+
+    it('does not show read-more control when long text is not visually clamped', async () => {
+      const longButVisibleText = STORY_SLIDES[0].text;
+      mockTextHeights.set(longButVisibleText, { clientHeight: 54, scrollHeight: 54 });
+
+      renderStory();
+
+      await waitFor(() => {
+        expect(screen.queryByText('baca selengkapnya...')).not.toBeInTheDocument();
+      });
+      expect(screen.queryByLabelText('Baca selengkapnya')).not.toBeInTheDocument();
+    });
+
+    it('shows read-more control only when measured text overflows the three-line clamp', async () => {
+      const overflowingText = STORY_SLIDES[0].text;
+      mockTextHeights.set(overflowingText, { clientHeight: 54, scrollHeight: 90 });
+
+      renderStory();
+
+      expect(await screen.findByText('baca selengkapnya...')).toBeInTheDocument();
+      expect(screen.getByLabelText('Baca selengkapnya')).toBeInTheDocument();
+    });
+
+    it('toggles overflowing text from read-more to hide label', async () => {
+      const overflowingText = STORY_SLIDES[0].text;
+      mockTextHeights.set(overflowingText, { clientHeight: 54, scrollHeight: 90 });
+
+      renderStory();
+
+      const toggle = await screen.findByLabelText('Baca selengkapnya');
+      fireEvent.click(toggle);
+
+      expect(screen.getByText('sembunyikan...')).toBeInTheDocument();
+      expect(screen.getByLabelText('Sembunyikan teks')).toBeInTheDocument();
+    });
+
+    it('does not make non-overflowing text expandable by click or keyboard', async () => {
+      const longButVisibleText = STORY_SLIDES[0].text;
+      mockTextHeights.set(longButVisibleText, { clientHeight: 54, scrollHeight: 54 });
+
+      renderStory();
+
+      await waitFor(() => {
+        expect(screen.queryByLabelText('Baca selengkapnya')).not.toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText(/Berawal dari chat sederhana/));
+      expect(screen.queryByText('sembunyikan...')).not.toBeInTheDocument();
     });
   });
 });

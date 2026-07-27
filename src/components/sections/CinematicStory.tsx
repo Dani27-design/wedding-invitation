@@ -14,9 +14,45 @@ interface CinematicStoryProps {
   weddingSlug: string;
 }
 
+const OVERFLOW_TOLERANCE_PX = 1;
+
+function sameSet(a: Set<number>, b: Set<number>) {
+  if (a.size !== b.size) return false;
+  for (const value of a) {
+    if (!b.has(value)) return false;
+  }
+  return true;
+}
+
+function isClampedOverflowing(el: HTMLElement) {
+  const clone = el.cloneNode(true) as HTMLElement;
+  const width = el.getBoundingClientRect().width || el.offsetWidth || el.clientWidth;
+
+  clone.classList.add('line-clamp-3');
+  clone.style.position = 'absolute';
+  clone.style.visibility = 'hidden';
+  clone.style.pointerEvents = 'none';
+  clone.style.left = '-9999px';
+  clone.style.top = '0';
+  clone.style.width = width > 0 ? `${width}px` : 'auto';
+  clone.style.display = '-webkit-box';
+  clone.style.setProperty('-webkit-box-orient', 'vertical');
+  clone.style.setProperty('-webkit-line-clamp', '3');
+  clone.style.overflow = 'hidden';
+
+  document.body.appendChild(clone);
+  const overflowing = clone.scrollHeight > clone.clientHeight + OVERFLOW_TOLERANCE_PX;
+  clone.remove();
+
+  return overflowing;
+}
+
 export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
   const wedding = useWeddingContext();
   const slides = wedding?.story ?? [];
+  const storySignature = slides
+    .map((slide) => `${slide.year}\n${slide.text}\n${slide.bgImage}\n${slide.bgVideo ?? ''}`)
+    .join('\n---\n');
 
   const [commentInput, setCommentInput] = useState<{ index: number; name: string; text: string } | null>(null);
   const [heartTrigger, setHeartTrigger] = useState(0);
@@ -29,6 +65,8 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
   const scrollRafRef = useRef(false);
   const scrollLockRef = useRef(false);
   const videoRefs = useRef<Map<number, HTMLVideoElement>>(new Map());
+  const textRefs = useRef<Map<number, HTMLParagraphElement>>(new Map());
+  const [overflowingSlides, setOverflowingSlides] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     const el = sectionRef.current;
@@ -43,6 +81,39 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
 
   const { likes, incrementLike } = useStoryLikes(weddingSlug, isVisible);
   const { comments, addComment } = useStoryComments(weddingSlug, activeSlide, isVisible);
+
+  const measureOverflowingSlides = useCallback(() => {
+    const next = new Set<number>();
+    textRefs.current.forEach((el, idx) => {
+      if (idx < slides.length && isClampedOverflowing(el)) next.add(idx);
+    });
+    setOverflowingSlides((prev) => (sameSet(prev, next) ? prev : next));
+  }, [slides.length]);
+
+  useEffect(() => {
+    let cancelled = false;
+    let raf = requestAnimationFrame(() => {
+      if (!cancelled) measureOverflowingSlides();
+    });
+
+    const handleResize = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        if (!cancelled) measureOverflowingSlides();
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    document.fonts?.ready.then(() => {
+      if (!cancelled) handleResize();
+    }).catch(() => {});
+
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [measureOverflowingSlides, storySignature]);
 
   // Manage video play/pause based on active slide
   useEffect(() => {
@@ -154,6 +225,7 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
         {slides.map((slide, idx) => {
           const isActive = idx === activeSlide;
           const isNear = Math.abs(idx - activeSlide) <= 1;
+          const canExpand = overflowingSlides.has(idx);
 
           return (
           <div key={idx} className="relative h-full w-full min-w-full snap-center flex items-center justify-center overflow-hidden">
@@ -241,8 +313,8 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
             {/* Text content — always mounted, CSS fade */}
             <div className={`absolute inset-x-0 bottom-0 z-30 bg-gradient-to-t from-ink from-30% via-ink/70 via-60% to-transparent transition-opacity duration-300 ${isNear ? 'opacity-100' : 'opacity-0'}`}>
               <div
-                className={`px-5 lg:px-0 pt-24 pb-20 sm:pb-24 md:pb-32 max-w-[85%] md:max-w-md lg:max-w-lg lg:mx-auto ${slide.text.length > 100 ? 'cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gold/30 focus-visible:rounded' : ''}`}
-                {...(slide.text.length > 100 ? {
+                className={`px-5 lg:px-0 pt-24 pb-20 sm:pb-24 md:pb-32 max-w-[85%] md:max-w-md lg:max-w-lg lg:mx-auto ${canExpand ? 'cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gold/30 focus-visible:rounded' : ''}`}
+                {...(canExpand ? {
                   role: 'button',
                   tabIndex: 0,
                   'aria-label': expandedSlides.has(idx) ? 'Sembunyikan teks' : 'Baca selengkapnya',
@@ -259,7 +331,7 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
                 } : {})}
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (slide.text.length <= 100) return;
+                  if (!canExpand) return;
                   setExpandedSlides(prev => {
                     const next = new Set(prev);
                     if (next.has(idx)) next.delete(idx); else next.add(idx);
@@ -268,8 +340,16 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
                 }}
               >
                 <h2 className="font-serif italic text-xs md:text-sm text-ivory/90 leading-relaxed whitespace-pre-line font-bold mb-1">{slide.year}</h2>
-                <p className={`font-serif italic text-xs md:text-sm text-ivory/70 leading-relaxed whitespace-pre-line break-words ${expandedSlides.has(idx) ? '' : 'line-clamp-3'}`}>{slide.text}</p>
-                {slide.text.length > 100 && (
+                <p
+                  ref={(el) => {
+                    if (el) textRefs.current.set(idx, el);
+                    else textRefs.current.delete(idx);
+                  }}
+                  className={`font-serif italic text-xs md:text-sm text-ivory/70 leading-relaxed whitespace-pre-line break-words ${expandedSlides.has(idx) && canExpand ? '' : 'line-clamp-3'}`}
+                >
+                  {slide.text}
+                </p>
+                {canExpand && (
                   <span className="font-serif italic text-xs text-gold mt-1 block">
                     {expandedSlides.has(idx) ? 'sembunyikan...' : 'baca selengkapnya...'}
                   </span>

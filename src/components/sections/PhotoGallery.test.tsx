@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { afterEach, describe, it, expect, vi } from 'vitest';
+import { act, render, screen, fireEvent } from '@testing-library/react';
 import { getGalleryLayout } from '../../utils/galleryLayout';
 
 const GALLERY_URLS = [
@@ -33,7 +33,99 @@ function renderGallery(onSelectPhoto = vi.fn()) {
   return render(<PhotoGallery onSelectPhoto={onSelectPhoto} />);
 }
 
+const originalMatchMedia = window.matchMedia;
+const originalRequestAnimationFrame = window.requestAnimationFrame;
+const originalCancelAnimationFrame = window.cancelAnimationFrame;
+
+function mockPrefersReducedMotion(matches: boolean) {
+  Object.defineProperty(window, 'matchMedia', {
+    configurable: true,
+    writable: true,
+    value: vi.fn().mockImplementation((query: string) => ({
+      matches,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  });
+}
+
+function mockAnimationFrame() {
+  const callbacks: FrameRequestCallback[] = [];
+  const requestAnimationFrameMock = vi.fn((callback: FrameRequestCallback) => {
+    callbacks.push(callback);
+    return callbacks.length;
+  });
+  const cancelAnimationFrameMock = vi.fn();
+
+  Object.defineProperty(window, 'requestAnimationFrame', {
+    configurable: true,
+    writable: true,
+    value: requestAnimationFrameMock,
+  });
+  Object.defineProperty(window, 'cancelAnimationFrame', {
+    configurable: true,
+    writable: true,
+    value: cancelAnimationFrameMock,
+  });
+
+  return {
+    cancelAnimationFrameMock,
+    requestAnimationFrameMock,
+    runNextFrame: (time: number) => {
+      const callback = callbacks.shift();
+      if (!callback) throw new Error('No animation frame callback was queued');
+      act(() => callback(time));
+    },
+  };
+}
+
+function mockScrollerDimensions(scroller: HTMLElement, scrollWidth = 1200, clientWidth = 300) {
+  let currentScrollLeft = 0;
+
+  Object.defineProperty(scroller, 'scrollWidth', {
+    configurable: true,
+    value: scrollWidth,
+  });
+  Object.defineProperty(scroller, 'clientWidth', {
+    configurable: true,
+    value: clientWidth,
+  });
+  Object.defineProperty(scroller, 'scrollLeft', {
+    configurable: true,
+    get: () => currentScrollLeft,
+    set: (value) => {
+      currentScrollLeft = value;
+    },
+  });
+}
+
 describe('PhotoGallery', () => {
+  afterEach(() => {
+    vi.clearAllTimers();
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      writable: true,
+      value: originalMatchMedia,
+    });
+    Object.defineProperty(window, 'requestAnimationFrame', {
+      configurable: true,
+      writable: true,
+      value: originalRequestAnimationFrame,
+    });
+    Object.defineProperty(window, 'cancelAnimationFrame', {
+      configurable: true,
+      writable: true,
+      value: originalCancelAnimationFrame,
+    });
+  });
+
   // ─── Basic Rendering ───────────────────────────────────────────────
   describe('rendering', () => {
     it('renders without crashing', () => {
@@ -222,6 +314,11 @@ describe('PhotoGallery', () => {
       expect(container.querySelector('.overflow-x-auto')).toBeInTheDocument();
     });
 
+    it('identifies the scroll container as the animated carousel', () => {
+      renderGallery();
+      expect(screen.getByTestId('photo-gallery-carousel')).toHaveClass('overflow-x-auto');
+    });
+
     it('has scroll fade gradient on right side', () => {
       const { container } = renderGallery();
       const fade = container.querySelector('.bg-gradient-to-l');
@@ -263,6 +360,86 @@ describe('PhotoGallery', () => {
       const { container } = renderGallery();
       const relativeWrapper = container.querySelector('.relative');
       expect(relativeWrapper).toBeInTheDocument();
+    });
+  });
+
+  // ─── Carousel Motion ──────────────────────────────────────────────
+  describe('carousel motion', () => {
+    it('auto-scrolls the gallery when horizontal overflow is available', () => {
+      mockPrefersReducedMotion(false);
+      const { runNextFrame } = mockAnimationFrame();
+
+      renderGallery();
+      const scroller = screen.getByTestId('photo-gallery-carousel');
+      mockScrollerDimensions(scroller);
+
+      runNextFrame(0);
+      runNextFrame(1000);
+
+      expect(scroller.scrollLeft).toBe(24);
+    });
+
+    it('reverses carousel direction at the scroll edge instead of jumping', () => {
+      mockPrefersReducedMotion(false);
+      const { runNextFrame } = mockAnimationFrame();
+
+      renderGallery();
+      const scroller = screen.getByTestId('photo-gallery-carousel');
+      mockScrollerDimensions(scroller, 324, 300);
+
+      runNextFrame(0);
+      runNextFrame(1000);
+      runNextFrame(2000);
+
+      expect(scroller.scrollLeft).toBe(0);
+    });
+
+    it('pauses carousel motion while the gallery is hovered', () => {
+      mockPrefersReducedMotion(false);
+      const { runNextFrame } = mockAnimationFrame();
+
+      renderGallery();
+      const scroller = screen.getByTestId('photo-gallery-carousel');
+      mockScrollerDimensions(scroller);
+
+      fireEvent.mouseEnter(scroller);
+      runNextFrame(0);
+      runNextFrame(1000);
+
+      expect(scroller.scrollLeft).toBe(0);
+    });
+
+    it('resumes carousel motion after user interaction delay', () => {
+      vi.useFakeTimers();
+      mockPrefersReducedMotion(false);
+      const { runNextFrame } = mockAnimationFrame();
+
+      renderGallery();
+      const scroller = screen.getByTestId('photo-gallery-carousel');
+      mockScrollerDimensions(scroller);
+
+      fireEvent.pointerDown(scroller);
+      runNextFrame(0);
+      runNextFrame(1000);
+      expect(scroller.scrollLeft).toBe(0);
+
+      act(() => {
+        vi.advanceTimersByTime(2500);
+      });
+      runNextFrame(2000);
+      runNextFrame(3000);
+
+      expect(scroller.scrollLeft).toBe(24);
+      vi.useRealTimers();
+    });
+
+    it('does not start auto-scroll for reduced-motion users', () => {
+      mockPrefersReducedMotion(true);
+      const { requestAnimationFrameMock } = mockAnimationFrame();
+
+      renderGallery();
+
+      expect(requestAnimationFrameMock).not.toHaveBeenCalled();
     });
   });
 

@@ -1,5 +1,5 @@
 'use client';
-import { memo } from 'react';
+import { memo, useCallback, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { motion } from 'motion/react';
 import { Image as ImageIcon } from 'lucide-react';
@@ -7,13 +7,87 @@ import { useWeddingContext } from '../../context/WeddingContext';
 import { getGalleryLayout } from '../../utils/galleryLayout';
 import { SHIMMER_PAPER } from '../../utils/shimmer';
 
+const CAROUSEL_SPEED_PX_PER_SECOND = 24;
+const CAROUSEL_RESUME_DELAY_MS = 2500;
+
 interface PhotoGalleryProps {
   onSelectPhoto: (src: string) => void;
 }
 
 export const PhotoGallery = memo(({ onSelectPhoto }: PhotoGalleryProps) => {
   const wedding = useWeddingContext();
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const frameRef = useRef<number | null>(null);
+  const lastFrameTimeRef = useRef<number | null>(null);
+  const directionRef = useRef(1);
+  const isPausedRef = useRef(false);
+  const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const galleryItems = (wedding?.gallery ?? []).map((src, i) => ({ src, ...getGalleryLayout(i) }));
+
+  const clearResumeTimer = useCallback(() => {
+    if (resumeTimerRef.current) {
+      clearTimeout(resumeTimerRef.current);
+      resumeTimerRef.current = null;
+    }
+  }, []);
+
+  const pauseCarousel = useCallback(() => {
+    clearResumeTimer();
+    isPausedRef.current = true;
+  }, [clearResumeTimer]);
+
+  const resumeCarousel = useCallback(() => {
+    clearResumeTimer();
+    resumeTimerRef.current = setTimeout(() => {
+      isPausedRef.current = false;
+      lastFrameTimeRef.current = null;
+    }, CAROUSEL_RESUME_DELAY_MS);
+  }, [clearResumeTimer]);
+
+  const pauseCarouselTemporarily = useCallback(() => {
+    pauseCarousel();
+    resumeCarousel();
+  }, [pauseCarousel, resumeCarousel]);
+
+  useEffect(() => {
+    const scroller = scrollRef.current;
+    const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+    if (!scroller || prefersReducedMotion || typeof window.requestAnimationFrame !== 'function') return undefined;
+
+    const animate = (time: number) => {
+      const lastFrameTime = lastFrameTimeRef.current;
+
+      if (!isPausedRef.current && lastFrameTime !== null) {
+        const maxScroll = scroller.scrollWidth - scroller.clientWidth;
+
+        if (maxScroll > 0) {
+          const deltaSeconds = (time - lastFrameTime) / 1000;
+          let nextScrollLeft = scroller.scrollLeft + (directionRef.current * CAROUSEL_SPEED_PX_PER_SECOND * deltaSeconds);
+
+          if (nextScrollLeft >= maxScroll) {
+            nextScrollLeft = maxScroll;
+            directionRef.current = -1;
+          } else if (nextScrollLeft <= 0) {
+            nextScrollLeft = 0;
+            directionRef.current = 1;
+          }
+
+          scroller.scrollLeft = nextScrollLeft;
+        }
+      }
+
+      lastFrameTimeRef.current = time;
+      frameRef.current = window.requestAnimationFrame(animate);
+    };
+
+    frameRef.current = window.requestAnimationFrame(animate);
+
+    return () => {
+      if (frameRef.current !== null && typeof window.cancelAnimationFrame === 'function') window.cancelAnimationFrame(frameRef.current);
+      clearResumeTimer();
+    };
+  }, [clearResumeTimer]);
 
   if (galleryItems.length === 0) return null;
 
@@ -30,7 +104,17 @@ export const PhotoGallery = memo(({ onSelectPhoto }: PhotoGalleryProps) => {
 
       <div className="relative">
         <div className="absolute -right-8 top-0 bottom-0 w-12 bg-gradient-to-l from-paper to-transparent z-10 pointer-events-none" />
-        <div className="overflow-x-auto pb-4 -mx-4 px-4">
+        <div
+          ref={scrollRef}
+          data-testid="photo-gallery-carousel"
+          onMouseEnter={pauseCarousel}
+          onMouseLeave={resumeCarousel}
+          onFocus={pauseCarousel}
+          onBlur={resumeCarousel}
+          onPointerDown={pauseCarouselTemporarily}
+          onTouchStart={pauseCarouselTemporarily}
+          className="overflow-x-auto pb-4 -mx-4 px-4"
+        >
           <div className="py-5 grid grid-rows-[150px_150px] sm:grid-rows-[200px_200px] md:grid-rows-[280px_280px] grid-flow-col-dense gap-3 sm:gap-4 md:gap-6 auto-cols-[120px] sm:auto-cols-[150px] md:auto-cols-[210px]">
             {galleryItems.map((item, i) => (
               <motion.div

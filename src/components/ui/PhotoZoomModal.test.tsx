@@ -49,9 +49,9 @@ describe('PhotoZoomModal', () => {
       expect(container.children.length).toBeGreaterThan(0);
     });
 
-    it('renders an img element', () => {
+    it('renders background and main img elements', () => {
       const { container } = render(<PhotoZoomModal selectedPhoto="/photo.jpg" onClose={vi.fn()} />);
-      expect(container.querySelectorAll('img')).toHaveLength(1);
+      expect(container.querySelectorAll('img')).toHaveLength(2);
     });
   });
 
@@ -202,22 +202,30 @@ describe('PhotoZoomModal', () => {
       const btn = screen.getByLabelText('Tutup');
       expect(btn).toHaveClass('backdrop-blur-md');
     });
+
+    it('renders a blurred decorative background image from the selected photo', () => {
+      const { container } = render(<PhotoZoomModal selectedPhoto="/test.jpg" onClose={vi.fn()} />);
+      const decorativeImage = container.querySelector('img[aria-hidden="true"]');
+      expect(decorativeImage).toHaveAttribute('src', '/test.jpg');
+      expect(decorativeImage).toHaveClass('object-cover', 'opacity-25', 'blur-2xl', 'scale-110');
+    });
   });
 
   // ---------------------------------------------------------------------------
-  // 10. Max-height constraint
+  // 10. Fixed viewer sizing
   // ---------------------------------------------------------------------------
-  describe('max-height constraint', () => {
-    it('image has max-height constraint via style', () => {
+  describe('fixed viewer sizing', () => {
+    it('viewer frame has stable responsive dimensions for every opened photo', () => {
       render(<PhotoZoomModal selectedPhoto="/test.jpg" onClose={vi.fn()} />);
       const img = screen.getByAltText('Foto dalam tampilan penuh');
-      expect(img.style.maxHeight).toBe('85vh');
+      const frame = img.parentElement;
+      expect(frame).toHaveClass('w-[88vw]', 'h-[72vh]', 'max-w-[760px]', 'max-h-[820px]', 'sm:h-[78vh]');
     });
 
-    it('image has max-width constraint via style', () => {
+    it('main image fills the fixed viewer frame', () => {
       render(<PhotoZoomModal selectedPhoto="/test.jpg" onClose={vi.fn()} />);
       const img = screen.getByAltText('Foto dalam tampilan penuh');
-      expect(img.style.maxWidth).toBe('100%');
+      expect(img).toHaveClass('h-full', 'w-full');
     });
 
     it('image uses object-contain to prevent distortion', () => {
@@ -254,17 +262,17 @@ describe('PhotoZoomModal', () => {
   // 12. Border-radius
   // ---------------------------------------------------------------------------
   describe('border-radius', () => {
-    it('image has rounded-[1.5rem]', () => {
+    it('image has rounded-[1.25rem]', () => {
       render(<PhotoZoomModal selectedPhoto="/test.jpg" onClose={vi.fn()} />);
       const img = screen.getByAltText('Foto dalam tampilan penuh');
-      expect(img).toHaveClass('rounded-[1.5rem]');
+      expect(img).toHaveClass('rounded-[1.25rem]');
     });
 
-    it('image container has rounded-[2rem]', () => {
+    it('image container has rounded-[1.5rem]', () => {
       render(<PhotoZoomModal selectedPhoto="/test.jpg" onClose={vi.fn()} />);
       const img = screen.getByAltText('Foto dalam tampilan penuh');
       const container = img.parentElement;
-      expect(container).toHaveClass('rounded-[2rem]');
+      expect(container).toHaveClass('rounded-[1.5rem]');
     });
 
     it('close button has rounded-full', () => {
@@ -285,18 +293,18 @@ describe('PhotoZoomModal', () => {
       expect(container).toHaveClass('overflow-hidden');
     });
 
-    it('image container has relative positioning for close button', () => {
+    it('image container has relative positioning for fixed viewer layering', () => {
       render(<PhotoZoomModal selectedPhoto="/test.jpg" onClose={vi.fn()} />);
       const img = screen.getByAltText('Foto dalam tampilan penuh');
       const container = img.parentElement;
-      expect(container).toHaveClass('relative');
+      expect(container).toHaveClass('relative', 'z-10');
     });
 
-    it('image container has max-w-5xl', () => {
+    it('image container has fixed max width', () => {
       render(<PhotoZoomModal selectedPhoto="/test.jpg" onClose={vi.fn()} />);
       const img = screen.getByAltText('Foto dalam tampilan penuh');
       const container = img.parentElement;
-      expect(container).toHaveClass('max-w-5xl');
+      expect(container).toHaveClass('max-w-[760px]');
     });
   });
 
@@ -315,28 +323,34 @@ describe('PhotoZoomModal', () => {
   // 15. Close button hover style classes
   // ---------------------------------------------------------------------------
   describe('close button styling', () => {
-    it('close button has hover:bg-white/40 class', () => {
+    it('close button has red glass hover style', () => {
       render(<PhotoZoomModal selectedPhoto="/test.jpg" onClose={vi.fn()} />);
       const btn = screen.getByLabelText('Tutup');
-      expect(btn).toHaveClass('hover:bg-white/40');
+      expect(btn).toHaveClass('hover:bg-red-500/40');
     });
 
-    it('close button has bg-white/20 base style', () => {
+    it('close button has red glass base style', () => {
       render(<PhotoZoomModal selectedPhoto="/test.jpg" onClose={vi.fn()} />);
       const btn = screen.getByLabelText('Tutup');
-      expect(btn).toHaveClass('bg-white/20');
+      expect(btn).toHaveClass('bg-red-500/25');
     });
 
-    it('close button has white text', () => {
+    it('close button has soft red-tinted icon color', () => {
       render(<PhotoZoomModal selectedPhoto="/test.jpg" onClose={vi.fn()} />);
       const btn = screen.getByLabelText('Tutup');
-      expect(btn).toHaveClass('text-white');
+      expect(btn).toHaveClass('text-red-50');
     });
 
-    it('close button has border', () => {
+    it('close button has red glass border', () => {
       render(<PhotoZoomModal selectedPhoto="/test.jpg" onClose={vi.fn()} />);
       const btn = screen.getByLabelText('Tutup');
-      expect(btn.className).toContain('border');
+      expect(btn).toHaveClass('border', 'border-red-200/40');
+    });
+
+    it('close button has red shadow depth', () => {
+      render(<PhotoZoomModal selectedPhoto="/test.jpg" onClose={vi.fn()} />);
+      const btn = screen.getByLabelText('Tutup');
+      expect(btn).toHaveClass('shadow-lg', 'shadow-red-950/40');
     });
 
     it('close button has transition-all', () => {
@@ -345,10 +359,10 @@ describe('PhotoZoomModal', () => {
       expect(btn).toHaveClass('transition-all');
     });
 
-    it('close button has absolute positioning (top-right corner)', () => {
+    it('close button has fixed positioning (top-right corner)', () => {
       render(<PhotoZoomModal selectedPhoto="/test.jpg" onClose={vi.fn()} />);
       const btn = screen.getByLabelText('Tutup');
-      expect(btn).toHaveClass('absolute', 'top-6', 'right-6');
+      expect(btn).toHaveClass('fixed', 'top-5', 'right-5', 'z-20');
     });
 
     it('close button has fixed dimensions (w-12 h-12)', () => {

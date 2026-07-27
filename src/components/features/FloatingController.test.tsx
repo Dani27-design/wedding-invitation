@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, within, act } from '@testing-library/react';
 import { FloatingController } from './FloatingController';
 
 /* ------------------------------------------------------------------ */
@@ -14,6 +14,23 @@ const createProps = (overrides: Partial<Parameters<typeof FloatingController>[0]
   ...overrides,
 });
 
+function mockSectionTarget(top = 320) {
+  return {
+    getBoundingClientRect: vi.fn(() => ({ top })),
+  } as unknown as HTMLElement;
+}
+
+function mockWindowScrollTo() {
+  return vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
+}
+
+function mockNavigationFrames() {
+  return vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+    callback(0);
+    return 0;
+  });
+}
+
 /* ------------------------------------------------------------------ */
 /*  1. Rendering – basic mount & structural integrity                  */
 /* ------------------------------------------------------------------ */
@@ -21,6 +38,15 @@ const createProps = (overrides: Partial<Parameters<typeof FloatingController>[0]
 describe('FloatingController', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockNavigationFrames();
+  });
+
+  afterEach(() => {
+    document.body.className = '';
+    document.body.removeAttribute('style');
+    document.body.innerHTML = '';
+    vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   describe('Rendering', () => {
@@ -50,19 +76,26 @@ describe('FloatingController', () => {
       expect(container.firstChild).toHaveClass('z-[100]');
     });
 
-    it('has touch-none class to prevent scroll interference during drag', () => {
+    it('does not apply touch-none to the full floating controller', () => {
       const { container } = render(<FloatingController {...createProps()} />);
-      expect(container.firstChild).toHaveClass('touch-none');
+      expect(container.firstChild).not.toHaveClass('touch-none');
     });
 
-    it('has cursor-grab class for drag affordance', () => {
-      const { container } = render(<FloatingController {...createProps()} />);
-      expect(container.firstChild).toHaveClass('cursor-grab');
+    it('keeps touch-none scoped to the draggable main button', () => {
+      render(<FloatingController {...createProps()} />);
+      expect(screen.getByLabelText('Buka menu')).toHaveClass('touch-none');
     });
 
-    it('has active:cursor-grabbing for active drag state', () => {
+    it('does not apply drag affordance to the full floating controller', () => {
       const { container } = render(<FloatingController {...createProps()} />);
-      expect(container.firstChild).toHaveClass('active:cursor-grabbing');
+      expect(container.firstChild).not.toHaveClass('cursor-grab');
+    });
+
+    it('keeps drag affordance scoped to the main button', () => {
+      render(<FloatingController {...createProps()} />);
+      const btn = screen.getByLabelText('Buka menu');
+      expect(btn).toHaveClass('cursor-grab');
+      expect(btn).toHaveClass('active:cursor-grabbing');
     });
 
     it('uses flex-col layout for vertical stacking of items', () => {
@@ -186,9 +219,9 @@ describe('FloatingController', () => {
       expect(screen.queryByText('Putar Musik')).not.toBeInTheDocument();
     });
 
-    it('does not show Hentikan toggle', () => {
+    it('does not show Senyapkan Musik toggle', () => {
       render(<FloatingController {...createProps({ isPlaying: true })} />);
-      expect(screen.queryByText('Hentikan')).not.toBeInTheDocument();
+      expect(screen.queryByText('Senyapkan Musik')).not.toBeInTheDocument();
     });
 
     it('renders only the main button as a button element', () => {
@@ -278,9 +311,9 @@ describe('FloatingController', () => {
       expect(screen.getByText('Putar Musik')).toBeInTheDocument();
     });
 
-    it('shows "Hentikan" when isPlaying is true and menu open', () => {
+    it('shows "Senyapkan Musik" when isPlaying is true and menu open', () => {
       render(<FloatingController {...createProps({ isToolsOpen: true, isPlaying: true })} />);
-      expect(screen.getByText('Hentikan')).toBeInTheDocument();
+      expect(screen.getByText('Senyapkan Musik')).toBeInTheDocument();
     });
 
     it('does not show "Putar Musik" when playing', () => {
@@ -288,9 +321,9 @@ describe('FloatingController', () => {
       expect(screen.queryByText('Putar Musik')).not.toBeInTheDocument();
     });
 
-    it('does not show "Hentikan" when not playing', () => {
+    it('does not show "Senyapkan Musik" when not playing', () => {
       render(<FloatingController {...createProps({ isToolsOpen: true, isPlaying: false })} />);
-      expect(screen.queryByText('Hentikan')).not.toBeInTheDocument();
+      expect(screen.queryByText('Senyapkan Musik')).not.toBeInTheDocument();
     });
 
     it('calls toggleMusic when music button is clicked', () => {
@@ -300,10 +333,10 @@ describe('FloatingController', () => {
       expect(toggleMusic).toHaveBeenCalledTimes(1);
     });
 
-    it('calls toggleMusic when Hentikan is clicked', () => {
+    it('calls toggleMusic when Senyapkan Musik is clicked', () => {
       const toggleMusic = vi.fn();
       render(<FloatingController {...createProps({ isToolsOpen: true, isPlaying: true, toggleMusic })} />);
-      fireEvent.click(screen.getByText('Hentikan'));
+      fireEvent.click(screen.getByText('Senyapkan Musik'));
       expect(toggleMusic).toHaveBeenCalledTimes(1);
     });
 
@@ -379,8 +412,9 @@ describe('FloatingController', () => {
 
   describe('Navigation', () => {
     it('Twibbon button scrolls to twibbon-section', () => {
-      const scrollMock = vi.fn();
-      const getByIdMock = vi.fn().mockReturnValue({ scrollIntoView: scrollMock });
+      const scrollMock = mockWindowScrollTo();
+      const target = mockSectionTarget(420);
+      const getByIdMock = vi.fn().mockReturnValue(target);
       vi.spyOn(document, 'getElementById').mockImplementation(getByIdMock);
 
       const setIsToolsOpen = vi.fn();
@@ -388,48 +422,46 @@ describe('FloatingController', () => {
       fireEvent.click(screen.getByText('Twibbon'));
 
       expect(getByIdMock).toHaveBeenCalledWith('twibbon-section');
-      expect(scrollMock).toHaveBeenCalledWith({ behavior: 'smooth' });
+      expect(scrollMock).toHaveBeenCalledWith({ top: 412, left: 0, behavior: 'smooth' });
       expect(setIsToolsOpen).toHaveBeenCalledWith(false);
-
-      vi.restoreAllMocks();
     });
 
     it('Ucapan & Doa button scrolls to rsvp-section', () => {
-      const scrollMock = vi.fn();
-      vi.spyOn(document, 'getElementById').mockReturnValue({ scrollIntoView: scrollMock } as any);
+      const scrollMock = mockWindowScrollTo();
+      vi.spyOn(document, 'getElementById').mockReturnValue(mockSectionTarget());
 
       render(<FloatingController {...createProps({ isToolsOpen: true })} />);
       fireEvent.click(screen.getByText('Ucapan & Doa'));
 
       expect(document.getElementById).toHaveBeenCalledWith('rsvp-section');
-      vi.restoreAllMocks();
+      expect(scrollMock).toHaveBeenCalledWith(expect.objectContaining({ behavior: 'smooth' }));
     });
 
     it('Tanda Kasih button scrolls to gift-section', () => {
-      const scrollMock = vi.fn();
-      vi.spyOn(document, 'getElementById').mockReturnValue({ scrollIntoView: scrollMock } as any);
+      const scrollMock = mockWindowScrollTo();
+      vi.spyOn(document, 'getElementById').mockReturnValue(mockSectionTarget());
 
       render(<FloatingController {...createProps({ isToolsOpen: true })} />);
       fireEvent.click(screen.getByText('Tanda Kasih'));
 
       expect(document.getElementById).toHaveBeenCalledWith('gift-section');
-      vi.restoreAllMocks();
+      expect(scrollMock).toHaveBeenCalledWith(expect.objectContaining({ behavior: 'smooth' }));
     });
 
     it('Info Acara button scrolls to event-section', () => {
-      const scrollMock = vi.fn();
-      vi.spyOn(document, 'getElementById').mockReturnValue({ scrollIntoView: scrollMock } as any);
+      const scrollMock = mockWindowScrollTo();
+      vi.spyOn(document, 'getElementById').mockReturnValue(mockSectionTarget());
 
       render(<FloatingController {...createProps({ isToolsOpen: true })} />);
       fireEvent.click(screen.getByText('Info Acara'));
 
       expect(document.getElementById).toHaveBeenCalledWith('event-section');
-      vi.restoreAllMocks();
+      expect(scrollMock).toHaveBeenCalledWith(expect.objectContaining({ behavior: 'smooth' }));
     });
 
     it('navigation buttons close the menu after scrolling', () => {
-      const scrollMock = vi.fn();
-      vi.spyOn(document, 'getElementById').mockReturnValue({ scrollIntoView: scrollMock } as any);
+      mockWindowScrollTo();
+      vi.spyOn(document, 'getElementById').mockReturnValue(mockSectionTarget());
       const setIsToolsOpen = vi.fn();
 
       render(<FloatingController {...createProps({ isToolsOpen: true, setIsToolsOpen })} />);
@@ -448,21 +480,132 @@ describe('FloatingController', () => {
       setIsToolsOpen.mockClear();
       fireEvent.click(screen.getByText('Info Acara'));
       expect(setIsToolsOpen).toHaveBeenCalledWith(false);
-
-      vi.restoreAllMocks();
     });
 
-    it('gracefully handles missing section elements', () => {
+    it('keeps the menu open while a section target is still missing', () => {
+      vi.useFakeTimers();
+      mockNavigationFrames();
+      const scrollMock = mockWindowScrollTo();
       vi.spyOn(document, 'getElementById').mockReturnValue(null);
       const setIsToolsOpen = vi.fn();
 
       render(<FloatingController {...createProps({ isToolsOpen: true, setIsToolsOpen })} />);
-      // Should not throw
       expect(() => fireEvent.click(screen.getByText('Twibbon'))).not.toThrow();
-      // Still closes menu even if element not found
-      expect(setIsToolsOpen).toHaveBeenCalledWith(false);
 
-      vi.restoreAllMocks();
+      act(() => {
+        vi.advanceTimersByTime(4200);
+      });
+
+      expect(scrollMock).not.toHaveBeenCalled();
+      expect(setIsToolsOpen).not.toHaveBeenCalled();
+    });
+
+    it('retries navigation until a lazy-loaded section appears', () => {
+      vi.useFakeTimers();
+      mockNavigationFrames();
+      const scrollMock = mockWindowScrollTo();
+      const setIsToolsOpen = vi.fn();
+      const target = mockSectionTarget(560);
+      let lookupCount = 0;
+      vi.spyOn(document, 'getElementById').mockImplementation(() => {
+        lookupCount += 1;
+        return lookupCount < 3 ? null : target;
+      });
+
+      render(<FloatingController {...createProps({ isToolsOpen: true, setIsToolsOpen })} />);
+      fireEvent.click(screen.getByText('Twibbon'));
+
+      expect(scrollMock).not.toHaveBeenCalled();
+      expect(setIsToolsOpen).not.toHaveBeenCalled();
+
+      act(() => {
+        vi.advanceTimersByTime(240);
+      });
+
+      expect(document.getElementById).toHaveBeenCalledWith('twibbon-section');
+      expect(scrollMock).toHaveBeenCalledWith({ top: 552, left: 0, behavior: 'smooth' });
+      expect(setIsToolsOpen).toHaveBeenCalledWith(false);
+    });
+
+    it('falls back to smooth scrollIntoView when object smooth scroll is unsupported', () => {
+      const scrollMock = vi.spyOn(window, 'scrollTo').mockImplementation((arg1: unknown) => {
+        if (typeof arg1 === 'object') {
+          throw new TypeError('smooth scroll options unsupported');
+        }
+      });
+      const target = mockSectionTarget(420);
+      target.scrollIntoView = vi.fn();
+      vi.spyOn(document, 'getElementById').mockReturnValue(target);
+
+      render(<FloatingController {...createProps({ isToolsOpen: true })} />);
+      fireEvent.click(screen.getByText('Info Acara'));
+
+      expect(scrollMock).toHaveBeenNthCalledWith(1, { top: 412, left: 0, behavior: 'smooth' });
+      expect(target.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+      expect(scrollMock).not.toHaveBeenCalledWith(0, 412);
+    });
+
+    it('retries smoothly before using the last-resort direct scroll when the page does not move', () => {
+      vi.useFakeTimers();
+      mockNavigationFrames();
+      const scrollMock = mockWindowScrollTo();
+      const target = mockSectionTarget(420);
+      target.scrollIntoView = vi.fn();
+      vi.spyOn(document, 'getElementById').mockReturnValue(target);
+
+      render(<FloatingController {...createProps({ isToolsOpen: true })} />);
+      fireEvent.click(screen.getByText('Info Acara'));
+
+      expect(scrollMock).toHaveBeenCalledWith({ top: 412, left: 0, behavior: 'smooth' });
+
+      act(() => {
+        vi.advanceTimersByTime(499);
+      });
+
+      expect(target.scrollIntoView).not.toHaveBeenCalled();
+      expect(scrollMock).not.toHaveBeenCalledWith(0, 412);
+
+      act(() => {
+        vi.advanceTimersByTime(1);
+      });
+
+      expect(target.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+      expect(scrollMock).not.toHaveBeenCalledWith(0, 412);
+
+      act(() => {
+        vi.advanceTimersByTime(1100);
+      });
+
+      expect(scrollMock).toHaveBeenCalledWith(0, 412);
+    });
+
+    it('clears stale scroll fallbacks when another section is selected', () => {
+      vi.useFakeTimers();
+      mockNavigationFrames();
+      const scrollMock = mockWindowScrollTo();
+      const eventTarget = mockSectionTarget(420);
+      eventTarget.scrollIntoView = vi.fn();
+      const twibbonTarget = mockSectionTarget(560);
+      twibbonTarget.scrollIntoView = vi.fn();
+
+      vi.spyOn(document, 'getElementById').mockImplementation((id) => {
+        if (id === 'event-section') return eventTarget;
+        if (id === 'twibbon-section') return twibbonTarget;
+        return null;
+      });
+
+      render(<FloatingController {...createProps({ isToolsOpen: true })} />);
+      fireEvent.click(screen.getByText('Info Acara'));
+      fireEvent.click(screen.getByText('Twibbon'));
+
+      act(() => {
+        vi.advanceTimersByTime(1600);
+      });
+
+      expect(eventTarget.scrollIntoView).not.toHaveBeenCalled();
+      expect(scrollMock).not.toHaveBeenCalledWith(0, 412);
+      expect(twibbonTarget.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+      expect(scrollMock).toHaveBeenCalledWith(0, 552);
     });
   });
 
@@ -508,7 +651,7 @@ describe('FloatingController', () => {
       expect(screen.getByText('Putar Musik')).toBeInTheDocument();
 
       rerender(<FloatingController {...createProps({ isToolsOpen: true, isPlaying: true })} />);
-      expect(screen.getByText('Hentikan')).toBeInTheDocument();
+      expect(screen.getByText('Senyapkan Musik')).toBeInTheDocument();
       expect(screen.queryByText('Putar Musik')).not.toBeInTheDocument();
     });
 
@@ -519,7 +662,7 @@ describe('FloatingController', () => {
       expect(screen.queryByText('Putar Musik')).not.toBeInTheDocument();
 
       rerender(<FloatingController {...createProps({ isPlaying: true })} />);
-      expect(screen.queryByText('Hentikan')).not.toBeInTheDocument();
+      expect(screen.queryByText('Senyapkan Musik')).not.toBeInTheDocument();
     });
 
     it('all four navigation labels have consistent styling', () => {
@@ -545,7 +688,7 @@ describe('FloatingController', () => {
         <FloatingController isToolsOpen={true} setIsToolsOpen={vi.fn()} isPlaying={true} toggleMusic={vi.fn()} />
       );
       expect(container.firstChild).toBeInTheDocument();
-      expect(screen.getByText('Hentikan')).toBeInTheDocument();
+      expect(screen.getByText('Senyapkan Musik')).toBeInTheDocument();
       expect(screen.getByLabelText('Tutup menu')).toBeInTheDocument();
     });
 

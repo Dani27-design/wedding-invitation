@@ -264,65 +264,65 @@ export function WeddingClient({ wedding, slug }: WeddingClientProps) {
           isOpen={isOpen}
           onOpenInvitation={handleOpen}
           setIsToolsOpen={setIsToolsOpen}
-        />
+        >
+          <AnimatePresence mode="wait">
+            {!isOpen && (
+              <CinematicOpening guestName={guestName} onOpen={handleOpen} />
+            )}
+          </AnimatePresence>
 
-        <AnimatePresence mode="wait">
-          {!isOpen && (
-            <CinematicOpening guestName={guestName} onOpen={handleOpen} />
-          )}
-        </AnimatePresence>
+          <main className="relative z-10">
+            {isOpen && (
+              <SectionErrorBoundary>
+                <Suspense fallback={null}>
+                  <FloatingController
+                    isToolsOpen={isToolsOpen}
+                    setIsToolsOpen={setIsToolsOpen}
+                    isPlaying={isPlaying}
+                    toggleMusic={toggleMusic}
+                  />
+                </Suspense>
+              </SectionErrorBoundary>
+            )}
 
-        <main className="relative z-10">
-          {isOpen && (
+            <HeroSection />
+            <CoupleSection />
+
             <SectionErrorBoundary>
               <Suspense fallback={null}>
-                <FloatingController
-                  isToolsOpen={isToolsOpen}
-                  setIsToolsOpen={setIsToolsOpen}
-                  isPlaying={isPlaying}
-                  toggleMusic={toggleMusic}
+                <CinematicStory weddingSlug={slug} />
+                <EventSection />
+                <TwibbonSection />
+
+                <RSVPSection
+                  wishes={wishes}
+                  currentWishes={currentWishes}
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  setCurrentPage={setCurrentPage}
+                  onOpenRSVP={handleOpenRSVP}
+                  isWishesLoading={isWishesLoading}
+                />
+
+                <RSVPModal
+                  isOpen={isRSVPModalOpen}
+                  isSubmitSuccess={isSubmitSuccess}
+                  guestName={guestName}
+                  onClose={handleCloseRSVP}
+                  onSubmit={handleRSVPSubmit}
+                />
+
+                <DigitalEnvelope copiedIndex={copiedIndex} onCopy={handleCopy} />
+                <PhotoGallery onSelectPhoto={setSelectedPhoto} />
+                <Footer />
+                <PhotoZoomModal
+                  selectedPhoto={selectedPhoto}
+                  onClose={handleClosePhoto}
                 />
               </Suspense>
             </SectionErrorBoundary>
-          )}
-
-          <HeroSection />
-          <CoupleSection />
-
-          <SectionErrorBoundary>
-            <Suspense fallback={null}>
-              <CinematicStory weddingSlug={slug} />
-              <EventSection />
-              <TwibbonSection />
-
-              <RSVPSection
-                wishes={wishes}
-                currentWishes={currentWishes}
-                currentPage={currentPage}
-                totalPages={totalPages}
-                setCurrentPage={setCurrentPage}
-                onOpenRSVP={handleOpenRSVP}
-                isWishesLoading={isWishesLoading}
-              />
-
-              <RSVPModal
-                isOpen={isRSVPModalOpen}
-                isSubmitSuccess={isSubmitSuccess}
-                guestName={guestName}
-                onClose={handleCloseRSVP}
-                onSubmit={handleRSVPSubmit}
-              />
-
-              <DigitalEnvelope copiedIndex={copiedIndex} onCopy={handleCopy} />
-              <PhotoGallery onSelectPhoto={setSelectedPhoto} />
-              <Footer />
-              <PhotoZoomModal
-                selectedPhoto={selectedPhoto}
-                onClose={handleClosePhoto}
-              />
-            </Suspense>
-          </SectionErrorBoundary>
-        </main>
+          </main>
+        </InvitationProductTour>
       </div>
     </WeddingContext.Provider>
   );

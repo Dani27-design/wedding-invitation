@@ -2,10 +2,12 @@
 import { useState, useRef, useCallback, useEffect, memo } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
-import { Heart, MessageCircle, Hand } from 'lucide-react';
+import { driver, type Driver, type DriverHook } from 'driver.js';
+import { Heart, MessageCircle } from 'lucide-react';
 import { AmbientSocialLayer } from '../ui/AmbientSocialLayer';
 import { PetalEffect } from '../ui/PetalEffect';
 import { useWeddingContext } from '../../context/WeddingContext';
+import { useOptionalTour } from '../features/InvitationProductTour';
 import { useStoryLikes } from '../../hooks/useStoryLikes';
 import { useStoryComments } from '../../hooks/useStoryComments';
 import { SHIMMER_DARK } from '../../utils/shimmer';
@@ -15,6 +17,9 @@ interface CinematicStoryProps {
 }
 
 const OVERFLOW_TOLERANCE_PX = 1;
+const STORY_TOUR_MIN_SLIDES = 2;
+const STORY_TOUR_FULL_VISIBILITY_RATIO = 0.85;
+const STORY_TOUR_READY_DELAY_MS = 150;
 
 function sameSet(a: Set<number>, b: Set<number>) {
   if (a.size !== b.size) return false;
@@ -47,8 +52,13 @@ function isClampedOverflowing(el: HTMLElement) {
   return overflowing;
 }
 
+function prefersReducedMotion() {
+  return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+}
+
 export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
   const wedding = useWeddingContext();
+  const invitationTour = useOptionalTour();
   const slides = wedding?.story ?? [];
   const storySignature = slides
     .map((slide) => `${slide.year}\n${slide.text}\n${slide.bgImage}\n${slide.bgVideo ?? ''}`)
@@ -60,12 +70,16 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
   const [activeSlide, setActiveSlide] = useState(0);
   const [expandedSlides, setExpandedSlides] = useState<Set<number>>(new Set());
   const [isVisible, setIsVisible] = useState(false);
+  const [isStoryTourReady, setIsStoryTourReady] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const scrollRafRef = useRef(false);
   const scrollLockRef = useRef(false);
   const videoRefs = useRef<Map<number, HTMLVideoElement>>(new Map());
   const textRefs = useRef<Map<number, HTMLParagraphElement>>(new Map());
+  const storyTourRef = useRef<Driver | null>(null);
+  const hasStartedStoryTourRef = useRef(false);
+  const hasInteractedWithStorySwipeRef = useRef(false);
   const [overflowingSlides, setOverflowingSlides] = useState<Set<number>>(new Set());
 
   useEffect(() => {
@@ -81,6 +95,111 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
 
   const { likes, incrementLike } = useStoryLikes(weddingSlug, isVisible);
   const { comments, addComment } = useStoryComments(weddingSlug, activeSlide, isVisible);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+
+    let cancelled = false;
+    let readyTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const clearReadyTimer = () => {
+      if (readyTimer !== null) {
+        clearTimeout(readyTimer);
+        readyTimer = null;
+      }
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const ratio = entry.intersectionRatio ?? 0;
+        const isFullySeen = entry.isIntersecting && ratio >= STORY_TOUR_FULL_VISIBILITY_RATIO;
+
+        clearReadyTimer();
+        if (!isFullySeen) return;
+
+        readyTimer = setTimeout(() => {
+          if (!cancelled) setIsStoryTourReady(true);
+        }, STORY_TOUR_READY_DELAY_MS);
+      },
+      { threshold: [STORY_TOUR_FULL_VISIBILITY_RATIO] }
+    );
+
+    observer.observe(el);
+
+    return () => {
+      cancelled = true;
+      clearReadyTimer();
+      observer.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (
+      !isStoryTourReady ||
+      invitationTour?.isTourRunning ||
+      hasStartedStoryTourRef.current ||
+      hasInteractedWithStorySwipeRef.current ||
+      slides.length < STORY_TOUR_MIN_SLIDES
+    ) {
+      return undefined;
+    }
+
+    hasStartedStoryTourRef.current = true;
+
+    const clearStoryTour: DriverHook = (_element, _step, { driver: activeDriver }) => {
+      activeDriver.destroy();
+    };
+    const markStoryTourDestroyed: DriverHook = (_element, _step, { driver: activeDriver }) => {
+      if (storyTourRef.current === activeDriver) {
+        storyTourRef.current = null;
+      }
+    };
+
+    const storyTour = driver({
+      animate: !prefersReducedMotion(),
+      overlayColor: '#1A1A1A',
+      overlayOpacity: 0.72,
+      smoothScroll: false,
+      allowClose: true,
+      allowScroll: false,
+      disableActiveInteraction: false,
+      stagePadding: 10,
+      stageRadius: 18,
+      popoverOffset: 16,
+      popoverClass: 'wedding-driver-popover',
+      showButtons: ['next'],
+      showProgress: false,
+      doneBtnText: 'Mengerti',
+      overlayClickBehavior: 'close',
+      onDoneClick: clearStoryTour,
+      onCloseClick: clearStoryTour,
+      onDestroyed: markStoryTourDestroyed,
+      steps: [
+        {
+          disableActiveInteraction: false,
+          popover: {
+            title: 'Kisah Kami',
+            description: 'Geser ke samping untuk mengikuti setiap bagian cerita. Setelah panduan ditutup, Anda dapat menggulir halaman seperti biasa.',
+            showButtons: ['next'],
+            doneBtnText: 'Mengerti',
+          },
+        },
+      ],
+    });
+
+    storyTourRef.current = storyTour;
+    storyTour.drive();
+
+    return () => {
+      if (storyTourRef.current === storyTour) {
+        storyTourRef.current = null;
+      }
+      if (storyTour.isActive()) {
+        storyTour.destroy();
+      }
+    };
+  }, [invitationTour?.isTourRunning, isStoryTourReady, slides.length]);
 
   const measureOverflowingSlides = useCallback(() => {
     const next = new Set<number>();
@@ -152,6 +271,9 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
     requestAnimationFrame(() => {
       const el = scrollContainerRef.current;
       if (el && el.clientWidth) {
+        if (!hasStartedStoryTourRef.current && Math.abs(el.scrollLeft) > 1) {
+          hasInteractedWithStorySwipeRef.current = true;
+        }
         setActiveSlide(Math.round(el.scrollLeft / el.clientWidth));
       }
       scrollRafRef.current = false;
@@ -195,6 +317,9 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
       // Only intercept horizontal swipes — let vertical scroll through
       if (isHorizontal) {
         e.preventDefault();
+        if (!hasStartedStoryTourRef.current) {
+          hasInteractedWithStorySwipeRef.current = true;
+        }
         if (!triggered && Math.abs(dx) > THRESHOLD) {
           triggered = true;
           goToSlide(activeSlide + (dx < 0 ? 1 : -1));
@@ -221,7 +346,7 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
 
   return (
     <section ref={sectionRef} id="story-section" className="relative h-screen-safe w-full bg-ink overflow-hidden scroll-snap-container">
-      <div ref={scrollContainerRef} onScroll={handleStoryScroll} className="h-full w-full flex overflow-x-auto snap-x snap-mandatory no-scrollbar">
+      <div ref={scrollContainerRef} data-tour="cinematic-story" onScroll={handleStoryScroll} className="h-full w-full flex overflow-x-auto snap-x snap-mandatory no-scrollbar">
         {slides.map((slide, idx) => {
           const isActive = idx === activeSlide;
           const isNear = Math.abs(idx - activeSlide) <= 1;
@@ -357,17 +482,6 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
               </div>
             </div>
 
-            {/* Swipe hint — center-right, only on first slide */}
-            {idx === 0 && activeSlide === 0 && (
-              <div className="absolute right-8 top-1/2 -translate-y-1/2 z-30 pointer-events-none flex items-center">
-                <motion.div
-                  animate={{ x: [0, -20, 0], opacity: [0.5, 0.8, 0.5] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                >
-                  <Hand className="w-6 h-6 text-white/40" style={{ transform: 'scaleX(-1)' }} />
-                </motion.div>
-              </div>
-            )}
           </div>
           );
         })}

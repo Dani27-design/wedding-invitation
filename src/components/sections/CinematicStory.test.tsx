@@ -1,5 +1,27 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { act, render, screen, fireEvent, waitFor } from '@testing-library/react';
+
+const driverMock = vi.hoisted(() => {
+  const mock = {
+    driver: vi.fn((options) => {
+      const instance = {
+        destroy: vi.fn(),
+        drive: vi.fn(),
+        isActive: vi.fn(() => false),
+      };
+
+      mock.instances.push(instance);
+      mock.latestInstance = instance;
+      mock.latestOptions = options;
+      return instance;
+    }),
+    instances: [],
+    latestInstance: undefined,
+    latestOptions: undefined,
+  };
+
+  return mock;
+});
 
 const STORY_SLIDES = [
   { year: '2016 — 2017', text: 'Berawal dari chat sederhana,\nlalu kita dipertemukan di dunia nyata.\n\nCappucino cincau dan Indomaret Point—\njadi saksi awal cerita kita.', bgImage: '/images/bride_face_potrait.jpeg' },
@@ -14,6 +36,37 @@ const MOCK_LIKES = [142, 167, 128, 155, 139, 163];
 const mockIncrementLike = vi.fn();
 const mockAddComment = vi.fn();
 let mockTextHeights: Map<string, { clientHeight: number; scrollHeight: number }>;
+let intersectionObservers: IntersectionObserverTestDouble[];
+
+class IntersectionObserverTestDouble {
+  readonly observe = vi.fn((target: Element) => {
+    this.target = target;
+    if (this.thresholds.includes(0)) {
+      this.trigger({ isIntersecting: true, intersectionRatio: 1, target });
+    }
+  });
+  readonly disconnect = vi.fn();
+  readonly unobserve = vi.fn();
+  target: Element | null = null;
+  thresholds: number[];
+
+  constructor(
+    private callback: IntersectionObserverCallback,
+    options?: IntersectionObserverInit,
+  ) {
+    const threshold = options?.threshold ?? 0;
+    this.thresholds = Array.isArray(threshold) ? threshold : [threshold];
+    intersectionObservers.push(this);
+  }
+
+  trigger(entry: Partial<IntersectionObserverEntry>) {
+    const target = entry.target ?? this.target ?? document.body;
+    this.callback(
+      [{ target, isIntersecting: false, intersectionRatio: 0, ...entry } as IntersectionObserverEntry],
+      this as unknown as IntersectionObserver,
+    );
+  }
+}
 
 vi.mock('../../context/WeddingContext', () => ({
   useWeddingContext: () => ({
@@ -39,15 +92,40 @@ vi.mock('../../hooks/useStoryComments', () => ({
   }),
 }));
 
+vi.mock('driver.js', () => ({
+  driver: driverMock.driver,
+}));
+
 import { CinematicStory } from './CinematicStory';
 
 function renderStory() {
   return render(<CinematicStory weddingSlug="dani-marini" />);
 }
 
+function getFullStoryObserver() {
+  return intersectionObservers.find((observer) => observer.thresholds.includes(0.98));
+}
+
+function triggerFullStoryVisibility(ratio = 1) {
+  const observer = getFullStoryObserver();
+  expect(observer).toBeDefined();
+  act(() => {
+    observer?.trigger({
+      isIntersecting: ratio > 0,
+      intersectionRatio: ratio,
+      target: observer.target ?? undefined,
+    });
+  });
+}
+
 describe('CinematicStory', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    driverMock.instances = [];
+    driverMock.latestInstance = undefined;
+    driverMock.latestOptions = undefined;
+    intersectionObservers = [];
+    vi.stubGlobal('IntersectionObserver', IntersectionObserverTestDouble);
     mockTextHeights = new Map();
   });
 
@@ -61,6 +139,8 @@ describe('CinematicStory', () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
 
@@ -387,18 +467,123 @@ describe('CinematicStory', () => {
     });
   });
 
-  // ─── Swipe Hint ───────────────────────────────────────────────────
-  describe('swipe hint', () => {
-    it('renders a hand icon as swipe hint on first slide', () => {
+  // ─── Guided Tour ──────────────────────────────────────────────────
+  describe('guided tour', () => {
+    it('does not render the permanent hand gesture hint', () => {
       const { container } = renderStory();
-      const hint = container.querySelector('.pointer-events-none svg');
-      expect(hint).toBeInTheDocument();
+      expect(container.querySelector('[class*="right-8"][class*="top-1/2"]')).not.toBeInTheDocument();
     });
 
-    it('swipe hint is centered on screen', () => {
+    it('marks the horizontal story scroller as the Driver.js tour target', () => {
       const { container } = renderStory();
-      const hint = container.querySelector('[class*="right-8"][class*="top-1/2"]');
-      expect(hint).toBeInTheDocument();
+      const target = container.querySelector('[data-tour="cinematic-story"]');
+      expect(target).toBeInTheDocument();
+      expect(target).toHaveClass('overflow-x-auto');
+      expect(target).toHaveClass('snap-x');
+    });
+
+    it('does not start the Driver.js tour while the story section is only partially visible', () => {
+      vi.useFakeTimers();
+      renderStory();
+
+      triggerFullStoryVisibility(0.75);
+      act(() => {
+        vi.advanceTimersByTime(450);
+      });
+
+      expect(driverMock.driver).not.toHaveBeenCalled();
+    });
+
+    it('starts a centered scroll-freezing Driver.js tour after the full story viewport has settled', () => {
+      vi.useFakeTimers();
+      const { container } = renderStory();
+      expect(container.querySelector('[data-tour="cinematic-story"]')).toBeInTheDocument();
+
+      triggerFullStoryVisibility();
+      act(() => {
+        vi.advanceTimersByTime(449);
+      });
+      expect(driverMock.driver).not.toHaveBeenCalled();
+
+      act(() => {
+        vi.advanceTimersByTime(1);
+      });
+
+      expect(driverMock.driver).toHaveBeenCalledOnce();
+
+      expect(driverMock.latestInstance?.drive).toHaveBeenCalledOnce();
+      expect(driverMock.latestOptions).toEqual(
+        expect.objectContaining({
+          allowScroll: false,
+          disableActiveInteraction: false,
+          doneBtnText: 'Mengerti',
+          overlayClickBehavior: 'close',
+          showProgress: false,
+          smoothScroll: false,
+        })
+      );
+      expect(driverMock.latestOptions?.steps).toEqual([
+        expect.objectContaining({
+          disableActiveInteraction: false,
+          popover: expect.objectContaining({
+            title: 'Kisah Kami',
+            description: 'Geser ke samping untuk mengikuti setiap bagian cerita. Setelah panduan ditutup, Anda dapat menggulir halaman seperti biasa.',
+            showButtons: ['next'],
+            doneBtnText: 'Mengerti',
+          }),
+        }),
+      ]);
+      expect(driverMock.latestOptions?.steps[0]).not.toHaveProperty('element');
+    });
+
+    it('does not start the story tour when the guest already swiped the story before the delay ends', () => {
+      vi.useFakeTimers();
+      const { container } = renderStory();
+      const target = container.querySelector('[data-tour="cinematic-story"]');
+      expect(target).toBeInTheDocument();
+      Object.defineProperty(target, 'scrollTo', {
+        configurable: true,
+        value: vi.fn(),
+      });
+
+      triggerFullStoryVisibility();
+
+      fireEvent.touchStart(target!, {
+        touches: [{ clientX: 180, clientY: 20 }],
+      });
+      fireEvent.touchMove(target!, {
+        touches: [{ clientX: 120, clientY: 24 }],
+      });
+
+      act(() => {
+        vi.advanceTimersByTime(450);
+      });
+
+      expect(driverMock.driver).not.toHaveBeenCalled();
+    });
+
+    it('destroys the story tour from the Driver.js done and close handlers', async () => {
+      vi.useFakeTimers();
+      renderStory();
+
+      triggerFullStoryVisibility();
+      act(() => {
+        vi.advanceTimersByTime(450);
+      });
+      expect(driverMock.driver).toHaveBeenCalledOnce();
+
+      const instance = driverMock.latestInstance;
+      const hookOptions = {
+        config: driverMock.latestOptions,
+        driver: instance,
+        index: 0,
+        state: {},
+      };
+
+      driverMock.latestOptions?.onDoneClick(undefined, driverMock.latestOptions.steps[0], hookOptions);
+      driverMock.latestOptions?.onCloseClick(undefined, driverMock.latestOptions.steps[0], hookOptions);
+
+      expect(instance?.destroy).toHaveBeenCalledTimes(2);
     });
   });
 

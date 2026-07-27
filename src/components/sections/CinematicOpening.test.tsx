@@ -67,6 +67,11 @@ describe('CinematicOpening', () => {
       expect(container.firstChild).toHaveClass('overflow-hidden');
     });
 
+    it('root element has stable tour target for Driver.js', () => {
+      const { container } = renderComponent();
+      expect(container.firstChild).toHaveAttribute('data-tour', 'cinematic-opening');
+    });
+
     it('does not render null or undefined', () => {
       const { container } = renderComponent();
       expect(container.innerHTML).not.toBe('');
@@ -212,6 +217,58 @@ describe('CinematicOpening', () => {
       const onOpen = vi.fn();
       renderComponent({ onOpen });
       expect(onOpen).not.toHaveBeenCalled();
+    });
+
+    it('opening buttons have stable tour target attributes', () => {
+      renderComponent();
+      const buttons = screen.getAllByLabelText('Buka Undangan');
+      expect(buttons.length).toBeGreaterThanOrEqual(1);
+      buttons.forEach((button) => {
+        expect(button).toHaveAttribute('data-tour', 'open-invitation');
+      });
+    });
+
+    it('calls onOpen when the opening overlay receives a wheel gesture', () => {
+      const onOpen = vi.fn();
+      const { container } = renderComponent({ onOpen });
+      fireEvent.wheel(container.firstChild as Element, { deltaY: 48 });
+      expect(onOpen).toHaveBeenCalledOnce();
+    });
+
+    it('ignores tiny wheel movement to avoid accidental opening', () => {
+      const onOpen = vi.fn();
+      const { container } = renderComponent({ onOpen });
+      fireEvent.wheel(container.firstChild as Element, { deltaY: 2 });
+      expect(onOpen).not.toHaveBeenCalled();
+    });
+
+    it('calls onOpen when the opening overlay receives a vertical touch swipe', () => {
+      const onOpen = vi.fn();
+      const { container } = renderComponent({ onOpen });
+      fireEvent.touchStart(container.firstChild as Element, { touches: [{ clientY: 400 }] });
+      fireEvent.touchMove(container.firstChild as Element, { touches: [{ clientY: 350 }] });
+      expect(onOpen).toHaveBeenCalledOnce();
+    });
+
+    it('ignores tiny touch movement to avoid accidental opening', () => {
+      const onOpen = vi.fn();
+      const { container } = renderComponent({ onOpen });
+      fireEvent.touchStart(container.firstChild as Element, { touches: [{ clientY: 400 }] });
+      fireEvent.touchMove(container.firstChild as Element, { touches: [{ clientY: 390 }] });
+      expect(onOpen).not.toHaveBeenCalled();
+    });
+
+    it('opens only once across mixed click, wheel, and touch gestures', () => {
+      const onOpen = vi.fn();
+      const { container } = renderComponent({ onOpen });
+      const overlay = container.firstChild as Element;
+
+      fireEvent.wheel(overlay, { deltaY: 48 });
+      fireEvent.click(overlay);
+      fireEvent.touchStart(overlay, { touches: [{ clientY: 400 }] });
+      fireEvent.touchMove(overlay, { touches: [{ clientY: 350 }] });
+
+      expect(onOpen).toHaveBeenCalledOnce();
     });
   });
 

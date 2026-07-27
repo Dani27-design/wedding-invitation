@@ -1,5 +1,6 @@
 'use client';
-import { useRef, useEffect } from "react";
+import { useRef } from "react";
+import type { TouchEvent, WheelEvent } from "react";
 import Image from "next/image";
 import { motion } from "motion/react";
 import { Heart } from "lucide-react";
@@ -22,6 +23,7 @@ export const CinematicOpening = ({
   const wedding = useWeddingContext();
   const overlayRef = useRef<HTMLDivElement>(null);
   const openedRef = useRef(false);
+  const touchStartYRef = useRef<number | null>(null);
 
   const handleOpen = () => {
     if (!openedRef.current) {
@@ -30,25 +32,29 @@ export const CinematicOpening = ({
     }
   };
 
-  // Block all scroll/swipe — only click is allowed to open
-  useEffect(() => {
-    const el = overlayRef.current;
-    if (!el) return;
+  const handleWheel = (e: WheelEvent<HTMLDivElement>) => {
+    if (Math.abs(e.deltaY) < 4) return;
+    e.preventDefault();
+    handleOpen();
+  };
 
-    const blockScroll = (e: Event) => e.preventDefault();
+  const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
+    touchStartYRef.current = e.touches[0]?.clientY ?? null;
+  };
 
-    el.addEventListener('wheel', blockScroll, { passive: false });
-    el.addEventListener('touchmove', blockScroll, { passive: false });
-
-    return () => {
-      el.removeEventListener('wheel', blockScroll);
-      el.removeEventListener('touchmove', blockScroll);
-    };
-  }, []);
+  const handleTouchMove = (e: TouchEvent<HTMLDivElement>) => {
+    const startY = touchStartYRef.current;
+    const currentY = e.touches[0]?.clientY;
+    if (startY === null || currentY === undefined) return;
+    if (Math.abs(currentY - startY) < 24) return;
+    e.preventDefault();
+    handleOpen();
+  };
 
   return (
     <motion.div
       ref={overlayRef}
+      data-tour="cinematic-opening"
       initial={{ opacity: 1 }}
       exit={{
         opacity: 0,
@@ -56,6 +62,9 @@ export const CinematicOpening = ({
         transition: { duration: 0.5, ease: [0.76, 0, 0.24, 1] },
       }}
       onClick={handleOpen}
+      onWheel={handleWheel}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
       className="fixed inset-0 z-[10000] flex flex-col bg-ink overflow-hidden cursor-pointer"
       style={{
         boxShadow: '0 0 0 1.5px #FDFCF8',
@@ -213,6 +222,7 @@ export const CinematicOpening = ({
       >
         <motion.button
           aria-label="Buka Undangan"
+          data-tour="open-invitation"
           className="flex flex-col items-center gap-3 group cursor-pointer transition-all"
         >
           <motion.svg
@@ -329,6 +339,7 @@ export const CinematicOpening = ({
             </div>
             <motion.button
               aria-label="Buka Undangan"
+              data-tour="open-invitation"
               className="flex flex-col items-center gap-3 pt-4 group cursor-pointer transition-all"
             >
               <motion.svg

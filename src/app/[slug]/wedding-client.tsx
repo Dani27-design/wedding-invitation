@@ -15,6 +15,7 @@ import { AnimatePresence } from 'motion/react';
 import { BackgroundLayers } from '@/components/ui/BackgroundLayers';
 import { SectionErrorBoundary } from '@/components/ui/SectionErrorBoundary';
 import { CinematicOpening } from '@/components/sections/CinematicOpening';
+import { InvitationProductTour } from '@/components/features/InvitationProductTour';
 import { HeroSection } from '@/components/sections/HeroSection';
 import { CoupleSection } from '@/components/sections/CoupleSection';
 import { useWishes } from '@/hooks/useWishes';
@@ -258,6 +259,12 @@ export function WeddingClient({ wedding, slug }: WeddingClientProps) {
             src={wedding.musicUrl}
           />
         )}
+        <InvitationProductTour
+          slug={slug}
+          isOpen={isOpen}
+          onOpenInvitation={handleOpen}
+          setIsToolsOpen={setIsToolsOpen}
+        />
 
         <AnimatePresence mode="wait">
           {!isOpen && (

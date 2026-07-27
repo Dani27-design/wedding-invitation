@@ -128,6 +128,11 @@ describe('FloatingController', () => {
       expect(btn).toHaveClass('rounded-full');
     });
 
+    it('has stable tour target for Driver.js', () => {
+      render(<FloatingController {...createProps()} />);
+      expect(screen.getByLabelText('Buka menu')).toHaveAttribute('data-tour', 'floating-menu-button');
+    });
+
     it('has backdrop-blur-xl for frosted glass effect', () => {
       render(<FloatingController {...createProps()} />);
       const btn = screen.getByLabelText('Buka menu');

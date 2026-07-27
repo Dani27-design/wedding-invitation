@@ -15,6 +15,7 @@
     "loc:test": "find src -name '*.test.*' | xargs wc -l | sort -rn"
   },
   "dependencies": {
+    "driver.js": "^1.8.0",
     "firebase": "^12.12.1",
     "firebase-admin": "^13.9.0",
     "lucide-react": "^0.546.0",

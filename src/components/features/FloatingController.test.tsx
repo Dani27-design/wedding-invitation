@@ -209,9 +209,9 @@ describe('FloatingController', () => {
       expect(screen.queryByText('Tanda Kasih')).not.toBeInTheDocument();
     });
 
-    it('does not show Info Acara menu item', () => {
+    it('does not show Rangkaian Acara menu item', () => {
       render(<FloatingController {...createProps()} />);
-      expect(screen.queryByText('Info Acara')).not.toBeInTheDocument();
+      expect(screen.queryByText('Rangkaian Acara')).not.toBeInTheDocument();
     });
 
     it('does not show Putar Musik toggle', () => {
@@ -251,9 +251,9 @@ describe('FloatingController', () => {
       expect(screen.getByText('Tanda Kasih')).toBeInTheDocument();
     });
 
-    it('shows Info Acara label', () => {
+    it('shows Rangkaian Acara label', () => {
       render(<FloatingController {...createProps({ isToolsOpen: true })} />);
-      expect(screen.getByText('Info Acara')).toBeInTheDocument();
+      expect(screen.getByText('Rangkaian Acara')).toBeInTheDocument();
     });
 
     it('shows music toggle button', () => {
@@ -448,12 +448,12 @@ describe('FloatingController', () => {
       expect(scrollMock).toHaveBeenCalledWith(expect.objectContaining({ behavior: 'smooth' }));
     });
 
-    it('Info Acara button scrolls to event-section', () => {
+    it('Rangkaian Acara button scrolls to event-section', () => {
       const scrollMock = mockWindowScrollTo();
       vi.spyOn(document, 'getElementById').mockReturnValue(mockSectionTarget());
 
       render(<FloatingController {...createProps({ isToolsOpen: true })} />);
-      fireEvent.click(screen.getByText('Info Acara'));
+      fireEvent.click(screen.getByText('Rangkaian Acara'));
 
       expect(document.getElementById).toHaveBeenCalledWith('event-section');
       expect(scrollMock).toHaveBeenCalledWith(expect.objectContaining({ behavior: 'smooth' }));
@@ -478,7 +478,7 @@ describe('FloatingController', () => {
       expect(setIsToolsOpen).toHaveBeenCalledWith(false);
 
       setIsToolsOpen.mockClear();
-      fireEvent.click(screen.getByText('Info Acara'));
+      fireEvent.click(screen.getByText('Rangkaian Acara'));
       expect(setIsToolsOpen).toHaveBeenCalledWith(false);
     });
 
@@ -538,7 +538,7 @@ describe('FloatingController', () => {
       vi.spyOn(document, 'getElementById').mockReturnValue(target);
 
       render(<FloatingController {...createProps({ isToolsOpen: true })} />);
-      fireEvent.click(screen.getByText('Info Acara'));
+      fireEvent.click(screen.getByText('Rangkaian Acara'));
 
       expect(scrollMock).toHaveBeenNthCalledWith(1, { top: 412, left: 0, behavior: 'smooth' });
       expect(target.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start', inline: 'nearest' });
@@ -554,7 +554,7 @@ describe('FloatingController', () => {
       vi.spyOn(document, 'getElementById').mockReturnValue(target);
 
       render(<FloatingController {...createProps({ isToolsOpen: true })} />);
-      fireEvent.click(screen.getByText('Info Acara'));
+      fireEvent.click(screen.getByText('Rangkaian Acara'));
 
       expect(scrollMock).toHaveBeenCalledWith({ top: 412, left: 0, behavior: 'smooth' });
 
@@ -595,7 +595,7 @@ describe('FloatingController', () => {
       });
 
       render(<FloatingController {...createProps({ isToolsOpen: true })} />);
-      fireEvent.click(screen.getByText('Info Acara'));
+      fireEvent.click(screen.getByText('Rangkaian Acara'));
       fireEvent.click(screen.getByText('Twibbon'));
 
       act(() => {
@@ -626,7 +626,7 @@ describe('FloatingController', () => {
       expect(screen.getAllByText('Twibbon')).toHaveLength(1);
       expect(screen.getAllByText('Ucapan & Doa')).toHaveLength(1);
       expect(screen.getAllByText('Tanda Kasih')).toHaveLength(1);
-      expect(screen.getAllByText('Info Acara')).toHaveLength(1);
+      expect(screen.getAllByText('Rangkaian Acara')).toHaveLength(1);
     });
 
     it('rapid toggle does not break rendering', () => {
@@ -667,7 +667,7 @@ describe('FloatingController', () => {
 
     it('all four navigation labels have consistent styling', () => {
       render(<FloatingController {...createProps({ isToolsOpen: true })} />);
-      const labels = ['Twibbon', 'Ucapan & Doa', 'Tanda Kasih', 'Info Acara'];
+      const labels = ['Twibbon', 'Ucapan & Doa', 'Tanda Kasih', 'Rangkaian Acara'];
       labels.forEach((label) => {
         const el = screen.getByText(label);
         expect(el.tagName).toBe('SPAN');

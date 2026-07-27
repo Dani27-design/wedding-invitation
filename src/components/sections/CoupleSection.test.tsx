@@ -90,24 +90,9 @@ describe('CoupleSection', () => {
       expect(screen.getByText('M. Daniansyah Chusyaidin, S.Kom')).toBeInTheDocument();
     });
 
-    it('displays "Pengantin Pria" label', () => {
+    it('does not render the groom role label', () => {
       renderComponent();
-      expect(screen.getByText('Pengantin Pria')).toBeInTheDocument();
-    });
-
-    it('"Pengantin Pria" is uppercase', () => {
-      renderComponent();
-      expect(screen.getByText('Pengantin Pria')).toHaveClass('uppercase');
-    });
-
-    it('"Pengantin Pria" has gold color', () => {
-      renderComponent();
-      expect(screen.getByText('Pengantin Pria')).toHaveClass('text-gold-contrast');
-    });
-
-    it('"Pengantin Pria" has font-black weight', () => {
-      renderComponent();
-      expect(screen.getByText('Pengantin Pria')).toHaveClass('font-black');
+      expect(screen.queryByText('Pengantin Pria')).not.toBeInTheDocument();
     });
 
     it('displays groom parent info with Safiudin Sukri', () => {
@@ -141,24 +126,9 @@ describe('CoupleSection', () => {
       expect(screen.getByText('Siti Nur Marini, A.Md.M')).toBeInTheDocument();
     });
 
-    it('displays "Pengantin Wanita" label', () => {
+    it('does not render the bride role label', () => {
       renderComponent();
-      expect(screen.getByText('Pengantin Wanita')).toBeInTheDocument();
-    });
-
-    it('"Pengantin Wanita" is uppercase', () => {
-      renderComponent();
-      expect(screen.getByText('Pengantin Wanita')).toHaveClass('uppercase');
-    });
-
-    it('"Pengantin Wanita" has gold color', () => {
-      renderComponent();
-      expect(screen.getByText('Pengantin Wanita')).toHaveClass('text-gold-contrast');
-    });
-
-    it('"Pengantin Wanita" has font-black weight', () => {
-      renderComponent();
-      expect(screen.getByText('Pengantin Wanita')).toHaveClass('font-black');
+      expect(screen.queryByText('Pengantin Wanita')).not.toBeInTheDocument();
     });
 
     it('displays bride parent info with Margono', () => {
@@ -491,10 +461,10 @@ describe('CoupleSection', () => {
 
     it('all essential content is present in one render', () => {
       renderComponent();
-      expect(screen.getByText('Pengantin Pria')).toBeInTheDocument();
-      expect(screen.getByText('Pengantin Wanita')).toBeInTheDocument();
       expect(screen.getByText('M. Daniansyah Chusyaidin, S.Kom')).toBeInTheDocument();
       expect(screen.getByText('Siti Nur Marini, A.Md.M')).toBeInTheDocument();
+      expect(screen.getByText(/Putra Bapak M\. Safiudin Sukri/)).toBeInTheDocument();
+      expect(screen.getByText(/Putri Bapak Margono/)).toBeInTheDocument();
       expect(screen.getByAltText('Dani')).toBeInTheDocument();
       expect(screen.getByAltText('Marini')).toBeInTheDocument();
     });
@@ -512,15 +482,15 @@ describe('CoupleSection', () => {
       expect(h3s).toHaveLength(2);
     });
 
-    it('labels appear before their corresponding names in DOM order', () => {
+    it('names appear before their corresponding parent descriptions in DOM order', () => {
       const { container } = renderComponent();
       const allText = container.textContent || '';
-      const priaIndex = allText.indexOf('Pengantin Pria');
       const groomIndex = allText.indexOf('M. Daniansyah');
-      const wanitaIndex = allText.indexOf('Pengantin Wanita');
+      const groomParentsIndex = allText.indexOf('Putra Bapak');
       const brideIndex = allText.indexOf('Siti Nur Marini');
-      expect(priaIndex).toBeLessThan(groomIndex);
-      expect(wanitaIndex).toBeLessThan(brideIndex);
+      const brideParentsIndex = allText.indexOf('Putri Bapak');
+      expect(groomIndex).toBeLessThan(groomParentsIndex);
+      expect(brideIndex).toBeLessThan(brideParentsIndex);
     });
   });
 });

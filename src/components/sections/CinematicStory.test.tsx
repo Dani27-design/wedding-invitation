@@ -103,10 +103,13 @@ function renderStory() {
 }
 
 function getFullStoryObserver() {
-  return intersectionObservers.find((observer) => observer.thresholds.includes(0.98));
+  return intersectionObservers.find((observer) =>
+    observer.thresholds.some((threshold) => threshold >= 0.8)
+  );
 }
 
-function triggerFullStoryVisibility(ratio = 1) {
+async function triggerFullStoryVisibility(ratio = 1) {
+  await act(async () => {});
   const observer = getFullStoryObserver();
   expect(observer).toBeDefined();
   act(() => {
@@ -126,6 +129,11 @@ describe('CinematicStory', () => {
     driverMock.latestOptions = undefined;
     intersectionObservers = [];
     vi.stubGlobal('IntersectionObserver', IntersectionObserverTestDouble);
+    vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+      callback(0);
+      return 0;
+    });
+    vi.stubGlobal('cancelAnimationFrame', vi.fn());
     mockTextHeights = new Map();
   });
 
@@ -482,26 +490,26 @@ describe('CinematicStory', () => {
       expect(target).toHaveClass('snap-x');
     });
 
-    it('does not start the Driver.js tour while the story section is only partially visible', () => {
+    it('does not start the Driver.js tour while the story section is only partially visible', async () => {
       vi.useFakeTimers();
       renderStory();
 
-      triggerFullStoryVisibility(0.75);
+      await triggerFullStoryVisibility(0.75);
       act(() => {
-        vi.advanceTimersByTime(450);
+        vi.advanceTimersByTime(150);
       });
 
       expect(driverMock.driver).not.toHaveBeenCalled();
     });
 
-    it('starts a centered scroll-freezing Driver.js tour after the full story viewport has settled', () => {
+    it('starts a centered scroll-freezing Driver.js tour after the required story viewport has settled', async () => {
       vi.useFakeTimers();
       const { container } = renderStory();
       expect(container.querySelector('[data-tour="cinematic-story"]')).toBeInTheDocument();
 
-      triggerFullStoryVisibility();
+      await triggerFullStoryVisibility();
       act(() => {
-        vi.advanceTimersByTime(449);
+        vi.advanceTimersByTime(149);
       });
       expect(driverMock.driver).not.toHaveBeenCalled();
 
@@ -536,7 +544,7 @@ describe('CinematicStory', () => {
       expect(driverMock.latestOptions?.steps[0]).not.toHaveProperty('element');
     });
 
-    it('does not start the story tour when the guest already swiped the story before the delay ends', () => {
+    it('does not start the story tour when the guest already swiped the story before the delay ends', async () => {
       vi.useFakeTimers();
       const { container } = renderStory();
       const target = container.querySelector('[data-tour="cinematic-story"]');
@@ -546,7 +554,7 @@ describe('CinematicStory', () => {
         value: vi.fn(),
       });
 
-      triggerFullStoryVisibility();
+      await triggerFullStoryVisibility();
 
       fireEvent.touchStart(target!, {
         touches: [{ clientX: 180, clientY: 20 }],
@@ -556,7 +564,7 @@ describe('CinematicStory', () => {
       });
 
       act(() => {
-        vi.advanceTimersByTime(450);
+        vi.advanceTimersByTime(150);
       });
 
       expect(driverMock.driver).not.toHaveBeenCalled();
@@ -566,9 +574,9 @@ describe('CinematicStory', () => {
       vi.useFakeTimers();
       renderStory();
 
-      triggerFullStoryVisibility();
+      await triggerFullStoryVisibility();
       act(() => {
-        vi.advanceTimersByTime(450);
+        vi.advanceTimersByTime(150);
       });
       expect(driverMock.driver).toHaveBeenCalledOnce();
 

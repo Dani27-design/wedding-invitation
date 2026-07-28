@@ -30,7 +30,7 @@ vi.mock('driver.js', () => ({
   driver: driverMock.driver,
 }));
 
-import { InvitationProductTour } from './InvitationProductTour';
+import { InvitationProductTour, useOptionalTour } from './InvitationProductTour';
 
 const originalMatchMedia = window.matchMedia;
 
@@ -60,6 +60,11 @@ function addFloatingControllerTarget() {
   document.body.appendChild(root);
 
   return { root, button };
+}
+
+function TourStateProbe() {
+  const tour = useOptionalTour();
+  return <span data-testid="tour-running">{tour?.isTourRunning ? 'running' : 'idle'}</span>;
 }
 
 function hookOptions(
@@ -118,9 +123,9 @@ describe('InvitationProductTour', () => {
     expect(driverMock.latestOptions?.steps[0].popover).toEqual(
       expect.objectContaining({
         title: 'Selamat Datang',
-        description: 'Silakan ketuk layar, gulir perlahan, atau pilih Buka Undangan untuk masuk ke halaman acara.',
+        description: 'Silakan ketuk layar, gulir perlahan, atau pilih Buka Undangan untuk membuka undangan.',
         nextBtnText: 'Buka Undangan',
-        showButtons: ['close', 'next'],
+        showButtons: ['next'],
       })
     );
     expect(driverMock.latestOptions?.steps[1]).toEqual(
@@ -214,44 +219,71 @@ describe('InvitationProductTour', () => {
     expect(openingDriver?.destroy).not.toHaveBeenCalled();
   });
 
-  it('opens the invitation and destroys the tour when Skip is clicked on the opening step', () => {
+  it('opens the invitation and continues the tour when the opening popover is closed', () => {
+    vi.useFakeTimers();
     const onOpenInvitation = vi.fn();
     const setIsToolsOpen = vi.fn();
     addOpeningTarget();
-    renderTour({ onOpenInvitation, setIsToolsOpen });
+    renderTour({
+      onOpenInvitation,
+      setIsToolsOpen,
+      children: <TourStateProbe />,
+    });
 
     const openingStep = driverMock.latestOptions?.steps[0];
     const openingDriver = driverMock.latestInstance;
-    openingStep.popover.onCloseClick(undefined, openingStep, hookOptions(openingDriver, driverMock.latestOptions, 0));
+    expect(screen.getByTestId('tour-running')).toHaveTextContent('running');
+
+    act(() => {
+      openingStep.popover.onCloseClick(undefined, openingStep, hookOptions(openingDriver, driverMock.latestOptions, 0));
+    });
 
     expect(onOpenInvitation).toHaveBeenCalledOnce();
-    expect(setIsToolsOpen).toHaveBeenCalledWith(false);
+    expect(setIsToolsOpen).toHaveBeenCalledWith(true);
+    expect(screen.getByTestId('tour-running')).toHaveTextContent('running');
     expect(window.localStorage.getItem('invitation-tour:dani-marini')).toBeNull();
-    expect(openingDriver?.destroy).toHaveBeenCalledOnce();
+    expect(openingDriver?.destroy).not.toHaveBeenCalled();
     expect(openingDriver?.moveNext).not.toHaveBeenCalled();
-  });
 
-  it('opens the invitation and advances after the floating menu expands when the opening overlay is clicked', () => {
-    vi.useFakeTimers();
-    const onOpenInvitation = vi.fn();
-    addOpeningTarget();
-    renderTour({ onOpenInvitation });
-
-    const openingStep = driverMock.latestOptions?.steps[0];
-    const openingDriver = driverMock.latestInstance;
-    driverMock.latestOptions?.overlayClickBehavior(
-      undefined,
-      openingStep,
-      hookOptions(openingDriver, driverMock.latestOptions, 0),
-    );
-
-    expect(onOpenInvitation).toHaveBeenCalledOnce();
-    expect(openingDriver?.moveNext).not.toHaveBeenCalled();
     act(() => {
       vi.advanceTimersByTime(850);
     });
     expect(openingDriver?.moveNext).toHaveBeenCalledOnce();
+  });
+
+  it('opens the invitation and continues the tour when the opening overlay is clicked', () => {
+    vi.useFakeTimers();
+    const onOpenInvitation = vi.fn();
+    const setIsToolsOpen = vi.fn();
+    addOpeningTarget();
+    renderTour({
+      onOpenInvitation,
+      setIsToolsOpen,
+      children: <TourStateProbe />,
+    });
+
+    const openingStep = driverMock.latestOptions?.steps[0];
+    const openingDriver = driverMock.latestInstance;
+    expect(screen.getByTestId('tour-running')).toHaveTextContent('running');
+
+    act(() => {
+      driverMock.latestOptions?.overlayClickBehavior(
+        undefined,
+        openingStep,
+        hookOptions(openingDriver, driverMock.latestOptions, 0),
+      );
+    });
+
+    expect(onOpenInvitation).toHaveBeenCalledOnce();
+    expect(setIsToolsOpen).toHaveBeenCalledWith(true);
+    expect(screen.getByTestId('tour-running')).toHaveTextContent('running');
     expect(openingDriver?.destroy).not.toHaveBeenCalled();
+    expect(openingDriver?.moveNext).not.toHaveBeenCalled();
+
+    act(() => {
+      vi.advanceTimersByTime(850);
+    });
+    expect(openingDriver?.moveNext).toHaveBeenCalledOnce();
   });
 
   it('advances to the floating menu step when the invitation is opened manually', () => {
@@ -284,23 +316,30 @@ describe('InvitationProductTour', () => {
     expect(driverMock.driver).toHaveBeenCalledOnce();
   });
 
-  it('does not advance to the floating menu step after the tour is destroyed during the expansion delay', () => {
+  it('does not duplicate the opening action when the opening popover closes during the expansion delay', () => {
     vi.useFakeTimers();
     const onOpenInvitation = vi.fn();
+    const setIsToolsOpen = vi.fn();
     addOpeningTarget();
-    renderTour({ onOpenInvitation });
+    renderTour({ onOpenInvitation, setIsToolsOpen });
 
     const openingStep = driverMock.latestOptions?.steps[0];
     const openingDriver = driverMock.latestInstance;
     openingStep.popover.onNextClick(undefined, openingStep, hookOptions(openingDriver, driverMock.latestOptions, 0));
 
     driverMock.latestOptions?.onCloseClick(undefined, openingStep, hookOptions(openingDriver, driverMock.latestOptions, 0));
+
+    expect(onOpenInvitation).toHaveBeenCalledOnce();
+    expect(setIsToolsOpen).toHaveBeenCalledTimes(1);
+    expect(openingDriver?.destroy).not.toHaveBeenCalled();
+    expect(openingDriver?.moveNext).not.toHaveBeenCalled();
+
     act(() => {
       vi.advanceTimersByTime(850);
     });
 
-    expect(openingDriver?.moveNext).not.toHaveBeenCalled();
-    expect(openingDriver?.destroy).toHaveBeenCalledOnce();
+    expect(openingDriver?.moveNext).toHaveBeenCalledOnce();
+    expect(openingDriver?.destroy).not.toHaveBeenCalled();
   });
 
   it('opens the floating tools menu when the floating step starts highlighting', () => {

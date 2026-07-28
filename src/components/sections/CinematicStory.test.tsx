@@ -340,6 +340,15 @@ describe('CinematicStory', () => {
       expect(mockIncrementLike).toHaveBeenCalledWith(0);
     });
 
+    it('marks only the active like button as the Driver.js story like target', () => {
+      const { container } = renderStory();
+      const likeTargets = container.querySelectorAll('[data-tour="story-like-button"]');
+
+      expect(likeTargets).toHaveLength(1);
+      expect(likeTargets[0]).toHaveAttribute('aria-label', 'Suka');
+      expect(screen.getAllByLabelText('Suka').length).toBeGreaterThan(1);
+    });
+
     it('clicking comment button opens comment input form', () => {
       renderStory();
       const commentButtons = screen.getAllByLabelText('Komentar');
@@ -347,6 +356,15 @@ describe('CinematicStory', () => {
       // Comment form should appear with input fields
       expect(screen.getByPlaceholderText('Nama Anda')).toBeInTheDocument();
       expect(screen.getByPlaceholderText('Tulis pesan...')).toBeInTheDocument();
+    });
+
+    it('marks only the active comment button as the Driver.js story comment target', () => {
+      const { container } = renderStory();
+      const commentTargets = container.querySelectorAll('[data-tour="story-comment-button"]');
+
+      expect(commentTargets).toHaveLength(1);
+      expect(commentTargets[0]).toHaveAttribute('aria-label', 'Komentar');
+      expect(screen.getAllByLabelText('Komentar').length).toBeGreaterThan(1);
     });
 
     it('comment form has "Batal" cancel button', () => {
@@ -526,6 +544,7 @@ describe('CinematicStory', () => {
           disableActiveInteraction: false,
           doneBtnText: 'Mengerti',
           overlayClickBehavior: 'close',
+          nextBtnText: 'Lanjut',
           showProgress: false,
           smoothScroll: false,
         })
@@ -536,6 +555,35 @@ describe('CinematicStory', () => {
           popover: expect.objectContaining({
             title: 'Kisah Kami',
             description: 'Geser ke samping untuk mengikuti setiap bagian cerita. Setelah panduan ditutup, Anda dapat menggulir halaman seperti biasa.',
+            showButtons: ['next'],
+            nextBtnText: 'Lanjut',
+            doneBtnText: 'Mengerti',
+          }),
+        }),
+        expect.objectContaining({
+          advanceOnClick: true,
+          disableActiveInteraction: false,
+          element: '[data-tour="story-like-button"]',
+          waitForElement: 1000,
+          popover: expect.objectContaining({
+            title: 'Tanda Suka',
+            description: 'Ketuk ikon hati untuk mengirim tanda suka pada bagian cerita yang sedang dibaca.',
+            side: 'left',
+            align: 'center',
+            showButtons: ['next'],
+            nextBtnText: 'Lanjut',
+          }),
+        }),
+        expect.objectContaining({
+          advanceOnClick: true,
+          disableActiveInteraction: false,
+          element: '[data-tour="story-comment-button"]',
+          waitForElement: 1000,
+          popover: expect.objectContaining({
+            title: 'Ucapan Cerita',
+            description: 'Ketuk ikon komentar untuk menulis ucapan singkat pada bagian cerita ini.',
+            side: 'left',
+            align: 'center',
             showButtons: ['next'],
             doneBtnText: 'Mengerti',
           }),
@@ -563,6 +611,21 @@ describe('CinematicStory', () => {
         touches: [{ clientX: 120, clientY: 24 }],
       });
 
+      act(() => {
+        vi.advanceTimersByTime(150);
+      });
+
+      expect(driverMock.driver).not.toHaveBeenCalled();
+    });
+
+    it('does not start the story tour while the active comment form is open', async () => {
+      vi.useFakeTimers();
+      renderStory();
+
+      fireEvent.click(screen.getAllByLabelText('Komentar')[0]);
+      expect(screen.getByPlaceholderText('Nama Anda')).toBeInTheDocument();
+
+      await triggerFullStoryVisibility();
       act(() => {
         vi.advanceTimersByTime(150);
       });

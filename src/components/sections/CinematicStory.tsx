@@ -20,6 +20,9 @@ const OVERFLOW_TOLERANCE_PX = 1;
 const STORY_TOUR_MIN_SLIDES = 2;
 const STORY_TOUR_FULL_VISIBILITY_RATIO = 0.85;
 const STORY_TOUR_READY_DELAY_MS = 150;
+const STORY_TOUR_TARGET_WAIT_MS = 1000;
+const STORY_LIKE_BUTTON_SELECTOR = '[data-tour="story-like-button"]';
+const STORY_COMMENT_BUTTON_SELECTOR = '[data-tour="story-comment-button"]';
 
 function sameSet(a: Set<number>, b: Set<number>) {
   if (a.size !== b.size) return false;
@@ -138,6 +141,7 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
     if (
       !isStoryTourReady ||
       invitationTour?.isTourRunning ||
+      commentInput !== null ||
       hasStartedStoryTourRef.current ||
       hasInteractedWithStorySwipeRef.current ||
       slides.length < STORY_TOUR_MIN_SLIDES
@@ -170,6 +174,7 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
       popoverClass: 'wedding-driver-popover',
       showButtons: ['next'],
       showProgress: false,
+      nextBtnText: 'Lanjut',
       doneBtnText: 'Mengerti',
       overlayClickBehavior: 'close',
       onDoneClick: clearStoryTour,
@@ -181,6 +186,35 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
           popover: {
             title: 'Kisah Kami',
             description: 'Geser ke samping untuk mengikuti setiap bagian cerita. Setelah panduan ditutup, Anda dapat menggulir halaman seperti biasa.',
+            showButtons: ['next'],
+            nextBtnText: 'Lanjut',
+            doneBtnText: 'Mengerti',
+          },
+        },
+        {
+          element: STORY_LIKE_BUTTON_SELECTOR,
+          waitForElement: STORY_TOUR_TARGET_WAIT_MS,
+          disableActiveInteraction: false,
+          advanceOnClick: true,
+          popover: {
+            title: 'Tanda Suka',
+            description: 'Ketuk ikon hati untuk mengirim tanda suka pada bagian cerita yang sedang dibaca.',
+            side: 'left',
+            align: 'center',
+            showButtons: ['next'],
+            nextBtnText: 'Lanjut',
+          },
+        },
+        {
+          element: STORY_COMMENT_BUTTON_SELECTOR,
+          waitForElement: STORY_TOUR_TARGET_WAIT_MS,
+          disableActiveInteraction: false,
+          advanceOnClick: true,
+          popover: {
+            title: 'Ucapan Cerita',
+            description: 'Ketuk ikon komentar untuk menulis ucapan singkat pada bagian cerita ini.',
+            side: 'left',
+            align: 'center',
             showButtons: ['next'],
             doneBtnText: 'Mengerti',
           },
@@ -199,7 +233,7 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
         storyTour.destroy();
       }
     };
-  }, [invitationTour?.isTourRunning, isStoryTourReady, slides.length]);
+  }, [commentInput, invitationTour?.isTourRunning, isStoryTourReady, slides.length]);
 
   const measureOverflowingSlides = useCallback(() => {
     const next = new Set<number>();
@@ -402,13 +436,25 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
 
             {/* Action buttons — always mounted, hidden via CSS */}
             <div className={`absolute bottom-36 right-4 lg:right-[calc(50%-320px)] flex flex-col gap-5 z-[60] transition-opacity duration-200 ${isActive && commentInput?.index !== idx ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-              <motion.button whileTap={{ scale: 0.8 }} aria-label="Suka" onClick={() => handleLike(idx)} className="relative flex flex-col items-center gap-1 group">
+              <motion.button
+                whileTap={{ scale: 0.8 }}
+                aria-label="Suka"
+                data-tour={isActive ? 'story-like-button' : undefined}
+                onClick={() => handleLike(idx)}
+                className="relative flex flex-col items-center gap-1 group"
+              >
                 <div className="w-11 h-11 rounded-full bg-black/40 border border-white/10 flex items-center justify-center group-hover:bg-rose-pastel/20 transition-all">
                   <Heart className="w-5 h-5 text-rose-pastel transition-transform group-active:scale-125" fill={(likes[idx] ?? 0) > 120 ? 'currentColor' : 'none'} />
                 </div>
                 <span aria-hidden="true" className="text-[10px] font-sans text-white/70 tracking-widest">{likes[idx] ?? 0}</span>
               </motion.button>
-              <motion.button whileTap={{ scale: 0.8 }} aria-label="Komentar" onClick={() => setCommentInput({ index: idx, name: '', text: '' })} className="flex flex-col items-center gap-1 group">
+              <motion.button
+                whileTap={{ scale: 0.8 }}
+                aria-label="Komentar"
+                data-tour={isActive ? 'story-comment-button' : undefined}
+                onClick={() => setCommentInput({ index: idx, name: '', text: '' })}
+                className="flex flex-col items-center gap-1 group"
+              >
                 <div className="w-11 h-11 rounded-full bg-black/40 border border-white/10 flex items-center justify-center group-hover:bg-white/10 transition-all">
                   <MessageCircle className="w-5 h-5 text-ivory" />
                 </div>

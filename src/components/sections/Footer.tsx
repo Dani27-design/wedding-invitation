@@ -1,7 +1,7 @@
 'use client';
 import { ReactNode, memo } from 'react';
 import { motion } from 'motion/react';
-import { Heart, Instagram, Linkedin, LucideIcon, MessageCircle } from 'lucide-react';
+import { Heart, Globe, Instagram, Linkedin, LucideIcon, MessageCircle } from 'lucide-react';
 import NextImage from 'next/image';
 import { CREDIT_ICON_MAP } from '../../constants/creditIcons';
 import { useWeddingContext } from '../../context/WeddingContext';
@@ -36,8 +36,8 @@ export const Footer = memo(() => {
   const wedding = useWeddingContext();
 
   const creditSocials = wedding ? [
-    (wedding.groomSocialLinks || []).map(l => ({ href: l.label === 'WhatsApp' ? deriveWhatsappUrl(l.url) : safeUrl(l.url), Icon: getIcon(l.label) || Heart, label: l.label })),
-    (wedding.brideSocialLinks || []).map(l => ({ href: l.label === 'WhatsApp' ? deriveWhatsappUrl(l.url) : safeUrl(l.url), Icon: getIcon(l.label) || Heart, label: l.label })),
+    (wedding.groomSocialLinks || []).map(l => ({ href: l.label === 'WhatsApp' ? deriveWhatsappUrl(l.url) : safeUrl(l.url), Icon: getIcon(l.label) || Globe, label: l.label })),
+    (wedding.brideSocialLinks || []).map(l => ({ href: l.label === 'WhatsApp' ? deriveWhatsappUrl(l.url) : safeUrl(l.url), Icon: getIcon(l.label) || Globe, label: l.label })),
   ] : [];
 
   return (

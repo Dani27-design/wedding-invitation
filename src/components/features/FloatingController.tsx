@@ -111,7 +111,7 @@ export const FloatingController = ({
     let scrolledElement = false;
     if (typeof target.scrollIntoView === 'function') {
       try {
-        target.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+        target.scrollIntoView({ behavior: 'smooth' });
         scrolledElement = true;
       } catch {
         scrolledElement = false;
@@ -129,7 +129,7 @@ export const FloatingController = ({
 
       if (typeof target.scrollIntoView === 'function') {
         try {
-          target.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+          target.scrollIntoView({ behavior: 'smooth' });
         } catch {
           // Continue to the direct document scroll below.
         }

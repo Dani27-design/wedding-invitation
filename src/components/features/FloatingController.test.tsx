@@ -171,9 +171,9 @@ describe('FloatingController', () => {
       expect(btn).toHaveClass('rounded-full');
     });
 
-    it('has stable tour target for Driver.js', () => {
+    it('does not expose the main button as a Driver.js tour target', () => {
       render(<FloatingController {...createProps()} />);
-      expect(screen.getByLabelText('Buka menu')).toHaveAttribute('data-tour', 'floating-menu-button');
+      expect(screen.getByLabelText('Buka menu')).not.toHaveAttribute('data-tour');
     });
 
     it('has backdrop-blur-xl for frosted glass effect', () => {
@@ -445,7 +445,7 @@ describe('FloatingController', () => {
       expect(setIsToolsOpen).toHaveBeenCalledWith(false);
     });
 
-    it('Twibbon button scrolls on real mobile touch pointer activation before synthetic click', () => {
+    it('Twibbon button uses the click path after a touch pointer release', () => {
       const scrollMock = mockWindowScrollTo();
       const target = mockSectionTarget(420);
       const getByIdMock = vi.fn().mockReturnValue(target);
@@ -457,25 +457,15 @@ describe('FloatingController', () => {
 
       fireEvent.pointerUp(twibbonButton, { pointerType: 'touch' });
 
+      expect(getByIdMock).not.toHaveBeenCalled();
+      expect(scrollMock).not.toHaveBeenCalled();
+      expect(setIsToolsOpen).not.toHaveBeenCalled();
+
+      fireEvent.click(twibbonButton);
+
       expect(getByIdMock).toHaveBeenCalledWith('twibbon-section');
       expect(scrollMock).toHaveBeenCalledWith({ top: 412, left: 0, behavior: 'smooth' });
       expect(setIsToolsOpen).toHaveBeenCalledWith(false);
-    });
-
-    it('deduplicates a mobile touch pointer activation followed by the browser click', () => {
-      const scrollMock = mockWindowScrollTo();
-      const getByIdMock = vi.fn().mockReturnValue(mockSectionTarget(420));
-      vi.spyOn(document, 'getElementById').mockImplementation(getByIdMock);
-
-      render(<FloatingController {...createProps({ isToolsOpen: true })} />);
-      const twibbonButton = screen.getByText('Twibbon').closest('button')!;
-
-      fireEvent.pointerUp(twibbonButton, { pointerType: 'touch' });
-      fireEvent.click(twibbonButton);
-
-      expect(getByIdMock).toHaveBeenCalledTimes(1);
-      expect(scrollMock).toHaveBeenCalledTimes(1);
-      expect(scrollMock).toHaveBeenCalledWith({ top: 412, left: 0, behavior: 'smooth' });
     });
 
     it('keeps desktop mouse pointer release inert until the normal click fires', () => {
@@ -816,13 +806,13 @@ describe('FloatingController', () => {
       expect(menuContainer).toBeInTheDocument();
     });
 
-    it('marks the expanded menu panel as the Driver.js tour target only when open', () => {
+    it('does not expose the expanded menu panel as a Driver.js tour target', () => {
       const { container, rerender } = render(<FloatingController {...createProps()} />);
       expect(container.querySelector('[data-tour="floating-menu-panel"]')).not.toBeInTheDocument();
 
       rerender(<FloatingController {...createProps({ isToolsOpen: true })} />);
 
-      expect(container.querySelector('[data-tour="floating-menu-panel"]')).toBeInTheDocument();
+      expect(container.querySelector('[data-tour="floating-menu-panel"]')).not.toBeInTheDocument();
     });
 
     it('main button has overflow-hidden to clip internal animations', () => {

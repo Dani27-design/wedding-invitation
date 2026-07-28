@@ -297,23 +297,6 @@ html, body {
   border-bottom-color: color-mix(in srgb, var(--color-ivory) 96%, var(--color-gold));
 }
 
-.wedding-driver-popover--floating-menu {
-  width: min(220px, calc(100vw - 2rem));
-  max-width: min(220px, calc(100vw - 2rem));
-  min-width: min(210px, calc(100vw - 2rem));
-}
-
-.wedding-driver-popover--floating-menu .driver-popover-title {
-  font-size: 1.2rem;
-  padding-right: 1.6rem;
-}
-
-.wedding-driver-popover--floating-menu .driver-popover-description {
-  font-size: 0.78rem;
-  line-height: 1.55;
-  max-width: none;
-}
-
 .wedding-driver-popover--story {
   background:
     linear-gradient(145deg, color-mix(in srgb, var(--color-ivory) 97%, white 3%), color-mix(in srgb, var(--color-paper) 94%, var(--color-rose-pastel) 6%)),

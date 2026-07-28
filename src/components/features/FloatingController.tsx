@@ -127,14 +127,6 @@ export const FloatingController = ({
       const targetReached = Math.abs(target.getBoundingClientRect().top - NAVIGATION_SCROLL_OFFSET_PX) <= 24;
       if (scrollChanged || targetReached) return;
 
-      if (typeof target.scrollIntoView === 'function') {
-        try {
-          target.scrollIntoView({ behavior: 'auto', block: 'start', inline: 'nearest' });
-        } catch {
-          // Continue to the direct document scroll below.
-        }
-      }
-
       window.scrollTo(0, targetTop);
     }, NAVIGATION_FALLBACK_DELAY_MS);
 

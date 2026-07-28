@@ -645,7 +645,7 @@ describe('FloatingController', () => {
       expect(scrollMock).not.toHaveBeenCalledWith(0, 412);
     });
 
-    it('uses element scrolling immediately before the last-resort direct scroll when the page does not move', () => {
+    it('uses the document scroll fallback without forcing instant element scrolling when the page does not move', () => {
       vi.useFakeTimers();
       mockNavigationFrames();
       const scrollMock = mockWindowScrollTo();
@@ -669,7 +669,9 @@ describe('FloatingController', () => {
         vi.advanceTimersByTime(1);
       });
 
-      expect(target.scrollIntoView).toHaveBeenCalledWith({ behavior: 'auto', block: 'start', inline: 'nearest' });
+      expect(target.scrollIntoView).toHaveBeenCalledTimes(1);
+      expect(target.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+      expect(target.scrollIntoView).not.toHaveBeenCalledWith({ behavior: 'auto', block: 'start', inline: 'nearest' });
       expect(scrollMock).toHaveBeenCalledWith(0, 412);
     });
 

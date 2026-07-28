@@ -234,7 +234,7 @@ export const FloatingController = ({
             disableActiveInteraction: false,
             popover: {
               title: 'Menu Cepat',
-              description: 'Gunakan tombol ini untuk membuka navigasi bagian undangan dan mengatur musik.',
+              description: 'Gunakan tombol mengambang ini untuk membuka navigasi menu undangan dan mengatur musik. Tombol ini dapat dipindahkan ke posisi yang nyaman di layar Anda.',
               side: 'left',
               align: 'center',
               showButtons: ['next'],

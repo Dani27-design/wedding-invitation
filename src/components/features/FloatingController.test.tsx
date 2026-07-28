@@ -582,7 +582,7 @@ describe('FloatingController', () => {
       expect(setIsToolsOpen).toHaveBeenCalledWith(false);
     });
 
-    it('keeps the menu open while a section target is still missing', () => {
+    it('closes the menu while waiting for a missing section target', () => {
       vi.useFakeTimers();
       mockNavigationFrames();
       const scrollMock = mockWindowScrollTo();
@@ -597,7 +597,7 @@ describe('FloatingController', () => {
       });
 
       expect(scrollMock).not.toHaveBeenCalled();
-      expect(setIsToolsOpen).not.toHaveBeenCalled();
+      expect(setIsToolsOpen).toHaveBeenCalledWith(false);
     });
 
     it('retries navigation until a lazy-loaded section appears', () => {
@@ -616,7 +616,7 @@ describe('FloatingController', () => {
       fireEvent.click(screen.getByText('Twibbon'));
 
       expect(scrollMock).not.toHaveBeenCalled();
-      expect(setIsToolsOpen).not.toHaveBeenCalled();
+      expect(setIsToolsOpen).toHaveBeenCalledWith(false);
 
       act(() => {
         vi.advanceTimersByTime(240);
@@ -627,63 +627,48 @@ describe('FloatingController', () => {
       expect(setIsToolsOpen).toHaveBeenCalledWith(false);
     });
 
-    it('falls back to smooth scrollIntoView when object smooth scroll is unsupported', () => {
+    it('falls back to numeric document scrolling when object smooth scroll is unsupported', () => {
       const scrollMock = vi.spyOn(window, 'scrollTo').mockImplementation((arg1: unknown) => {
         if (typeof arg1 === 'object') {
           throw new TypeError('smooth scroll options unsupported');
         }
       });
       const target = mockSectionTarget(420);
-      target.scrollIntoView = vi.fn();
       vi.spyOn(document, 'getElementById').mockReturnValue(target);
 
       render(<FloatingController {...createProps({ isToolsOpen: true })} />);
       fireEvent.click(screen.getByText('Rangkaian Acara'));
 
       expect(scrollMock).toHaveBeenNthCalledWith(1, { top: 412, left: 0, behavior: 'smooth' });
-      expect(target.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start', inline: 'nearest' });
-      expect(scrollMock).not.toHaveBeenCalledWith(0, 412);
+      expect(scrollMock).toHaveBeenCalledWith(0, 412);
     });
 
-    it('uses element scrolling immediately before the last-resort direct scroll when the page does not move', () => {
+    it('does not schedule extra scroll fallbacks after the conventional smooth scroll call', () => {
       vi.useFakeTimers();
       mockNavigationFrames();
       const scrollMock = mockWindowScrollTo();
       const target = mockSectionTarget(420);
-      target.scrollIntoView = vi.fn();
       vi.spyOn(document, 'getElementById').mockReturnValue(target);
 
       render(<FloatingController {...createProps({ isToolsOpen: true })} />);
       fireEvent.click(screen.getByText('Rangkaian Acara'));
 
-      expect(target.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start', inline: 'nearest' });
       expect(scrollMock).toHaveBeenCalledWith({ top: 412, left: 0, behavior: 'smooth' });
 
       act(() => {
-        vi.advanceTimersByTime(699);
+        vi.advanceTimersByTime(1200);
       });
 
-      expect(scrollMock).not.toHaveBeenCalledWith(0, 412);
-
-      act(() => {
-        vi.advanceTimersByTime(1);
-      });
-
-      expect(target.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start', inline: 'nearest' });
-      expect(scrollMock).toHaveBeenCalledWith(0, 412);
+      expect(scrollMock).toHaveBeenCalledTimes(1);
     });
 
-    it('clears stale scroll fallbacks when another section is selected', () => {
+    it('cancels a pending missing-section wait when another section is selected', () => {
       vi.useFakeTimers();
       mockNavigationFrames();
       const scrollMock = mockWindowScrollTo();
-      const eventTarget = mockSectionTarget(420);
-      eventTarget.scrollIntoView = vi.fn();
       const twibbonTarget = mockSectionTarget(560);
-      twibbonTarget.scrollIntoView = vi.fn();
 
       vi.spyOn(document, 'getElementById').mockImplementation((id) => {
-        if (id === 'event-section') return eventTarget;
         if (id === 'twibbon-section') return twibbonTarget;
         return null;
       });
@@ -693,14 +678,12 @@ describe('FloatingController', () => {
       fireEvent.click(screen.getByText('Twibbon'));
 
       act(() => {
-        vi.advanceTimersByTime(700);
+        vi.advanceTimersByTime(120);
       });
 
       expect(scrollMock).not.toHaveBeenCalledWith(0, 412);
-      expect(eventTarget.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start', inline: 'nearest' });
-      expect(eventTarget.scrollIntoView).not.toHaveBeenCalledWith({ behavior: 'smooth', block: 'start', inline: 'nearest' });
-      expect(twibbonTarget.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start', inline: 'nearest' });
-      expect(scrollMock).toHaveBeenCalledWith(0, 552);
+      expect(scrollMock).toHaveBeenCalledTimes(1);
+      expect(scrollMock).toHaveBeenCalledWith({ top: 552, left: 0, behavior: 'smooth' });
     });
   });
 

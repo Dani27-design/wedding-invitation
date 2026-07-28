@@ -15,7 +15,6 @@ interface FloatingControllerProps {
 const NAVIGATION_RETRY_DELAY_MS = 120;
 const NAVIGATION_MAX_WAIT_MS = 6000;
 const NAVIGATION_SCROLL_OFFSET_PX = 8;
-const NAVIGATION_FALLBACK_DELAY_MS = 700;
 const DRAG_CLICK_CANCEL_THRESHOLD_PX = 6;
 
 function getDocumentScrollTop() {
@@ -28,8 +27,8 @@ export const FloatingController = ({
   isPlaying,
   toggleMusic,
 }: FloatingControllerProps) => {
-  const navigationCleanupRef = useRef<(() => void) | null>(null);
-  const scrollFallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const navigationIdRef = useRef(0);
+  const navigationRetryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dragStateRef = useRef<{
     pointerId: number;
     startX: number;
@@ -76,11 +75,10 @@ export const FloatingController = ({
   }, []);
 
   const clearPendingNavigation = useCallback(() => {
-    navigationCleanupRef.current?.();
-    navigationCleanupRef.current = null;
-    if (scrollFallbackTimerRef.current !== null) {
-      clearTimeout(scrollFallbackTimerRef.current);
-      scrollFallbackTimerRef.current = null;
+    navigationIdRef.current += 1;
+    if (navigationRetryTimerRef.current !== null) {
+      clearTimeout(navigationRetryTimerRef.current);
+      navigationRetryTimerRef.current = null;
     }
   }, []);
 
@@ -88,115 +86,55 @@ export const FloatingController = ({
     return () => clearPendingNavigation();
   }, [clearPendingNavigation]);
 
-  const scrollToMountedSection = useCallback((sectionId: string) => {
-    const target = document.getElementById(sectionId);
-    if (!target) return false;
-
+  const scrollToMountedSection = useCallback((target: HTMLElement) => {
     const initialScrollTop = getDocumentScrollTop();
     const targetTop = Math.max(
       0,
       target.getBoundingClientRect().top + initialScrollTop - NAVIGATION_SCROLL_OFFSET_PX,
     );
 
-    const scrollWithWindow = (behavior: ScrollBehavior, useNumericFallback = true) => {
-      try {
-        window.scrollTo({ top: targetTop, left: 0, behavior });
-      } catch {
-        if (useNumericFallback) {
-          window.scrollTo(0, targetTop);
-        }
-      }
-    };
-
-    let scrolledElement = false;
-    if (typeof target.scrollIntoView === 'function') {
-      try {
-        target.scrollIntoView({ behavior: 'smooth' });
-        scrolledElement = true;
-      } catch {
-        scrolledElement = false;
-      }
-    }
-
-    scrollWithWindow('smooth', !scrolledElement);
-
-    scrollFallbackTimerRef.current = setTimeout(() => {
-      scrollFallbackTimerRef.current = null;
-
-      const scrollChanged = Math.abs(getDocumentScrollTop() - initialScrollTop) > 1;
-      const targetReached = Math.abs(target.getBoundingClientRect().top - NAVIGATION_SCROLL_OFFSET_PX) <= 24;
-      if (scrollChanged || targetReached) return;
-
-      if (typeof target.scrollIntoView === 'function') {
-        try {
-          target.scrollIntoView({ behavior: 'smooth' });
-        } catch {
-          // Continue to the direct document scroll below.
-        }
-      }
-
+    try {
+      window.scrollTo({ top: targetTop, left: 0, behavior: 'smooth' });
+    } catch {
       window.scrollTo(0, targetTop);
-    }, NAVIGATION_FALLBACK_DELAY_MS);
-
-    setIsToolsOpen(false);
-    return true;
-  }, [setIsToolsOpen]);
+    }
+  }, []);
 
   const scrollToSection = useCallback((sectionId: string) => {
     clearPendingNavigation();
+    const navigationId = navigationIdRef.current;
     dispatchFloatingNavigationStart(sectionId);
     destroyAllDriverTours();
+    setIsToolsOpen(false);
 
     const startedAt = Date.now();
-    let retryTimer: ReturnType<typeof setTimeout> | null = null;
-    let observer: MutationObserver | null = null;
-    let cancelled = false;
 
-    const cleanup = () => {
-      cancelled = true;
-      if (retryTimer !== null) {
-        clearTimeout(retryTimer);
-        retryTimer = null;
-      }
-      observer?.disconnect();
-      observer = null;
-    };
+    const waitForSectionAndScroll = () => {
+      if (navigationIdRef.current !== navigationId) return;
 
-    const tryScroll = () => {
-      if (cancelled) return true;
       destroyAllDriverTours();
-      if (scrollToMountedSection(sectionId)) {
-        cleanup();
-        return true;
+      const target = document.getElementById(sectionId);
+      if (target) {
+        scrollToMountedSection(target);
+        return;
       }
-      if (Date.now() - startedAt >= NAVIGATION_MAX_WAIT_MS) {
-        cleanup();
-        return true;
-      }
-      return false;
-    };
 
-    const scheduleRetry = () => {
-      if (cancelled) return;
-      retryTimer = setTimeout(() => {
-        retryTimer = null;
-        if (!tryScroll()) scheduleRetry();
+      if (Date.now() - startedAt >= NAVIGATION_MAX_WAIT_MS) {
+        return;
+      }
+
+      navigationRetryTimerRef.current = setTimeout(() => {
+        navigationRetryTimerRef.current = null;
+        waitForSectionAndScroll();
       }, NAVIGATION_RETRY_DELAY_MS);
     };
 
-    navigationCleanupRef.current = cleanup;
-
     window.requestAnimationFrame(() => {
       window.requestAnimationFrame(() => {
-        if (tryScroll()) return;
-        observer = new MutationObserver(() => {
-          tryScroll();
-        });
-        observer.observe(document.body, { childList: true, subtree: true });
-        scheduleRetry();
+        waitForSectionAndScroll();
       });
     });
-  }, [clearPendingNavigation, scrollToMountedSection]);
+  }, [clearPendingNavigation, scrollToMountedSection, setIsToolsOpen]);
 
   const handleMainPointerDown = useCallback((event: PointerEvent<HTMLButtonElement>) => {
     event.stopPropagation();

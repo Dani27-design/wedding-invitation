@@ -454,7 +454,9 @@ describe('FloatingController', () => {
       window.removeEventListener(FLOATING_NAVIGATION_START_EVENT, handleNavigationStart);
     });
 
-    it('does not let a stale Driver.js body scroll lock block section navigation', () => {
+    it('waits for a stale Driver.js body scroll lock to clear before section navigation', () => {
+      vi.useFakeTimers();
+      mockNavigationFrames();
       document.body.classList.add('driver-no-scroll');
       const scrollMock = mockWindowScrollTo();
       const target = mockSectionTarget(420);
@@ -463,6 +465,15 @@ describe('FloatingController', () => {
 
       render(<FloatingController {...createProps({ isToolsOpen: true, setIsToolsOpen })} />);
       fireEvent.click(screen.getByText('Twibbon'));
+
+      expect(getByIdMock).not.toHaveBeenCalled();
+      expect(scrollMock).not.toHaveBeenCalled();
+      expect(setIsToolsOpen).not.toHaveBeenCalled();
+
+      document.body.classList.remove('driver-no-scroll');
+      act(() => {
+        vi.advanceTimersByTime(120);
+      });
 
       expect(getByIdMock).toHaveBeenCalledWith('twibbon-section');
       expect(scrollMock).toHaveBeenCalledWith({ top: 412, left: 0, behavior: 'smooth' });

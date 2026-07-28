@@ -12,7 +12,7 @@ interface FloatingControllerProps {
 }
 
 const NAVIGATION_RETRY_DELAY_MS = 120;
-const NAVIGATION_MAX_WAIT_MS = 4000;
+const NAVIGATION_MAX_WAIT_MS = 6000;
 const NAVIGATION_SCROLL_OFFSET_PX = 8;
 const NAVIGATION_SMOOTH_RETRY_DELAY_MS = 500;
 const NAVIGATION_INSTANT_FALLBACK_DELAY_MS = 1600;
@@ -20,6 +20,10 @@ const DRAG_CLICK_CANCEL_THRESHOLD_PX = 6;
 
 function getDocumentScrollTop() {
   return document.scrollingElement?.scrollTop ?? window.scrollY ?? 0;
+}
+
+function isDriverScrollLocked() {
+  return document.body.classList.contains('driver-no-scroll');
 }
 
 export const FloatingController = ({
@@ -161,6 +165,13 @@ export const FloatingController = ({
 
     const tryScroll = () => {
       if (cancelled) return true;
+      if (isDriverScrollLocked()) {
+        if (Date.now() - startedAt >= NAVIGATION_MAX_WAIT_MS) {
+          cleanup();
+          return true;
+        }
+        return false;
+      }
       if (scrollToMountedSection(sectionId)) {
         cleanup();
         return true;

@@ -227,7 +227,7 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
       overlayOpacity: 0.56,
       smoothScroll: false,
       allowClose: true,
-      allowScroll: false,
+      allowScroll: true,
       disableActiveInteraction: false,
       stagePadding: 16,
       stageRadius: 24,

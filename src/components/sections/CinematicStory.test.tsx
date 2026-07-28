@@ -577,7 +577,7 @@ describe('CinematicStory', () => {
       expect(driverMock.driver).not.toHaveBeenCalled();
     });
 
-    it('starts a centered scroll-freezing Driver.js tour after the required story viewport has settled', async () => {
+    it('starts a centered scroll-safe Driver.js tour after the required story viewport has settled', async () => {
       vi.useFakeTimers();
       const { container } = renderStory();
       expect(container.querySelector('[data-tour="cinematic-story"]')).toBeInTheDocument();
@@ -597,7 +597,7 @@ describe('CinematicStory', () => {
       expect(driverMock.latestInstance?.drive).toHaveBeenCalledOnce();
       expect(driverMock.latestOptions).toEqual(
         expect.objectContaining({
-          allowScroll: false,
+          allowScroll: true,
           disableActiveInteraction: false,
           doneBtnText: 'Mengerti',
           overlayClickBehavior: 'close',

@@ -138,8 +138,9 @@ describe('InvitationProductTour', () => {
         popover: expect.objectContaining({
           title: 'Akses Cepat',
           description: 'Gunakan tombol mengambang ini untuk membuka navigasi acara, ucapan, twibbon, tanda kasih, dan kontrol musik. Tombol dapat digeser agar tetap nyaman di layar.',
-          side: 'top',
-          align: 'end',
+          side: 'left',
+          align: 'center',
+          popoverClass: 'wedding-driver-popover wedding-driver-popover--floating-menu',
           showButtons: ['next'],
           doneBtnText: 'Mengerti',
         }),
@@ -354,14 +355,14 @@ describe('InvitationProductTour', () => {
     expect(setIsToolsOpen).toHaveBeenCalledWith(true);
   });
 
-  it('targets the floating controller container so menu item descendants stay interactive', () => {
+  it('targets the floating button so the popover stays clear of expanded menu items', () => {
     addOpeningTarget();
-    const { root } = addFloatingControllerTarget();
+    const { button } = addFloatingControllerTarget();
     renderTour();
 
     const floatingStep = driverMock.latestOptions?.steps[1];
 
-    expect(floatingStep.element()).toBe(root);
+    expect(floatingStep.element()).toBe(button);
   });
 
   it('destroys the tour from the floating step without closing the tools menu', () => {

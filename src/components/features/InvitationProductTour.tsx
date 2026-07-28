@@ -40,7 +40,7 @@ function prefersReducedMotion() {
 
 function getFloatingMenuTourElement() {
   const button = document.querySelector<HTMLElement>(FLOATING_MENU_BUTTON_SELECTOR);
-  return button?.closest('[class~="fixed"]') ?? button ?? undefined;
+  return button ?? undefined;
 }
 
 function createFloatingMenuTourStep(showFloatingMenu: DriverHook): DriveStep {
@@ -53,8 +53,9 @@ function createFloatingMenuTourStep(showFloatingMenu: DriverHook): DriveStep {
     popover: {
       title: 'Akses Cepat',
       description: 'Gunakan tombol mengambang ini untuk membuka navigasi acara, ucapan, twibbon, tanda kasih, dan kontrol musik. Tombol dapat digeser agar tetap nyaman di layar.',
-      side: 'top',
-      align: 'end',
+      side: 'left',
+      align: 'center',
+      popoverClass: 'wedding-driver-popover wedding-driver-popover--floating-menu',
       showButtons: ['next'],
       doneBtnText: 'Mengerti',
     },

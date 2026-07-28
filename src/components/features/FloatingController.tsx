@@ -15,17 +15,11 @@ interface FloatingControllerProps {
 const NAVIGATION_RETRY_DELAY_MS = 120;
 const NAVIGATION_MAX_WAIT_MS = 6000;
 const NAVIGATION_SCROLL_OFFSET_PX = 8;
-const NAVIGATION_CONTROLLED_FALLBACK_DELAY_MS = 700;
-const NAVIGATION_CONTROLLED_SCROLL_DURATION_MS = 900;
-const NAVIGATION_CONTROLLED_SCROLL_FRAME_MS = 16;
+const NAVIGATION_FALLBACK_DELAY_MS = 700;
 const DRAG_CLICK_CANCEL_THRESHOLD_PX = 6;
 
 function getDocumentScrollTop() {
   return document.scrollingElement?.scrollTop ?? window.scrollY ?? 0;
-}
-
-function easeOutCubic(progress: number) {
-  return 1 - Math.pow(1 - progress, 3);
 }
 
 export const FloatingController = ({
@@ -35,7 +29,7 @@ export const FloatingController = ({
   toggleMusic,
 }: FloatingControllerProps) => {
   const navigationCleanupRef = useRef<(() => void) | null>(null);
-  const scrollFallbackTimersRef = useRef<Array<ReturnType<typeof setTimeout>>>([]);
+  const scrollFallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dragStateRef = useRef<{
     pointerId: number;
     startX: number;
@@ -84,8 +78,10 @@ export const FloatingController = ({
   const clearPendingNavigation = useCallback(() => {
     navigationCleanupRef.current?.();
     navigationCleanupRef.current = null;
-    scrollFallbackTimersRef.current.forEach((timer) => clearTimeout(timer));
-    scrollFallbackTimersRef.current = [];
+    if (scrollFallbackTimerRef.current !== null) {
+      clearTimeout(scrollFallbackTimerRef.current);
+      scrollFallbackTimerRef.current = null;
+    }
   }, []);
 
   useEffect(() => {
@@ -112,70 +108,35 @@ export const FloatingController = ({
       }
     };
 
-    const scrollWithElement = (behavior: ScrollBehavior) => {
-      if (typeof target.scrollIntoView !== 'function') return false;
+    let scrolledElement = false;
+    if (typeof target.scrollIntoView === 'function') {
       try {
-        target.scrollIntoView({ behavior, block: 'start', inline: 'nearest' });
-        return true;
+        target.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+        scrolledElement = true;
       } catch {
-        return false;
+        scrolledElement = false;
       }
-    };
-
-    const hasReachedTarget = () => {
-      const targetReached = Math.abs(target.getBoundingClientRect().top - NAVIGATION_SCROLL_OFFSET_PX) <= 24;
-
-      return targetReached;
-    };
-
-    const scheduleFallback = (delay: number, callback: () => void) => {
-      const timer = setTimeout(() => {
-        scrollFallbackTimersRef.current = scrollFallbackTimersRef.current.filter((item) => item !== timer);
-        callback();
-      }, delay);
-      scrollFallbackTimersRef.current.push(timer);
-    };
-
-    const scrolledElement = scrollWithElement('smooth');
+    }
 
     scrollWithWindow('smooth', !scrolledElement);
 
-    const startControlledScroll = () => {
-      const startedAt = Date.now();
-      const startTop = getDocumentScrollTop();
-      const distance = targetTop - startTop;
+    scrollFallbackTimerRef.current = setTimeout(() => {
+      scrollFallbackTimerRef.current = null;
 
-      if (Math.abs(distance) <= 1) {
-        window.scrollTo(0, targetTop);
-        return;
+      const scrollChanged = Math.abs(getDocumentScrollTop() - initialScrollTop) > 1;
+      const targetReached = Math.abs(target.getBoundingClientRect().top - NAVIGATION_SCROLL_OFFSET_PX) <= 24;
+      if (scrollChanged || targetReached) return;
+
+      if (typeof target.scrollIntoView === 'function') {
+        try {
+          target.scrollIntoView({ behavior: 'auto', block: 'start', inline: 'nearest' });
+        } catch {
+          // Continue to the direct document scroll below.
+        }
       }
 
-      const step = () => {
-        if (hasReachedTarget()) return;
-
-        const elapsed = Date.now() - startedAt;
-        const progress = Math.min(1, elapsed / NAVIGATION_CONTROLLED_SCROLL_DURATION_MS);
-        const nextTop = startTop + distance * easeOutCubic(progress);
-
-        window.scrollTo(0, nextTop);
-
-        if (progress < 1) {
-          scheduleFallback(NAVIGATION_CONTROLLED_SCROLL_FRAME_MS, step);
-          return;
-        }
-
-        window.scrollTo(0, targetTop);
-      };
-
-      scheduleFallback(NAVIGATION_CONTROLLED_SCROLL_FRAME_MS, step);
-    };
-
-    scheduleFallback(NAVIGATION_CONTROLLED_FALLBACK_DELAY_MS, () => {
-      if (hasReachedTarget()) return;
-
-      scrollWithElement('smooth');
-      startControlledScroll();
-    });
+      window.scrollTo(0, targetTop);
+    }, NAVIGATION_FALLBACK_DELAY_MS);
 
     setIsToolsOpen(false);
     return true;

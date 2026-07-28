@@ -645,7 +645,7 @@ describe('FloatingController', () => {
       expect(scrollMock).not.toHaveBeenCalledWith(0, 412);
     });
 
-    it('uses a controlled smooth numeric fallback when native smooth scrolling does not move', () => {
+    it('uses element scrolling immediately before the last-resort direct scroll when the page does not move', () => {
       vi.useFakeTimers();
       mockNavigationFrames();
       const scrollMock = mockWindowScrollTo();
@@ -669,24 +669,7 @@ describe('FloatingController', () => {
         vi.advanceTimersByTime(1);
       });
 
-      expect(target.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start', inline: 'nearest' });
-      expect(scrollMock).not.toHaveBeenCalledWith(0, 412);
-
-      act(() => {
-        vi.advanceTimersByTime(16);
-      });
-
-      expect(scrollMock.mock.calls.some((call) => (
-        call[0] === 0 &&
-        typeof call[1] === 'number' &&
-        call[1] > 0 &&
-        call[1] < 412
-      ))).toBe(true);
-
-      act(() => {
-        vi.advanceTimersByTime(900);
-      });
-
+      expect(target.scrollIntoView).toHaveBeenCalledWith({ behavior: 'auto', block: 'start', inline: 'nearest' });
       expect(scrollMock).toHaveBeenCalledWith(0, 412);
     });
 
@@ -710,19 +693,13 @@ describe('FloatingController', () => {
       fireEvent.click(screen.getByText('Twibbon'));
 
       act(() => {
-        vi.advanceTimersByTime(716);
+        vi.advanceTimersByTime(700);
       });
 
       expect(scrollMock).not.toHaveBeenCalledWith(0, 412);
-      expect(eventTarget.scrollIntoView).toHaveBeenCalledTimes(1);
-      expect(twibbonTarget.scrollIntoView).toHaveBeenCalledTimes(2);
-      expect(twibbonTarget.scrollIntoView).toHaveBeenLastCalledWith({ behavior: 'smooth', block: 'start', inline: 'nearest' });
-
-      act(() => {
-        vi.advanceTimersByTime(900);
-      });
-
-      expect(scrollMock).not.toHaveBeenCalledWith(0, 412);
+      expect(eventTarget.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+      expect(eventTarget.scrollIntoView).not.toHaveBeenCalledWith({ behavior: 'auto', block: 'start', inline: 'nearest' });
+      expect(twibbonTarget.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start', inline: 'nearest' });
       expect(scrollMock).toHaveBeenCalledWith(0, 552);
     });
   });

@@ -17,8 +17,6 @@ const OPENING_SELECTOR = '[data-tour="cinematic-opening"]';
 const FLOATING_MENU_BUTTON_SELECTOR = '[data-tour="floating-menu-button"]';
 const FLOATING_MENU_WAIT_MS = 5000;
 const FLOATING_MENU_EXPAND_BEFORE_TOUR_MS = 850;
-const DRIVER_CLEANUP_RETRY_DELAY_MS = 50;
-const DRIVER_CLEANUP_MAX_WAIT_MS = 800;
 
 interface InvitationProductTourProps {
   slug: string;
@@ -40,58 +38,23 @@ function prefersReducedMotion() {
   return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 }
 
-function getFloatingMenuButtonElement() {
+function getFloatingMenuTourElement() {
   const button = document.querySelector<HTMLElement>(FLOATING_MENU_BUTTON_SELECTOR);
-  return button ?? undefined;
+  return button?.closest('[class~="fixed"]') ?? button ?? undefined;
 }
 
-function isDriverCleanupComplete() {
-  return (
-    !document.body.classList.contains('driver-active') &&
-    !document.querySelector('.driver-popover') &&
-    !document.querySelector('.driver-overlay')
-  );
-}
-
-function scheduleAfterNextPaint(callback: () => void) {
-  if (window.requestAnimationFrame && window.cancelAnimationFrame) {
-    let secondFrame: number | null = null;
-    const firstFrame = window.requestAnimationFrame(() => {
-      secondFrame = window.requestAnimationFrame(callback);
-    });
-
-    return () => {
-      window.cancelAnimationFrame(firstFrame);
-      if (secondFrame !== null) {
-        window.cancelAnimationFrame(secondFrame);
-      }
-    };
-  }
-
-  let secondTimer: number | null = null;
-  const firstTimer = window.setTimeout(() => {
-    secondTimer = window.setTimeout(callback, 16);
-  }, 16);
-
-  return () => {
-    window.clearTimeout(firstTimer);
-    if (secondTimer !== null) {
-      window.clearTimeout(secondTimer);
-    }
-  };
-}
-
-function createFloatingMenuTourStep(): DriveStep {
+function createFloatingMenuTourStep(showFloatingMenu: DriverHook): DriveStep {
   return {
-    element: getFloatingMenuButtonElement as () => Element,
+    element: getFloatingMenuTourElement as () => Element,
     waitForElement: FLOATING_MENU_WAIT_MS,
-    disableActiveInteraction: true,
+    disableActiveInteraction: false,
+    advanceOnClick: true,
+    onHighlightStarted: showFloatingMenu,
     popover: {
       title: 'Akses Cepat',
       description: 'Gunakan tombol mengambang ini untuk membuka navigasi acara, ucapan, twibbon, tanda kasih, dan kontrol musik. Tombol dapat digeser agar tetap nyaman di layar.',
-      side: 'left',
-      align: 'center',
-      popoverClass: 'wedding-driver-popover wedding-driver-popover--floating-menu',
+      side: 'top',
+      align: 'end',
       showButtons: ['next'],
       doneBtnText: 'Mengerti',
     },
@@ -100,8 +63,10 @@ function createFloatingMenuTourStep(): DriveStep {
 
 function createInvitationTourSteps({
   openInvitationAndContinueTour,
+  showFloatingMenu,
 }: {
   openInvitationAndContinueTour: DriverHook;
+  showFloatingMenu: DriverHook;
 }): DriveStep[] {
   return [
     {
@@ -114,7 +79,7 @@ function createInvitationTourSteps({
         onCloseClick: openInvitationAndContinueTour,
       },
     },
-    createFloatingMenuTourStep(),
+    createFloatingMenuTourStep(showFloatingMenu),
   ];
 }
 
@@ -122,12 +87,10 @@ function createDriverConfig({
   steps,
   openInvitationAndContinueTour,
   endTour,
-  endTourAndOpenFloatingMenu,
 }: {
   steps: DriveStep[];
   openInvitationAndContinueTour: DriverHook;
   endTour: DriverHook;
-  endTourAndOpenFloatingMenu: DriverHook;
 }): Config {
   return {
     animate: !prefersReducedMotion(),
@@ -142,7 +105,7 @@ function createDriverConfig({
         return;
       }
 
-      endTourAndOpenFloatingMenu(element, step, opts);
+      endTour(element, step, opts);
     },
     disableActiveInteraction: false,
     stagePadding: 10,
@@ -153,14 +116,14 @@ function createDriverConfig({
     showProgress: false,
     doneBtnText: 'Selesai',
     steps,
-    onDoneClick: endTourAndOpenFloatingMenu,
+    onDoneClick: endTour,
     onCloseClick: (element, step, opts) => {
       if (opts.index === 0) {
         openInvitationAndContinueTour(element, step, opts);
         return;
       }
 
-      endTourAndOpenFloatingMenu(element, step, opts);
+      endTour(element, step, opts);
     },
   };
 }
@@ -190,9 +153,6 @@ export function TourProvider({
   const continuedTourRef = useRef(false);
   const destroyedToursRef = useRef<WeakSet<Driver>>(new WeakSet());
   const floatingStepTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const floatingMenuCleanupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const floatingMenuCleanupPaintRef = useRef<(() => void) | null>(null);
-  const floatingMenuCleanupStartedAtRef = useRef(0);
   const [isTourRunning, setIsTourRunning] = useState(false);
 
   const clearFloatingStepTimer = useCallback(() => {
@@ -201,46 +161,13 @@ export function TourProvider({
     floatingStepTimerRef.current = null;
   }, []);
 
-  const clearFloatingMenuCleanupTimer = useCallback(() => {
-    if (floatingMenuCleanupTimerRef.current !== null) {
-      clearTimeout(floatingMenuCleanupTimerRef.current);
-      floatingMenuCleanupTimerRef.current = null;
-    }
-    floatingMenuCleanupPaintRef.current?.();
-    floatingMenuCleanupPaintRef.current = null;
-  }, []);
-
   const destroyTour = useCallback((tour: Driver) => {
     clearFloatingStepTimer();
-    clearFloatingMenuCleanupTimer();
     if (destroyedToursRef.current.has(tour)) return;
     destroyedToursRef.current.add(tour);
     tour.destroy();
     setIsTourRunning(false);
-  }, [clearFloatingMenuCleanupTimer, clearFloatingStepTimer]);
-
-  const openFloatingMenuAfterDriverCleanup = useCallback(() => {
-    clearFloatingMenuCleanupTimer();
-    floatingMenuCleanupStartedAtRef.current = Date.now();
-
-    const waitUntilClean = () => {
-      if (
-        isDriverCleanupComplete() ||
-        Date.now() - floatingMenuCleanupStartedAtRef.current >= DRIVER_CLEANUP_MAX_WAIT_MS
-      ) {
-        floatingMenuCleanupTimerRef.current = null;
-        floatingMenuCleanupPaintRef.current = scheduleAfterNextPaint(() => {
-          floatingMenuCleanupPaintRef.current = null;
-          setIsToolsOpen?.(true);
-        });
-        return;
-      }
-
-      floatingMenuCleanupTimerRef.current = setTimeout(waitUntilClean, DRIVER_CLEANUP_RETRY_DELAY_MS);
-    };
-
-    waitUntilClean();
-  }, [clearFloatingMenuCleanupTimer, setIsToolsOpen]);
+  }, [clearFloatingStepTimer]);
 
   const endTour = useCallback<DriverHook>((_element, _step, { driver: activeDriver }) => {
     if (driverRef.current === activeDriver) {
@@ -248,11 +175,6 @@ export function TourProvider({
     }
     destroyTour(activeDriver);
   }, [destroyTour]);
-
-  const endTourAndOpenFloatingMenu = useCallback<DriverHook>((element, step, opts) => {
-    endTour(element, step, opts);
-    openFloatingMenuAfterDriverCleanup();
-  }, [endTour, openFloatingMenuAfterDriverCleanup]);
 
   const stopTour = useCallback(() => {
     const activeTour = driverRef.current;
@@ -269,8 +191,12 @@ export function TourProvider({
     setIsTourRunning(true);
   }, []);
 
+  const showFloatingMenu = useCallback<DriverHook>(() => {
+    setIsToolsOpen?.(true);
+  }, [setIsToolsOpen]);
+
   const scheduleFloatingTour = useCallback((activeDriver: Driver, start: () => void) => {
-    setIsToolsOpen?.(false);
+    setIsToolsOpen?.(true);
     clearFloatingStepTimer();
     floatingStepTimerRef.current = setTimeout(() => {
       floatingStepTimerRef.current = null;
@@ -310,13 +236,13 @@ export function TourProvider({
 
     const steps = createInvitationTourSteps({
       openInvitationAndContinueTour,
+      showFloatingMenu,
     });
 
     const tour = driver(createDriverConfig({
       steps,
       openInvitationAndContinueTour,
       endTour,
-      endTourAndOpenFloatingMenu,
     }));
 
     driverRef.current = tour;
@@ -337,7 +263,7 @@ export function TourProvider({
       if (activeTour && activeTour !== tour) destroyTour(activeTour);
       destroyTour(tour);
     };
-  }, [destroyTour, endTour, endTourAndOpenFloatingMenu, onOpenInvitation, scheduleFloatingTour, setIsToolsOpen, slug]);
+  }, [destroyTour, endTour, onOpenInvitation, scheduleFloatingTour, showFloatingMenu, setIsToolsOpen, slug]);
 
   useEffect(() => {
     if (!isOpen) return;

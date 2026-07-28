@@ -17,7 +17,6 @@ const NAVIGATION_SCROLL_OFFSET_PX = 8;
 const NAVIGATION_SMOOTH_RETRY_DELAY_MS = 500;
 const NAVIGATION_INSTANT_FALLBACK_DELAY_MS = 1600;
 const DRAG_CLICK_CANCEL_THRESHOLD_PX = 6;
-const NAVIGATION_TOUCH_CLICK_DEDUPE_MS = 600;
 
 function getDocumentScrollTop() {
   return document.scrollingElement?.scrollTop ?? window.scrollY ?? 0;
@@ -35,7 +34,6 @@ export const FloatingController = ({
 }: FloatingControllerProps) => {
   const navigationCleanupRef = useRef<(() => void) | null>(null);
   const scrollFallbackTimersRef = useRef<Array<ReturnType<typeof setTimeout>>>([]);
-  const navigationActivationRef = useRef<{ sectionId: string; timestamp: number } | null>(null);
   const dragStateRef = useRef<{
     pointerId: number;
     startX: number;
@@ -207,21 +205,6 @@ export const FloatingController = ({
     });
   }, [clearPendingNavigation, scrollToMountedSection]);
 
-  const activateNavigation = useCallback((sectionId: string) => {
-    const now = Date.now();
-    const previousActivation = navigationActivationRef.current;
-
-    if (
-      previousActivation?.sectionId === sectionId &&
-      now - previousActivation.timestamp < NAVIGATION_TOUCH_CLICK_DEDUPE_MS
-    ) {
-      return;
-    }
-
-    navigationActivationRef.current = { sectionId, timestamp: now };
-    scrollToSection(sectionId);
-  }, [scrollToSection]);
-
   const handleMainPointerDown = useCallback((event: PointerEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     dragStateRef.current = {
@@ -274,7 +257,7 @@ export const FloatingController = ({
   >
     <AnimatePresence>
       {isToolsOpen && (
-        <div data-tour="floating-menu-panel" className="flex flex-col items-center gap-3 mb-2">
+        <div className="flex flex-col items-center gap-3 mb-2">
           {[
             { id: 'event-section', label: 'Rangkaian Acara', icon: MapPin },
             { id: 'twibbon-section', label: 'Twibbon', icon: Sparkles },
@@ -287,12 +270,8 @@ export const FloatingController = ({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.5, y: 10 }}
               transition={{ delay: idx * 0.05 }}
-              onPointerUp={(event) => {
-                if (event.pointerType === 'mouse') return;
-                activateNavigation(tool.id);
-              }}
-              onClick={() => activateNavigation(tool.id)}
-              className="group flex items-center gap-3 pr-4 pl-3 py-2 bg-ivory/90 backdrop-blur-xl border border-rose-pastel/30 rounded-full shadow-xl hover:bg-white transition-all touch-manipulation"
+              onClick={() => scrollToSection(tool.id)}
+              className="group flex items-center gap-3 pr-4 pl-3 py-2 bg-ivory/90 backdrop-blur-xl border border-rose-pastel/30 rounded-full shadow-xl hover:bg-white transition-all"
             >
               <tool.icon className="w-3.5 h-3.5 text-rose-pastel group-hover:scale-110 transition-transform" />
               <span className="font-sans text-[8px] tracking-[0.2em] uppercase text-ink font-bold">{tool.label}</span>

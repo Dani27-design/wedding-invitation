@@ -280,6 +280,7 @@ export function WeddingClient({ wedding, slug }: WeddingClientProps) {
                     setIsToolsOpen={setIsToolsOpen}
                     isPlaying={isPlaying}
                     toggleMusic={toggleMusic}
+                    enableProductTour
                   />
                 </Suspense>
               </SectionErrorBoundary>

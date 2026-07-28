@@ -2,20 +2,32 @@
 import { useState, useEffect, useCallback, useRef, type PointerEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Heart, Sparkles, Gift, MapPin, X, Play, Pause } from 'lucide-react';
-import { dispatchFloatingNavigationStart } from '../../utils/floatingNavigationEvents';
-import { destroyAllDriverTours } from '../../utils/driverLifecycle';
+import { driver, type Driver, type DriverHook } from 'driver.js';
+import {
+  addFloatingNavigationStartListener,
+  dispatchFloatingNavigationStart,
+  isFloatingNavigationInProgress,
+} from '../../utils/floatingNavigationEvents';
+import { destroyAllDriverTours, destroyDriverTour, registerDriverTour } from '../../utils/driverLifecycle';
+import { useOptionalTour } from './InvitationProductTour';
 
 interface FloatingControllerProps {
   isToolsOpen: boolean;
   setIsToolsOpen: (open: boolean) => void;
   isPlaying: boolean;
   toggleMusic: () => void;
+  enableProductTour?: boolean;
 }
 
 const NAVIGATION_RETRY_DELAY_MS = 120;
 const NAVIGATION_MAX_WAIT_MS = 6000;
 const NAVIGATION_SCROLL_OFFSET_PX = 8;
 const DRAG_CLICK_CANCEL_THRESHOLD_PX = 6;
+const FLOATING_BUTTON_SELECTOR = '[data-tour="floating-main-button"]';
+
+function prefersReducedMotion() {
+  return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+}
 
 function getDocumentScroller() {
   return document.scrollingElement ?? document.documentElement;
@@ -68,7 +80,13 @@ export const FloatingController = ({
   setIsToolsOpen,
   isPlaying,
   toggleMusic,
+  enableProductTour = false,
 }: FloatingControllerProps) => {
+  const invitationTour = useOptionalTour();
+  const floatingTourRef = useRef<Driver | null>(null);
+  const destroyedFloatingToursRef = useRef<WeakSet<Driver>>(new WeakSet());
+  const hasStartedFloatingTourRef = useRef(false);
+  const floatingTourFrameRef = useRef<number | null>(null);
   const navigationIdRef = useRef(0);
   const navigationRetryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dragStateRef = useRef<{
@@ -127,6 +145,120 @@ export const FloatingController = ({
   useEffect(() => {
     return () => clearPendingNavigation();
   }, [clearPendingNavigation]);
+
+  const destroyFloatingTour = useCallback((tour?: Driver | null) => {
+    const activeTour = tour ?? floatingTourRef.current;
+    if (!activeTour || destroyedFloatingToursRef.current.has(activeTour)) return;
+
+    destroyedFloatingToursRef.current.add(activeTour);
+    if (floatingTourRef.current === activeTour) {
+      floatingTourRef.current = null;
+    }
+    destroyDriverTour(activeTour);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (floatingTourFrameRef.current !== null) {
+        cancelAnimationFrame(floatingTourFrameRef.current);
+        floatingTourFrameRef.current = null;
+      }
+      destroyFloatingTour();
+    };
+  }, [destroyFloatingTour]);
+
+  useEffect(() => addFloatingNavigationStartListener(() => {
+    destroyFloatingTour();
+  }), [destroyFloatingTour]);
+
+  useEffect(() => {
+    if (
+      !enableProductTour ||
+      invitationTour?.isTourRunning ||
+      hasStartedFloatingTourRef.current ||
+      isFloatingNavigationInProgress() ||
+      document.body.classList.contains('driver-active')
+    ) {
+      return undefined;
+    }
+
+    let unregisterTour: (() => void) | null = null;
+    let startedTour: Driver | null = null;
+
+    floatingTourFrameRef.current = requestAnimationFrame(() => {
+      floatingTourFrameRef.current = null;
+      if (
+        hasStartedFloatingTourRef.current ||
+        isFloatingNavigationInProgress() ||
+        document.body.classList.contains('driver-active') ||
+        !document.querySelector(FLOATING_BUTTON_SELECTOR)
+      ) {
+        return;
+      }
+
+      hasStartedFloatingTourRef.current = true;
+
+      const clearFloatingTour: DriverHook = (_element, _step, { driver: activeDriver }) => {
+        destroyFloatingTour(activeDriver);
+      };
+
+      const markFloatingTourDestroyed: DriverHook = (_element, _step, { driver: activeDriver }) => {
+        if (floatingTourRef.current === activeDriver) {
+          floatingTourRef.current = null;
+        }
+      };
+
+      const floatingTour = driver({
+        animate: !prefersReducedMotion(),
+        overlayColor: '#1A1A1A',
+        overlayOpacity: 0.48,
+        smoothScroll: false,
+        allowClose: true,
+        allowScroll: true,
+        disableActiveInteraction: false,
+        stagePadding: 12,
+        stageRadius: 28,
+        popoverOffset: 16,
+        popoverClass: 'wedding-driver-popover',
+        showButtons: ['next', 'close'],
+        showProgress: false,
+        doneBtnText: 'Mengerti',
+        nextBtnText: 'Mengerti',
+        overlayClickBehavior: 'close',
+        onDoneClick: clearFloatingTour,
+        onCloseClick: clearFloatingTour,
+        onDestroyed: markFloatingTourDestroyed,
+        steps: [
+          {
+            element: FLOATING_BUTTON_SELECTOR,
+            disableActiveInteraction: false,
+            popover: {
+              title: 'Menu Cepat',
+              description: 'Gunakan tombol ini untuk membuka navigasi bagian undangan dan mengatur musik.',
+              side: 'left',
+              align: 'center',
+              showButtons: ['next'],
+              doneBtnText: 'Mengerti',
+            },
+          },
+        ],
+      });
+
+      startedTour = floatingTour;
+      floatingTourRef.current = floatingTour;
+      unregisterTour = registerDriverTour(floatingTour);
+      floatingTour.drive();
+    });
+
+    return () => {
+      if (floatingTourFrameRef.current !== null) {
+        cancelAnimationFrame(floatingTourFrameRef.current);
+        floatingTourFrameRef.current = null;
+      }
+      unregisterTour?.();
+      destroyFloatingTour(startedTour);
+    };
+  }, [destroyFloatingTour, enableProductTour, invitationTour?.isTourRunning]);
 
   const scrollToMountedSection = useCallback((target: HTMLElement) => {
     const initialScrollTop = getDocumentScrollTop();
@@ -282,6 +414,7 @@ export const FloatingController = ({
       />
 
       <motion.button
+        data-tour="floating-main-button"
         onPointerDown={handleMainPointerDown}
         onPointerMove={handleMainPointerMove}
         onPointerUp={finishMainPointerInteraction}

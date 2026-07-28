@@ -1,7 +1,45 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, within, act } from '@testing-library/react';
+
+const driverMock = vi.hoisted(() => {
+  const mock = {
+    driver: vi.fn((options) => {
+      const instance = {
+        destroy: vi.fn(),
+        drive: vi.fn(),
+        isActive: vi.fn(() => false),
+      };
+
+      mock.instances.push(instance);
+      mock.latestInstance = instance;
+      mock.latestOptions = options;
+      return instance;
+    }),
+    instances: [] as Array<{
+      destroy: ReturnType<typeof vi.fn>;
+      drive: ReturnType<typeof vi.fn>;
+      isActive: ReturnType<typeof vi.fn>;
+    }>,
+    latestInstance: undefined as
+      | {
+          destroy: ReturnType<typeof vi.fn>;
+          drive: ReturnType<typeof vi.fn>;
+          isActive: ReturnType<typeof vi.fn>;
+        }
+      | undefined,
+    latestOptions: undefined as Record<string, any> | undefined,
+  };
+
+  return mock;
+});
+
+vi.mock('driver.js', () => ({
+  driver: driverMock.driver,
+}));
+
 import { FloatingController } from './FloatingController';
 import {
+  dispatchFloatingNavigationStart,
   FLOATING_NAVIGATION_START_EVENT,
   resetFloatingNavigationStateForTests,
 } from '../../utils/floatingNavigationEvents';
@@ -64,6 +102,18 @@ function mockNavigationFrames() {
   });
 }
 
+function createDriverHookOptions(
+  instance = driverMock.latestInstance,
+  options = driverMock.latestOptions,
+) {
+  return {
+    config: options,
+    driver: instance,
+    index: 0,
+    state: {},
+  };
+}
+
 /* ------------------------------------------------------------------ */
 /*  1. Rendering – basic mount & structural integrity                  */
 /* ------------------------------------------------------------------ */
@@ -71,6 +121,9 @@ function mockNavigationFrames() {
 describe('FloatingController', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    driverMock.instances = [];
+    driverMock.latestInstance = undefined;
+    driverMock.latestOptions = undefined;
     mockNavigationFrames();
   });
 
@@ -144,6 +197,12 @@ describe('FloatingController', () => {
       expect(container.firstChild).toHaveAttribute('data-floating-controller');
     });
 
+    it('marks the main floating button as the stable Driver.js product tour target', () => {
+      const { container } = render(<FloatingController {...createProps()} />);
+      const target = container.querySelector('[data-tour="floating-main-button"]');
+      expect(target).toBe(screen.getByLabelText('Buka menu'));
+    });
+
     it('always renders the main button regardless of props', () => {
       const { container } = render(<FloatingController {...createProps()} />);
       const buttons = container.querySelectorAll('button');
@@ -200,9 +259,10 @@ describe('FloatingController', () => {
       expect(btn).toHaveClass('rounded-full');
     });
 
-    it('does not expose the main button as a Driver.js tour target', () => {
-      render(<FloatingController {...createProps()} />);
-      expect(screen.getByLabelText('Buka menu')).not.toHaveAttribute('data-tour');
+    it('exposes only the main button as the stable Driver.js tour target', () => {
+      const { container } = render(<FloatingController {...createProps()} />);
+      expect(container.firstChild).not.toHaveAttribute('data-tour');
+      expect(screen.getByLabelText('Buka menu')).toHaveAttribute('data-tour', 'floating-main-button');
     });
 
     it('has backdrop-blur-xl for frosted glass effect', () => {
@@ -455,7 +515,98 @@ describe('FloatingController', () => {
   });
 
   /* ------------------------------------------------------------------ */
-  /*  7. Navigation – section ID targets                                 */
+  /*  7. Floating Button Product Tour                                    */
+  /* ------------------------------------------------------------------ */
+
+  describe('Floating button product tour', () => {
+    it('does not start the floating button product tour unless explicitly enabled', () => {
+      render(<FloatingController {...createProps()} />);
+
+      expect(driverMock.driver).not.toHaveBeenCalled();
+    });
+
+    it('starts a passive Driver.js tour for the stable main floating button target when enabled', () => {
+      render(<FloatingController {...createProps({ enableProductTour: true })} />);
+
+      expect(driverMock.driver).toHaveBeenCalledOnce();
+      expect(driverMock.latestInstance?.drive).toHaveBeenCalledOnce();
+      expect(driverMock.latestOptions).toEqual(
+        expect.objectContaining({
+          allowScroll: true,
+          disableActiveInteraction: false,
+          overlayClickBehavior: 'close',
+          showProgress: false,
+          smoothScroll: false,
+        }),
+      );
+      expect(driverMock.latestOptions?.steps).toHaveLength(1);
+      expect(driverMock.latestOptions?.steps[0]).toEqual(
+        expect.objectContaining({
+          element: '[data-tour="floating-main-button"]',
+          disableActiveInteraction: false,
+        }),
+      );
+    });
+
+    it('does not start while another Driver.js tour is already active', () => {
+      document.body.classList.add('driver-active');
+
+      render(<FloatingController {...createProps({ enableProductTour: true })} />);
+
+      expect(driverMock.driver).not.toHaveBeenCalled();
+    });
+
+    it('does not start while floating menu navigation is already in progress', () => {
+      dispatchFloatingNavigationStart('twibbon-section');
+
+      render(<FloatingController {...createProps({ enableProductTour: true })} />);
+
+      expect(driverMock.driver).not.toHaveBeenCalled();
+    });
+
+    it('destroys the floating button product tour when its popover is closed', () => {
+      render(<FloatingController {...createProps({ enableProductTour: true })} />);
+      const floatingDriver = driverMock.latestInstance;
+
+      act(() => {
+        driverMock.latestOptions?.onCloseClick(
+          undefined,
+          driverMock.latestOptions.steps[0],
+          createDriverHookOptions(floatingDriver),
+        );
+      });
+
+      expect(floatingDriver?.destroy).toHaveBeenCalledOnce();
+    });
+
+    it('destroys the floating button product tour before section navigation scrolls', () => {
+      const scrollMock = mockDocumentScrollTo();
+      const target = mockSectionTarget(420);
+      vi.spyOn(document, 'getElementById').mockImplementation((id) => (
+        id === 'twibbon-section' ? target : null
+      ));
+
+      render(<FloatingController {...createProps({ isToolsOpen: true, enableProductTour: true })} />);
+      const floatingDriver = driverMock.latestInstance;
+      document.body.classList.add('driver-active', 'driver-no-scroll');
+      const overlay = document.createElement('svg');
+      const popover = document.createElement('div');
+      overlay.classList.add('driver-overlay');
+      popover.classList.add('driver-popover');
+      document.body.append(overlay, popover);
+
+      fireEvent.click(screen.getByText('Twibbon'));
+
+      expect(floatingDriver?.destroy).toHaveBeenCalledOnce();
+      expect(document.body.classList.contains('driver-no-scroll')).toBe(false);
+      expect(document.querySelector('.driver-overlay')).toBeNull();
+      expect(document.querySelector('.driver-popover')).toBeNull();
+      expect(scrollMock).toHaveBeenCalledWith({ top: 412, left: 0, behavior: 'smooth' });
+    });
+  });
+
+  /* ------------------------------------------------------------------ */
+  /*  8. Navigation – section ID targets                                 */
   /* ------------------------------------------------------------------ */
 
   describe('Navigation', () => {
@@ -800,7 +951,7 @@ describe('FloatingController', () => {
   });
 
   /* ------------------------------------------------------------------ */
-  /*  8. Edge cases                                                      */
+  /*  9. Edge cases                                                      */
   /* ------------------------------------------------------------------ */
 
   describe('Edge cases', () => {

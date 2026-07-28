@@ -12,6 +12,7 @@ import {
 } from 'react';
 import { driver, type Config, type DriveStep, type Driver, type DriverHook } from 'driver.js';
 import { addFloatingNavigationStartListener } from '../../utils/floatingNavigationEvents';
+import { destroyAllDriverTours, destroyDriverTour, registerDriverTour } from '../../utils/driverLifecycle';
 
 const OPENING_SELECTOR = '[data-tour="cinematic-opening"]';
 const FLOATING_MENU_BUTTON_SELECTOR = '[data-tour="floating-menu-button"]';
@@ -165,7 +166,7 @@ export function TourProvider({
     clearFloatingStepTimer();
     if (destroyedToursRef.current.has(tour)) return;
     destroyedToursRef.current.add(tour);
-    tour.destroy();
+    destroyDriverTour(tour);
     setIsTourRunning(false);
   }, [clearFloatingStepTimer]);
 
@@ -244,6 +245,7 @@ export function TourProvider({
       openInvitationAndContinueTour,
       endTour,
     }));
+    const unregisterTour = registerDriverTour(tour);
 
     driverRef.current = tour;
     tour.drive();
@@ -253,11 +255,15 @@ export function TourProvider({
       if (driverRef.current === tour) {
         driverRef.current = null;
       }
-      destroyTour(tour);
+      destroyedToursRef.current.add(tour);
+      clearFloatingStepTimer();
+      destroyAllDriverTours();
+      setIsTourRunning(false);
     });
 
     return () => {
       removeFloatingNavigationListener();
+      unregisterTour();
       const activeTour = driverRef.current;
       driverRef.current = null;
       if (activeTour && activeTour !== tour) destroyTour(activeTour);

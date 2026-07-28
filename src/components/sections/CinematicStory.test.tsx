@@ -730,12 +730,23 @@ describe('CinematicStory', () => {
 
       const instance = driverMock.latestInstance;
       instance?.isActive.mockReturnValue(true);
+      const overlay = document.createElement('svg');
+      const popover = document.createElement('div');
+
+      document.body.classList.add('driver-active', 'driver-no-scroll');
+      overlay.classList.add('driver-overlay');
+      popover.classList.add('driver-popover');
+      document.body.append(overlay, popover);
 
       act(() => {
         dispatchFloatingNavigationStart('twibbon-section');
       });
 
       expect(instance?.destroy).toHaveBeenCalledOnce();
+      expect(document.body.classList.contains('driver-active')).toBe(false);
+      expect(document.body.classList.contains('driver-no-scroll')).toBe(false);
+      expect(document.querySelector('.driver-overlay')).toBeNull();
+      expect(document.querySelector('.driver-popover')).toBeNull();
     });
   });
 

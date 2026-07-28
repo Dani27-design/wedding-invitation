@@ -11,6 +11,7 @@ import { useOptionalTour } from '../features/InvitationProductTour';
 import { useStoryLikes } from '../../hooks/useStoryLikes';
 import { useStoryComments } from '../../hooks/useStoryComments';
 import { addFloatingNavigationStartListener } from '../../utils/floatingNavigationEvents';
+import { destroyAllDriverTours, destroyDriverTour, registerDriverTour } from '../../utils/driverLifecycle';
 import { SHIMMER_DARK } from '../../utils/shimmer';
 
 interface CinematicStoryProps {
@@ -126,23 +127,20 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
   const destroyStoryTour = useCallback((tour: Driver) => {
     if (destroyedStoryToursRef.current.has(tour)) return;
     destroyedStoryToursRef.current.add(tour);
-    tour.destroy();
+    destroyDriverTour(tour);
   }, []);
-
-  const destroyActiveStoryTour = useCallback(() => {
-    const activeTour = storyTourRef.current;
-    storyTourRef.current = null;
-    if (activeTour) {
-      destroyStoryTour(activeTour);
-    }
-  }, [destroyStoryTour]);
 
   useEffect(() => addFloatingNavigationStartListener(() => {
     isStoryTourSuppressedByNavigationRef.current = true;
     clearStoryTourReadyTimer();
     setIsStoryTourReady(false);
-    destroyActiveStoryTour();
-  }), [clearStoryTourReadyTimer, destroyActiveStoryTour]);
+    const activeTour = storyTourRef.current;
+    storyTourRef.current = null;
+    if (activeTour) {
+      destroyedStoryToursRef.current.add(activeTour);
+    }
+    destroyAllDriverTours();
+  }), [clearStoryTourReadyTimer]);
 
   useEffect(() => {
     const el = sectionRef.current;
@@ -284,12 +282,14 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
     });
 
     storyTourRef.current = storyTour;
+    const unregisterStoryTour = registerDriverTour(storyTour);
     storyTour.drive();
 
     return () => {
       if (storyTourRef.current === storyTour) {
         storyTourRef.current = null;
       }
+      unregisterStoryTour();
       destroyStoryTour(storyTour);
     };
   }, [commentInput, destroyStoryTour, invitationTour?.isTourRunning, isStoryTourReady, slides.length]);

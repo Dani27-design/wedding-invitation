@@ -398,6 +398,24 @@ describe('InvitationProductTour', () => {
     addOpeningTarget();
     renderTour({ children: <TourStateProbe /> });
     const openingDriver = driverMock.latestInstance;
+    const highlightedParent = document.createElement('div');
+    const highlightedElement = document.createElement('button');
+    const overlay = document.createElement('svg');
+    const popover = document.createElement('div');
+    const dummyElement = document.createElement('div');
+
+    document.body.classList.add('driver-active', 'driver-fade', 'driver-simple', 'driver-no-scroll');
+    document.body.style.setProperty('--driver-animation-duration', '400ms');
+    highlightedParent.className = 'driver-active-element-parent driver-active-element-parent-no-scroll';
+    highlightedElement.className = 'driver-active-element driver-no-interaction';
+    highlightedElement.setAttribute('aria-haspopup', 'dialog');
+    highlightedElement.setAttribute('aria-expanded', 'true');
+    highlightedElement.setAttribute('aria-controls', 'driver-popover-content');
+    overlay.classList.add('driver-overlay');
+    popover.classList.add('driver-popover');
+    dummyElement.id = 'driver-dummy-element';
+    highlightedParent.appendChild(highlightedElement);
+    document.body.append(highlightedParent, overlay, popover, dummyElement);
 
     expect(screen.getByTestId('tour-running')).toHaveTextContent('running');
 
@@ -407,6 +425,17 @@ describe('InvitationProductTour', () => {
 
     expect(openingDriver?.destroy).toHaveBeenCalledOnce();
     expect(screen.getByTestId('tour-running')).toHaveTextContent('idle');
+    expect(document.body.classList.contains('driver-active')).toBe(false);
+    expect(document.body.classList.contains('driver-no-scroll')).toBe(false);
+    expect(document.body.style.getPropertyValue('--driver-animation-duration')).toBe('');
+    expect(document.querySelector('.driver-overlay')).toBeNull();
+    expect(document.querySelector('.driver-popover')).toBeNull();
+    expect(document.querySelector('#driver-dummy-element')).toBeNull();
+    expect(highlightedParent.className).toBe('');
+    expect(highlightedElement.className).toBe('');
+    expect(highlightedElement).not.toHaveAttribute('aria-haspopup');
+    expect(highlightedElement).not.toHaveAttribute('aria-expanded');
+    expect(highlightedElement).not.toHaveAttribute('aria-controls');
   });
 
   it('destroys the active Driver.js instance on component unmount', () => {

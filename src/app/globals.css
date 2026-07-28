@@ -297,6 +297,54 @@ html, body {
   border-bottom-color: color-mix(in srgb, var(--color-ivory) 96%, var(--color-gold));
 }
 
+.wedding-driver-popover--story {
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--color-ivory) 97%, white 3%), color-mix(in srgb, var(--color-paper) 94%, var(--color-rose-pastel) 6%)),
+    radial-gradient(circle at 16% 0%, color-mix(in srgb, var(--color-gold) 18%, transparent), transparent 42%);
+  border-color: color-mix(in srgb, var(--color-gold) 42%, white 10%);
+  box-shadow:
+    0 22px 64px color-mix(in srgb, black 34%, transparent),
+    0 0 0 1px color-mix(in srgb, white 48%, transparent) inset,
+    0 0 42px color-mix(in srgb, var(--color-gold) 14%, transparent);
+  padding: 19px;
+  width: min(300px, calc(100vw - 2rem));
+  max-width: min(300px, calc(100vw - 2rem));
+  min-width: min(270px, calc(100vw - 2rem));
+}
+
+.wedding-driver-popover--story .driver-popover-title {
+  color: color-mix(in srgb, var(--color-ink) 94%, black 6%);
+  font-size: 1.28rem;
+}
+
+.wedding-driver-popover--story .driver-popover-description {
+  color: color-mix(in srgb, var(--color-ink) 78%, transparent);
+  font-size: 0.82rem;
+  line-height: 1.58;
+  max-width: 27ch;
+}
+
+.driver-active .driver-active-element[data-tour="story-like-button"],
+.driver-active .driver-active-element[data-tour="story-comment-button"] {
+  filter:
+    drop-shadow(0 0 12px color-mix(in srgb, var(--color-gold) 36%, transparent))
+    drop-shadow(0 8px 22px color-mix(in srgb, black 36%, transparent));
+}
+
+.driver-active .driver-active-element[data-tour="story-like-button"] > div,
+.driver-active .driver-active-element[data-tour="story-comment-button"] > div {
+  background: color-mix(in srgb, var(--color-ink) 56%, var(--color-ivory) 10%);
+  border-color: color-mix(in srgb, var(--color-gold) 68%, white 12%);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, white 22%, transparent) inset,
+    0 0 28px color-mix(in srgb, var(--color-gold) 34%, transparent);
+}
+
+.driver-active .driver-active-element[data-tour="story-like-button"] svg,
+.driver-active .driver-active-element[data-tour="story-comment-button"] svg {
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--color-rose-pastel) 46%, transparent));
+}
+
 @media (max-width: 420px) {
   .wedding-driver-popover {
     padding: 19px 18px 18px;
@@ -313,6 +361,12 @@ html, body {
 
   .wedding-driver-popover .driver-popover-footer-btn {
     min-width: 108px;
+  }
+
+  .wedding-driver-popover--story {
+    padding: 18px;
+    width: min(292px, calc(100vw - 1.5rem));
+    max-width: min(292px, calc(100vw - 1.5rem));
   }
 }
 

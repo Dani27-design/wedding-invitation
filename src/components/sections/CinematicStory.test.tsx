@@ -521,6 +521,62 @@ describe('CinematicStory', () => {
       expect(driverMock.driver).not.toHaveBeenCalled();
     });
 
+    it('cancels a pending story tour when floating navigation starts', async () => {
+      vi.useFakeTimers();
+      renderStory();
+
+      await triggerFullStoryVisibility();
+      act(() => {
+        vi.advanceTimersByTime(149);
+      });
+
+      act(() => {
+        dispatchFloatingNavigationStart('event-section');
+        vi.advanceTimersByTime(1);
+      });
+
+      expect(driverMock.driver).not.toHaveBeenCalled();
+    });
+
+    it('does not start the story tour from stale visibility after the section leaves the viewport', async () => {
+      vi.useFakeTimers();
+      const { container } = renderStory();
+      const section = container.querySelector('#story-section') as HTMLElement;
+      expect(section).toBeInTheDocument();
+
+      vi.spyOn(section, 'getBoundingClientRect').mockReturnValue({
+        top: window.innerHeight + 80,
+        bottom: window.innerHeight * 2,
+        left: 0,
+        right: window.innerWidth,
+        width: window.innerWidth,
+        height: window.innerHeight,
+        x: 0,
+        y: window.innerHeight + 80,
+        toJSON: () => ({}),
+      } as DOMRect);
+
+      await triggerFullStoryVisibility();
+      act(() => {
+        vi.advanceTimersByTime(150);
+      });
+
+      expect(driverMock.driver).not.toHaveBeenCalled();
+    });
+
+    it('clears story tour readiness when the section is no longer sufficiently visible', async () => {
+      vi.useFakeTimers();
+      renderStory();
+
+      await triggerFullStoryVisibility();
+      await triggerFullStoryVisibility(0.4);
+      act(() => {
+        vi.advanceTimersByTime(150);
+      });
+
+      expect(driverMock.driver).not.toHaveBeenCalled();
+    });
+
     it('starts a centered scroll-freezing Driver.js tour after the required story viewport has settled', async () => {
       vi.useFakeTimers();
       const { container } = renderStory();
@@ -545,9 +601,13 @@ describe('CinematicStory', () => {
           disableActiveInteraction: false,
           doneBtnText: 'Mengerti',
           overlayClickBehavior: 'close',
+          overlayOpacity: 0.56,
+          popoverClass: 'wedding-driver-popover wedding-driver-popover--story',
           nextBtnText: 'Lanjut',
           showProgress: false,
           smoothScroll: false,
+          stagePadding: 16,
+          stageRadius: 24,
         })
       );
       expect(driverMock.latestOptions?.steps).toEqual([
@@ -555,7 +615,7 @@ describe('CinematicStory', () => {
           disableActiveInteraction: false,
           popover: expect.objectContaining({
             title: 'Kisah Kami',
-            description: 'Geser ke samping untuk mengikuti setiap bagian cerita. Setelah panduan ditutup, Anda dapat menggulir halaman seperti biasa.',
+            description: 'Geser layar ke samping untuk mengikuti cerita kami. Setelah panduan ditutup, halaman tetap bisa digulir seperti biasa.',
             showButtons: ['next'],
             nextBtnText: 'Lanjut',
             doneBtnText: 'Mengerti',
@@ -568,7 +628,7 @@ describe('CinematicStory', () => {
           waitForElement: 1000,
           popover: expect.objectContaining({
             title: 'Tanda Suka',
-            description: 'Ketuk ikon hati untuk mengirim tanda suka pada bagian cerita yang sedang dibaca.',
+            description: 'Ketuk ikon hati untuk memberi tanda suka pada cerita ini.',
             side: 'left',
             align: 'center',
             showButtons: ['next'],
@@ -582,7 +642,7 @@ describe('CinematicStory', () => {
           waitForElement: 1000,
           popover: expect.objectContaining({
             title: 'Ucapan Cerita',
-            description: 'Ketuk ikon komentar untuk menulis ucapan singkat pada bagian cerita ini.',
+            description: 'Ketuk ikon komentar untuk menulis ucapan pada bagian cerita ini.',
             side: 'left',
             align: 'center',
             showButtons: ['next'],
@@ -634,7 +694,7 @@ describe('CinematicStory', () => {
       expect(driverMock.driver).not.toHaveBeenCalled();
     });
 
-    it('destroys the story tour from the Driver.js done and close handlers', async () => {
+    it('destroys the story tour once from repeated Driver.js done and close handlers', async () => {
       vi.useFakeTimers();
       renderStory();
 
@@ -655,7 +715,7 @@ describe('CinematicStory', () => {
       driverMock.latestOptions?.onDoneClick(undefined, driverMock.latestOptions.steps[0], hookOptions);
       driverMock.latestOptions?.onCloseClick(undefined, driverMock.latestOptions.steps[0], hookOptions);
 
-      expect(instance?.destroy).toHaveBeenCalledTimes(2);
+      expect(instance?.destroy).toHaveBeenCalledOnce();
     });
 
     it('destroys the story tour before floating navigation starts', async () => {

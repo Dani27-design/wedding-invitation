@@ -19,11 +19,24 @@ interface CinematicStoryProps {
 
 const OVERFLOW_TOLERANCE_PX = 1;
 const STORY_TOUR_MIN_SLIDES = 2;
-const STORY_TOUR_FULL_VISIBILITY_RATIO = 0.85;
+const STORY_TOUR_FULL_VISIBILITY_RATIO = 0.90;
 const STORY_TOUR_READY_DELAY_MS = 150;
 const STORY_TOUR_TARGET_WAIT_MS = 1000;
 const STORY_LIKE_BUTTON_SELECTOR = '[data-tour="story-like-button"]';
 const STORY_COMMENT_BUTTON_SELECTOR = '[data-tour="story-comment-button"]';
+
+function isStorySectionMostlyVisible(el: HTMLElement | null) {
+  if (!el) return false;
+
+  const rect = el.getBoundingClientRect();
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+  if (rect.height <= 0 || viewportHeight <= 0) return true;
+
+  const visibleHeight = Math.min(rect.bottom, viewportHeight) - Math.max(rect.top, 0);
+  const visibleRatio = Math.max(0, visibleHeight) / rect.height;
+
+  return visibleRatio >= STORY_TOUR_FULL_VISIBILITY_RATIO;
+}
 
 function sameSet(a: Set<number>, b: Set<number>) {
   if (a.size !== b.size) return false;
@@ -82,8 +95,12 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
   const videoRefs = useRef<Map<number, HTMLVideoElement>>(new Map());
   const textRefs = useRef<Map<number, HTMLParagraphElement>>(new Map());
   const storyTourRef = useRef<Driver | null>(null);
+  const destroyedStoryToursRef = useRef<WeakSet<Driver>>(new WeakSet());
   const hasStartedStoryTourRef = useRef(false);
   const hasInteractedWithStorySwipeRef = useRef(false);
+  const storyTourReadyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const latestStoryVisibilityRatioRef = useRef(0);
+  const isStoryTourSuppressedByNavigationRef = useRef(false);
   const [overflowingSlides, setOverflowingSlides] = useState<Set<number>>(new Set());
 
   useEffect(() => {
@@ -100,38 +117,64 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
   const { likes, incrementLike } = useStoryLikes(weddingSlug, isVisible);
   const { comments, addComment } = useStoryComments(weddingSlug, activeSlide, isVisible);
 
-  useEffect(() => addFloatingNavigationStartListener(() => {
+  const clearStoryTourReadyTimer = useCallback(() => {
+    if (storyTourReadyTimerRef.current === null) return;
+    clearTimeout(storyTourReadyTimerRef.current);
+    storyTourReadyTimerRef.current = null;
+  }, []);
+
+  const destroyStoryTour = useCallback((tour: Driver) => {
+    if (destroyedStoryToursRef.current.has(tour)) return;
+    destroyedStoryToursRef.current.add(tour);
+    tour.destroy();
+  }, []);
+
+  const destroyActiveStoryTour = useCallback(() => {
     const activeTour = storyTourRef.current;
     storyTourRef.current = null;
-    if (activeTour?.isActive()) {
-      activeTour.destroy();
+    if (activeTour) {
+      destroyStoryTour(activeTour);
     }
-  }), []);
+  }, [destroyStoryTour]);
+
+  useEffect(() => addFloatingNavigationStartListener(() => {
+    isStoryTourSuppressedByNavigationRef.current = true;
+    clearStoryTourReadyTimer();
+    setIsStoryTourReady(false);
+    destroyActiveStoryTour();
+  }), [clearStoryTourReadyTimer, destroyActiveStoryTour]);
 
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
 
     let cancelled = false;
-    let readyTimer: ReturnType<typeof setTimeout> | null = null;
-
-    const clearReadyTimer = () => {
-      if (readyTimer !== null) {
-        clearTimeout(readyTimer);
-        readyTimer = null;
-      }
-    };
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         const ratio = entry.intersectionRatio ?? 0;
+        latestStoryVisibilityRatioRef.current = ratio;
         const isFullySeen = entry.isIntersecting && ratio >= STORY_TOUR_FULL_VISIBILITY_RATIO;
 
-        clearReadyTimer();
-        if (!isFullySeen) return;
+        clearStoryTourReadyTimer();
+        if (!isFullySeen) {
+          isStoryTourSuppressedByNavigationRef.current = false;
+          setIsStoryTourReady(false);
+          return;
+        }
 
-        readyTimer = setTimeout(() => {
-          if (!cancelled) setIsStoryTourReady(true);
+        if (isStoryTourSuppressedByNavigationRef.current) return;
+
+        storyTourReadyTimerRef.current = setTimeout(() => {
+          storyTourReadyTimerRef.current = null;
+          if (
+            !cancelled &&
+            !isStoryTourSuppressedByNavigationRef.current &&
+            latestStoryVisibilityRatioRef.current >= STORY_TOUR_FULL_VISIBILITY_RATIO &&
+            isStorySectionMostlyVisible(sectionRef.current)
+          ) {
+            setIsStoryTourReady(true);
+          }
         }, STORY_TOUR_READY_DELAY_MS);
       },
       { threshold: [STORY_TOUR_FULL_VISIBILITY_RATIO] }
@@ -141,10 +184,10 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
 
     return () => {
       cancelled = true;
-      clearReadyTimer();
+      clearStoryTourReadyTimer();
       observer.disconnect();
     };
-  }, []);
+  }, [clearStoryTourReadyTimer]);
 
   useEffect(() => {
     if (
@@ -158,10 +201,19 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
       return undefined;
     }
 
+    if (
+      isStoryTourSuppressedByNavigationRef.current ||
+      latestStoryVisibilityRatioRef.current < STORY_TOUR_FULL_VISIBILITY_RATIO ||
+      !isStorySectionMostlyVisible(sectionRef.current)
+    ) {
+      setIsStoryTourReady(false);
+      return undefined;
+    }
+
     hasStartedStoryTourRef.current = true;
 
     const clearStoryTour: DriverHook = (_element, _step, { driver: activeDriver }) => {
-      activeDriver.destroy();
+      destroyStoryTour(activeDriver);
     };
     const markStoryTourDestroyed: DriverHook = (_element, _step, { driver: activeDriver }) => {
       if (storyTourRef.current === activeDriver) {
@@ -172,15 +224,15 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
     const storyTour = driver({
       animate: !prefersReducedMotion(),
       overlayColor: '#1A1A1A',
-      overlayOpacity: 0.72,
+      overlayOpacity: 0.56,
       smoothScroll: false,
       allowClose: true,
       allowScroll: false,
       disableActiveInteraction: false,
-      stagePadding: 10,
-      stageRadius: 18,
+      stagePadding: 16,
+      stageRadius: 24,
       popoverOffset: 16,
-      popoverClass: 'wedding-driver-popover',
+      popoverClass: 'wedding-driver-popover wedding-driver-popover--story',
       showButtons: ['next'],
       showProgress: false,
       nextBtnText: 'Lanjut',
@@ -194,7 +246,7 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
           disableActiveInteraction: false,
           popover: {
             title: 'Kisah Kami',
-            description: 'Geser ke samping untuk mengikuti setiap bagian cerita. Setelah panduan ditutup, Anda dapat menggulir halaman seperti biasa.',
+            description: 'Geser layar ke samping untuk mengikuti cerita kami. Setelah panduan ditutup, halaman tetap bisa digulir seperti biasa.',
             showButtons: ['next'],
             nextBtnText: 'Lanjut',
             doneBtnText: 'Mengerti',
@@ -207,7 +259,7 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
           advanceOnClick: true,
           popover: {
             title: 'Tanda Suka',
-            description: 'Ketuk ikon hati untuk mengirim tanda suka pada bagian cerita yang sedang dibaca.',
+            description: 'Ketuk ikon hati untuk memberi tanda suka pada cerita ini.',
             side: 'left',
             align: 'center',
             showButtons: ['next'],
@@ -221,7 +273,7 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
           advanceOnClick: true,
           popover: {
             title: 'Ucapan Cerita',
-            description: 'Ketuk ikon komentar untuk menulis ucapan singkat pada bagian cerita ini.',
+            description: 'Ketuk ikon komentar untuk menulis ucapan pada bagian cerita ini.',
             side: 'left',
             align: 'center',
             showButtons: ['next'],
@@ -238,11 +290,9 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
       if (storyTourRef.current === storyTour) {
         storyTourRef.current = null;
       }
-      if (storyTour.isActive()) {
-        storyTour.destroy();
-      }
+      destroyStoryTour(storyTour);
     };
-  }, [commentInput, invitationTour?.isTourRunning, isStoryTourReady, slides.length]);
+  }, [commentInput, destroyStoryTour, invitationTour?.isTourRunning, isStoryTourReady, slides.length]);
 
   const measureOverflowingSlides = useCallback(() => {
     const next = new Set<number>();

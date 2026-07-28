@@ -31,6 +31,7 @@ vi.mock('driver.js', () => ({
 }));
 
 import { InvitationProductTour, useOptionalTour } from './InvitationProductTour';
+import { dispatchFloatingNavigationStart } from '../../utils/floatingNavigationEvents';
 
 const originalMatchMedia = window.matchMedia;
 
@@ -391,6 +392,21 @@ describe('InvitationProductTour', () => {
     );
 
     expect(openingDriver?.destroy).toHaveBeenCalledOnce();
+  });
+
+  it('destroys the active Driver.js instance before floating navigation starts', () => {
+    addOpeningTarget();
+    renderTour({ children: <TourStateProbe /> });
+    const openingDriver = driverMock.latestInstance;
+
+    expect(screen.getByTestId('tour-running')).toHaveTextContent('running');
+
+    act(() => {
+      dispatchFloatingNavigationStart('twibbon-section');
+    });
+
+    expect(openingDriver?.destroy).toHaveBeenCalledOnce();
+    expect(screen.getByTestId('tour-running')).toHaveTextContent('idle');
   });
 
   it('destroys the active Driver.js instance on component unmount', () => {

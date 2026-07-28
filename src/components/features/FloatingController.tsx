@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useRef, type PointerEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Heart, Sparkles, Gift, MapPin, X, Play, Pause } from 'lucide-react';
+import { dispatchFloatingNavigationStart } from '../../utils/floatingNavigationEvents';
 
 interface FloatingControllerProps {
   isToolsOpen: boolean;
@@ -19,6 +20,10 @@ const DRAG_CLICK_CANCEL_THRESHOLD_PX = 6;
 
 function getDocumentScrollTop() {
   return document.scrollingElement?.scrollTop ?? window.scrollY ?? 0;
+}
+
+function isDriverScrollLocked() {
+  return document.body.classList.contains('driver-no-scroll');
 }
 
 export const FloatingController = ({
@@ -141,6 +146,7 @@ export const FloatingController = ({
 
   const scrollToSection = useCallback((sectionId: string) => {
     clearPendingNavigation();
+    dispatchFloatingNavigationStart(sectionId);
 
     const startedAt = Date.now();
     let retryTimer: ReturnType<typeof setTimeout> | null = null;
@@ -159,6 +165,13 @@ export const FloatingController = ({
 
     const tryScroll = () => {
       if (cancelled) return true;
+      if (isDriverScrollLocked()) {
+        if (Date.now() - startedAt >= NAVIGATION_MAX_WAIT_MS) {
+          cleanup();
+          return true;
+        }
+        return false;
+      }
       if (scrollToMountedSection(sectionId)) {
         cleanup();
         return true;
@@ -239,6 +252,7 @@ export const FloatingController = ({
   return (
   <motion.div
     style={{ x: position.x, y: position.y }}
+    data-floating-controller
     className="fixed bottom-8 right-5 z-[100] flex flex-col items-center gap-4"
   >
     <AnimatePresence>

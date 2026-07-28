@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, within, act } from '@testing-library/react';
 import { FloatingController } from './FloatingController';
+import { FLOATING_NAVIGATION_START_EVENT } from '../../utils/floatingNavigationEvents';
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -103,6 +104,11 @@ describe('FloatingController', () => {
       expect(container.firstChild).toHaveClass('flex');
       expect(container.firstChild).toHaveClass('flex-col');
       expect(container.firstChild).toHaveClass('items-center');
+    });
+
+    it('marks the floating root as safe to interact with while Driver.js is active', () => {
+      const { container } = render(<FloatingController {...createProps()} />);
+      expect(container.firstChild).toHaveAttribute('data-floating-controller');
     });
 
     it('always renders the main button regardless of props', () => {
@@ -420,6 +426,59 @@ describe('FloatingController', () => {
       const setIsToolsOpen = vi.fn();
       render(<FloatingController {...createProps({ isToolsOpen: true, setIsToolsOpen })} />);
       fireEvent.click(screen.getByText('Twibbon'));
+
+      expect(getByIdMock).toHaveBeenCalledWith('twibbon-section');
+      expect(scrollMock).toHaveBeenCalledWith({ top: 412, left: 0, behavior: 'smooth' });
+      expect(setIsToolsOpen).toHaveBeenCalledWith(false);
+    });
+
+    it('dispatches navigation start before looking up the target section', () => {
+      const sectionIds: string[] = [];
+      const handleNavigationStart = vi.fn((event: Event) => {
+        sectionIds.push((event as CustomEvent<{ sectionId: string }>).detail.sectionId);
+      });
+      window.addEventListener(FLOATING_NAVIGATION_START_EVENT, handleNavigationStart);
+
+      const scrollMock = mockWindowScrollTo();
+      const target = mockSectionTarget(420);
+      const getByIdMock = vi.fn().mockReturnValue(target);
+      vi.spyOn(document, 'getElementById').mockImplementation(getByIdMock);
+
+      render(<FloatingController {...createProps({ isToolsOpen: true })} />);
+      fireEvent.click(screen.getByText('Twibbon'));
+
+      expect(sectionIds).toEqual(['twibbon-section']);
+      expect(handleNavigationStart.mock.invocationCallOrder[0]).toBeLessThan(getByIdMock.mock.invocationCallOrder[0]);
+      expect(scrollMock).toHaveBeenCalledWith({ top: 412, left: 0, behavior: 'smooth' });
+
+      window.removeEventListener(FLOATING_NAVIGATION_START_EVENT, handleNavigationStart);
+    });
+
+    it('waits for Driver.js body scroll lock to clear before scrolling to a section', () => {
+      vi.useFakeTimers();
+      mockNavigationFrames();
+      document.body.classList.add('driver-no-scroll');
+      const scrollMock = mockWindowScrollTo();
+      const target = mockSectionTarget(420);
+      const getByIdMock = vi.spyOn(document, 'getElementById').mockReturnValue(target);
+      const setIsToolsOpen = vi.fn();
+
+      render(<FloatingController {...createProps({ isToolsOpen: true, setIsToolsOpen })} />);
+      fireEvent.click(screen.getByText('Twibbon'));
+
+      expect(getByIdMock).not.toHaveBeenCalled();
+      expect(scrollMock).not.toHaveBeenCalled();
+      expect(setIsToolsOpen).not.toHaveBeenCalled();
+
+      act(() => {
+        vi.advanceTimersByTime(119);
+      });
+      expect(scrollMock).not.toHaveBeenCalled();
+
+      document.body.classList.remove('driver-no-scroll');
+      act(() => {
+        vi.advanceTimersByTime(1);
+      });
 
       expect(getByIdMock).toHaveBeenCalledWith('twibbon-section');
       expect(scrollMock).toHaveBeenCalledWith({ top: 412, left: 0, behavior: 'smooth' });

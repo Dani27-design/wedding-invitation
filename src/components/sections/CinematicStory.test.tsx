@@ -97,6 +97,7 @@ vi.mock('driver.js', () => ({
 }));
 
 import { CinematicStory } from './CinematicStory';
+import { dispatchFloatingNavigationStart } from '../../utils/floatingNavigationEvents';
 
 function renderStory() {
   return render(<CinematicStory weddingSlug="dani-marini" />);
@@ -655,6 +656,26 @@ describe('CinematicStory', () => {
       driverMock.latestOptions?.onCloseClick(undefined, driverMock.latestOptions.steps[0], hookOptions);
 
       expect(instance?.destroy).toHaveBeenCalledTimes(2);
+    });
+
+    it('destroys the story tour before floating navigation starts', async () => {
+      vi.useFakeTimers();
+      renderStory();
+
+      await triggerFullStoryVisibility();
+      act(() => {
+        vi.advanceTimersByTime(150);
+      });
+      expect(driverMock.driver).toHaveBeenCalledOnce();
+
+      const instance = driverMock.latestInstance;
+      instance?.isActive.mockReturnValue(true);
+
+      act(() => {
+        dispatchFloatingNavigationStart('twibbon-section');
+      });
+
+      expect(instance?.destroy).toHaveBeenCalledOnce();
     });
   });
 

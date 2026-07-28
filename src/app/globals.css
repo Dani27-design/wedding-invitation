@@ -113,6 +113,11 @@ html, body {
   box-shadow: 0 0 12px color-mix(in srgb, var(--color-gold) 15%, transparent);
 }
 
+.driver-active [data-floating-controller],
+.driver-active [data-floating-controller] * {
+  pointer-events: auto;
+}
+
 .wedding-driver-popover {
   --driver-popover-font-family: var(--font-sans);
   background:

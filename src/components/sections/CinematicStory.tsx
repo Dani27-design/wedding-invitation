@@ -10,6 +10,7 @@ import { useWeddingContext } from '../../context/WeddingContext';
 import { useOptionalTour } from '../features/InvitationProductTour';
 import { useStoryLikes } from '../../hooks/useStoryLikes';
 import { useStoryComments } from '../../hooks/useStoryComments';
+import { addFloatingNavigationStartListener } from '../../utils/floatingNavigationEvents';
 import { SHIMMER_DARK } from '../../utils/shimmer';
 
 interface CinematicStoryProps {
@@ -98,6 +99,14 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
 
   const { likes, incrementLike } = useStoryLikes(weddingSlug, isVisible);
   const { comments, addComment } = useStoryComments(weddingSlug, activeSlide, isVisible);
+
+  useEffect(() => addFloatingNavigationStartListener(() => {
+    const activeTour = storyTourRef.current;
+    storyTourRef.current = null;
+    if (activeTour?.isActive()) {
+      activeTour.destroy();
+    }
+  }), []);
 
   useEffect(() => {
     const el = sectionRef.current;

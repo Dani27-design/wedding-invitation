@@ -15,7 +15,8 @@ interface FloatingControllerProps {
 const NAVIGATION_RETRY_DELAY_MS = 120;
 const NAVIGATION_MAX_WAIT_MS = 6000;
 const NAVIGATION_SCROLL_OFFSET_PX = 8;
-const NAVIGATION_FALLBACK_DELAY_MS = 700;
+const NAVIGATION_SMOOTH_RETRY_DELAY_MS = 700;
+const NAVIGATION_HARD_FALLBACK_DELAY_MS = 2800;
 const DRAG_CLICK_CANCEL_THRESHOLD_PX = 6;
 
 function getDocumentScrollTop() {
@@ -29,7 +30,7 @@ export const FloatingController = ({
   toggleMusic,
 }: FloatingControllerProps) => {
   const navigationCleanupRef = useRef<(() => void) | null>(null);
-  const scrollFallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scrollFallbackTimersRef = useRef<Array<ReturnType<typeof setTimeout>>>([]);
   const dragStateRef = useRef<{
     pointerId: number;
     startX: number;
@@ -78,10 +79,8 @@ export const FloatingController = ({
   const clearPendingNavigation = useCallback(() => {
     navigationCleanupRef.current?.();
     navigationCleanupRef.current = null;
-    if (scrollFallbackTimerRef.current !== null) {
-      clearTimeout(scrollFallbackTimerRef.current);
-      scrollFallbackTimerRef.current = null;
-    }
+    scrollFallbackTimersRef.current.forEach((timer) => clearTimeout(timer));
+    scrollFallbackTimersRef.current = [];
   }, []);
 
   useEffect(() => {
@@ -108,35 +107,48 @@ export const FloatingController = ({
       }
     };
 
-    let scrolledElement = false;
-    if (typeof target.scrollIntoView === 'function') {
+    const scrollWithElement = (behavior: ScrollBehavior) => {
+      if (typeof target.scrollIntoView !== 'function') return false;
       try {
-        target.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
-        scrolledElement = true;
+        target.scrollIntoView({ behavior, block: 'start', inline: 'nearest' });
+        return true;
       } catch {
-        scrolledElement = false;
+        return false;
       }
-    }
+    };
+
+    const isMovingOrReached = () => {
+      const scrollChanged = Math.abs(getDocumentScrollTop() - initialScrollTop) > 1;
+      const targetReached = Math.abs(target.getBoundingClientRect().top - NAVIGATION_SCROLL_OFFSET_PX) <= 24;
+
+      return scrollChanged || targetReached;
+    };
+
+    const scheduleFallback = (delay: number, callback: () => void) => {
+      const timer = setTimeout(() => {
+        scrollFallbackTimersRef.current = scrollFallbackTimersRef.current.filter((item) => item !== timer);
+        callback();
+      }, delay);
+      scrollFallbackTimersRef.current.push(timer);
+    };
+
+    const scrolledElement = scrollWithElement('smooth');
 
     scrollWithWindow('smooth', !scrolledElement);
 
-    scrollFallbackTimerRef.current = setTimeout(() => {
-      scrollFallbackTimerRef.current = null;
+    scheduleFallback(NAVIGATION_SMOOTH_RETRY_DELAY_MS, () => {
+      if (isMovingOrReached()) return;
 
-      const scrollChanged = Math.abs(getDocumentScrollTop() - initialScrollTop) > 1;
-      const targetReached = Math.abs(target.getBoundingClientRect().top - NAVIGATION_SCROLL_OFFSET_PX) <= 24;
-      if (scrollChanged || targetReached) return;
+      const retriedElement = scrollWithElement('smooth');
+      scrollWithWindow('smooth', !retriedElement);
+    });
 
-      if (typeof target.scrollIntoView === 'function') {
-        try {
-          target.scrollIntoView({ behavior: 'auto', block: 'start', inline: 'nearest' });
-        } catch {
-          // Continue to the direct document scroll below.
-        }
-      }
+    scheduleFallback(NAVIGATION_HARD_FALLBACK_DELAY_MS, () => {
+      if (isMovingOrReached()) return;
 
+      scrollWithElement('smooth');
       window.scrollTo(0, targetTop);
-    }, NAVIGATION_FALLBACK_DELAY_MS);
+    });
 
     setIsToolsOpen(false);
     return true;

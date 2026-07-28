@@ -305,6 +305,15 @@ describe('FloatingController', () => {
       expect(label).toHaveClass('tracking-[0.2em]');
       expect(label).toHaveClass('font-bold');
     });
+
+    it('navigation menu buttons use touch-manipulation for mobile taps', () => {
+      render(<FloatingController {...createProps({ isToolsOpen: true })} />);
+      const labels = ['Rangkaian Acara', 'Twibbon', 'Ucapan & Doa', 'Tanda Kasih'];
+
+      labels.forEach((label) => {
+        expect(screen.getByText(label).closest('button')).toHaveClass('touch-manipulation');
+      });
+    });
   });
 
   /* ------------------------------------------------------------------ */
@@ -430,6 +439,57 @@ describe('FloatingController', () => {
       expect(getByIdMock).toHaveBeenCalledWith('twibbon-section');
       expect(scrollMock).toHaveBeenCalledWith({ top: 412, left: 0, behavior: 'smooth' });
       expect(setIsToolsOpen).toHaveBeenCalledWith(false);
+    });
+
+    it('Twibbon button scrolls on real mobile touch pointer activation before synthetic click', () => {
+      const scrollMock = mockWindowScrollTo();
+      const target = mockSectionTarget(420);
+      const getByIdMock = vi.fn().mockReturnValue(target);
+      vi.spyOn(document, 'getElementById').mockImplementation(getByIdMock);
+
+      const setIsToolsOpen = vi.fn();
+      render(<FloatingController {...createProps({ isToolsOpen: true, setIsToolsOpen })} />);
+      const twibbonButton = screen.getByText('Twibbon').closest('button')!;
+
+      fireEvent.pointerUp(twibbonButton, { pointerType: 'touch' });
+
+      expect(getByIdMock).toHaveBeenCalledWith('twibbon-section');
+      expect(scrollMock).toHaveBeenCalledWith({ top: 412, left: 0, behavior: 'smooth' });
+      expect(setIsToolsOpen).toHaveBeenCalledWith(false);
+    });
+
+    it('deduplicates a mobile touch pointer activation followed by the browser click', () => {
+      const scrollMock = mockWindowScrollTo();
+      const getByIdMock = vi.fn().mockReturnValue(mockSectionTarget(420));
+      vi.spyOn(document, 'getElementById').mockImplementation(getByIdMock);
+
+      render(<FloatingController {...createProps({ isToolsOpen: true })} />);
+      const twibbonButton = screen.getByText('Twibbon').closest('button')!;
+
+      fireEvent.pointerUp(twibbonButton, { pointerType: 'touch' });
+      fireEvent.click(twibbonButton);
+
+      expect(getByIdMock).toHaveBeenCalledTimes(1);
+      expect(scrollMock).toHaveBeenCalledTimes(1);
+      expect(scrollMock).toHaveBeenCalledWith({ top: 412, left: 0, behavior: 'smooth' });
+    });
+
+    it('keeps desktop mouse pointer release inert until the normal click fires', () => {
+      const scrollMock = mockWindowScrollTo();
+      const getByIdMock = vi.fn().mockReturnValue(mockSectionTarget(420));
+      vi.spyOn(document, 'getElementById').mockImplementation(getByIdMock);
+
+      render(<FloatingController {...createProps({ isToolsOpen: true })} />);
+      const twibbonButton = screen.getByText('Twibbon').closest('button')!;
+
+      fireEvent.pointerUp(twibbonButton, { pointerType: 'mouse' });
+      expect(getByIdMock).not.toHaveBeenCalled();
+      expect(scrollMock).not.toHaveBeenCalled();
+
+      fireEvent.click(twibbonButton);
+
+      expect(getByIdMock).toHaveBeenCalledWith('twibbon-section');
+      expect(scrollMock).toHaveBeenCalledWith({ top: 412, left: 0, behavior: 'smooth' });
     });
 
     it('dispatches navigation start before looking up the target section', () => {

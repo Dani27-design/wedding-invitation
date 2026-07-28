@@ -1,16 +1,17 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { getGuests, getGuestPage, getGuestCounts, addGuest, updateGuest, deleteGuest, addGuestsBatch } from '@/lib/guests';
+import { getGuests, getGuestPage, getGuestCounts, addGuest, updateGuest, deleteGuest, addGuestsBatch, markInvitationSent, markInvitationUnsent } from '@/lib/guests';
 import type { GuestPageCursor } from '@/lib/guests';
 import { Guest, WeddingDocument } from '@/types/firestore';
-import { Plus, Search, Trash2, Edit3, MessageCircle, Download, Upload, QrCode, Printer, ChevronLeft, ChevronRight, ChevronDown, X } from 'lucide-react';
+import { Plus, Search, Trash2, Edit3, MessageCircle, Download, Upload, QrCode, Printer, ChevronLeft, ChevronRight, ChevronDown, X, CheckCircle2, Loader2 } from 'lucide-react';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { GuestImportModal } from './GuestImportModal';
 import { GuestQRModal } from './GuestQRModal';
 import { GuestQRPrintView } from './GuestQRPrintView';
 import { BASE_URL } from '@/constants/baseUrl';
 import type { ImportedGuest } from '@/utils/guestImport';
+import { buildGuestInvitationUrl, buildGuestWhatsAppUrl } from '@/utils/guestInvitation';
 
 const PAGE_SIZE_OPTIONS = [5, 10, 15, 20, 30, 50, 75, 100] as const;
 const DEFAULT_PAGE_SIZE = 10;
@@ -41,6 +42,7 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState<'all' | 'pria' | 'wanita'>('all');
+  const [filterDelivery, setFilterDelivery] = useState<'all' | 'sent' | 'unsent'>('all');
   const [allGuests, setAllGuests] = useState<Guest[] | null>(null);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [filterPage, setFilterPage] = useState(0);
@@ -57,8 +59,9 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
   const [isExporting, setIsExporting] = useState(false);
   const [qrGuest, setQrGuest] = useState<Guest | null>(null);
   const [showBulkPrint, setShowBulkPrint] = useState(false);
+  const [statusUpdatingGuestId, setStatusUpdatingGuestId] = useState<string | null>(null);
 
-  const isFiltering = searchQuery.trim() !== '' || filterCategory !== 'all';
+  const isFiltering = searchQuery.trim() !== '' || filterCategory !== 'all' || filterDelivery !== 'all';
 
   const loadPage = useCallback(async (pageIdx: number) => {
     if (!slug) return;
@@ -86,6 +89,7 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
       setAllGuests(null);
       setSearchQuery('');
       setFilterCategory('all');
+      setFilterDelivery('all');
       cursorsRef.current = [null];
       loadPage(0);
       refreshCounts();
@@ -102,7 +106,7 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
     }
   }, [isFiltering, allGuests, slug]);
 
-  useEffect(() => { setFilterPage(0); }, [searchQuery, filterCategory]);
+  useEffect(() => { setFilterPage(0); }, [searchQuery, filterCategory, filterDelivery]);
 
   const filteredGuests = useMemo(() => {
     if (!isFiltering || !allGuests) return [];
@@ -114,8 +118,14 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
     if (filterCategory !== 'all') {
       result = result.filter((g) => g.category === filterCategory);
     }
+    if (filterDelivery === 'sent') {
+      result = result.filter((g) => Boolean(g.invitationSentAt));
+    }
+    if (filterDelivery === 'unsent') {
+      result = result.filter((g) => !g.invitationSentAt);
+    }
     return result;
-  }, [isFiltering, allGuests, searchQuery, filterCategory]);
+  }, [isFiltering, allGuests, searchQuery, filterCategory, filterDelivery]);
 
   const visibleGuests = isFiltering
     ? filteredGuests.slice(filterPage * pageSize, (filterPage + 1) * pageSize)
@@ -263,19 +273,41 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
   };
 
   const getWhatsAppUrl = (guest: Guest) => {
-    if (!guest.phone || !wedding) return null;
-    const link = `${BASE_URL}/${slug}?to=${encodeURIComponent(guest.name)}`;
-    const template = wedding.greetingTemplate || 'Buka undangan: {link}';
-    const text = template
-      .replace(/\{nama\}/g, guest.name)
-      .replace(/\{pengantin\}/g, `${wedding.groomNickname} & ${wedding.brideNickname}`)
-      .replace(/\{link\}/g, link);
-    return `https://wa.me/${guest.phone}?text=${encodeURIComponent(text)}`;
+    return buildGuestWhatsAppUrl({ guest, wedding, slug, baseUrl: BASE_URL });
+  };
+
+  const refreshGuestsAfterStatusMutation = async () => {
+    if (isFiltering) {
+      const all = await getGuests(slug);
+      setAllGuests(all);
+      return;
+    }
+
+    await loadPage(currentPage);
+  };
+
+  const handleToggleInvitationSent = async (guest: Guest) => {
+    if (!slug || statusUpdatingGuestId) return;
+
+    setStatusUpdatingGuestId(guest.id);
+    try {
+      if (guest.invitationSentAt) {
+        await markInvitationUnsent(slug, guest.id);
+      } else {
+        await markInvitationSent(slug, guest.id, 'manual');
+      }
+      await refreshGuestsAfterStatusMutation();
+    } catch (error) {
+      console.error('[Guests] Invitation sent status error:', (error as Error).message);
+    } finally {
+      setStatusUpdatingGuestId(null);
+    }
   };
 
   const clearFilters = () => {
     setSearchQuery('');
     setFilterCategory('all');
+    setFilterDelivery('all');
   };
 
   const inputClass = 'w-full px-3 py-2.5 border border-gold/20 rounded-xl text-sm bg-white focus:outline-none focus:border-gold/50 transition-colors';
@@ -357,6 +389,27 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
             ))}
           </div>
 
+          {/* Delivery filter */}
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+            {([
+              ['all', 'Semua Status'],
+              ['unsent', 'Belum Dikirim'],
+              ['sent', 'Terkirim'],
+            ] as const).map(([status, label]) => (
+              <button
+                key={status}
+                onClick={() => setFilterDelivery(status)}
+                className={`px-3 py-2 rounded-full text-[10px] font-black uppercase tracking-normal sm:tracking-wider transition-colors whitespace-nowrap flex-shrink-0 ${
+                  filterDelivery === status
+                    ? 'bg-ink text-ivory'
+                    : 'text-ink/80 border border-gold/15 hover:text-ink'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
           {/* Guest list */}
           {(isLoading && !isFiltering) || isSearchLoading ? (
             <p className="text-center text-xs text-ink/80 tracking-widest uppercase py-10">{isSearchLoading ? 'Mencari...' : 'Memuat...'}</p>
@@ -377,60 +430,95 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
             </div>
           ) : (
             <div className="border border-gold/10 rounded-xl overflow-hidden divide-y divide-gold/5">
-              {visibleGuests.map((guest) => (
-                <div key={guest.id} className="flex items-center gap-3 px-4 py-0.5 bg-white/40 hover:bg-white/70 transition-colors">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <p className="text-sm text-ink truncate">{guest.name}</p>
-                      <span className={`text-[7px] px-1.5 py-0.5 rounded-full uppercase font-black tracking-wider flex-shrink-0 ${
-                        guest.category === 'pria' ? 'bg-blue-50 text-blue-500' : 'bg-pink-50 text-pink-500'
-                      }`}>
-                        {guest.category === 'pria' ? 'P' : 'W'}
-                      </span>
-                      {guest.attendance && (
-                        <span className="text-[7px] px-1.5 py-0.5 rounded-full uppercase font-black tracking-wider bg-green-50 text-green-500 flex-shrink-0">
-                          Hadir
+              {visibleGuests.map((guest) => {
+                const whatsappUrl = getWhatsAppUrl(guest);
+                const isInvitationSent = Boolean(guest.invitationSentAt);
+                const isStatusUpdating = statusUpdatingGuestId === guest.id;
+
+                return (
+                  <div key={guest.id} className="flex items-center gap-3 px-4 py-0.5 bg-white/40 hover:bg-white/70 transition-colors">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm text-ink truncate">{guest.name}</p>
+                        <span className={`text-[7px] px-1.5 py-0.5 rounded-full uppercase font-black tracking-wider flex-shrink-0 ${
+                          guest.category === 'pria' ? 'bg-blue-50 text-blue-500' : 'bg-pink-50 text-pink-500'
+                        }`}>
+                          {guest.category === 'pria' ? 'P' : 'W'}
                         </span>
-                      )}
+                        {guest.attendance && (
+                          <span className="text-[7px] px-1.5 py-0.5 rounded-full uppercase font-black tracking-wider bg-green-50 text-green-500 flex-shrink-0">
+                            Hadir
+                          </span>
+                        )}
+                        {isInvitationSent && (
+                          <span className="text-[7px] px-1.5 py-0.5 rounded-full uppercase font-black tracking-wider bg-emerald-50 text-emerald-600 flex-shrink-0">
+                            Terkirim
+                          </span>
+                        )}
+                      </div>
+                      {guest.phone && <p className="text-[10px] text-ink/80 mt-0.5 break-words">{guest.phone}</p>}
                     </div>
-                    {guest.phone && <p className="text-[10px] text-ink/80 mt-0.5 break-words">{guest.phone}</p>}
-                  </div>
-                  <div className="flex items-center gap-0.5 flex-shrink-0">
-                    {getWhatsAppUrl(guest) && (
-                      <a
-                        href={getWhatsAppUrl(guest)!}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-7 h-7 flex items-center justify-center text-green-500 hover:bg-green-50 rounded-lg transition-colors"
-                        aria-label="Kirim WhatsApp"
+                    <div className="flex items-center gap-0.5 flex-shrink-0">
+                      {whatsappUrl ? (
+                        <a
+                          href={whatsappUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-7 h-7 flex items-center justify-center text-green-500 hover:bg-green-50 rounded-lg transition-colors"
+                          aria-label="Kirim WhatsApp"
+                          title="Kirim WhatsApp"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                        </a>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled
+                          className="w-7 h-7 flex items-center justify-center text-ink/20 rounded-lg cursor-not-allowed"
+                          aria-label="Nomor HP belum diisi"
+                          title="Nomor HP belum diisi"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleToggleInvitationSent(guest)}
+                        disabled={isStatusUpdating}
+                        className={`w-7 h-7 flex items-center justify-center rounded-lg transition-colors disabled:opacity-50 ${
+                          isInvitationSent
+                            ? 'text-emerald-600 hover:bg-emerald-50'
+                            : 'text-ink/80 hover:text-gold hover:bg-gold/5'
+                        }`}
+                        aria-label={isInvitationSent ? 'Batalkan tanda terkirim' : 'Tandai undangan terkirim'}
+                        title={isInvitationSent ? 'Batalkan tanda terkirim' : 'Tandai undangan terkirim'}
                       >
-                        <MessageCircle className="w-3.5 h-3.5" />
-                      </a>
-                    )}
-                    <button
-                      onClick={() => setQrGuest(guest)}
-                      className="w-7 h-7 flex items-center justify-center text-ink/80 hover:text-gold hover:bg-gold/5 rounded-lg transition-colors"
-                      aria-label="QR Code"
-                    >
-                      <QrCode className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => openEditForm(guest)}
-                      className="w-7 h-7 flex items-center justify-center text-ink/80 hover:text-ink hover:bg-ink/5 rounded-lg transition-colors"
-                      aria-label="Edit tamu"
-                    >
-                      <Edit3 className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => setDeleteTarget(guest)}
-                      className="w-7 h-7 flex items-center justify-center text-red-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                      aria-label="Hapus tamu"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                        {isStatusUpdating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                      </button>
+                      <button
+                        onClick={() => setQrGuest(guest)}
+                        className="w-7 h-7 flex items-center justify-center text-ink/80 hover:text-gold hover:bg-gold/5 rounded-lg transition-colors"
+                        aria-label="QR Code"
+                      >
+                        <QrCode className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => openEditForm(guest)}
+                        className="w-7 h-7 flex items-center justify-center text-ink/80 hover:text-ink hover:bg-ink/5 rounded-lg transition-colors"
+                        aria-label="Edit tamu"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => setDeleteTarget(guest)}
+                        className="w-7 h-7 flex items-center justify-center text-red-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        aria-label="Hapus tamu"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
@@ -555,7 +643,7 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
         isOpen={qrGuest !== null}
         guestName={qrGuest?.name ?? ''}
         coupleName={wedding ? `${wedding.groomNickname} & ${wedding.brideNickname}` : ''}
-        invitationUrl={qrGuest ? `${BASE_URL}/${slug}?to=${encodeURIComponent(qrGuest.name)}` : ''}
+        invitationUrl={qrGuest ? buildGuestInvitationUrl(BASE_URL, slug, qrGuest.name) : ''}
         whatsappUrl={qrGuest ? getWhatsAppUrl(qrGuest) : null}
         onClose={() => setQrGuest(null)}
       />

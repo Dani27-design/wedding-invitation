@@ -140,5 +140,7 @@ export interface Guest {
   category: 'pria' | 'wanita';
   attendance: boolean;
   attendanceAt: Timestamp | null;
+  invitationSentAt?: Timestamp | null;
+  invitationSentVia?: 'whatsapp' | 'manual' | null;
   createdAt: Timestamp;
 }

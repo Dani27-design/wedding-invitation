@@ -10,13 +10,13 @@ function guestsCollection(slug: string) {
 
 /**
  * Normalize Indonesian phone number to digits-only format starting with 62.
- * Examples: "0812 345 6789" → "6281234567890", "+62-812-345" → "62812345", "" → ""
+ * Examples: "0812 345 6789" → "6281234567890", "00812" → "62812", "" → ""
  */
 export function normalizePhone(raw: string): string {
   const digits = raw.replace(/[^\d]/g, '');
   if (!digits) return '';
-  if (digits.startsWith('620')) return '62' + digits.slice(3);
-  if (digits.startsWith('0')) return '62' + digits.slice(1);
+  if (digits.startsWith('620')) return `62${digits.slice(3).replace(/^0+/, '')}`;
+  if (digits.startsWith('0')) return `62${digits.replace(/^0+/, '')}`;
   if (digits.startsWith('62')) return digits;
   // Bare Indonesian mobile (leading 0 lost in Excel): 8xx with 9-12 digits
   if (digits.startsWith('8') && digits.length >= 9 && digits.length <= 12) return '62' + digits;
@@ -75,6 +75,8 @@ export async function addGuest(slug: string, data: Omit<Guest, 'id' | 'createdAt
     ...sanitized,
     attendance: data.attendance ?? false,
     attendanceAt: null,
+    invitationSentAt: null,
+    invitationSentVia: null,
     createdAt: serverTimestamp(),
   });
 }
@@ -96,6 +98,24 @@ export async function deleteGuest(slug: string, guestId: string) {
   return deleteDoc(doc(db, 'weddings', slug, 'guests', guestId));
 }
 
+export async function markInvitationSent(
+  slug: string,
+  guestId: string,
+  via: NonNullable<Guest['invitationSentVia']> = 'manual',
+) {
+  return updateDoc(doc(db, 'weddings', slug, 'guests', guestId), {
+    invitationSentAt: serverTimestamp(),
+    invitationSentVia: via,
+  });
+}
+
+export async function markInvitationUnsent(slug: string, guestId: string) {
+  return updateDoc(doc(db, 'weddings', slug, 'guests', guestId), {
+    invitationSentAt: null,
+    invitationSentVia: null,
+  });
+}
+
 export async function addGuestsBatch(
   slug: string,
   guests: Omit<Guest, 'id' | 'createdAt' | 'attendanceAt'>[],
@@ -112,11 +132,13 @@ export async function addGuestsBatch(
       const ref = doc(guestsCollection(slug));
       batch.set(ref, {
         name: (g.name ?? '').trim().slice(0, 100),
-        phone: (g.phone ?? '').trim().slice(0, 20),
+        phone: normalizePhone(g.phone ?? '').slice(0, 20),
         address: (g.address ?? '').trim().slice(0, 200),
         category: g.category === 'wanita' ? 'wanita' : 'pria',
         attendance: g.attendance ?? false,
         attendanceAt: null,
+        invitationSentAt: null,
+        invitationSentVia: null,
         createdAt: serverTimestamp(),
       });
     }

@@ -817,6 +817,15 @@ describe('FloatingController', () => {
       expect(menuContainer).toBeInTheDocument();
     });
 
+    it('marks the expanded menu panel as the Driver.js tour target only when open', () => {
+      const { container, rerender } = render(<FloatingController {...createProps()} />);
+      expect(container.querySelector('[data-tour="floating-menu-panel"]')).not.toBeInTheDocument();
+
+      rerender(<FloatingController {...createProps({ isToolsOpen: true })} />);
+
+      expect(container.querySelector('[data-tour="floating-menu-panel"]')).toBeInTheDocument();
+    });
+
     it('main button has overflow-hidden to clip internal animations', () => {
       render(<FloatingController {...createProps()} />);
       const btn = screen.getByLabelText('Buka menu');

@@ -14,7 +14,7 @@ import { driver, type Config, type DriveStep, type Driver, type DriverHook } fro
 import { addFloatingNavigationStartListener } from '../../utils/floatingNavigationEvents';
 
 const OPENING_SELECTOR = '[data-tour="cinematic-opening"]';
-const FLOATING_MENU_BUTTON_SELECTOR = '[data-tour="floating-menu-button"]';
+const FLOATING_MENU_PANEL_SELECTOR = '[data-tour="floating-menu-panel"]';
 const FLOATING_MENU_WAIT_MS = 5000;
 const FLOATING_MENU_EXPAND_BEFORE_TOUR_MS = 850;
 
@@ -38,14 +38,14 @@ function prefersReducedMotion() {
   return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 }
 
-function getFloatingMenuTourElement() {
-  const button = document.querySelector<HTMLElement>(FLOATING_MENU_BUTTON_SELECTOR);
-  return button ?? undefined;
+function getFloatingMenuPanelElement() {
+  const panel = document.querySelector<HTMLElement>(FLOATING_MENU_PANEL_SELECTOR);
+  return panel ?? undefined;
 }
 
 function createFloatingMenuTourStep(showFloatingMenu: DriverHook): DriveStep {
   return {
-    element: getFloatingMenuTourElement as () => Element,
+    element: getFloatingMenuPanelElement as () => Element,
     waitForElement: FLOATING_MENU_WAIT_MS,
     disableActiveInteraction: false,
     advanceOnClick: true,

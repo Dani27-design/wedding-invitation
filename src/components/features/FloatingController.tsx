@@ -274,7 +274,7 @@ export const FloatingController = ({
   >
     <AnimatePresence>
       {isToolsOpen && (
-        <div className="flex flex-col items-center gap-3 mb-2">
+        <div data-tour="floating-menu-panel" className="flex flex-col items-center gap-3 mb-2">
           {[
             { id: 'event-section', label: 'Rangkaian Acara', icon: MapPin },
             { id: 'twibbon-section', label: 'Twibbon', icon: Sparkles },

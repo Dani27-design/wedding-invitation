@@ -15,6 +15,7 @@ import { driver, type Config, type DriveStep, type Driver, type DriverHook } fro
 const OPENING_SELECTOR = '[data-tour="cinematic-opening"]';
 const FLOATING_MENU_BUTTON_SELECTOR = '[data-tour="floating-menu-button"]';
 const FLOATING_MENU_WAIT_MS = 5000;
+const FLOATING_MENU_EXPAND_BEFORE_TOUR_MS = 850;
 
 interface InvitationProductTourProps {
   slug: string;
@@ -143,14 +144,22 @@ export function TourProvider({
   const requestedOpenRef = useRef(false);
   const continuedTourRef = useRef(false);
   const destroyedToursRef = useRef<WeakSet<Driver>>(new WeakSet());
+  const floatingStepTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isTourRunning, setIsTourRunning] = useState(false);
 
+  const clearFloatingStepTimer = useCallback(() => {
+    if (floatingStepTimerRef.current === null) return;
+    clearTimeout(floatingStepTimerRef.current);
+    floatingStepTimerRef.current = null;
+  }, []);
+
   const destroyTour = useCallback((tour: Driver) => {
+    clearFloatingStepTimer();
     if (destroyedToursRef.current.has(tour)) return;
     destroyedToursRef.current.add(tour);
     tour.destroy();
     setIsTourRunning(false);
-  }, []);
+  }, [clearFloatingStepTimer]);
 
   const stopTour = useCallback(() => {
     const activeTour = driverRef.current;
@@ -179,10 +188,10 @@ export function TourProvider({
     continuedTourRef.current = false;
     destroyedToursRef.current = new WeakSet();
 
-    const openInvitationFromTour = () => {
+    const openInvitationFromTour = ({ closeTools = true }: { closeTools?: boolean } = {}) => {
       if (requestedOpenRef.current) return;
       requestedOpenRef.current = true;
-      setIsToolsOpen?.(false);
+      if (closeTools) setIsToolsOpen?.(false);
       onOpenInvitation();
     };
 
@@ -196,8 +205,14 @@ export function TourProvider({
     const openInvitationAndContinueTour: DriverHook = (_element, _step, { driver: activeDriver }) => {
       if (continuedTourRef.current) return;
       continuedTourRef.current = true;
-      openInvitationFromTour();
-      activeDriver.moveNext();
+      openInvitationFromTour({ closeTools: false });
+      setIsToolsOpen?.(true);
+      clearFloatingStepTimer();
+      floatingStepTimerRef.current = setTimeout(() => {
+        floatingStepTimerRef.current = null;
+        if (driverRef.current !== activeDriver || !continuedTourRef.current) return;
+        activeDriver.moveNext();
+      }, FLOATING_MENU_EXPAND_BEFORE_TOUR_MS);
     };
 
     const openInvitationAndEndTour: DriverHook = (element, step, opts) => {
@@ -240,9 +255,14 @@ export function TourProvider({
 
     requestedOpenRef.current = true;
     continuedTourRef.current = true;
-    setIsToolsOpen?.(false);
-    tour.moveNext();
-  }, [isOpen, setIsToolsOpen]);
+    setIsToolsOpen?.(true);
+    clearFloatingStepTimer();
+    floatingStepTimerRef.current = setTimeout(() => {
+      floatingStepTimerRef.current = null;
+      if (driverRef.current !== tour || !continuedTourRef.current) return;
+      tour.moveNext();
+    }, FLOATING_MENU_EXPAND_BEFORE_TOUR_MS);
+  }, [clearFloatingStepTimer, isOpen, setIsToolsOpen]);
 
   const value = useMemo<TourContextValue>(() => ({
     isTourRunning,

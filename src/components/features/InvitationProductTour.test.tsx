@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 
 const driverMock = vi.hoisted(() => {
   const mock = {
@@ -165,7 +165,8 @@ describe('InvitationProductTour', () => {
     expect(screen.getByTestId('invitation-content')).toHaveTextContent('Invitation content');
   });
 
-  it('opens the invitation and advances to the floating menu step from the opening Next button', () => {
+  it('opens the invitation, expands the floating menu, then advances from the opening Next button', () => {
+    vi.useFakeTimers();
     const onOpenInvitation = vi.fn();
     const setIsToolsOpen = vi.fn();
     addOpeningTarget();
@@ -176,13 +177,25 @@ describe('InvitationProductTour', () => {
     openingStep.popover.onNextClick(undefined, openingStep, hookOptions(openingDriver, driverMock.latestOptions, 0));
 
     expect(onOpenInvitation).toHaveBeenCalledOnce();
-    expect(setIsToolsOpen).toHaveBeenCalledWith(false);
+    expect(setIsToolsOpen).toHaveBeenCalledWith(true);
+    expect(setIsToolsOpen).toHaveBeenCalledTimes(1);
+    expect(openingDriver?.moveNext).not.toHaveBeenCalled();
+
+    act(() => {
+      vi.advanceTimersByTime(849);
+    });
+    expect(openingDriver?.moveNext).not.toHaveBeenCalled();
+
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
     expect(openingDriver?.moveNext).toHaveBeenCalledOnce();
     expect(openingDriver?.destroy).not.toHaveBeenCalled();
     expect(driverMock.driver).toHaveBeenCalledOnce();
   });
 
   it('does not open or advance twice if the opening action repeats', () => {
+    vi.useFakeTimers();
     const onOpenInvitation = vi.fn();
     addOpeningTarget();
     renderTour({ onOpenInvitation });
@@ -193,6 +206,10 @@ describe('InvitationProductTour', () => {
     openingStep.popover.onNextClick(undefined, openingStep, hookOptions(openingDriver, driverMock.latestOptions, 0));
 
     expect(onOpenInvitation).toHaveBeenCalledOnce();
+    expect(openingDriver?.moveNext).not.toHaveBeenCalled();
+    act(() => {
+      vi.advanceTimersByTime(850);
+    });
     expect(openingDriver?.moveNext).toHaveBeenCalledOnce();
     expect(openingDriver?.destroy).not.toHaveBeenCalled();
   });
@@ -214,7 +231,8 @@ describe('InvitationProductTour', () => {
     expect(openingDriver?.moveNext).not.toHaveBeenCalled();
   });
 
-  it('opens the invitation and advances when the opening overlay is clicked', () => {
+  it('opens the invitation and advances after the floating menu expands when the opening overlay is clicked', () => {
+    vi.useFakeTimers();
     const onOpenInvitation = vi.fn();
     addOpeningTarget();
     renderTour({ onOpenInvitation });
@@ -228,11 +246,16 @@ describe('InvitationProductTour', () => {
     );
 
     expect(onOpenInvitation).toHaveBeenCalledOnce();
+    expect(openingDriver?.moveNext).not.toHaveBeenCalled();
+    act(() => {
+      vi.advanceTimersByTime(850);
+    });
     expect(openingDriver?.moveNext).toHaveBeenCalledOnce();
     expect(openingDriver?.destroy).not.toHaveBeenCalled();
   });
 
   it('advances to the floating menu step when the invitation is opened manually', () => {
+    vi.useFakeTimers();
     const onOpenInvitation = vi.fn();
     const setIsToolsOpen = vi.fn();
     addOpeningTarget();
@@ -249,10 +272,35 @@ describe('InvitationProductTour', () => {
     );
 
     expect(onOpenInvitation).not.toHaveBeenCalled();
-    expect(setIsToolsOpen).toHaveBeenCalledWith(false);
+    expect(setIsToolsOpen).toHaveBeenCalledWith(true);
+    expect(setIsToolsOpen).toHaveBeenCalledTimes(1);
+    expect(openingDriver?.moveNext).not.toHaveBeenCalled();
+
+    act(() => {
+      vi.advanceTimersByTime(850);
+    });
     expect(openingDriver?.moveNext).toHaveBeenCalledOnce();
     expect(openingDriver?.destroy).not.toHaveBeenCalled();
     expect(driverMock.driver).toHaveBeenCalledOnce();
+  });
+
+  it('does not advance to the floating menu step after the tour is destroyed during the expansion delay', () => {
+    vi.useFakeTimers();
+    const onOpenInvitation = vi.fn();
+    addOpeningTarget();
+    renderTour({ onOpenInvitation });
+
+    const openingStep = driverMock.latestOptions?.steps[0];
+    const openingDriver = driverMock.latestInstance;
+    openingStep.popover.onNextClick(undefined, openingStep, hookOptions(openingDriver, driverMock.latestOptions, 0));
+
+    driverMock.latestOptions?.onCloseClick(undefined, openingStep, hookOptions(openingDriver, driverMock.latestOptions, 0));
+    act(() => {
+      vi.advanceTimersByTime(850);
+    });
+
+    expect(openingDriver?.moveNext).not.toHaveBeenCalled();
+    expect(openingDriver?.destroy).toHaveBeenCalledOnce();
   });
 
   it('opens the floating tools menu when the floating step starts highlighting', () => {

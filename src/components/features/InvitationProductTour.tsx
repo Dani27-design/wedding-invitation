@@ -184,41 +184,28 @@ export function TourProvider({
     floatingStepTimerRef.current = null;
   }, []);
 
-  const destroyTour = useCallback((tour: Driver) => {
-    if (destroyedToursRef.current.has(tour)) return;
-    destroyedToursRef.current.add(tour);
-    destroyDriverTour(tour);
-  }, []);
-
-  const endTour = useCallback<DriverHook>((_element, _step, { driver: activeDriver }) => {
-    if (driverRef.current === activeDriver) {
-      driverRef.current = null;
+  const destroyProductTours = useCallback((tour?: Driver | null) => {
+    clearFloatingStepTimer();
+    if (tour) {
+      if (!destroyedToursRef.current.has(tour)) {
+        destroyedToursRef.current.add(tour);
+        destroyDriverTour(tour);
+      }
     }
-    if (floatingDriverRef.current === activeDriver) {
-      floatingDriverRef.current = null;
-    }
-    destroyTour(activeDriver);
-    setIsTourRunning(
-      driverRef.current !== null ||
-      floatingDriverRef.current !== null ||
-      floatingStepTimerRef.current !== null,
-    );
-  }, [destroyTour]);
-
-  const stopTour = useCallback(() => {
-    const activeTour = driverRef.current;
-    const activeFloatingTour = floatingDriverRef.current;
     driverRef.current = null;
     floatingDriverRef.current = null;
-    clearFloatingStepTimer();
-    if (activeTour) {
-      destroyTour(activeTour);
-    }
-    if (activeFloatingTour) {
-      destroyTour(activeFloatingTour);
-    }
+    destroyAllDriverTours();
+  }, [clearFloatingStepTimer]);
+
+  const endTour = useCallback<DriverHook>((_element, _step, { driver: activeDriver }) => {
+    destroyProductTours(activeDriver);
     setIsTourRunning(false);
-  }, [clearFloatingStepTimer, destroyTour]);
+  }, [destroyProductTours]);
+
+  const stopTour = useCallback(() => {
+    destroyProductTours(driverRef.current ?? floatingDriverRef.current);
+    setIsTourRunning(false);
+  }, [destroyProductTours]);
 
   const startTour = useCallback(() => {
     const activeTour = driverRef.current;
@@ -284,10 +271,7 @@ export function TourProvider({
       if (continuedTourRef.current) return;
       continuedTourRef.current = true;
       openInvitationFromTour({ closeTools: false });
-      if (driverRef.current === activeDriver) {
-        driverRef.current = null;
-      }
-      destroyTour(activeDriver);
+      destroyProductTours(activeDriver);
       scheduleFloatingTour();
     };
 
@@ -306,32 +290,17 @@ export function TourProvider({
     setIsTourRunning(true);
 
     const removeFloatingNavigationListener = addFloatingNavigationStartListener(() => {
-      if (driverRef.current === tour) {
-        driverRef.current = null;
-      }
-      if (floatingDriverRef.current) {
-        floatingDriverRef.current = null;
-      }
-      destroyedToursRef.current.add(tour);
-      clearFloatingStepTimer();
-      destroyAllDriverTours();
+      destroyProductTours(driverRef.current ?? floatingDriverRef.current ?? tour);
       setIsTourRunning(false);
     });
 
     return () => {
       removeFloatingNavigationListener();
       unregisterTour();
-      clearFloatingStepTimer();
-      const activeTour = driverRef.current;
-      const activeFloatingTour = floatingDriverRef.current;
-      driverRef.current = null;
-      floatingDriverRef.current = null;
-      if (activeTour && activeTour !== tour) destroyTour(activeTour);
-      if (activeFloatingTour) destroyTour(activeFloatingTour);
-      destroyTour(tour);
+      destroyProductTours(driverRef.current ?? floatingDriverRef.current ?? tour);
       setIsTourRunning(false);
     };
-  }, [clearFloatingStepTimer, destroyTour, onOpenInvitation, scheduleFloatingTour, setIsToolsOpen, slug]);
+  }, [clearFloatingStepTimer, destroyProductTours, onOpenInvitation, scheduleFloatingTour, setIsToolsOpen, slug]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -340,12 +309,11 @@ export function TourProvider({
     if (tour && !requestedOpenRef.current && tour.getActiveIndex() === 0) {
       requestedOpenRef.current = true;
       continuedTourRef.current = true;
-      driverRef.current = null;
-      destroyTour(tour);
+      destroyProductTours(tour);
       scheduleFloatingTour();
       return;
     }
-  }, [destroyTour, isOpen, scheduleFloatingTour]);
+  }, [destroyProductTours, isOpen, scheduleFloatingTour]);
 
   const value = useMemo<TourContextValue>(() => ({
     isTourRunning,

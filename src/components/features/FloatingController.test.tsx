@@ -1,7 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, within, act } from '@testing-library/react';
 import { FloatingController } from './FloatingController';
-import { FLOATING_NAVIGATION_START_EVENT } from '../../utils/floatingNavigationEvents';
+import {
+  FLOATING_NAVIGATION_START_EVENT,
+  resetFloatingNavigationStateForTests,
+} from '../../utils/floatingNavigationEvents';
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -43,6 +46,7 @@ describe('FloatingController', () => {
   });
 
   afterEach(() => {
+    resetFloatingNavigationStateForTests();
     document.body.className = '';
     document.body.removeAttribute('style');
     document.body.innerHTML = '';

@@ -31,7 +31,10 @@ vi.mock('driver.js', () => ({
 }));
 
 import { InvitationProductTour, useOptionalTour } from './InvitationProductTour';
-import { dispatchFloatingNavigationStart } from '../../utils/floatingNavigationEvents';
+import {
+  dispatchFloatingNavigationStart,
+  resetFloatingNavigationStateForTests,
+} from '../../utils/floatingNavigationEvents';
 
 const originalMatchMedia = window.matchMedia;
 
@@ -100,6 +103,7 @@ describe('InvitationProductTour', () => {
   });
 
   afterEach(() => {
+    resetFloatingNavigationStateForTests();
     vi.clearAllTimers();
     vi.useRealTimers();
     Object.defineProperty(window, 'matchMedia', {

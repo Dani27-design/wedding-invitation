@@ -10,7 +10,11 @@ import { useWeddingContext } from '../../context/WeddingContext';
 import { useOptionalTour } from '../features/InvitationProductTour';
 import { useStoryLikes } from '../../hooks/useStoryLikes';
 import { useStoryComments } from '../../hooks/useStoryComments';
-import { addFloatingNavigationStartListener } from '../../utils/floatingNavigationEvents';
+import {
+  addFloatingNavigationEndListener,
+  addFloatingNavigationStartListener,
+  isFloatingNavigationInProgress,
+} from '../../utils/floatingNavigationEvents';
 import { destroyAllDriverTours, destroyDriverTour, registerDriverTour } from '../../utils/driverLifecycle';
 import { SHIMMER_DARK } from '../../utils/shimmer';
 
@@ -142,6 +146,10 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
     destroyAllDriverTours();
   }), [clearStoryTourReadyTimer]);
 
+  useEffect(() => addFloatingNavigationEndListener(() => {
+    isStoryTourSuppressedByNavigationRef.current = false;
+  }), []);
+
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
@@ -156,12 +164,14 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
 
         clearStoryTourReadyTimer();
         if (!isFullySeen) {
-          isStoryTourSuppressedByNavigationRef.current = false;
+          if (!isFloatingNavigationInProgress()) {
+            isStoryTourSuppressedByNavigationRef.current = false;
+          }
           setIsStoryTourReady(false);
           return;
         }
 
-        if (isStoryTourSuppressedByNavigationRef.current) return;
+        if (isFloatingNavigationInProgress() || isStoryTourSuppressedByNavigationRef.current) return;
 
         storyTourReadyTimerRef.current = setTimeout(() => {
           storyTourReadyTimerRef.current = null;

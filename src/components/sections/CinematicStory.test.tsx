@@ -97,7 +97,10 @@ vi.mock('driver.js', () => ({
 }));
 
 import { CinematicStory } from './CinematicStory';
-import { dispatchFloatingNavigationStart } from '../../utils/floatingNavigationEvents';
+import {
+  dispatchFloatingNavigationStart,
+  resetFloatingNavigationStateForTests,
+} from '../../utils/floatingNavigationEvents';
 
 function renderStory() {
   return render(<CinematicStory weddingSlug="dani-marini" />);
@@ -148,6 +151,7 @@ describe('CinematicStory', () => {
   });
 
   afterEach(() => {
+    resetFloatingNavigationStateForTests();
     vi.useRealTimers();
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
@@ -533,6 +537,23 @@ describe('CinematicStory', () => {
       act(() => {
         dispatchFloatingNavigationStart('event-section');
         vi.advanceTimersByTime(1);
+      });
+
+      expect(driverMock.driver).not.toHaveBeenCalled();
+    });
+
+    it('keeps the story tour suppressed while floating navigation is still settling', async () => {
+      vi.useFakeTimers();
+      renderStory();
+
+      act(() => {
+        dispatchFloatingNavigationStart('event-section');
+      });
+
+      await triggerFullStoryVisibility(0.4);
+      await triggerFullStoryVisibility();
+      act(() => {
+        vi.advanceTimersByTime(150);
       });
 
       expect(driverMock.driver).not.toHaveBeenCalled();

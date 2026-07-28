@@ -15,12 +15,17 @@ interface FloatingControllerProps {
 const NAVIGATION_RETRY_DELAY_MS = 120;
 const NAVIGATION_MAX_WAIT_MS = 6000;
 const NAVIGATION_SCROLL_OFFSET_PX = 8;
-const NAVIGATION_SMOOTH_RETRY_DELAY_MS = 700;
-const NAVIGATION_HARD_FALLBACK_DELAY_MS = 2800;
+const NAVIGATION_CONTROLLED_FALLBACK_DELAY_MS = 700;
+const NAVIGATION_CONTROLLED_SCROLL_DURATION_MS = 900;
+const NAVIGATION_CONTROLLED_SCROLL_FRAME_MS = 16;
 const DRAG_CLICK_CANCEL_THRESHOLD_PX = 6;
 
 function getDocumentScrollTop() {
   return document.scrollingElement?.scrollTop ?? window.scrollY ?? 0;
+}
+
+function easeOutCubic(progress: number) {
+  return 1 - Math.pow(1 - progress, 3);
 }
 
 export const FloatingController = ({
@@ -117,11 +122,10 @@ export const FloatingController = ({
       }
     };
 
-    const isMovingOrReached = () => {
-      const scrollChanged = Math.abs(getDocumentScrollTop() - initialScrollTop) > 1;
+    const hasReachedTarget = () => {
       const targetReached = Math.abs(target.getBoundingClientRect().top - NAVIGATION_SCROLL_OFFSET_PX) <= 24;
 
-      return scrollChanged || targetReached;
+      return targetReached;
     };
 
     const scheduleFallback = (delay: number, callback: () => void) => {
@@ -136,18 +140,41 @@ export const FloatingController = ({
 
     scrollWithWindow('smooth', !scrolledElement);
 
-    scheduleFallback(NAVIGATION_SMOOTH_RETRY_DELAY_MS, () => {
-      if (isMovingOrReached()) return;
+    const startControlledScroll = () => {
+      const startedAt = Date.now();
+      const startTop = getDocumentScrollTop();
+      const distance = targetTop - startTop;
 
-      const retriedElement = scrollWithElement('smooth');
-      scrollWithWindow('smooth', !retriedElement);
-    });
+      if (Math.abs(distance) <= 1) {
+        window.scrollTo(0, targetTop);
+        return;
+      }
 
-    scheduleFallback(NAVIGATION_HARD_FALLBACK_DELAY_MS, () => {
-      if (isMovingOrReached()) return;
+      const step = () => {
+        if (hasReachedTarget()) return;
+
+        const elapsed = Date.now() - startedAt;
+        const progress = Math.min(1, elapsed / NAVIGATION_CONTROLLED_SCROLL_DURATION_MS);
+        const nextTop = startTop + distance * easeOutCubic(progress);
+
+        window.scrollTo(0, nextTop);
+
+        if (progress < 1) {
+          scheduleFallback(NAVIGATION_CONTROLLED_SCROLL_FRAME_MS, step);
+          return;
+        }
+
+        window.scrollTo(0, targetTop);
+      };
+
+      scheduleFallback(NAVIGATION_CONTROLLED_SCROLL_FRAME_MS, step);
+    };
+
+    scheduleFallback(NAVIGATION_CONTROLLED_FALLBACK_DELAY_MS, () => {
+      if (hasReachedTarget()) return;
 
       scrollWithElement('smooth');
-      window.scrollTo(0, targetTop);
+      startControlledScroll();
     });
 
     setIsToolsOpen(false);

@@ -17,8 +17,50 @@ const NAVIGATION_MAX_WAIT_MS = 6000;
 const NAVIGATION_SCROLL_OFFSET_PX = 8;
 const DRAG_CLICK_CANCEL_THRESHOLD_PX = 6;
 
+function getDocumentScroller() {
+  return document.scrollingElement ?? document.documentElement;
+}
+
 function getDocumentScrollTop() {
-  return document.scrollingElement?.scrollTop ?? window.scrollY ?? 0;
+  return (
+    getDocumentScroller().scrollTop ||
+    window.scrollY ||
+    document.documentElement.scrollTop ||
+    document.body.scrollTop ||
+    0
+  );
+}
+
+function scrollWindowTo(targetTop: number) {
+  try {
+    window.scrollTo({ top: targetTop, left: 0, behavior: 'smooth' });
+  } catch {
+    window.scrollTo(0, targetTop);
+  }
+}
+
+function scrollElementTo(element: Element | null | undefined, targetTop: number) {
+  const scrollTarget = element as HTMLElement | null | undefined;
+  if (typeof scrollTarget?.scrollTo !== 'function') return;
+
+  try {
+    scrollTarget.scrollTo({ top: targetTop, left: 0, behavior: 'smooth' });
+  } catch {
+    try {
+      scrollTarget.scrollTo(0, targetTop);
+    } catch {
+      // Another root scroll target may still support the command.
+    }
+  }
+}
+
+function scrollDocumentTo(targetTop: number) {
+  scrollWindowTo(targetTop);
+  new Set<Element | null>([
+    document.scrollingElement,
+    document.documentElement,
+    document.body,
+  ]).forEach((element) => scrollElementTo(element, targetTop));
 }
 
 export const FloatingController = ({
@@ -93,11 +135,7 @@ export const FloatingController = ({
       target.getBoundingClientRect().top + initialScrollTop - NAVIGATION_SCROLL_OFFSET_PX,
     );
 
-    try {
-      window.scrollTo({ top: targetTop, left: 0, behavior: 'smooth' });
-    } catch {
-      window.scrollTo(0, targetTop);
-    }
+    scrollDocumentTo(targetTop);
   }, []);
 
   const scrollToSection = useCallback((sectionId: string) => {

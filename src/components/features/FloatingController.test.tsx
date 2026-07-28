@@ -24,8 +24,37 @@ function mockSectionTarget(top = 320) {
   } as unknown as HTMLElement;
 }
 
-function mockWindowScrollTo() {
-  return vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
+function mockDocumentScrollTo(scrollTop = 0) {
+  const scrollMock = vi.fn();
+
+  Object.defineProperty(document.documentElement, 'scrollTop', {
+    configurable: true,
+    value: scrollTop,
+    writable: true,
+  });
+  Object.defineProperty(document.body, 'scrollTop', {
+    configurable: true,
+    value: 0,
+    writable: true,
+  });
+  Object.defineProperty(document.documentElement, 'scrollTo', {
+    configurable: true,
+    value: scrollMock,
+  });
+  Object.defineProperty(document.body, 'scrollTo', {
+    configurable: true,
+    value: scrollMock,
+  });
+
+  Object.defineProperty(document, 'scrollingElement', {
+    configurable: true,
+    get: () => document.documentElement,
+  });
+  vi.spyOn(window, 'scrollTo').mockImplementation((...args: Parameters<typeof window.scrollTo>) => {
+    scrollMock(...args);
+  });
+
+  return scrollMock;
 }
 
 function mockNavigationFrames() {
@@ -431,7 +460,7 @@ describe('FloatingController', () => {
 
   describe('Navigation', () => {
     it('Twibbon button scrolls to twibbon-section', () => {
-      const scrollMock = mockWindowScrollTo();
+      const scrollMock = mockDocumentScrollTo();
       const target = mockSectionTarget(420);
       const getByIdMock = vi.fn().mockReturnValue(target);
       vi.spyOn(document, 'getElementById').mockImplementation(getByIdMock);
@@ -445,8 +474,65 @@ describe('FloatingController', () => {
       expect(setIsToolsOpen).toHaveBeenCalledWith(false);
     });
 
+    it('calculates section navigation from the current document scroller position', () => {
+      const scrollMock = mockDocumentScrollTo(100);
+      const target = mockSectionTarget(420);
+      vi.spyOn(document, 'getElementById').mockReturnValue(target);
+
+      render(<FloatingController {...createProps({ isToolsOpen: true })} />);
+      fireEvent.click(screen.getByText('Twibbon'));
+
+      expect(scrollMock).toHaveBeenCalledWith({ top: 512, left: 0, behavior: 'smooth' });
+    });
+
+    it('does not stop navigation when one root scroll target is a no-op', () => {
+      const scrollingElement = document.createElement('div');
+      const scrollingElementScrollMock = vi.fn();
+      const documentElementScrollMock = vi.fn();
+      const bodyScrollMock = vi.fn();
+      const windowScrollMock = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
+
+      Object.defineProperty(document.documentElement, 'scrollTop', {
+        configurable: true,
+        value: 0,
+        writable: true,
+      });
+      Object.defineProperty(document.body, 'scrollTop', {
+        configurable: true,
+        value: 0,
+        writable: true,
+      });
+      Object.defineProperty(scrollingElement, 'scrollTop', {
+        configurable: true,
+        value: 0,
+        writable: true,
+      });
+      scrollingElement.scrollTo = scrollingElementScrollMock as unknown as typeof scrollingElement.scrollTo;
+      Object.defineProperty(document.documentElement, 'scrollTo', {
+        configurable: true,
+        value: documentElementScrollMock,
+      });
+      Object.defineProperty(document.body, 'scrollTo', {
+        configurable: true,
+        value: bodyScrollMock,
+      });
+      Object.defineProperty(document, 'scrollingElement', {
+        configurable: true,
+        get: () => scrollingElement,
+      });
+      vi.spyOn(document, 'getElementById').mockReturnValue(mockSectionTarget(420));
+
+      render(<FloatingController {...createProps({ isToolsOpen: true })} />);
+      fireEvent.click(screen.getByText('Twibbon'));
+
+      expect(windowScrollMock).toHaveBeenCalledWith({ top: 412, left: 0, behavior: 'smooth' });
+      expect(scrollingElementScrollMock).toHaveBeenCalledWith({ top: 412, left: 0, behavior: 'smooth' });
+      expect(documentElementScrollMock).toHaveBeenCalledWith({ top: 412, left: 0, behavior: 'smooth' });
+      expect(bodyScrollMock).toHaveBeenCalledWith({ top: 412, left: 0, behavior: 'smooth' });
+    });
+
     it('Twibbon button uses the click path after a touch pointer release', () => {
-      const scrollMock = mockWindowScrollTo();
+      const scrollMock = mockDocumentScrollTo();
       const target = mockSectionTarget(420);
       const getByIdMock = vi.fn().mockReturnValue(target);
       vi.spyOn(document, 'getElementById').mockImplementation(getByIdMock);
@@ -469,7 +555,7 @@ describe('FloatingController', () => {
     });
 
     it('keeps desktop mouse pointer release inert until the normal click fires', () => {
-      const scrollMock = mockWindowScrollTo();
+      const scrollMock = mockDocumentScrollTo();
       const getByIdMock = vi.fn().mockReturnValue(mockSectionTarget(420));
       vi.spyOn(document, 'getElementById').mockImplementation(getByIdMock);
 
@@ -493,7 +579,7 @@ describe('FloatingController', () => {
       });
       window.addEventListener(FLOATING_NAVIGATION_START_EVENT, handleNavigationStart);
 
-      const scrollMock = mockWindowScrollTo();
+      const scrollMock = mockDocumentScrollTo();
       const target = mockSectionTarget(420);
       const getByIdMock = vi.fn().mockReturnValue(target);
       vi.spyOn(document, 'getElementById').mockImplementation(getByIdMock);
@@ -511,23 +597,37 @@ describe('FloatingController', () => {
     it('cleans stale Driver.js body scroll locks before section navigation', () => {
       vi.useFakeTimers();
       mockNavigationFrames();
-      document.body.classList.add('driver-no-scroll');
-      const scrollMock = mockWindowScrollTo();
+      document.body.classList.add('driver-active', 'driver-no-scroll');
+      const overlay = document.createElement('svg');
+      const popover = document.createElement('div');
+      const dummyElement = document.createElement('div');
+      overlay.classList.add('driver-overlay');
+      popover.classList.add('driver-popover');
+      dummyElement.id = 'driver-dummy-element';
+      document.body.append(overlay, popover, dummyElement);
+
+      const scrollMock = mockDocumentScrollTo();
       const target = mockSectionTarget(420);
-      const getByIdMock = vi.spyOn(document, 'getElementById').mockReturnValue(target);
+      const getByIdMock = vi.spyOn(document, 'getElementById').mockImplementation((id) => (
+        id === 'twibbon-section' ? target : null
+      ));
       const setIsToolsOpen = vi.fn();
 
       render(<FloatingController {...createProps({ isToolsOpen: true, setIsToolsOpen })} />);
       fireEvent.click(screen.getByText('Twibbon'));
 
-      expect(document.body.classList.contains('driver-no-scroll')).toBe(false);
       expect(getByIdMock).toHaveBeenCalledWith('twibbon-section');
+      expect(document.body.classList.contains('driver-active')).toBe(false);
+      expect(document.body.classList.contains('driver-no-scroll')).toBe(false);
+      expect(document.querySelector('.driver-overlay')).toBeNull();
+      expect(document.querySelector('.driver-popover')).toBeNull();
+      expect(document.querySelector('#driver-dummy-element')).toBeNull();
       expect(scrollMock).toHaveBeenCalledWith({ top: 412, left: 0, behavior: 'smooth' });
       expect(setIsToolsOpen).toHaveBeenCalledWith(false);
     });
 
     it('Ucapan & Doa button scrolls to rsvp-section', () => {
-      const scrollMock = mockWindowScrollTo();
+      const scrollMock = mockDocumentScrollTo();
       vi.spyOn(document, 'getElementById').mockReturnValue(mockSectionTarget());
 
       render(<FloatingController {...createProps({ isToolsOpen: true })} />);
@@ -538,7 +638,7 @@ describe('FloatingController', () => {
     });
 
     it('Tanda Kasih button scrolls to gift-section', () => {
-      const scrollMock = mockWindowScrollTo();
+      const scrollMock = mockDocumentScrollTo();
       vi.spyOn(document, 'getElementById').mockReturnValue(mockSectionTarget());
 
       render(<FloatingController {...createProps({ isToolsOpen: true })} />);
@@ -549,7 +649,7 @@ describe('FloatingController', () => {
     });
 
     it('Rangkaian Acara button scrolls to event-section', () => {
-      const scrollMock = mockWindowScrollTo();
+      const scrollMock = mockDocumentScrollTo();
       vi.spyOn(document, 'getElementById').mockReturnValue(mockSectionTarget());
 
       render(<FloatingController {...createProps({ isToolsOpen: true })} />);
@@ -560,7 +660,7 @@ describe('FloatingController', () => {
     });
 
     it('navigation buttons close the menu after scrolling', () => {
-      mockWindowScrollTo();
+      mockDocumentScrollTo();
       vi.spyOn(document, 'getElementById').mockReturnValue(mockSectionTarget());
       const setIsToolsOpen = vi.fn();
 
@@ -585,7 +685,7 @@ describe('FloatingController', () => {
     it('closes the menu while waiting for a missing section target', () => {
       vi.useFakeTimers();
       mockNavigationFrames();
-      const scrollMock = mockWindowScrollTo();
+      const scrollMock = mockDocumentScrollTo();
       vi.spyOn(document, 'getElementById').mockReturnValue(null);
       const setIsToolsOpen = vi.fn();
 
@@ -603,7 +703,7 @@ describe('FloatingController', () => {
     it('retries navigation until a lazy-loaded section appears', () => {
       vi.useFakeTimers();
       mockNavigationFrames();
-      const scrollMock = mockWindowScrollTo();
+      const scrollMock = mockDocumentScrollTo();
       const setIsToolsOpen = vi.fn();
       const target = mockSectionTarget(560);
       let lookupCount = 0;
@@ -628,11 +728,23 @@ describe('FloatingController', () => {
     });
 
     it('falls back to numeric document scrolling when object smooth scroll is unsupported', () => {
-      const scrollMock = vi.spyOn(window, 'scrollTo').mockImplementation((arg1: unknown) => {
+      const scroller = document.createElement('div');
+      Object.defineProperty(scroller, 'scrollTop', {
+        configurable: true,
+        value: 0,
+        writable: true,
+      });
+      const scrollMock = vi.fn((arg1: unknown) => {
         if (typeof arg1 === 'object') {
           throw new TypeError('smooth scroll options unsupported');
         }
       });
+      scroller.scrollTo = scrollMock as unknown as typeof scroller.scrollTo;
+      Object.defineProperty(document, 'scrollingElement', {
+        configurable: true,
+        get: () => scroller,
+      });
+      vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
       const target = mockSectionTarget(420);
       vi.spyOn(document, 'getElementById').mockReturnValue(target);
 
@@ -646,7 +758,7 @@ describe('FloatingController', () => {
     it('does not schedule extra scroll fallbacks after the conventional smooth scroll call', () => {
       vi.useFakeTimers();
       mockNavigationFrames();
-      const scrollMock = mockWindowScrollTo();
+      const scrollMock = mockDocumentScrollTo();
       const target = mockSectionTarget(420);
       vi.spyOn(document, 'getElementById').mockReturnValue(target);
 
@@ -659,13 +771,13 @@ describe('FloatingController', () => {
         vi.advanceTimersByTime(1200);
       });
 
-      expect(scrollMock).toHaveBeenCalledTimes(1);
+      expect(scrollMock).toHaveBeenCalledTimes(3);
     });
 
     it('cancels a pending missing-section wait when another section is selected', () => {
       vi.useFakeTimers();
       mockNavigationFrames();
-      const scrollMock = mockWindowScrollTo();
+      const scrollMock = mockDocumentScrollTo();
       const twibbonTarget = mockSectionTarget(560);
 
       vi.spyOn(document, 'getElementById').mockImplementation((id) => {
@@ -682,7 +794,7 @@ describe('FloatingController', () => {
       });
 
       expect(scrollMock).not.toHaveBeenCalledWith(0, 412);
-      expect(scrollMock).toHaveBeenCalledTimes(1);
+      expect(scrollMock).toHaveBeenCalledTimes(3);
       expect(scrollMock).toHaveBeenCalledWith({ top: 552, left: 0, behavior: 'smooth' });
     });
   });

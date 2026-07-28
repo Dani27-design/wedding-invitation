@@ -131,6 +131,9 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
   const destroyStoryTour = useCallback((tour: Driver) => {
     if (destroyedStoryToursRef.current.has(tour)) return;
     destroyedStoryToursRef.current.add(tour);
+    if (storyTourRef.current === tour) {
+      storyTourRef.current = null;
+    }
     destroyDriverTour(tour);
   }, []);
 
@@ -139,12 +142,11 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
     clearStoryTourReadyTimer();
     setIsStoryTourReady(false);
     const activeTour = storyTourRef.current;
-    storyTourRef.current = null;
     if (activeTour) {
-      destroyedStoryToursRef.current.add(activeTour);
+      destroyStoryTour(activeTour);
     }
     destroyAllDriverTours();
-  }), [clearStoryTourReadyTimer]);
+  }), [clearStoryTourReadyTimer, destroyStoryTour]);
 
   useEffect(() => addFloatingNavigationEndListener(() => {
     isStoryTourSuppressedByNavigationRef.current = false;

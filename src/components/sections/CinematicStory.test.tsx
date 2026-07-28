@@ -769,6 +769,26 @@ describe('CinematicStory', () => {
       expect(document.querySelector('.driver-overlay')).toBeNull();
       expect(document.querySelector('.driver-popover')).toBeNull();
     });
+
+    it('does not destroy the story tour again after floating navigation cleanup', async () => {
+      vi.useFakeTimers();
+      const { unmount } = renderStory();
+
+      await triggerFullStoryVisibility();
+      act(() => {
+        vi.advanceTimersByTime(150);
+      });
+      expect(driverMock.driver).toHaveBeenCalledOnce();
+
+      const instance = driverMock.latestInstance;
+
+      act(() => {
+        dispatchFloatingNavigationStart('event-section');
+      });
+      unmount();
+
+      expect(instance?.destroy).toHaveBeenCalledOnce();
+    });
   });
 
   // ─── Visual ───────────────────────────────────────────────────────

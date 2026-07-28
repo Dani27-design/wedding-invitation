@@ -22,10 +22,6 @@ function getDocumentScrollTop() {
   return document.scrollingElement?.scrollTop ?? window.scrollY ?? 0;
 }
 
-function isDriverScrollLocked() {
-  return document.body.classList.contains('driver-no-scroll');
-}
-
 export const FloatingController = ({
   isToolsOpen,
   setIsToolsOpen,
@@ -165,13 +161,6 @@ export const FloatingController = ({
 
     const tryScroll = () => {
       if (cancelled) return true;
-      if (isDriverScrollLocked()) {
-        if (Date.now() - startedAt >= NAVIGATION_MAX_WAIT_MS) {
-          cleanup();
-          return true;
-        }
-        return false;
-      }
       if (scrollToMountedSection(sectionId)) {
         cleanup();
         return true;

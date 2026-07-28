@@ -508,7 +508,7 @@ describe('FloatingController', () => {
       window.removeEventListener(FLOATING_NAVIGATION_START_EVENT, handleNavigationStart);
     });
 
-    it('waits for a stale Driver.js body scroll lock to clear before section navigation', () => {
+    it('cleans stale Driver.js body scroll locks before section navigation', () => {
       vi.useFakeTimers();
       mockNavigationFrames();
       document.body.classList.add('driver-no-scroll');
@@ -520,15 +520,7 @@ describe('FloatingController', () => {
       render(<FloatingController {...createProps({ isToolsOpen: true, setIsToolsOpen })} />);
       fireEvent.click(screen.getByText('Twibbon'));
 
-      expect(getByIdMock).not.toHaveBeenCalled();
-      expect(scrollMock).not.toHaveBeenCalled();
-      expect(setIsToolsOpen).not.toHaveBeenCalled();
-
-      document.body.classList.remove('driver-no-scroll');
-      act(() => {
-        vi.advanceTimersByTime(120);
-      });
-
+      expect(document.body.classList.contains('driver-no-scroll')).toBe(false);
       expect(getByIdMock).toHaveBeenCalledWith('twibbon-section');
       expect(scrollMock).toHaveBeenCalledWith({ top: 412, left: 0, behavior: 'smooth' });
       expect(setIsToolsOpen).toHaveBeenCalledWith(false);
@@ -653,7 +645,7 @@ describe('FloatingController', () => {
       expect(scrollMock).not.toHaveBeenCalledWith(0, 412);
     });
 
-    it('retries smoothly before using the last-resort direct scroll when the page does not move', () => {
+    it('uses element scrolling immediately before the last-resort direct scroll when the page does not move', () => {
       vi.useFakeTimers();
       mockNavigationFrames();
       const scrollMock = mockWindowScrollTo();
@@ -664,26 +656,20 @@ describe('FloatingController', () => {
       render(<FloatingController {...createProps({ isToolsOpen: true })} />);
       fireEvent.click(screen.getByText('Rangkaian Acara'));
 
+      expect(target.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start', inline: 'nearest' });
       expect(scrollMock).toHaveBeenCalledWith({ top: 412, left: 0, behavior: 'smooth' });
 
       act(() => {
-        vi.advanceTimersByTime(499);
+        vi.advanceTimersByTime(699);
       });
 
-      expect(target.scrollIntoView).not.toHaveBeenCalled();
       expect(scrollMock).not.toHaveBeenCalledWith(0, 412);
 
       act(() => {
         vi.advanceTimersByTime(1);
       });
 
-      expect(target.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start', inline: 'nearest' });
-      expect(scrollMock).not.toHaveBeenCalledWith(0, 412);
-
-      act(() => {
-        vi.advanceTimersByTime(1100);
-      });
-
+      expect(target.scrollIntoView).toHaveBeenCalledWith({ behavior: 'auto', block: 'start', inline: 'nearest' });
       expect(scrollMock).toHaveBeenCalledWith(0, 412);
     });
 
@@ -707,11 +693,12 @@ describe('FloatingController', () => {
       fireEvent.click(screen.getByText('Twibbon'));
 
       act(() => {
-        vi.advanceTimersByTime(1600);
+        vi.advanceTimersByTime(700);
       });
 
-      expect(eventTarget.scrollIntoView).not.toHaveBeenCalled();
       expect(scrollMock).not.toHaveBeenCalledWith(0, 412);
+      expect(eventTarget.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+      expect(eventTarget.scrollIntoView).not.toHaveBeenCalledWith({ behavior: 'auto', block: 'start', inline: 'nearest' });
       expect(twibbonTarget.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start', inline: 'nearest' });
       expect(scrollMock).toHaveBeenCalledWith(0, 552);
     });

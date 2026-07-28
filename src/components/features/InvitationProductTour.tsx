@@ -15,7 +15,7 @@ import { addFloatingNavigationStartListener } from '../../utils/floatingNavigati
 import { destroyAllDriverTours, destroyDriverTour, registerDriverTour } from '../../utils/driverLifecycle';
 
 const OPENING_SELECTOR = '[data-tour="cinematic-opening"]';
-const FLOATING_MENU_BUTTON_SELECTOR = '[data-tour="floating-menu-button"]';
+const FLOATING_MENU_PANEL_SELECTOR = '[data-tour="floating-menu-panel"]';
 const FLOATING_MENU_WAIT_MS = 5000;
 const FLOATING_MENU_EXPAND_BEFORE_TOUR_MS = 850;
 
@@ -39,14 +39,14 @@ function prefersReducedMotion() {
   return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 }
 
-function getFloatingMenuTourElement() {
-  const button = document.querySelector<HTMLElement>(FLOATING_MENU_BUTTON_SELECTOR);
-  return button?.closest('[class~="fixed"]') ?? button ?? undefined;
+function getFloatingMenuPanelElement() {
+  const panel = document.querySelector<HTMLElement>(FLOATING_MENU_PANEL_SELECTOR);
+  return panel ?? undefined;
 }
 
 function createFloatingMenuTourStep(showFloatingMenu: DriverHook): DriveStep {
   return {
-    element: getFloatingMenuTourElement as () => Element,
+    element: getFloatingMenuPanelElement as () => Element,
     waitForElement: FLOATING_MENU_WAIT_MS,
     disableActiveInteraction: false,
     advanceOnClick: true,
@@ -54,8 +54,9 @@ function createFloatingMenuTourStep(showFloatingMenu: DriverHook): DriveStep {
     popover: {
       title: 'Akses Cepat',
       description: 'Gunakan tombol mengambang ini untuk membuka navigasi acara, ucapan, twibbon, tanda kasih, dan kontrol musik. Tombol dapat digeser agar tetap nyaman di layar.',
-      side: 'top',
-      align: 'end',
+      side: 'left',
+      align: 'center',
+      popoverClass: 'wedding-driver-popover wedding-driver-popover--floating-menu',
       showButtons: ['next'],
       doneBtnText: 'Mengerti',
     },

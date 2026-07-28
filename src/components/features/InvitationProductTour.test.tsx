@@ -55,12 +55,19 @@ function addOpeningTarget() {
 function addFloatingControllerTarget() {
   const root = document.createElement('div');
   root.className = 'fixed bottom-8 right-5';
+  const panel = document.createElement('div');
+  panel.setAttribute('data-tour', 'floating-menu-panel');
   const button = document.createElement('button');
   button.setAttribute('data-tour', 'floating-menu-button');
+  panel.appendChild(document.createElement('button'));
+  panel.appendChild(document.createElement('button'));
+  panel.appendChild(document.createElement('button'));
+  panel.appendChild(document.createElement('button'));
+  root.appendChild(panel);
   root.appendChild(button);
   document.body.appendChild(root);
 
-  return { root, button };
+  return { root, panel, button };
 }
 
 function TourStateProbe() {
@@ -138,8 +145,9 @@ describe('InvitationProductTour', () => {
         popover: expect.objectContaining({
           title: 'Akses Cepat',
           description: 'Gunakan tombol mengambang ini untuk membuka navigasi acara, ucapan, twibbon, tanda kasih, dan kontrol musik. Tombol dapat digeser agar tetap nyaman di layar.',
-          side: 'top',
-          align: 'end',
+          side: 'left',
+          align: 'center',
+          popoverClass: 'wedding-driver-popover wedding-driver-popover--floating-menu',
           showButtons: ['next'],
           doneBtnText: 'Mengerti',
         }),
@@ -354,14 +362,27 @@ describe('InvitationProductTour', () => {
     expect(setIsToolsOpen).toHaveBeenCalledWith(true);
   });
 
-  it('targets the floating controller container so menu item descendants stay interactive', () => {
+  it('targets the rendered floating menu panel so expanded menu items stay interactive', () => {
     addOpeningTarget();
-    const { root } = addFloatingControllerTarget();
+    const { panel } = addFloatingControllerTarget();
     renderTour();
 
     const floatingStep = driverMock.latestOptions?.steps[1];
 
-    expect(floatingStep.element()).toBe(root);
+    expect(floatingStep.element()).toBe(panel);
+  });
+
+  it('waits for the floating menu panel instead of falling back to the always-mounted button', () => {
+    addOpeningTarget();
+    const button = document.createElement('button');
+    button.setAttribute('data-tour', 'floating-menu-button');
+    document.body.appendChild(button);
+    renderTour();
+
+    const floatingStep = driverMock.latestOptions?.steps[1];
+
+    expect(floatingStep.element()).toBeUndefined();
+    expect(floatingStep).toEqual(expect.objectContaining({ waitForElement: 5000 }));
   });
 
   it('destroys the tour from the floating step without closing the tools menu', () => {

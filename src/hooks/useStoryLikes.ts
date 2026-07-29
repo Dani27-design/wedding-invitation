@@ -3,14 +3,20 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { doc, getDoc, runTransaction, setDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { StoryLikesDocument } from '../types/firestore';
+import { useNetworkStatus } from './useNetworkStatus';
 
 export function useStoryLikes(slug: string, enabled: boolean = true) {
   const [likes, setLikes] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const pendingRef = useRef<Set<number>>(new Set());
+  const isOnline = useNetworkStatus();
 
   useEffect(() => {
     if (!enabled) return;
+    if (!isOnline) {
+      setIsLoading(false);
+      return;
+    }
 
     getDoc(doc(db, 'story-likes', slug))
       .then((snap) => {
@@ -26,10 +32,11 @@ export function useStoryLikes(slug: string, enabled: boolean = true) {
         console.error('[useStoryLikes] Firestore error:', error.message);
         setIsLoading(false);
       });
-  }, [slug, enabled]);
+  }, [slug, enabled, isOnline]);
 
   const incrementLike = useCallback(
     async (slideIndex: number) => {
+      if (!isOnline) return;
       // Ignore rapid clicks while a transaction is in flight for this slide
       if (pendingRef.current.has(slideIndex)) return;
       pendingRef.current.add(slideIndex);
@@ -59,7 +66,7 @@ export function useStoryLikes(slug: string, enabled: boolean = true) {
         pendingRef.current.delete(slideIndex);
       }
     },
-    [slug]
+    [isOnline, slug]
   );
 
   return { likes, incrementLike, isLoading };

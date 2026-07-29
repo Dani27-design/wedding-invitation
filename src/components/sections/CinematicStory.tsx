@@ -10,6 +10,7 @@ import { useWeddingContext } from '../../context/WeddingContext';
 import { useOptionalTour } from '../features/InvitationProductTour';
 import { useStoryLikes } from '../../hooks/useStoryLikes';
 import { useStoryComments } from '../../hooks/useStoryComments';
+import { useNetworkStatus } from '../../hooks/useNetworkStatus';
 import {
   addFloatingNavigationEndListener,
   addFloatingNavigationStartListener,
@@ -81,6 +82,7 @@ function prefersReducedMotion() {
 export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
   const wedding = useWeddingContext();
   const invitationTour = useOptionalTour();
+  const isOnline = useNetworkStatus();
   const slides = wedding?.story ?? [];
   const storySignature = slides
     .map((slide) => `${slide.year}\n${slide.text}\n${slide.bgImage}\n${slide.bgVideo ?? ''}`)
@@ -89,6 +91,7 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
   const [commentInput, setCommentInput] = useState<{ index: number; name: string; text: string } | null>(null);
   const [heartTrigger, setHeartTrigger] = useState(0);
   const [commentTrigger, setCommentTrigger] = useState<{ name: string; text: string; id: number } | null>(null);
+  const [interactionError, setInteractionError] = useState('');
   const [activeSlide, setActiveSlide] = useState(0);
   const [expandedSlides, setExpandedSlides] = useState<Set<number>>(new Set());
   const [isVisible, setIsVisible] = useState(false);
@@ -104,6 +107,7 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
   const hasStartedStoryTourRef = useRef(false);
   const hasInteractedWithStorySwipeRef = useRef(false);
   const storyTourReadyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const interactionErrorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latestStoryVisibilityRatioRef = useRef(0);
   const isStoryTourSuppressedByNavigationRef = useRef(false);
   const [overflowingSlides, setOverflowingSlides] = useState<Set<number>>(new Set());
@@ -121,6 +125,18 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
 
   const { likes, incrementLike } = useStoryLikes(weddingSlug, isVisible);
   const { comments, addComment } = useStoryComments(weddingSlug, activeSlide, isVisible);
+
+  const showInteractionError = useCallback((message: string) => {
+    if (interactionErrorTimerRef.current) clearTimeout(interactionErrorTimerRef.current);
+    setInteractionError(message);
+    interactionErrorTimerRef.current = setTimeout(() => setInteractionError(''), 2600);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (interactionErrorTimerRef.current) clearTimeout(interactionErrorTimerRef.current);
+    };
+  }, []);
 
   const clearStoryTourReadyTimer = useCallback(() => {
     if (storyTourReadyTimerRef.current === null) return;
@@ -386,6 +402,10 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
   }, []);
 
   const handleLike = (idx: number) => {
+    if (!isOnline) {
+      showInteractionError('Koneksi internet diperlukan untuk menyukai cerita.');
+      return;
+    }
     setHeartTrigger(Date.now());
     incrementLike(idx);
   };
@@ -443,6 +463,10 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
 
   const handleAddComment = () => {
     if (!commentInput?.text.trim() || !commentInput?.name.trim()) return;
+    if (!isOnline) {
+      showInteractionError('Koneksi internet diperlukan untuk mengirim komentar.');
+      return;
+    }
     const newComment = { name: commentInput.name, text: commentInput.text.trim() };
     addComment(newComment);
     setCommentTrigger({ ...newComment, id: Date.now() });
@@ -523,7 +547,13 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
                 whileTap={{ scale: 0.8 }}
                 aria-label="Komentar"
                 data-tour={isActive ? 'story-comment-button' : undefined}
-                onClick={() => setCommentInput({ index: idx, name: '', text: '' })}
+                onClick={() => {
+                  if (!isOnline) {
+                    showInteractionError('Koneksi internet diperlukan untuk mengirim komentar.');
+                    return;
+                  }
+                  setCommentInput({ index: idx, name: '', text: '' });
+                }}
                 className="flex flex-col items-center gap-1 group"
               >
                 <div className="w-11 h-11 rounded-full bg-black/40 border border-white/10 flex items-center justify-center group-hover:bg-white/10 transition-all">
@@ -603,6 +633,11 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
           );
         })}
       </div>
+      {interactionError && (
+        <div role="alert" className="absolute bottom-24 left-1/2 z-[80] w-[calc(100vw-2rem)] max-w-xs -translate-x-1/2 rounded-full border border-white/10 bg-black/70 px-4 py-2 text-center text-[10px] font-sans font-bold uppercase tracking-[0.14em] text-ivory shadow-xl">
+          {interactionError}
+        </div>
+      )}
       <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-2.5 z-40">
         {slides.map((_, i) => (
           <motion.div key={i} animate={{ scale: i === activeSlide ? 1.2 : 0.8, width: i === activeSlide ? 20 : 6, opacity: i === activeSlide ? 1 : 0.3 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }} className="h-1.5 bg-ivory rounded-full transition-colors duration-500" />

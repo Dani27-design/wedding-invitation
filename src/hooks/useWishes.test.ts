@@ -35,11 +35,19 @@ function createMockSnapshot(docs: Array<{ id: string; data: Record<string, unkno
   };
 }
 
+function setNavigatorOnline(value: boolean) {
+  Object.defineProperty(navigator, 'onLine', {
+    configurable: true,
+    value,
+  });
+}
+
 const WEDDING_ID = 'dani-marini';
 
 describe('hooks/useWishes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    setNavigatorOnline(true);
   });
 
   // ---------------------------------------------------------------------------
@@ -75,6 +83,17 @@ describe('hooks/useWishes', () => {
       mockOnSnapshot.mockReturnValue(vi.fn());
       const { result } = renderHook(() => useWishes(WEDDING_ID));
       expect(typeof result.current.isLoading).toBe('boolean');
+    });
+  });
+
+  describe('offline behavior', () => {
+    it('does not subscribe to Firestore while offline', async () => {
+      setNavigatorOnline(false);
+      const { result } = renderHook(() => useWishes(WEDDING_ID));
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+      expect(mockOnSnapshot).not.toHaveBeenCalled();
+      expect(result.current.wishes).toEqual([]);
     });
   });
 

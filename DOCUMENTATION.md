@@ -17,6 +17,7 @@
 - [App State Management](#app-state-management)
 - [Section Map](#section-map)
 - [Feature Details](#feature-details)
+- [Reliable Invitation Experience](#reliable-invitation-experience)
 - [Testing](#testing)
 - [Development Guide](#development-guide)
 
@@ -456,13 +457,36 @@ Sections render after `isOpen === true`:
 
 ---
 
+## Reliable Invitation Experience
+
+Guest invitation pages keep the existing server-rendered App Router and ISR model. Reliability is handled by a manually maintained service worker, without `next-pwa`, so cache scope and network bypass rules stay explicit.
+
+**Service worker registration:**
+- `src/components/features/ServiceWorkerRegistrar.tsx` registers `/sw.js` only in production and only on HTTPS or localhost.
+- `src/app/providers.tsx` mounts the registrar globally inside the existing error boundary.
+
+**Cache strategy:**
+- `public/sw.js` uses network-first caching for public invitation navigations such as `/:slug`.
+- Personalized invitation URLs such as `/:slug?to=Name` are cached by exact URL and by normalized slug URL to preserve a useful fallback.
+- Next static chunks, local images, fonts, textures, icons, and the web manifest use cache-first behavior.
+- Firebase Storage media uses cache-first behavior.
+- Firebase data, auth, Google API hosts, Cloud Functions, `/api`, `/admin`, `/login`, `/register`, sitemap, robots, and favicon stay network-only.
+- Cache entry limits are enforced for page, static, and media caches.
+
+**Offline interaction rules:**
+- RSVP submission, story comments, and story likes require an active network connection.
+- Offline writes are not queued because Firestore side effects should remain explicit to the guest.
+- Guest-facing offline messages are rendered in the invitation UI instead of failing silently.
+
+---
+
 ## Testing
 
 **Framework:** Vitest 4.1.x + React Testing Library + jest-dom
 
 **Setup:** `src/test/setup.ts` — mocks `IntersectionObserver`, `HTMLCanvasElement.getContext`, `HTMLMediaElement.play/pause`
 
-**Stats:** 42 test files · 2,119 tests
+**Stats:** 49 test files · 2,236 tests
 
 **Test patterns:**
 - **Firestore mocks:** `vi.mock('firebase/firestore')` + `vi.mock('../lib/firebase')`

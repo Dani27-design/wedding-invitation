@@ -7,12 +7,13 @@ import { useFocusTrap } from '../../hooks/useFocusTrap';
 interface RSVPModalProps {
   isOpen: boolean;
   isSubmitSuccess: boolean;
+  submitError?: string;
   guestName: string;
   onClose: () => void;
   onSubmit: (e: FormEvent<HTMLFormElement>) => void;
 }
 
-export const RSVPModal = ({ isOpen, isSubmitSuccess, guestName, onClose, onSubmit }: RSVPModalProps) => {
+export const RSVPModal = ({ isOpen, isSubmitSuccess, submitError, guestName, onClose, onSubmit }: RSVPModalProps) => {
   const trapRef = useFocusTrap(isOpen);
 
   return (
@@ -99,6 +100,12 @@ export const RSVPModal = ({ isOpen, isSubmitSuccess, guestName, onClose, onSubmi
                       className="w-full bg-transparent border-b border-gold/20 py-2 outline-none focus:border-gold transition-all resize-none font-serif italic text-sm text-ink placeholder:text-ink/60"
                     />
                   </div>
+
+                  {submitError && (
+                    <p role="alert" className="text-xs text-red-500 text-center leading-relaxed break-words">
+                      {submitError}
+                    </p>
+                  )}
 
                   <motion.button
                     whileHover={{ scale: 1.01, backgroundColor: 'color-mix(in srgb, var(--color-gold) 85%, black)', color: 'var(--color-ivory)' }}

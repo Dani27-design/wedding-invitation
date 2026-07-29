@@ -1,15 +1,21 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { GuestWishes } from '../types';
+import { useNetworkStatus } from './useNetworkStatus';
 
 const WISHES_LIMIT = 50;
 
 export function useWishes(weddingId: string, enabled: boolean = true) {
   const [wishes, setWishes] = useState<GuestWishes[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const isOnline = useNetworkStatus();
 
   useEffect(() => {
     if (!enabled) return;
+    if (!isOnline) {
+      setIsLoading(false);
+      return;
+    }
 
     let unsubscribe: (() => void) | undefined;
     let cancelled = false;
@@ -50,7 +56,7 @@ export function useWishes(weddingId: string, enabled: boolean = true) {
       cancelled = true;
       unsubscribe?.();
     };
-  }, [weddingId, enabled]);
+  }, [weddingId, enabled, isOnline]);
 
   return { wishes, isLoading };
 }

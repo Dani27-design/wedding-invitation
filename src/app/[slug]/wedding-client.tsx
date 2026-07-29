@@ -19,6 +19,7 @@ import { InvitationProductTour } from '@/components/features/InvitationProductTo
 import { HeroSection } from '@/components/sections/HeroSection';
 import { CoupleSection } from '@/components/sections/CoupleSection';
 import { useWishes } from '@/hooks/useWishes';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { WeddingContext } from '@/context/WeddingContext';
 import type { SerializedWedding } from '@/lib/serialize-wedding';
 import type { GuestWishes } from '@/types';
@@ -78,6 +79,7 @@ interface WeddingClientProps {
 
 export function WeddingClient({ wedding, slug }: WeddingClientProps) {
   const searchParams = useSearchParams();
+  const isOnline = useNetworkStatus();
   const [isOpen, setIsOpen] = useState(false);
   const { wishes, isLoading: isWishesLoading } = useWishes(slug, isOpen);
   const [guestName] = useState(() => {
@@ -94,6 +96,7 @@ export function WeddingClient({ wedding, slug }: WeddingClientProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [isSubmitSuccess, setIsSubmitSuccess] = useState(false);
+  const [rsvpError, setRsvpError] = useState('');
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const submitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -154,8 +157,14 @@ export function WeddingClient({ wedding, slug }: WeddingClientProps) {
     setCurrentPage((p) => Math.min(p, Math.max(1, totalPages)));
   }, [totalPages]);
 
-  const handleOpenRSVP = useCallback(() => setIsRSVPModalOpen(true), []);
-  const handleCloseRSVP = useCallback(() => setIsRSVPModalOpen(false), []);
+  const handleOpenRSVP = useCallback(() => {
+    setRsvpError('');
+    setIsRSVPModalOpen(true);
+  }, []);
+  const handleCloseRSVP = useCallback(() => {
+    setRsvpError('');
+    setIsRSVPModalOpen(false);
+  }, []);
   const handleClosePhoto = useCallback(() => setSelectedPhoto(null), []);
 
   const handleOpen = useCallback(() => {
@@ -226,7 +235,12 @@ export function WeddingClient({ wedding, slug }: WeddingClientProps) {
       const name = (formData.get('name') as string).trim();
       const message = (formData.get('message') as string).trim();
       if (!name || !message) return;
+      if (!isOnline) {
+        setRsvpError('Koneksi internet diperlukan untuk mengirim RSVP.');
+        return;
+      }
       try {
+        setRsvpError('');
         const { addWish } = await import('@/lib/wishes');
         await addWish(slug, {
           name,
@@ -234,6 +248,7 @@ export function WeddingClient({ wedding, slug }: WeddingClientProps) {
           attendance: formData.get('attendance') === 'no' ? 'no' : 'yes',
         });
       } catch {
+        setRsvpError('RSVP belum terkirim. Periksa koneksi Anda lalu coba lagi.');
         return; // Keep form open with data intact, user can retry
       }
       setCurrentPage(1);
@@ -244,7 +259,7 @@ export function WeddingClient({ wedding, slug }: WeddingClientProps) {
         setIsSubmitSuccess(false);
       }, 1500);
     },
-    [slug],
+    [isOnline, slug],
   );
 
   return (
@@ -258,6 +273,11 @@ export function WeddingClient({ wedding, slug }: WeddingClientProps) {
             preload="none"
             src={wedding.musicUrl}
           />
+        )}
+        {!isOnline && isOpen && (
+          <div className="fixed top-3 left-1/2 z-[180] w-[calc(100vw-2rem)] max-w-sm -translate-x-1/2 rounded-full border border-gold/20 bg-ink/90 px-4 py-2 text-center text-[10px] font-bold uppercase tracking-[0.16em] text-ivory shadow-xl shadow-ink/20">
+            Sedang offline. RSVP dan komentar memerlukan koneksi.
+          </div>
         )}
         <InvitationProductTour
           slug={slug}
@@ -308,6 +328,7 @@ export function WeddingClient({ wedding, slug }: WeddingClientProps) {
                 <RSVPModal
                   isOpen={isRSVPModalOpen}
                   isSubmitSuccess={isSubmitSuccess}
+                  submitError={rsvpError}
                   guestName={guestName}
                   onClose={handleCloseRSVP}
                   onSubmit={handleRSVPSubmit}

@@ -2,15 +2,21 @@
 import { useState, useEffect, useCallback } from 'react';
 import { collection, query, where, orderBy, limit, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { useNetworkStatus } from './useNetworkStatus';
 
 const COMMENTS_LIMIT = 50;
 
 export function useStoryComments(weddingId: string, slideIndex: number, enabled: boolean = true) {
   const [comments, setComments] = useState<{ name: string; text: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const isOnline = useNetworkStatus();
 
   useEffect(() => {
     if (!enabled) return;
+    if (!isOnline) {
+      setIsLoading(false);
+      return;
+    }
     let cancelled = false;
 
     const q = query(
@@ -40,10 +46,11 @@ export function useStoryComments(weddingId: string, slideIndex: number, enabled:
     );
 
     return () => { cancelled = true; unsubscribe(); };
-  }, [weddingId, slideIndex, enabled]);
+  }, [weddingId, slideIndex, enabled, isOnline]);
 
   const addComment = useCallback(
     async (data: { name: string; text: string }) => {
+      if (!isOnline) return;
       try {
         await addDoc(collection(db, 'story-comments'), {
           weddingId,
@@ -56,7 +63,7 @@ export function useStoryComments(weddingId: string, slideIndex: number, enabled:
         console.error('[useStoryComments] Add comment error:', (error as Error).message);
       }
     },
-    [weddingId, slideIndex]
+    [isOnline, weddingId, slideIndex]
   );
 
   return { comments, addComment, isLoading };

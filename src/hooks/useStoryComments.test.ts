@@ -39,12 +39,20 @@ function createMockSnapshot(docs: Array<{ id: string; data: Record<string, unkno
   };
 }
 
+function setNavigatorOnline(value: boolean) {
+  Object.defineProperty(navigator, 'onLine', {
+    configurable: true,
+    value,
+  });
+}
+
 const WEDDING_ID = 'dani-marini';
 const SLIDE_INDEX = 0;
 
 describe('hooks/useStoryComments', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    setNavigatorOnline(true);
     mockAddDoc.mockResolvedValue({ id: 'new-comment-id' });
   });
 
@@ -88,6 +96,29 @@ describe('hooks/useStoryComments', () => {
       mockOnSnapshot.mockReturnValue(vi.fn());
       const { result } = renderHook(() => useStoryComments(WEDDING_ID, SLIDE_INDEX));
       expect(typeof result.current.addComment).toBe('function');
+    });
+  });
+
+  describe('offline behavior', () => {
+    it('does not subscribe to Firestore while offline', async () => {
+      setNavigatorOnline(false);
+      const { result } = renderHook(() => useStoryComments(WEDDING_ID, SLIDE_INDEX));
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+      expect(mockOnSnapshot).not.toHaveBeenCalled();
+      expect(result.current.comments).toEqual([]);
+    });
+
+    it('does not create a comment while offline', async () => {
+      setNavigatorOnline(false);
+      mockOnSnapshot.mockReturnValue(vi.fn());
+      const { result } = renderHook(() => useStoryComments(WEDDING_ID, SLIDE_INDEX));
+
+      await act(async () => {
+        await result.current.addComment({ name: 'Ahmad', text: 'Keren!' });
+      });
+
+      expect(mockAddDoc).not.toHaveBeenCalled();
     });
   });
 

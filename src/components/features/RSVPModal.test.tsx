@@ -82,6 +82,11 @@ describe('RSVPModal', () => {
       render(<RSVPModal {...createProps()} />);
       expect(screen.getByText('Kirim')).toBeInTheDocument();
     });
+
+    it('renders submit error as an alert when provided', () => {
+      render(<RSVPModal {...createProps({ submitError: 'Koneksi internet diperlukan untuk mengirim RSVP.' })} />);
+      expect(screen.getByRole('alert')).toHaveTextContent('Koneksi internet diperlukan untuk mengirim RSVP.');
+    });
   });
 
   /* ------------------------------------------------------------------ */

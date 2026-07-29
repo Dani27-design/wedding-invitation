@@ -79,7 +79,14 @@ export const Footer = memo(() => {
           rel="noopener noreferrer"
           className="flex flex-col items-center group cursor-pointer"
         >
-          <NextImage src="/images/logo-2.png" alt="Marinikah" width={400} height={100} className="h-[100px] w-auto group-hover:scale-105 transition-all" />
+          <NextImage
+            src="/images/logo-2.png"
+            alt="Marinikah"
+            width={400}
+            height={100}
+            style={{ width: 'auto', height: '100px' }}
+            className="group-hover:scale-105 transition-all"
+          />
           <span className="-mt-4 text-[9px] text-ink/30 tracking-[0.2em] uppercase group-hover:text-gold/60 transition-colors">Dibuat dengan Marinikah Invitation</span>
         </a>
       </motion.div>

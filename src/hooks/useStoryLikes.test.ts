@@ -32,12 +32,20 @@ function createMockSnap(exists: boolean, data: Record<string, unknown> = {}) {
   };
 }
 
+function setNavigatorOnline(value: boolean) {
+  Object.defineProperty(navigator, 'onLine', {
+    configurable: true,
+    value,
+  });
+}
+
 const SLUG = 'dani-marini';
 const INITIAL_LIKES = [142, 167, 128, 155, 139, 163];
 
 describe('hooks/useStoryLikes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    setNavigatorOnline(true);
     mockDoc.mockReturnValue('story-likes-doc-ref');
   });
 
@@ -81,6 +89,29 @@ describe('hooks/useStoryLikes', () => {
       mockGetDoc.mockReturnValue(new Promise(() => {}));
       const { result } = renderHook(() => useStoryLikes(SLUG));
       expect(typeof result.current.incrementLike).toBe('function');
+    });
+  });
+
+  describe('offline behavior', () => {
+    it('does not fetch story likes while offline', async () => {
+      setNavigatorOnline(false);
+      const { result } = renderHook(() => useStoryLikes(SLUG));
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+      expect(mockGetDoc).not.toHaveBeenCalled();
+      expect(result.current.likes).toEqual([]);
+    });
+
+    it('does not run a transaction or optimistic update while offline', async () => {
+      setNavigatorOnline(false);
+      const { result } = renderHook(() => useStoryLikes(SLUG));
+
+      await act(async () => {
+        await result.current.incrementLike(0);
+      });
+
+      expect(mockRunTransaction).not.toHaveBeenCalled();
+      expect(result.current.likes).toEqual([]);
     });
   });
 

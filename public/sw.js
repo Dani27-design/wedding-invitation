@@ -135,6 +135,22 @@ async function networkFirstPage(request, event) {
   }
 }
 
+async function cacheInvitationPage(rawUrl) {
+  const url = new URL(rawUrl);
+  if (url.origin !== self.location.origin) return;
+
+  const request = new Request(url.toString(), {
+    credentials: 'include',
+  });
+  const response = await fetch(request);
+  if (!isCacheableResponse(response)) return;
+
+  const cache = await caches.open(PAGE_CACHE);
+  await cache.put(url.toString(), response.clone());
+  await cache.put(normalizeInvitationCacheUrl(url.toString()), response.clone());
+  await trimCache(PAGE_CACHE);
+}
+
 async function cacheFirst(request, cacheName) {
   const cache = await caches.open(cacheName);
   const cached = await cache.match(request);
@@ -182,4 +198,10 @@ self.addEventListener('fetch', (event) => {
   if (strategy === 'cache-first-media') {
     event.respondWith(cacheFirst(event.request, MEDIA_CACHE));
   }
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data?.type !== 'CACHE_INVITATION_PAGE' || typeof event.data.url !== 'string') return;
+
+  event.waitUntil(cacheInvitationPage(event.data.url).catch(() => undefined));
 });

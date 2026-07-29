@@ -1,6 +1,10 @@
 import { cleanup, render, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ServiceWorkerRegistrar, canRegisterServiceWorker } from './ServiceWorkerRegistrar';
+import {
+  ServiceWorkerRegistrar,
+  canRegisterServiceWorker,
+  isPublicInvitationPath,
+} from './ServiceWorkerRegistrar';
 
 const originalLocation = window.location;
 const originalServiceWorker = navigator.serviceWorker;
@@ -19,6 +23,22 @@ function setServiceWorker(serviceWorker: ServiceWorkerContainer | undefined) {
   });
 }
 
+function createServiceWorkerContainerMock() {
+  const activeWorker = {
+    postMessage: vi.fn(),
+  };
+  const registration = {
+    active: activeWorker,
+  };
+  const serviceWorker = {
+    register: vi.fn().mockResolvedValue(registration),
+    ready: Promise.resolve(registration),
+    controller: null,
+  };
+
+  return { activeWorker, serviceWorker };
+}
+
 describe('components/features/ServiceWorkerRegistrar', () => {
   afterEach(() => {
     cleanup();
@@ -31,29 +51,33 @@ describe('components/features/ServiceWorkerRegistrar', () => {
     setServiceWorker(originalServiceWorker);
   });
 
-  it('registers the service worker in production on localhost', async () => {
+  it('registers the service worker and requests current invitation caching in production', async () => {
     vi.stubEnv('NODE_ENV', 'production');
-    setWindowLocation('http://localhost/test');
-    const register = vi.fn().mockResolvedValue(undefined);
-    setServiceWorker({ register } as unknown as ServiceWorkerContainer);
+    setWindowLocation('http://localhost/dani-marini?to=Budi');
+    const { activeWorker, serviceWorker } = createServiceWorkerContainerMock();
+    setServiceWorker(serviceWorker as unknown as ServiceWorkerContainer);
 
     render(<ServiceWorkerRegistrar />);
 
     await waitFor(() => {
-      expect(register).toHaveBeenCalledWith('/sw.js');
+      expect(serviceWorker.register).toHaveBeenCalledWith('/sw.js');
+      expect(activeWorker.postMessage).toHaveBeenCalledWith({
+        type: 'CACHE_INVITATION_PAGE',
+        url: 'http://localhost/dani-marini?to=Budi',
+      });
     });
   });
 
   it('does not register outside production', () => {
     vi.stubEnv('NODE_ENV', 'development');
     setWindowLocation('http://localhost/test');
-    const register = vi.fn().mockResolvedValue(undefined);
-    setServiceWorker({ register } as unknown as ServiceWorkerContainer);
+    const { serviceWorker } = createServiceWorkerContainerMock();
+    setServiceWorker(serviceWorker as unknown as ServiceWorkerContainer);
 
     render(<ServiceWorkerRegistrar />);
 
     expect(canRegisterServiceWorker()).toBe(false);
-    expect(register).not.toHaveBeenCalled();
+    expect(serviceWorker.register).not.toHaveBeenCalled();
   });
 
   it('does not register when service workers are unavailable', () => {
@@ -69,12 +93,33 @@ describe('components/features/ServiceWorkerRegistrar', () => {
   it('does not register on insecure non-localhost origins', () => {
     vi.stubEnv('NODE_ENV', 'production');
     setWindowLocation('http://example.com/test');
-    const register = vi.fn().mockResolvedValue(undefined);
-    setServiceWorker({ register } as unknown as ServiceWorkerContainer);
+    const { serviceWorker } = createServiceWorkerContainerMock();
+    setServiceWorker(serviceWorker as unknown as ServiceWorkerContainer);
 
     render(<ServiceWorkerRegistrar />);
 
     expect(canRegisterServiceWorker()).toBe(false);
-    expect(register).not.toHaveBeenCalled();
+    expect(serviceWorker.register).not.toHaveBeenCalled();
+  });
+
+  it('does not request current page caching outside public invitation paths', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    setWindowLocation('http://localhost/admin/dani-marini');
+    const { activeWorker, serviceWorker } = createServiceWorkerContainerMock();
+    setServiceWorker(serviceWorker as unknown as ServiceWorkerContainer);
+
+    render(<ServiceWorkerRegistrar />);
+
+    await waitFor(() => {
+      expect(serviceWorker.register).toHaveBeenCalledWith('/sw.js');
+    });
+    expect(activeWorker.postMessage).not.toHaveBeenCalled();
+  });
+
+  it('detects only single-segment public invitation paths', () => {
+    expect(isPublicInvitationPath('/dani-marini')).toBe(true);
+    expect(isPublicInvitationPath('/admin/dani-marini')).toBe(false);
+    expect(isPublicInvitationPath('/login')).toBe(false);
+    expect(isPublicInvitationPath('/dani-marini/gallery')).toBe(false);
   });
 });

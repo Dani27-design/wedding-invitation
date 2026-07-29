@@ -464,6 +464,7 @@ Guest invitation pages keep the existing server-rendered App Router and ISR mode
 **Service worker registration:**
 - `src/components/features/ServiceWorkerRegistrar.tsx` registers `/sw.js` only in production and only on HTTPS or localhost.
 - `src/app/providers.tsx` mounts the registrar globally inside the existing error boundary.
+- After the service worker is ready, the registrar asks it to cache the current public invitation page so first-visit offline reloads have a document fallback.
 
 **Cache strategy:**
 - `public/sw.js` uses network-first caching for public invitation navigations such as `/:slug`.
@@ -486,7 +487,7 @@ Guest invitation pages keep the existing server-rendered App Router and ISR mode
 
 **Setup:** `src/test/setup.ts` — mocks `IntersectionObserver`, `HTMLCanvasElement.getContext`, `HTMLMediaElement.play/pause`
 
-**Stats:** 49 test files · 2,236 tests
+**Stats:** 49 test files · 2,238 tests
 
 **Test patterns:**
 - **Firestore mocks:** `vi.mock('firebase/firestore')` + `vi.mock('../lib/firebase')`

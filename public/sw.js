@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v3';
 const PAGE_CACHE = `marinikah-pages-${CACHE_VERSION}`;
 const STATIC_CACHE = `marinikah-static-${CACHE_VERSION}`;
 const MEDIA_CACHE = `marinikah-media-${CACHE_VERSION}`;
@@ -7,7 +7,7 @@ const ACTIVE_CACHES = new Set([PAGE_CACHE, STATIC_CACHE, MEDIA_CACHE]);
 const MAX_CACHE_ENTRIES = {
   [PAGE_CACHE]: 30,
   [STATIC_CACHE]: 120,
-  [MEDIA_CACHE]: 80,
+  [MEDIA_CACHE]: 240,
 };
 
 const BYPASS_PATH_PREFIXES = [
@@ -29,6 +29,10 @@ const STATIC_PATH_PREFIXES = [
   '/icon',
   '/apple-icon',
   '/manifest.webmanifest',
+];
+
+const MEDIA_PATH_PREFIXES = [
+  '/musics/',
 ];
 
 const FIREBASE_NETWORK_ONLY_HOSTS = [
@@ -59,6 +63,44 @@ function normalizeInvitationCacheUrl(rawUrl) {
   return url.toString();
 }
 
+function getNextImageSourceUrl(url) {
+  if (url.origin !== self.location.origin || url.pathname !== '/_next/image') return null;
+
+  const source = url.searchParams.get('url');
+  if (!source) return null;
+
+  try {
+    return new URL(source, self.location.origin).toString();
+  } catch {
+    return null;
+  }
+}
+
+function isFirebaseMediaUrl(rawUrl) {
+  try {
+    const url = new URL(rawUrl);
+    return hostnameMatches(url.hostname, FIREBASE_MEDIA_HOSTS);
+  } catch {
+    return false;
+  }
+}
+
+function isSameOriginMediaUrl(url) {
+  return url.origin === self.location.origin && hasPathPrefix(url.pathname, MEDIA_PATH_PREFIXES);
+}
+
+function normalizeMediaCacheUrl(rawUrl) {
+  const url = new URL(rawUrl);
+  url.hash = '';
+  url.searchParams.delete('v');
+  url.searchParams.delete('_');
+  url.searchParams.delete('cacheBust');
+  url.searchParams.delete('cachebust');
+  url.searchParams.delete('t');
+  url.searchParams.delete('ts');
+  return url.toString();
+}
+
 function isPublicInvitationNavigation(request, url) {
   if (request.method !== 'GET') return false;
   if (request.mode !== 'navigate') return false;
@@ -80,6 +122,9 @@ function classifyRequest(request) {
   if (isPublicInvitationNavigation(request, url)) return 'network-first-page';
 
   if (url.origin === self.location.origin && hasPathPrefix(url.pathname, BYPASS_PATH_PREFIXES)) return 'network-only';
+  const nextImageSourceUrl = getNextImageSourceUrl(url);
+  if (nextImageSourceUrl && isFirebaseMediaUrl(nextImageSourceUrl)) return 'cache-first-media';
+  if (isSameOriginMediaUrl(url)) return 'cache-first-media';
   if (url.origin === self.location.origin && hasPathPrefix(url.pathname, STATIC_PATH_PREFIXES)) return 'cache-first-static';
   if (hostnameMatches(url.hostname, FIREBASE_MEDIA_HOSTS)) return 'cache-first-media';
 
@@ -106,7 +151,119 @@ async function cacheResponse(cacheName, requestOrUrl, response) {
 
   const cache = await caches.open(cacheName);
   await cache.put(requestOrUrl, response.clone());
+  if (cacheName === MEDIA_CACHE) {
+    for (const key of getMediaWriteCacheKeys(requestOrUrl)) {
+      await cache.put(key, response.clone());
+    }
+  }
   await trimCache(cacheName);
+}
+
+function getMediaWriteCacheKeys(requestOrUrl) {
+  const rawUrl = typeof requestOrUrl === 'string' ? requestOrUrl : requestOrUrl.url;
+  const keys = [];
+
+  try {
+    const url = new URL(rawUrl);
+    if (isFirebaseMediaUrl(url.toString()) || isSameOriginMediaUrl(url)) {
+      keys.push(normalizeMediaCacheUrl(url.toString()));
+    }
+  } catch {
+    return keys;
+  }
+
+  return [...new Set(keys)];
+}
+
+function getMediaFallbackCacheKeys(requestOrUrl) {
+  const rawUrl = typeof requestOrUrl === 'string' ? requestOrUrl : requestOrUrl.url;
+  const keys = [];
+
+  try {
+    const url = new URL(rawUrl);
+    const nextImageSourceUrl = getNextImageSourceUrl(url);
+    if (nextImageSourceUrl && isFirebaseMediaUrl(nextImageSourceUrl)) {
+      keys.push(nextImageSourceUrl);
+      keys.push(normalizeMediaCacheUrl(nextImageSourceUrl));
+    }
+    if (isFirebaseMediaUrl(url.toString()) || isSameOriginMediaUrl(url)) {
+      keys.push(url.toString());
+      keys.push(normalizeMediaCacheUrl(url.toString()));
+    }
+  } catch {
+    return keys;
+  }
+
+  return [...new Set(keys)];
+}
+
+async function matchMediaCacheFallback(cache, request) {
+  const exact = await cache.match(request, { ignoreVary: true });
+  if (exact) return exact;
+
+  for (const key of getMediaFallbackCacheKeys(request)) {
+    const cached = await cache.match(key, { ignoreVary: true });
+    if (cached) return cached;
+  }
+
+  return undefined;
+}
+
+function parseRangeHeader(rangeHeader, size) {
+  const match = /^bytes=(\d*)-(\d*)$/.exec(rangeHeader);
+  if (!match) return null;
+
+  const [, rawStart, rawEnd] = match;
+  if (!rawStart && !rawEnd) return null;
+
+  let start;
+  let end;
+
+  if (!rawStart) {
+    const suffixLength = Number(rawEnd);
+    if (!Number.isFinite(suffixLength) || suffixLength <= 0) return null;
+    start = Math.max(size - suffixLength, 0);
+    end = size - 1;
+  } else {
+    start = Number(rawStart);
+    end = rawEnd ? Number(rawEnd) : size - 1;
+  }
+
+  if (!Number.isFinite(start) || !Number.isFinite(end) || start < 0 || end < start || start >= size) return null;
+  return { start, end: Math.min(end, size - 1) };
+}
+
+async function createRangeResponse(request, response) {
+  const rangeHeader = request.headers.get('range');
+  if (!rangeHeader || response.type === 'opaque') return response;
+
+  try {
+    const body = await response.arrayBuffer();
+    const range = parseRangeHeader(rangeHeader, body.byteLength);
+    if (!range) {
+      return new Response(null, {
+        status: 416,
+        headers: {
+          'Content-Range': `bytes */${body.byteLength}`,
+        },
+      });
+    }
+
+    const { start, end } = range;
+    const sliced = body.slice(start, end + 1);
+    const headers = new Headers(response.headers);
+    headers.set('Accept-Ranges', 'bytes');
+    headers.set('Content-Length', String(sliced.byteLength));
+    headers.set('Content-Range', `bytes ${start}-${end}/${body.byteLength}`);
+
+    return new Response(sliced, {
+      status: 206,
+      statusText: 'Partial Content',
+      headers,
+    });
+  } catch {
+    return response;
+  }
 }
 
 async function networkFirstPage(request, event) {
@@ -153,12 +310,71 @@ async function cacheInvitationPage(rawUrl) {
 
 async function cacheFirst(request, cacheName) {
   const cache = await caches.open(cacheName);
-  const cached = await cache.match(request);
-  if (cached) return cached;
+  const cached = cacheName === MEDIA_CACHE
+    ? await matchMediaCacheFallback(cache, request)
+    : await cache.match(request, { ignoreVary: true });
+  if (cached) return cacheName === MEDIA_CACHE ? createRangeResponse(request, cached) : cached;
 
-  const response = await fetch(request);
-  await cacheResponse(cacheName, request, response);
-  return response;
+  try {
+    if (cacheName === MEDIA_CACHE && request.headers.has('range')) {
+      const headers = new Headers(request.headers);
+      headers.delete('range');
+      const fullRequest = new Request(request, { headers });
+      const fullResponse = await fetch(fullRequest);
+      await cacheResponse(cacheName, fullRequest, fullResponse);
+      return createRangeResponse(request, fullResponse.clone());
+    }
+
+    const response = await fetch(request);
+    await cacheResponse(cacheName, request, response);
+    return response;
+  } catch {
+    const fallback = cacheName === MEDIA_CACHE
+      ? await matchMediaCacheFallback(cache, request)
+      : await cache.match(request, { ignoreVary: true });
+    if (fallback) return cacheName === MEDIA_CACHE ? createRangeResponse(request, fallback) : fallback;
+    return Response.error();
+  }
+}
+
+async function fetchMediaForCache(url) {
+  if (!isFirebaseMediaUrl(url)) return fetch(new Request(url, { credentials: 'same-origin' }));
+
+  try {
+    return await fetch(new Request(url, { mode: 'cors', credentials: 'omit' }));
+  } catch {
+    return fetch(new Request(url, { mode: 'no-cors', credentials: 'omit' }));
+  }
+}
+
+async function cacheInvitationMedia(rawUrls) {
+  if (!Array.isArray(rawUrls)) return;
+
+  const urls = [...new Set(rawUrls)]
+    .filter((rawUrl) => typeof rawUrl === 'string')
+    .map((rawUrl) => {
+      try {
+        return new URL(rawUrl, self.location.origin).toString();
+      } catch {
+        return null;
+      }
+    })
+    .filter(Boolean)
+    .filter((url) => isFirebaseMediaUrl(url) || new URL(url).origin === self.location.origin);
+
+  for (let i = 0; i < urls.length; i += 4) {
+    const batch = urls.slice(i, i + 4);
+    await Promise.all(batch.map(async (url) => {
+      try {
+        const response = await fetchMediaForCache(url);
+        const strategy = classifyRequest(new Request(url));
+        const cacheName = strategy === 'cache-first-static' ? STATIC_CACHE : MEDIA_CACHE;
+        await cacheResponse(cacheName, url, response);
+      } catch {
+        /* Best-effort offline preparation. */
+      }
+    }));
+  }
 }
 
 self.addEventListener('install', () => {
@@ -201,7 +417,12 @@ self.addEventListener('fetch', (event) => {
 });
 
 self.addEventListener('message', (event) => {
-  if (event.data?.type !== 'CACHE_INVITATION_PAGE' || typeof event.data.url !== 'string') return;
+  if (event.data?.type === 'CACHE_INVITATION_PAGE' && typeof event.data.url === 'string') {
+    event.waitUntil(cacheInvitationPage(event.data.url).catch(() => undefined));
+    return;
+  }
 
-  event.waitUntil(cacheInvitationPage(event.data.url).catch(() => undefined));
+  if (event.data?.type === 'CACHE_INVITATION_MEDIA') {
+    event.waitUntil(cacheInvitationMedia(event.data.urls).catch(() => undefined));
+  }
 });

@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
   classifyReliableCacheRequest,
+  getNextImageSourceUrl,
   isPublicInvitationNavigation,
   normalizeInvitationCacheUrl,
+  normalizeMediaCacheUrl,
 } from './reliableInvitationCache';
 
 const ORIGIN = 'https://marinikah.test';
@@ -47,6 +49,24 @@ describe('reliable invitation cache routing', () => {
     expect(classifyReliableCacheRequest(req('/_next/image?url=%2Fimages%2Flogo-1.png&w=256&q=75', { mode: 'no-cors' }), ORIGIN)).toBe('cache-first-static');
     expect(classifyReliableCacheRequest(req('/images/logo-1.png', { mode: 'no-cors' }), ORIGIN)).toBe('cache-first-static');
     expect(classifyReliableCacheRequest(req('/fonts/Dayland.woff2', { mode: 'no-cors' }), ORIGIN)).toBe('cache-first-static');
+  });
+
+  it('uses media cache for Next optimized Firebase Storage images', () => {
+    const sourceUrl = 'https://firebasestorage.googleapis.com/v0/b/bucket/o/story.jpg?alt=media&token=abc';
+    const optimizedUrl = `/_next/image?url=${encodeURIComponent(sourceUrl)}&w=1080&q=75`;
+
+    expect(getNextImageSourceUrl(`${ORIGIN}${optimizedUrl}`, ORIGIN)).toBe(sourceUrl);
+    expect(classifyReliableCacheRequest(req(optimizedUrl, { mode: 'no-cors' }), ORIGIN)).toBe('cache-first-media');
+  });
+
+  it('uses media cache for local audio files', () => {
+    expect(classifyReliableCacheRequest(req('/musics/adele-make-you-feel-my-love.mp3', { mode: 'no-cors' }), ORIGIN)).toBe('cache-first-media');
+  });
+
+  it('normalizes cache-busted media URLs without dropping Firebase download parameters', () => {
+    expect(normalizeMediaCacheUrl('https://firebasestorage.googleapis.com/v0/b/bucket/o/twibbon.png?alt=media&token=abc&v=123#preview')).toBe(
+      'https://firebasestorage.googleapis.com/v0/b/bucket/o/twibbon.png?alt=media&token=abc',
+    );
   });
 
   it('keeps Firebase data and auth endpoints network-only', () => {

@@ -31,6 +31,10 @@ const STATIC_PATH_PREFIXES = [
   '/manifest.webmanifest',
 ];
 
+const MEDIA_PATH_PREFIXES = [
+  '/musics/',
+];
+
 const FIREBASE_NETWORK_ONLY_HOSTS = [
   'firestore.googleapis.com',
   'identitytoolkit.googleapis.com',
@@ -52,6 +56,32 @@ export function normalizeInvitationCacheUrl(rawUrl: string) {
   const url = new URL(rawUrl);
   url.search = '';
   url.hash = '';
+  return url.toString();
+}
+
+export function getNextImageSourceUrl(rawUrl: string, origin: string) {
+  const url = new URL(rawUrl, origin);
+  if (url.origin !== origin || url.pathname !== '/_next/image') return null;
+
+  const source = url.searchParams.get('url');
+  if (!source) return null;
+
+  try {
+    return new URL(source, origin).toString();
+  } catch {
+    return null;
+  }
+}
+
+export function normalizeMediaCacheUrl(rawUrl: string) {
+  const url = new URL(rawUrl);
+  url.hash = '';
+  url.searchParams.delete('v');
+  url.searchParams.delete('_');
+  url.searchParams.delete('cacheBust');
+  url.searchParams.delete('cachebust');
+  url.searchParams.delete('t');
+  url.searchParams.delete('ts');
   return url.toString();
 }
 
@@ -91,6 +121,9 @@ export function classifyReliableCacheRequest(
   if (isPublicInvitationNavigation(request, origin)) return 'network-first-page';
 
   if (url.origin === origin && hasPathPrefix(url.pathname, BYPASS_PATH_PREFIXES)) return 'network-only';
+  const nextImageSourceUrl = getNextImageSourceUrl(url.toString(), origin);
+  if (nextImageSourceUrl && isFirebaseMediaHost(new URL(nextImageSourceUrl).hostname)) return 'cache-first-media';
+  if (url.origin === origin && hasPathPrefix(url.pathname, MEDIA_PATH_PREFIXES)) return 'cache-first-media';
   if (url.origin === origin && hasPathPrefix(url.pathname, STATIC_PATH_PREFIXES)) return 'cache-first-static';
   if (isFirebaseMediaHost(url.hostname)) return 'cache-first-media';
 

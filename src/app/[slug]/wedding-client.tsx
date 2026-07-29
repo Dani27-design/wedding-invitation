@@ -72,6 +72,21 @@ const PhotoZoomModal = lazy(() =>
   })),
 );
 
+function collectInvitationMediaUrls(wedding: SerializedWedding) {
+  const urls = [
+    wedding.openingImage,
+    wedding.heroImage,
+    wedding.groomPhoto,
+    wedding.bridePhoto,
+    wedding.twibbonOverlay,
+    wedding.musicUrl,
+    ...wedding.gallery,
+    ...wedding.story.flatMap((slide) => [slide.bgImage, slide.bgVideo]),
+  ];
+
+  return [...new Set(urls.filter((url): url is string => Boolean(url)))];
+}
+
 interface WeddingClientProps {
   wedding: SerializedWedding;
   slug: string;
@@ -102,6 +117,7 @@ export function WeddingClient({ wedding, slug }: WeddingClientProps) {
   const submitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [viewportHeight, setViewportHeight] = useState(667);
+  const invitationMediaUrls = useMemo(() => collectInvitationMediaUrls(wedding), [wedding]);
 
   useEffect(() => {
     let resizeTimer: ReturnType<typeof setTimeout>;
@@ -119,6 +135,27 @@ export function WeddingClient({ wedding, slug }: WeddingClientProps) {
       if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (typeof navigator === 'undefined' || !navigator.serviceWorker || invitationMediaUrls.length === 0) return;
+
+    let cancelled = false;
+
+    navigator.serviceWorker.ready
+      .then((registration) => {
+        if (cancelled) return;
+        const activeWorker = navigator.serviceWorker.controller ?? registration.active;
+        activeWorker?.postMessage({
+          type: 'CACHE_INVITATION_MEDIA',
+          urls: invitationMediaUrls,
+        });
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [invitationMediaUrls]);
 
   const wishPages = useMemo(() => {
     const availableHeight = Math.floor(viewportHeight * 0.9);
@@ -274,9 +311,9 @@ export function WeddingClient({ wedding, slug }: WeddingClientProps) {
             src={wedding.musicUrl}
           />
         )}
-        {!isOnline && isOpen && (
-          <div className="fixed top-3 left-1/2 z-[180] w-[calc(100vw-2rem)] max-w-sm -translate-x-1/2 rounded-full border border-gold/20 bg-ink/90 px-4 py-2 text-center text-[10px] font-bold uppercase tracking-[0.16em] text-ivory shadow-xl shadow-ink/20">
-            Sedang offline. RSVP dan komentar memerlukan koneksi.
+        {!isOnline && (
+          <div role="status" aria-live="polite" className="fixed top-[max(0.75rem,env(safe-area-inset-top))] left-1/2 z-[11000] w-[calc(100vw-2rem)] max-w-sm -translate-x-1/2 rounded-full border border-gold/20 bg-ink/90 px-4 py-2 text-center text-[10px] font-bold uppercase tracking-[0.16em] text-ivory shadow-xl shadow-ink/20">
+            Sedang offline. Beberapa fitur mungkin memerlukan koneksi internet.
           </div>
         )}
         <InvitationProductTour

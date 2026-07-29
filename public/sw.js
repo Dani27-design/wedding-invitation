@@ -1,8 +1,9 @@
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v4';
 const PAGE_CACHE = `marinikah-pages-${CACHE_VERSION}`;
 const STATIC_CACHE = `marinikah-static-${CACHE_VERSION}`;
 const MEDIA_CACHE = `marinikah-media-${CACHE_VERSION}`;
-const ACTIVE_CACHES = new Set([PAGE_CACHE, STATIC_CACHE, MEDIA_CACHE]);
+const APP_CACHE_PREFIX = 'marinikah-';
+const PAGE_CACHE_PREFIX = 'marinikah-pages-';
 
 const MAX_CACHE_ENTRIES = {
   [PAGE_CACHE]: 30,
@@ -288,8 +289,87 @@ async function networkFirstPage(request, event) {
     const normalizedCached = await cache.match(normalizedUrl);
     if (normalizedCached) return normalizedCached;
 
-    throw new Error('No cached invitation page is available.');
+    const previousCached = await matchPreviousInvitationPageCache(request, normalizedUrl);
+    if (previousCached) return previousCached;
+
+    return createOfflineInvitationFallbackResponse(request.url);
   }
+}
+
+async function matchPreviousInvitationPageCache(request, normalizedUrl) {
+  const cacheNames = await caches.keys();
+  const previousPageCacheNames = cacheNames.filter((cacheName) => (
+    cacheName.startsWith(PAGE_CACHE_PREFIX) && cacheName !== PAGE_CACHE
+  ));
+
+  for (const cacheName of previousPageCacheNames) {
+    const cache = await caches.open(cacheName);
+    const exactCached = await cache.match(request);
+    if (exactCached) return exactCached;
+
+    const normalizedCached = await cache.match(normalizedUrl);
+    if (normalizedCached) return normalizedCached;
+  }
+
+  return undefined;
+}
+
+function createOfflineInvitationFallbackResponse(rawUrl) {
+  const url = new URL(rawUrl);
+  const title = 'Undangan belum tersedia offline';
+  const escapedPath = url.pathname.replace(/[<>&"]/g, (char) => ({
+    '<': '&lt;',
+    '>': '&gt;',
+    '&': '&amp;',
+    '"': '&quot;',
+  })[char]);
+
+  return new Response(`<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>${title}</title>
+    <style>
+      :root { color-scheme: light; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: #fdfcf8;
+        color: #1a1a1a;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      main {
+        width: min(100% - 32px, 420px);
+        text-align: center;
+      }
+      h1 {
+        margin: 0 0 12px;
+        font-size: 1.25rem;
+      }
+      p {
+        margin: 0;
+        color: rgba(26, 26, 26, 0.72);
+        line-height: 1.6;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>${title}</h1>
+      <p>Halaman ${escapedPath} belum tersimpan di perangkat ini. Buka undangan sekali saat online, tunggu sampai halaman selesai dimuat, lalu coba lagi saat offline.</p>
+    </main>
+  </body>
+</html>`, {
+    status: 503,
+    statusText: 'Offline',
+    headers: {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'no-store',
+    },
+  });
 }
 
 async function cacheInvitationPage(rawUrl) {
@@ -383,13 +463,6 @@ self.addEventListener('install', () => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
-    const cacheNames = await caches.keys();
-    await Promise.all(
-      cacheNames
-        .filter((cacheName) => cacheName.startsWith('marinikah-') && !ACTIVE_CACHES.has(cacheName))
-        .map((cacheName) => caches.delete(cacheName)),
-    );
-
     if (self.registration.navigationPreload) {
       await self.registration.navigationPreload.enable();
     }

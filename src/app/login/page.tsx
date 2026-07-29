@@ -1,14 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import NextImage from 'next/image';
-import { signInWithEmailAndPassword, signInWithPopup, sendPasswordResetEmail } from 'firebase/auth';
+import { getRedirectResult, signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, sendPasswordResetEmail, type User } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, googleProvider } from '@/lib/firebase-auth';
 import { db } from '@/lib/firebase';
 import { UserDocument } from '@/types/firestore';
+import { consumeGoogleAuthRedirectIntent, setGoogleAuthRedirectIntent, shouldUseRedirectAuth } from '@/lib/authRedirect';
+import { ensurePendingUserDocument } from '@/lib/authUserDoc';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,10 +21,11 @@ export default function LoginPage() {
   const [resetStatus, setResetStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [resetError, setResetError] = useState('');
 
-  async function redirectByRole(uid: string) {
-    const snap = await getDoc(doc(db, 'users', uid));
+  const redirectByRole = useCallback(async (user: User) => {
+    const snap = await getDoc(doc(db, 'users', user.uid));
     if (!snap.exists()) {
-      setError('Akun tidak terdaftar. Silakan daftar terlebih dahulu.');
+      await ensurePendingUserDocument(user);
+      setError('Akun Anda sudah dibuat dan sedang menunggu persetujuan admin. Silakan hubungi tim kami jika sudah lebih dari 24 jam.');
       return;
     }
     const userData = snap.data() as UserDocument;
@@ -39,7 +42,33 @@ export default function LoginPage() {
       return;
     }
     setError('Akun belum ditugaskan ke undangan. Hubungi admin.');
-  }
+  }, [router]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function handleRedirectResult() {
+      try {
+        const result = await getRedirectResult(auth);
+        if (!result || cancelled) return;
+        const intent = consumeGoogleAuthRedirectIntent();
+        if (intent && intent !== 'login') return;
+
+        setIsLoading(true);
+        await redirectByRole(result.user);
+      } catch {
+        if (!cancelled) setError('Gagal menyelesaikan login Google. Silakan coba lagi atau gunakan login email.');
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+
+    handleRedirectResult();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [redirectByRole]);
 
   async function handleEmailLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -47,7 +76,7 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       const cred = await signInWithEmailAndPassword(auth, email, password);
-      await redirectByRole(cred.user.uid);
+      await redirectByRole(cred.user);
     } catch {
       setError('Email atau password salah');
     } finally {
@@ -76,8 +105,14 @@ export default function LoginPage() {
     setError('');
     setIsLoading(true);
     try {
+      if (shouldUseRedirectAuth()) {
+        setGoogleAuthRedirectIntent('login');
+        await signInWithRedirect(auth, googleProvider);
+        return;
+      }
+
       const cred = await signInWithPopup(auth, googleProvider);
-      await redirectByRole(cred.user.uid);
+      await redirectByRole(cred.user);
     } catch {
       setError('Gagal masuk dengan Google, Silakan coba lagi atau gunakan login email.');
     } finally {

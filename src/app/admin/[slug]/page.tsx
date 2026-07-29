@@ -6,7 +6,7 @@ import { signOut } from 'firebase/auth';
 import { doc, updateDoc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { auth } from '@/lib/firebase-auth';
-import { uploadFile, deleteFile } from '@/lib/storage';
+import { uploadFile, deleteFile, getUploadFileExtension, validateUploadFile } from '@/lib/storage';
 import { useWedding } from '@/hooks/useWedding';
 import { useUser } from '@/hooks/useUser';
 import { WeddingDocument, StorySlide } from '@/types/firestore';
@@ -52,9 +52,10 @@ interface SaveStatusModalProps {
   status: 'saving' | 'success' | 'error';
   onClose: () => void;
   uploadProgress?: { fileName: string; percent: number } | null;
+  errorMessage?: string;
 }
 
-function SaveStatusModal({ status, onClose, uploadProgress }: SaveStatusModalProps) {
+function SaveStatusModal({ status, onClose, uploadProgress, errorMessage }: SaveStatusModalProps) {
   return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
         <motion.div
@@ -101,7 +102,7 @@ function SaveStatusModal({ status, onClose, uploadProgress }: SaveStatusModalPro
                 {status === 'saving' && !uploadProgress && 'Harap tunggu sebentar'}
                 {status === 'saving' && uploadProgress && `Mengunggah: ${uploadProgress.fileName}`}
                 {status === 'success' && 'Semua perubahan telah diperbarui'}
-                {status === 'error' && 'Terjadi kesalahan, silakan coba lagi'}
+                {status === 'error' && (errorMessage || 'Terjadi kesalahan, silakan coba lagi')}
               </p>
               {status === 'saving' && uploadProgress && (
                 <div className="mt-3 w-full">
@@ -188,6 +189,7 @@ export default function AdminPage() {
   const [pendingTab, setPendingTab] = useState<number | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
   const [uploadProgress, setUploadProgress] = useState<{ fileName: string; percent: number } | null>(null);
+  const [saveError, setSaveError] = useState('');
   const [copied, setCopied] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showStatusInfo, setShowStatusInfo] = useState(false);
@@ -270,6 +272,18 @@ export default function AdminPage() {
 
   const isSaving = saveStatus === 'saving';
 
+  const getSaveErrorMessage = (error: unknown) => {
+    const code = (error as { code?: string }).code;
+    const message = error instanceof Error ? error.message : '';
+
+    if (code === 'storage/unauthorized' || code === 'permission-denied') return 'Sesi atau izin tidak valid. Silakan login ulang lalu coba simpan lagi.';
+    if (code === 'storage/retry-limit-exceeded' || code === 'unavailable') return 'Koneksi tidak stabil. Periksa jaringan lalu coba unggah ulang.';
+    if (code === 'storage/canceled') return 'Upload dibatalkan sebelum selesai.';
+    if (message) return message;
+
+    return 'Terjadi kesalahan, silakan coba lagi.';
+  };
+
   const handleSave = useCallback(async (
     fields: Partial<WeddingDocument>,
     files?: Record<string, File>,
@@ -277,6 +291,7 @@ export default function AdminPage() {
   ) => {
     if (!slug) return;
     setSaveStatus('saving');
+    setSaveError('');
     setUploadProgress(null);
     try {
       const updates: Record<string, unknown> = { ...fields, updatedAt: serverTimestamp() };
@@ -290,18 +305,23 @@ export default function AdminPage() {
       // 2. Upload new files (collect old URLs for cleanup after save)
       if (files) {
         for (const [key, file] of Object.entries(files)) {
+          const validation = validateUploadFile(file);
+          if (!validation.ok) {
+            throw new Error(validation.message);
+          }
+
           // Collect old URL for top-level fields
           if (['groomPhoto', 'bridePhoto', 'musicUrl', 'heroImage', 'openingImage', 'twibbonOverlay'].includes(key)) {
             const oldUrl = wedding?.[key as keyof WeddingDocument] as string | undefined;
             if (oldUrl) oldUrlsToCleanup.push(oldUrl);
           }
 
-          const ext = file.name.split('.').pop() ?? 'bin';
+          const ext = getUploadFileExtension(file, validation.contentType);
           const path = `weddings/${slug}/${key}-${Date.now()}.${ext}`;
           setUploadProgress({ fileName: file.name, percent: 0 });
           const handle = uploadFile(path, file, (percent) => {
             setUploadProgress({ fileName: file.name, percent });
-          });
+          }, { contentType: validation.contentType });
           activeUploadsRef.current.push(handle.cancel);
           const url = await handle.promise;
 
@@ -381,6 +401,7 @@ export default function AdminPage() {
       }
     } catch (error) {
       console.error('[Admin] Save error:', (error as Error).message);
+      setSaveError(getSaveErrorMessage(error));
       setSaveStatus('error');
       setHasSaved(false);
     } finally {
@@ -567,6 +588,7 @@ export default function AdminPage() {
               }
             }}
             uploadProgress={uploadProgress}
+            errorMessage={saveError}
           />
         )}
       </AnimatePresence>

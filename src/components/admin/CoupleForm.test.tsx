@@ -1,10 +1,14 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { CoupleForm } from './CoupleForm';
 import { WeddingDocument } from '../../types/firestore';
 
 vi.mock('../../utils/compressImage', () => ({
   compressImage: vi.fn().mockResolvedValue({ file: new File([''], 'compressed.jpg'), wasCompressed: false, originalSize: 1000, compressedSize: 1000 }),
+  compressImageBatch: vi.fn(async (entries: Array<{ key: string; file: File }>) => ({
+    files: Object.fromEntries(entries.map((entry) => [entry.key, entry.file])),
+    infos: [],
+  })),
   formatFileSize: vi.fn((s: number) => `${s}B`),
 }));
 
@@ -32,6 +36,12 @@ describe('CoupleForm', () => {
   beforeEach(() => {
     onSave = vi.fn();
     onDirty = vi.fn();
+    vi.spyOn(URL, 'createObjectURL').mockImplementation((file) => `blob:${(file as File).name}`);
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   // ---------------------------------------------------------------------------
@@ -284,6 +294,18 @@ describe('CoupleForm', () => {
       Object.defineProperty(bigFile, 'size', { value: 26 * 1024 * 1024 });
       fireEvent.change(fileInput, { target: { files: [bigFile] } });
       expect(screen.getAllByText('Ukuran foto maksimal 25MB').length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('revokes previous blob preview when a photo is replaced', () => {
+      const { container } = render(<CoupleForm data={null} onSave={onSave} />);
+      const fileInput = container.querySelectorAll('input[type="file"]')[0];
+      const firstFile = new File(['first'], 'first.jpg', { type: 'image/jpeg' });
+      const secondFile = new File(['second'], 'second.jpg', { type: 'image/jpeg' });
+
+      fireEvent.change(fileInput, { target: { files: [firstFile] } });
+      fireEvent.change(fileInput, { target: { files: [secondFile] } });
+
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:first.jpg');
     });
   });
 

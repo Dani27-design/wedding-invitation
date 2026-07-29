@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { WeddingDocument } from '../../types/firestore';
 import { Plus, Trash2, ChevronUp, ChevronDown, Upload } from 'lucide-react';
 import { compressImageBatch } from '../../utils/compressImage';
@@ -28,6 +28,26 @@ export function GalleryForm({ data, onSave, isSaving, onDirty, step, totalSteps 
   const [compressionInfo, setCompressionInfo] = useState('');
   const [compressProgress, setCompressProgress] = useState({ current: 0, total: 0, fileName: '' });
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
+  const blobUrlsRef = useRef<Set<string>>(new Set());
+
+  const createPreviewUrl = (file: File) => {
+    const url = URL.createObjectURL(file);
+    blobUrlsRef.current.add(url);
+    return url;
+  };
+
+  const revokePreviewUrl = (url: string) => {
+    if (!url.startsWith('blob:')) return;
+    URL.revokeObjectURL(url);
+    blobUrlsRef.current.delete(url);
+  };
+
+  useEffect(() => {
+    return () => {
+      blobUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+      blobUrlsRef.current.clear();
+    };
+  }, []);
 
   const handleAdd = (files: FileList | null) => {
     if (!files) return;
@@ -36,7 +56,7 @@ export function GalleryForm({ data, onSave, isSaving, onDirty, step, totalSteps 
     if (oversized) { setError('Ukuran foto maksimal 25MB per file'); return; }
     if (images.length + arr.length > MAX_IMAGES) { setError(`Maksimal ${MAX_IMAGES} foto`); return; }
     setError('');
-    const newImages = arr.map(file => ({ url: URL.createObjectURL(file), file }));
+    const newImages = arr.map(file => ({ url: createPreviewUrl(file), file }));
     setImages([...images, ...newImages]);
     onDirty?.();
   };
@@ -46,6 +66,7 @@ export function GalleryForm({ data, onSave, isSaving, onDirty, step, totalSteps 
     if (img.url.includes('firebasestorage.googleapis.com')) {
       setUrlsToDelete(prev => [...prev, img.url]);
     }
+    revokePreviewUrl(img.url);
     setImages(images.filter((_, idx) => idx !== i));
     onDirty?.();
   };

@@ -1,5 +1,5 @@
 'use client';
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { WeddingDocument } from "../../types/firestore";
 import { Upload, Trash2, Plus, Camera } from "lucide-react";
 import { compressImageBatch } from "../../utils/compressImage";
@@ -38,6 +38,26 @@ export function CoupleForm({ data, onSave, isSaving, onDirty, step, totalSteps }
   const [groomPhotoFile, setGroomPhotoFile] = useState<File | null>(null);
   const [bridePhotoFile, setBridePhotoFile] = useState<File | null>(null);
   const [urlsToDelete, setUrlsToDelete] = useState<string[]>([]);
+  const blobUrlsRef = useRef<Set<string>>(new Set());
+
+  const createPreviewUrl = (file: File) => {
+    const url = URL.createObjectURL(file);
+    blobUrlsRef.current.add(url);
+    return url;
+  };
+
+  const revokePreviewUrl = (url: string) => {
+    if (!url.startsWith('blob:')) return;
+    URL.revokeObjectURL(url);
+    blobUrlsRef.current.delete(url);
+  };
+
+  useEffect(() => {
+    return () => {
+      blobUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+      blobUrlsRef.current.clear();
+    };
+  }, []);
 
   const updateSocialLink = (side: "groom" | "bride", idx: number, field: "label" | "url", value: string) => {
     const setter = side === "groom" ? setGroomSocialLinks : setBrideSocialLinks;
@@ -78,9 +98,16 @@ export function CoupleForm({ data, onSave, isSaving, onDirty, step, totalSteps }
     if (!file) return;
     if (file.size > MAX_IMAGE_SIZE) { setError("Ukuran foto maksimal 25MB"); return; }
     setError("");
-    const url = URL.createObjectURL(file);
-    if (side === "groom") { setGroomPhotoFile(file); setGroomPhotoPreview(url); }
-    else { setBridePhotoFile(file); setBridePhotoPreview(url); }
+    const url = createPreviewUrl(file);
+    if (side === "groom") {
+      revokePreviewUrl(groomPhotoPreview);
+      setGroomPhotoFile(file);
+      setGroomPhotoPreview(url);
+    } else {
+      revokePreviewUrl(bridePhotoPreview);
+      setBridePhotoFile(file);
+      setBridePhotoPreview(url);
+    }
     onDirty?.();
   };
 

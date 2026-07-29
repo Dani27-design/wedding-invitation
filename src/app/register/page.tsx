@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import NextImage from 'next/image';
-import { createUserWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { createUserWithEmailAndPassword, getRedirectResult, signInWithPopup, signInWithRedirect, type User } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebase-auth';
-import { db } from '@/lib/firebase';
+import { consumeGoogleAuthRedirectIntent, setGoogleAuthRedirectIntent, shouldUseRedirectAuth } from '@/lib/authRedirect';
+import { ensurePendingUserDocument } from '@/lib/authUserDoc';
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
@@ -16,24 +16,44 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  async function createUserDoc(uid: string, userEmail: string, displayName: string, provider: 'email' | 'google') {
-    const ref = doc(db, 'users', uid);
-    const snap = await getDoc(ref);
-    if (snap.exists()) {
+  async function createUserDoc(user: User, displayName: string) {
+    const result = await ensurePendingUserDocument(user, displayName);
+    if (result.exists) {
       setError('Akun sudah terdaftar. Silakan masuk.');
       return false;
     }
-    await setDoc(ref, {
-      uid,
-      email: userEmail,
-      displayName,
-      role: 'pending',
-      provider,
-      assignedWeddingSlug: null,
-      createdAt: serverTimestamp(),
-    });
     return true;
   }
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function handleRedirectResult() {
+      try {
+        const result = await getRedirectResult(auth);
+        if (!result || cancelled) return;
+        const intent = consumeGoogleAuthRedirectIntent();
+        if (intent && intent !== 'register') return;
+
+        setIsLoading(true);
+        const success = await createUserDoc(
+          result.user,
+          result.user.displayName ?? result.user.email ?? 'User',
+        );
+        if (success && !cancelled) setIsSuccess(true);
+      } catch {
+        if (!cancelled) setError('Gagal menyelesaikan pendaftaran Google. Silakan coba lagi atau gunakan pendaftaran email.');
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+
+    handleRedirectResult();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function handleEmailRegister(e: React.FormEvent) {
     e.preventDefault();
@@ -45,7 +65,7 @@ export default function RegisterPage() {
     setIsLoading(true);
     try {
       const cred = await createUserWithEmailAndPassword(auth, email, password);
-      const success = await createUserDoc(cred.user.uid, email, name.trim(), 'email');
+      const success = await createUserDoc(cred.user, name.trim());
       if (success) setIsSuccess(true);
     } catch (err: unknown) {
       const code = (err as { code?: string }).code;
@@ -65,12 +85,16 @@ export default function RegisterPage() {
     setError('');
     setIsLoading(true);
     try {
+      if (shouldUseRedirectAuth()) {
+        setGoogleAuthRedirectIntent('register');
+        await signInWithRedirect(auth, googleProvider);
+        return;
+      }
+
       const cred = await signInWithPopup(auth, googleProvider);
       const success = await createUserDoc(
-        cred.user.uid,
-        cred.user.email ?? '',
+        cred.user,
         cred.user.displayName ?? 'User',
-        'google'
       );
       if (success) setIsSuccess(true);
     } catch {

@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { WeddingDocument } from '../../types/firestore';
 import { Upload, Music, Image as ImageIcon, Sparkles } from 'lucide-react';
 import { compressImageBatch } from '../../utils/compressImage';
@@ -48,6 +48,33 @@ export function MediaForm({ data, onSave, isSaving, onDirty, step, totalSteps }:
   const [isCompressing, setIsCompressing] = useState(false);
   const [compressionInfo, setCompressionInfo] = useState('');
   const [compressProgress, setCompressProgress] = useState({ current: 0, total: 0, fileName: '' });
+  const blobUrlsRef = useRef<Set<string>>(new Set());
+
+  const createPreviewUrl = (file: File | Blob) => {
+    const url = URL.createObjectURL(file);
+    blobUrlsRef.current.add(url);
+    return url;
+  };
+
+  const revokePreviewUrl = (url: string) => {
+    if (!url.startsWith('blob:')) return;
+    URL.revokeObjectURL(url);
+    blobUrlsRef.current.delete(url);
+  };
+
+  const replacePreview = (field: string, url: string) => {
+    setPreviews((prev) => {
+      revokePreviewUrl(prev[field]);
+      return { ...prev, [field]: url };
+    });
+  };
+
+  useEffect(() => {
+    return () => {
+      blobUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+      blobUrlsRef.current.clear();
+    };
+  }, []);
 
   const handleFileChange = (field: string, file: File | undefined, accept: string) => {
     if (!file) return;
@@ -55,8 +82,8 @@ export function MediaForm({ data, onSave, isSaving, onDirty, step, totalSteps }:
     const label = accept.startsWith('audio') ? '10MB' : '5MB';
     if (file.size > maxSize) { setError(`Ukuran file maksimal ${label}`); return; }
     setError('');
-    const url = URL.createObjectURL(file);
-    setPreviews(prev => ({ ...prev, [field]: url }));
+    const url = createPreviewUrl(file);
+    replacePreview(field, url);
     setFiles(prev => ({ ...prev, [field]: file }));
     onDirty?.();
   };
@@ -83,9 +110,9 @@ export function MediaForm({ data, onSave, isSaving, onDirty, step, totalSteps }:
 
       const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
       if (blob) {
-        const url = URL.createObjectURL(blob);
+        const url = createPreviewUrl(blob);
         const file = new File([blob], 'twibbon-overlay.png', { type: 'image/png' });
-        setPreviews(prev => ({ ...prev, twibbonOverlay: url }));
+        replacePreview('twibbonOverlay', url);
         setFiles(prev => ({ ...prev, twibbonOverlay: file }));
         onDirty?.();
       }

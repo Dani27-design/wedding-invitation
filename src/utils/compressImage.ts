@@ -15,6 +15,115 @@ const DEFAULTS: Required<Omit<CompressOptions, 'forcePng'>> = {
 /** Minimum file size to bother compressing (500KB) */
 const MIN_COMPRESS_SIZE = 500 * 1024;
 
+interface LoadedImageSource {
+  width: number;
+  height: number;
+  draw: (ctx: OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D, width: number, height: number) => void;
+  close: () => void;
+}
+
+function isLowMemoryMobileBrowser() {
+  if (typeof navigator === 'undefined') return false;
+
+  const userAgent = navigator.userAgent.toLowerCase();
+  const isIOS = /iphone|ipad|ipod/.test(userAgent) || (userAgent.includes('macintosh') && navigator.maxTouchPoints > 1);
+  const isMobile = isIOS || /android|mobile|crios|fxios|edgios/.test(userAgent);
+  const deviceMemory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
+
+  return isMobile || (typeof deviceMemory === 'number' && deviceMemory <= 4);
+}
+
+export function getDefaultCompressionConcurrency() {
+  return isLowMemoryMobileBrowser() ? 1 : 3;
+}
+
+async function loadImageBitmapSource(file: File): Promise<LoadedImageSource> {
+  if (typeof createImageBitmap !== 'function') {
+    throw new Error('createImageBitmap is unavailable');
+  }
+
+  const bitmap = await createImageBitmap(file);
+  return {
+    width: bitmap.width,
+    height: bitmap.height,
+    draw: (ctx, width, height) => ctx.drawImage(bitmap, 0, 0, width, height),
+    close: () => bitmap.close(),
+  };
+}
+
+async function loadHtmlImageSource(file: File): Promise<LoadedImageSource> {
+  if (typeof Image === 'undefined' || typeof URL === 'undefined') {
+    throw new Error('HTML image decoding is unavailable');
+  }
+
+  const url = URL.createObjectURL(file);
+  const image = new Image();
+
+  await new Promise<void>((resolve, reject) => {
+    image.onload = () => resolve();
+    image.onerror = () => reject(new Error('Image decode failed'));
+    image.src = url;
+  });
+
+  return {
+    width: image.naturalWidth || image.width,
+    height: image.naturalHeight || image.height,
+    draw: (ctx, width, height) => ctx.drawImage(image, 0, 0, width, height),
+    close: () => URL.revokeObjectURL(url),
+  };
+}
+
+async function loadImageSource(file: File): Promise<LoadedImageSource> {
+  try {
+    return await loadImageBitmapSource(file);
+  } catch {
+    return loadHtmlImageSource(file);
+  }
+}
+
+function canvasToBlob(canvas: HTMLCanvasElement, mimeType: string, quality?: number): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) resolve(blob);
+      else reject(new Error('Canvas export failed'));
+    }, mimeType, quality);
+  });
+}
+
+async function renderCompressedBlob(
+  source: LoadedImageSource,
+  targetWidth: number,
+  targetHeight: number,
+  mimeType: string,
+  quality?: number,
+) {
+  if (typeof OffscreenCanvas !== 'undefined') {
+    try {
+      const canvas = new OffscreenCanvas(targetWidth, targetHeight);
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Canvas context unavailable');
+      source.draw(ctx, targetWidth, targetHeight);
+      return await canvas.convertToBlob({ type: mimeType, quality });
+    } catch {
+      // Fall through to regular canvas for browsers with partial OffscreenCanvas support.
+    }
+  }
+
+  const canvas = document.createElement('canvas');
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas context unavailable');
+
+  source.draw(ctx, targetWidth, targetHeight);
+  const blob = await canvasToBlob(canvas, mimeType, quality);
+  canvas.width = 0;
+  canvas.height = 0;
+
+  return blob;
+}
+
 /**
  * Compress an image file using Canvas API.
  * - Resizes to fit within maxWidth × maxHeight (maintains aspect ratio)
@@ -43,32 +152,32 @@ export async function compressImage(
   const mimeType = forcePng ? 'image/png' : 'image/jpeg';
 
   try {
-    // Load image
-    const bitmap = await createImageBitmap(file);
-    const { width, height } = bitmap;
+    const source = await loadImageSource(file);
+    let blob: Blob;
 
-    // Calculate scaled dimensions (maintain aspect ratio)
-    let targetWidth = width;
-    let targetHeight = height;
+    try {
+      const { width, height } = source;
 
-    if (width > maxWidth || height > maxHeight) {
-      const ratio = Math.min(maxWidth / width, maxHeight / height);
-      targetWidth = Math.round(width * ratio);
-      targetHeight = Math.round(height * ratio);
+      // Calculate scaled dimensions (maintain aspect ratio)
+      let targetWidth = width;
+      let targetHeight = height;
+
+      if (width > maxWidth || height > maxHeight) {
+        const ratio = Math.min(maxWidth / width, maxHeight / height);
+        targetWidth = Math.round(width * ratio);
+        targetHeight = Math.round(height * ratio);
+      }
+
+      blob = await renderCompressedBlob(
+        source,
+        targetWidth,
+        targetHeight,
+        mimeType,
+        forcePng ? undefined : quality,
+      );
+    } finally {
+      source.close();
     }
-
-    // Draw onto offscreen canvas
-    const canvas = new OffscreenCanvas(targetWidth, targetHeight);
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      return { file, wasCompressed: false, originalSize, compressedSize: originalSize };
-    }
-
-    ctx.drawImage(bitmap, 0, 0, targetWidth, targetHeight);
-    bitmap.close();
-
-    // Export compressed blob
-    const blob = await canvas.convertToBlob({ type: mimeType, quality: forcePng ? undefined : quality });
 
     // If compressed is larger than original, keep original
     if (blob.size >= originalSize) {
@@ -110,7 +219,7 @@ interface BatchResult {
 export async function compressImageBatch(
   entries: BatchEntry[],
   onProgress: (current: number, total: number, fileName: string) => void,
-  concurrency = 3,
+  concurrency = getDefaultCompressionConcurrency(),
 ): Promise<BatchResult> {
   const files: Record<string, File> = {};
   const infos: string[] = [];

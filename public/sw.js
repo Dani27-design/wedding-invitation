@@ -2,7 +2,6 @@ const CACHE_VERSION = 'v4';
 const PAGE_CACHE = `marinikah-pages-${CACHE_VERSION}`;
 const STATIC_CACHE = `marinikah-static-${CACHE_VERSION}`;
 const MEDIA_CACHE = `marinikah-media-${CACHE_VERSION}`;
-const APP_CACHE_PREFIX = 'marinikah-';
 const PAGE_CACHE_PREFIX = 'marinikah-pages-';
 
 const MAX_CACHE_ENTRIES = {

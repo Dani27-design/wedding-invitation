@@ -19,7 +19,7 @@ function createWedding(overrides: Partial<WeddingDocument> = {}): WeddingDocumen
     brideParents: 'Putri Bapak Budi dan Ibu Sari',
     bridePhoto: '',
     brideSocialLinks: [],
-    defaultGuest: 'Mas Raju',
+    defaultGuest: 'Tamu Spesial Kami',
     eventDate: '2026-09-18',
     eventCity: 'Surabaya',
     ceremonies: [{
@@ -70,7 +70,7 @@ describe('GuestTab', () => {
     expect(screen.getByText('Sisipkan Data Otomatis')).toBeInTheDocument();
     expect(screen.getByText('Nama Contoh untuk Preview')).toBeInTheDocument();
     expect(screen.getByText(/Nama tamu asli tetap diambil dari menu Tamu/i)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Contoh: Mas Raju')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Tamu Spesial Kami')).toBeInTheDocument();
     expect(screen.queryByText('Nama Tamu Default')).not.toBeInTheDocument();
     const editor = screen.getByRole('textbox', { name: 'Template pesan undangan' });
     expect(editor).toHaveTextContent('Halo Nama tamu');
@@ -104,10 +104,22 @@ describe('GuestTab', () => {
     fireEvent.submit(screen.getByRole('button', { name: 'Simpan & Lanjutkan' }).closest('form')!);
 
     expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
-      defaultGuest: 'Mas Raju',
+      defaultGuest: 'Tamu Spesial Kami',
       greetingTemplate: expect.stringContaining('{nama tamu}'),
     }));
     expect(onSave.mock.calls[0][0].greetingTemplate).toContain('{link undangan}');
+  });
+
+  it('allows saving when only guest name and invitation link are present', () => {
+    const onSave = vi.fn();
+    render(<GuestTab data={createWedding({ greetingTemplate: 'Halo {nama tamu}\nBuka {link undangan}' })} slug="dani-marini" onSave={onSave} />);
+
+    fireEvent.submit(screen.getByRole('button', { name: 'Simpan & Lanjutkan' }).closest('form')!);
+
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
+      greetingTemplate: 'Halo {nama tamu}\nBuka {link undangan}',
+    }));
+    expect(screen.queryByText(/Data wajib belum dimasukkan/i)).not.toBeInTheDocument();
   });
 
   it('inserts dynamic ceremony variables from the variable picker', async () => {
@@ -157,7 +169,7 @@ describe('GuestTab', () => {
 
     fireEvent.click(previewToggle);
 
-    expect(screen.getByText('Contoh untuk: Mas Raju')).toBeInTheDocument();
+    expect(screen.getByText('Contoh untuk: Tamu Spesial Kami')).toBeInTheDocument();
     expect(screen.getByText((content) => content.includes('Daniansyah C.'))).toBeInTheDocument();
     expect(screen.getByText((content) => content.includes('Siti Nur Marini'))).toBeInTheDocument();
     expect(screen.getByText((content) => content.includes('18 September 2026'))).toBeInTheDocument();

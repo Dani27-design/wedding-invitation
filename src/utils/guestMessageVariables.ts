@@ -28,10 +28,6 @@ const LEGACY_VARIABLE_ALIASES: Record<string, string> = {
 const BASE_REQUIRED_VARIABLES = [
   'nama tamu',
   'link undangan',
-  'nama pengantin pria',
-  'nama pengantin wanita',
-  'orang tua pengantin pria',
-  'orang tua pengantin wanita',
 ] as const;
 
 function normalizeVariableKey(key: string) {
@@ -103,10 +99,10 @@ export function buildGuestMessageVariableOptions(context: GuestMessageVariableCo
     { key: 'nama tamu', label: 'Nama tamu', group: 'Tamu', value: guestName, required: true },
     { key: 'link undangan', label: 'Link undangan', group: 'Tamu', value: invitationUrl, required: true },
     { key: 'nama pengantin', label: 'Nama pengantin', group: 'Pengantin', value: coupleDisplayName },
-    { key: 'nama pengantin pria', label: 'Nama pengantin pria', group: 'Pengantin', value: groomDisplayName, required: true },
-    { key: 'nama pengantin wanita', label: 'Nama pengantin wanita', group: 'Pengantin', value: brideDisplayName, required: true },
-    { key: 'orang tua pengantin pria', label: 'Orang tua pengantin pria', group: 'Pengantin', value: wedding.groomParents || 'Orang tua pengantin pria', required: true },
-    { key: 'orang tua pengantin wanita', label: 'Orang tua pengantin wanita', group: 'Pengantin', value: wedding.brideParents || 'Orang tua pengantin wanita', required: true },
+    { key: 'nama pengantin pria', label: 'Nama pengantin pria', group: 'Pengantin', value: groomDisplayName },
+    { key: 'nama pengantin wanita', label: 'Nama pengantin wanita', group: 'Pengantin', value: brideDisplayName },
+    { key: 'orang tua pengantin pria', label: 'Orang tua pengantin pria', group: 'Pengantin', value: wedding.groomParents || 'Orang tua pengantin pria' },
+    { key: 'orang tua pengantin wanita', label: 'Orang tua pengantin wanita', group: 'Pengantin', value: wedding.brideParents || 'Orang tua pengantin wanita' },
   ];
 
   const ceremonyOptions = ceremonies.flatMap((ceremony, index): GuestMessageVariableOption[] => {
@@ -116,9 +112,9 @@ export function buildGuestMessageVariableOptions(context: GuestMessageVariableCo
 
     return [
       { key: `nama acara ${number}`, label: `Nama ${group}`, group, value: ceremony.name || group },
-      { key: `tanggal acara ${number}`, label: `Tanggal ${group}`, group, value: formatDateString(ceremony.date || wedding.eventDate), required: index === 0 },
+      { key: `tanggal acara ${number}`, label: `Tanggal ${group}`, group, value: formatDateString(ceremony.date || wedding.eventDate) },
       { key: `jam acara ${number}`, label: `Jam ${group}`, group, value: formatTimeRange(ceremony) },
-      { key: `lokasi acara ${number}`, label: `Lokasi ${group}`, group, value: venue, required: index === 0 },
+      { key: `lokasi acara ${number}`, label: `Lokasi ${group}`, group, value: venue },
       { key: `alamat acara ${number}`, label: `Alamat ${group}`, group, value: ceremony.venueAddress || venue },
       { key: `maps acara ${number}`, label: `Maps ${group}`, group, value: ceremony.venueMapsUrl || '' },
     ];
@@ -181,11 +177,6 @@ export function validateGuestMessageTemplate(template: string, options: GuestMes
   const unknownPlaceholders = placeholderKeys.filter(key => !knownKeys.has(key));
   const brokenFragments = getBrokenPlaceholderFragments(template);
   const missingRequired: string[] = BASE_REQUIRED_VARIABLES.filter(key => !placeholderSet.has(key));
-  const hasDateToken = placeholderKeys.some(key => /^tanggal acara \d+$/.test(key));
-  const hasLocationToken = placeholderKeys.some(key => /^(lokasi|alamat) acara \d+$/.test(key));
-
-  if (!hasDateToken) missingRequired.push('tanggal acara');
-  if (!hasLocationToken) missingRequired.push('lokasi acara');
 
   return {
     isValid: unknownPlaceholders.length === 0 && brokenFragments.length === 0 && missingRequired.length === 0,

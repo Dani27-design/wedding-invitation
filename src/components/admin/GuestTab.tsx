@@ -210,7 +210,7 @@ export function GuestTab({ data, slug, onSave, isSaving, onDirty, step, totalSte
                 id="default-guest"
                 value={defaultGuest}
                 onChange={(e) => { setDefaultGuest(e.target.value); onDirty?.(); }}
-                placeholder="Contoh: Mas Raju"
+                placeholder="Tamu Spesial Kami"
                 maxLength={50}
                 className="w-full px-3 py-2.5 border border-gold/20 rounded-xl text-sm bg-white focus:outline-none focus:border-gold/50 transition-colors"
               />

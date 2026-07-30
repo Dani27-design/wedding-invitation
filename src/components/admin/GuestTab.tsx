@@ -1,9 +1,9 @@
 'use client';
 import { useMemo, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
 import { WeddingDocument } from '@/types/firestore';
 import { BASE_URL } from '@/constants/baseUrl';
 import { buildGuestInvitationUrl } from '@/utils/guestInvitation';
+import { GuestTemplateEditor, type GuestTemplateEditorHandle } from './GuestTemplateEditor';
 import {
   buildGuestMessageVariableOptions,
   canonicalizeGuestMessageVariableKey,
@@ -28,39 +28,6 @@ interface GuestTabProps {
 
 const MAX_TEMPLATE_LENGTH = 1600;
 
-function serializeMessageEditor(root: HTMLElement) {
-  const walk = (node: ChildNode): string => {
-    if (node.nodeType === Node.TEXT_NODE) return node.textContent ?? '';
-    if (!(node instanceof HTMLElement)) return '';
-
-    const variableKey = node.dataset.variableKey;
-    if (variableKey) return `{${variableKey}}`;
-    if (node.tagName === 'BR') return '\n';
-
-    const childText = Array.from(node.childNodes).map(walk).join('');
-    if (node !== root && node.tagName === 'DIV') return `${childText}\n`;
-    return childText;
-  };
-
-  return Array.from(root.childNodes).map(walk).join('').replace(/\u00a0/g, ' ');
-}
-
-function insertTextAtCursor(editor: HTMLElement, text: string) {
-  editor.focus();
-  const selection = window.getSelection();
-  if (!selection || selection.rangeCount === 0 || !editor.contains(selection.anchorNode)) {
-    editor.appendChild(document.createTextNode(text));
-    return;
-  }
-
-  const range = selection.getRangeAt(0);
-  range.deleteContents();
-  range.insertNode(document.createTextNode(text));
-  range.collapse(false);
-  selection.removeAllRanges();
-  selection.addRange(range);
-}
-
 function groupVariables(options: GuestMessageVariableOption[]) {
   return options.reduce<Record<string, GuestMessageVariableOption[]>>((groups, option) => {
     groups[option.group] = groups[option.group] ?? [];
@@ -78,7 +45,7 @@ function labelForMissingVariable(key: string, options: GuestMessageVariableOptio
 }
 
 export function GuestTab({ data, slug, onSave, isSaving, onDirty, step, totalSteps }: GuestTabProps) {
-  const editorRef = useRef<HTMLDivElement>(null);
+  const editorRef = useRef<GuestTemplateEditorHandle>(null);
   const [defaultGuest, setDefaultGuest] = useState(data?.defaultGuest ?? '');
   const [templateError, setTemplateError] = useState('');
   const [greetingTemplate, setGreetingTemplate] = useState(
@@ -109,10 +76,6 @@ export function GuestTab({ data, slug, onSave, isSaving, onDirty, step, totalSte
     [invitationUrl, sampleGuestName, weddingForVariables],
   );
 
-  const optionByKey = useMemo(() => {
-    return new Map(variableOptions.map(option => [canonicalizeGuestMessageVariableKey(option.key), option]));
-  }, [variableOptions]);
-
   const groupedVariables = useMemo(() => groupVariables(variableOptions), [variableOptions]);
   const validation = useMemo(() => validateGuestMessageTemplate(greetingTemplate, variableOptions), [greetingTemplate, variableOptions]);
   const previewText = replaceGuestMessageVariables(
@@ -124,23 +87,12 @@ export function GuestTab({ data, slug, onSave, isSaving, onDirty, step, totalSte
     }),
   );
 
-  const syncTemplateFromEditor = () => {
-    if (!editorRef.current) return;
-    const nextTemplate = normalizeGuestMessageTemplate(serializeMessageEditor(editorRef.current)).slice(0, MAX_TEMPLATE_LENGTH);
-    setGreetingTemplate(nextTemplate);
-    setTemplateError('');
-    onDirty?.();
-  };
-
   const insertVariable = (variableKey: string) => {
     const tokenText = `{${variableKey}}`;
-    if (editorRef.current) {
-      insertTextAtCursor(editorRef.current, tokenText);
-      syncTemplateFromEditor();
-      return;
+    editorRef.current?.insertVariable(variableKey);
+    if (!editorRef.current) {
+      setGreetingTemplate((prev) => normalizeGuestMessageTemplate(`${prev}${prev.endsWith('\n') || prev.endsWith(' ') || !prev ? '' : ' '}${tokenText}`));
     }
-
-    setGreetingTemplate((prev) => normalizeGuestMessageTemplate(`${prev}${prev.endsWith('\n') || prev.endsWith(' ') || !prev ? '' : ' '}${tokenText}`));
     setTemplateError('');
     onDirty?.();
   };
@@ -156,7 +108,7 @@ export function GuestTab({ data, slug, onSave, isSaving, onDirty, step, totalSte
     }
 
     if (!nextValidation.isValid) {
-      setTemplateError('Perbaiki variable pesan sebelum menyimpan.');
+      setTemplateError('Perbaiki data otomatis pada pesan sebelum menyimpan.');
       return;
     }
 
@@ -164,52 +116,17 @@ export function GuestTab({ data, slug, onSave, isSaving, onDirty, step, totalSte
     onSave({ greetingTemplate: normalizedTemplate, defaultGuest: defaultGuest.trim() });
   };
 
-  const renderTemplateParts = () => {
-    const parts: ReactNode[] = [];
-    const tokenPattern = /\{([^{}]+)\}/g;
-    let lastIndex = 0;
-    let partIndex = 0;
-    let match: RegExpExecArray | null;
-
-    while ((match = tokenPattern.exec(greetingTemplate)) !== null) {
-      if (match.index > lastIndex) parts.push(greetingTemplate.slice(lastIndex, match.index));
-
-      const canonicalKey = canonicalizeGuestMessageVariableKey(match[1]);
-      const option = optionByKey.get(canonicalKey);
-      if (option) {
-        parts.push(
-          <span
-            key={`${option.key}-${partIndex}`}
-            contentEditable={false}
-            data-variable-key={option.key}
-            className="mx-0.5 inline-flex align-baseline rounded-full bg-gold px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-ivory shadow-sm"
-          >
-            {option.label}
-          </span>,
-        );
-      } else {
-        parts.push(match[0]);
-      }
-
-      lastIndex = tokenPattern.lastIndex;
-      partIndex += 1;
-    }
-
-    if (lastIndex < greetingTemplate.length) parts.push(greetingTemplate.slice(lastIndex));
-    return parts;
-  };
-
   const renderValidationMessages = validation.isValid && greetingTemplate.length <= MAX_TEMPLATE_LENGTH ? null : (
     <div className="rounded-xl border border-red-100 bg-red-50/50 px-3 py-2 text-[10px] leading-relaxed text-red-600">
       {templateError && <p className="font-bold">{templateError}</p>}
       {validation.missingRequired.length > 0 && (
-        <p>Variable wajib belum lengkap: {validation.missingRequired.map(key => labelForMissingVariable(key, variableOptions)).join(', ')}.</p>
+        <p>Data wajib belum dimasukkan: {validation.missingRequired.map(key => labelForMissingVariable(key, variableOptions)).join(', ')}.</p>
       )}
       {validation.unknownPlaceholders.length > 0 && (
-        <p>Placeholder tidak dikenal: {validation.unknownPlaceholders.map(key => `{${key}}`).join(', ')}.</p>
+        <p>Ada data otomatis yang tidak dikenali: {validation.unknownPlaceholders.map(key => `{${key}}`).join(', ')}.</p>
       )}
       {validation.brokenFragments.length > 0 && (
-        <p>Placeholder belum utuh: {validation.brokenFragments.join(', ')}.</p>
+        <p>Ada format data otomatis yang rusak. Hapus lalu sisipkan ulang dari tombol data otomatis: {validation.brokenFragments.join(', ')}.</p>
       )}
       {greetingTemplate.length > MAX_TEMPLATE_LENGTH && (
         <p>Template terlalu panjang. Maksimal {MAX_TEMPLATE_LENGTH} karakter.</p>
@@ -219,37 +136,18 @@ export function GuestTab({ data, slug, onSave, isSaving, onDirty, step, totalSte
 
   return (
     <form onSubmit={handleSaveTemplate} className="space-y-4">
-      {/* Default guest name card */}
-      <div className="bg-white rounded-2xl border border-gold/10 shadow-sm overflow-hidden">
-        <div className="border-l-4 border-gold px-4 py-3 bg-gold/[0.03]">
-          <h3 className="font-base text-[13px] text-ink">Nama Tamu Default</h3>
-        </div>
-        <div className="p-4">
-          <label htmlFor="default-guest" className="text-[11px] text-ink/80 font-medium block mb-1.5">
-            Dipakai untuk preview dan tautan undangan tanpa parameter nama tamu.
-          </label>
-          <input
-            id="default-guest"
-            value={defaultGuest}
-            onChange={(e) => { setDefaultGuest(e.target.value); onDirty?.(); }}
-            placeholder="Contoh: Tamu Undangan"
-            maxLength={50}
-            className="w-full px-3 py-2.5 border border-gold/20 rounded-xl text-sm bg-white focus:outline-none focus:border-gold/50 transition-colors"
-          />
-        </div>
-      </div>
-
       {/* Greeting Template card */}
       <div className="bg-white rounded-2xl border border-gold/10 shadow-sm overflow-hidden">
         <div className="border-l-4 border-gold px-4 py-3 bg-gold/[0.03]">
-          <h3 className="font-base text-[13px] text-ink">Template WhatsApp</h3>
+          <h3 className="font-base text-[13px] text-ink">Pesan Undangan WhatsApp</h3>
         </div>
         <div className="p-4 space-y-3">
           <p className="text-[11px] leading-relaxed text-ink/80">
-            Template ini digunakan saat mengirim undangan dari tab Tamu. Sisipkan variable dari tombol di bawah agar nama, link, dan detail acara tidak salah format.
+            Tulis isi pesan yang akan dikirim ke tamu melalui WhatsApp. Gunakan tombol data otomatis agar nama tamu, link undangan, dan detail acara terisi sendiri.
           </p>
 
           <div className="space-y-2">
+            <p className="text-[10px] font-black uppercase tracking-widest text-gold">Sisipkan Data Otomatis</p>
             {Object.entries(groupedVariables).map(([group, options]) => (
               <details key={group} open={group === 'Tamu' || group === 'Pengantin'} className="rounded-xl border border-gold/10 bg-ivory/30 px-3 py-2">
                 <summary className="cursor-pointer text-[10px] font-black uppercase tracking-widest text-gold">
@@ -271,31 +169,17 @@ export function GuestTab({ data, slug, onSave, isSaving, onDirty, step, totalSte
             ))}
           </div>
 
-          <div
+          <GuestTemplateEditor
             ref={editorRef}
-            contentEditable
-            suppressContentEditableWarning
-            role="textbox"
-            aria-label="Template pesan undangan"
-            tabIndex={0}
-            onInput={syncTemplateFromEditor}
-            onBlur={syncTemplateFromEditor}
-            onKeyDown={(e) => {
-              if (e.key !== 'Enter' || !editorRef.current) return;
-              e.preventDefault();
-              insertTextAtCursor(editorRef.current, '\n');
-              syncTemplateFromEditor();
+            value={greetingTemplate}
+            variableOptions={variableOptions}
+            maxLength={MAX_TEMPLATE_LENGTH}
+            onChange={(nextValue) => {
+              setGreetingTemplate(normalizeGuestMessageTemplate(nextValue).slice(0, MAX_TEMPLATE_LENGTH));
+              setTemplateError('');
             }}
-            onPaste={(e) => {
-              if (!editorRef.current) return;
-              e.preventDefault();
-              insertTextAtCursor(editorRef.current, e.clipboardData.getData('text/plain'));
-              syncTemplateFromEditor();
-            }}
-            className="min-h-[240px] w-full whitespace-pre-wrap break-words rounded-xl border border-gold/20 bg-white px-3 py-2.5 font-mono text-xs leading-relaxed text-ink focus:border-gold/50 focus:outline-none"
-          >
-            {renderTemplateParts()}
-          </div>
+            onDirty={onDirty}
+          />
 
           <p className={`text-[9px] text-right ${greetingTemplate.length > MAX_TEMPLATE_LENGTH ? 'text-red-500' : 'text-gold'}`}>
             {greetingTemplate.length}/{MAX_TEMPLATE_LENGTH}
@@ -306,13 +190,32 @@ export function GuestTab({ data, slug, onSave, isSaving, onDirty, step, totalSte
           {/* Preview */}
           <details className="border border-gold/10 rounded-xl overflow-hidden">
             <summary className="px-4 py-2.5 text-[10px] uppercase tracking-widest text-gold font-black cursor-pointer hover:bg-gold/5 transition-colors">
-              Contoh Pesan dari Tab Tamu
+              Lihat Contoh Pesan
             </summary>
             <div className="px-4 py-3 bg-paper/50 border-t border-gold/5">
-              <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-ink/60">Untuk: {sampleGuestName}</p>
+              <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-ink/60">Contoh untuk: {sampleGuestName}</p>
               <p className="text-xs text-ink/80 whitespace-pre-line leading-relaxed break-words">{previewText}</p>
             </div>
           </details>
+
+          <div className="rounded-xl border border-gold/10 bg-ivory/30 overflow-hidden">
+            <div className="border-l-4 border-gold px-3 py-2 bg-gold/[0.03]">
+              <h3 className="font-base text-[13px] text-ink">Nama Contoh untuk Preview</h3>
+            </div>
+            <div className="p-3">
+              <label htmlFor="default-guest" className="text-[11px] text-ink/80 font-medium block mb-1.5">
+                Nama ini hanya dipakai untuk menampilkan contoh pesan dan contoh link undangan. Nama tamu asli tetap diambil dari menu Tamu.
+              </label>
+              <input
+                id="default-guest"
+                value={defaultGuest}
+                onChange={(e) => { setDefaultGuest(e.target.value); onDirty?.(); }}
+                placeholder="Contoh: Mas Raju"
+                maxLength={50}
+                className="w-full px-3 py-2.5 border border-gold/20 rounded-xl text-sm bg-white focus:outline-none focus:border-gold/50 transition-colors"
+              />
+            </div>
+          </div>
         </div>
       </div>
 

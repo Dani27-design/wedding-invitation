@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { getGuests, getGuestPage, getGuestCounts, addGuest, updateGuest, deleteGuest, addGuestsBatch, markInvitationSent, markInvitationUnsent } from '@/lib/guests';
 import type { GuestPageCursor } from '@/lib/guests';
 import { Guest, WeddingDocument } from '@/types/firestore';
-import { Plus, Search, Trash2, Edit3, MessageCircle, Download, Upload, QrCode, Printer, ChevronLeft, ChevronRight, ChevronDown, X, CheckCircle2, Loader2, MoreHorizontal } from 'lucide-react';
+import { Plus, Search, Trash2, Edit3, MessageCircle, Download, Upload, QrCode, Printer, ChevronLeft, ChevronRight, ChevronDown, X, CheckCircle2, Loader2, MoreHorizontal, Settings } from 'lucide-react';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { GuestImportModal } from './GuestImportModal';
 import { GuestQRModal } from './GuestQRModal';
@@ -339,19 +339,39 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
     <div className="space-y-3">
       {/* Header actions */}
       <div className="bg-white rounded-xl border border-gold/10 shadow-sm">
-        <div className="border-l-4 border-gold px-3 py-2 bg-gold/[0.03] flex items-center justify-between gap-2">
-          <h3 className="font-base text-[13px] text-ink">Daftar Tamu</h3>
-          <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="px-2.5 py-2 bg-gold/[0.03] flex items-center gap-2">
+          <div className="relative min-w-0 flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink/70" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Cari nama / HP..."
+              aria-label="Cari tamu"
+              className="h-9 w-full rounded-full border border-gold/20 bg-white pl-9 pr-8 text-xs text-ink focus:outline-none focus:border-gold/50"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink/70 hover:text-ink"
+                aria-label="Hapus pencarian"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-1.5 flex-shrink-0">
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setShowToolsMenu(!showToolsMenu)}
-                className="h-8 px-2.5 flex items-center gap-1.5 text-ink/80 hover:text-gold border border-gold/20 rounded-full text-[10px] uppercase font-black tracking-wider transition-colors"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-gold/20 bg-white text-ink/80 transition-colors hover:text-gold"
                 aria-label="Tools tamu"
                 aria-expanded={showToolsMenu}
+                title="Tools tamu"
               >
-                Tools
-                <ChevronDown className={`w-3 h-3 transition-transform ${showToolsMenu ? 'rotate-180' : ''}`} />
+                <Settings className={`w-4 h-4 transition-transform ${showToolsMenu ? 'rotate-45' : ''}`} />
               </button>
               {showToolsMenu && (
                 <>
@@ -388,34 +408,18 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
               )}
             </div>
             <button
+              type="button"
               onClick={openAddForm}
-              className="h-8 flex items-center gap-1 px-3 bg-gold text-ivory rounded-full text-[10px] uppercase tracking-[0.12em] font-black shadow-sm hover:scale-105 transition-transform"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-gold text-ivory shadow-sm transition-transform hover:scale-105"
+              aria-label="Tambah tamu"
+              title="Tambah tamu"
             >
-              <Plus className="w-3 h-3" />
-              Tambah
+              <Plus className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        <div className="px-2.5 py-2.5 space-y-2">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink/80" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari nama / HP..."
-              aria-label="Cari tamu"
-              className="w-full pl-9 pr-8 py-1.5 border border-gold/20 rounded-full text-xs bg-white focus:outline-none focus:border-gold/50"
-            />
-            {searchQuery && (
-              <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink/80 hover:text-ink" aria-label="Hapus pencarian">
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
-
+        <div className="px-2.5 py-2 space-y-2">
           {/* Filters */}
           <div className="flex items-center gap-2">
             <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto no-scrollbar">

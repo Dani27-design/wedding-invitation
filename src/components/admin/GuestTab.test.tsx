@@ -63,13 +63,38 @@ function createWedding(overrides: Partial<WeddingDocument> = {}): WeddingDocumen
 }
 
 describe('GuestTab', () => {
-  it('renders descriptive variables as atomic editor tokens', () => {
-    render(<GuestTab data={createWedding({ greetingTemplate: 'Halo {nama}\nBuka {link}' })} slug="dani-marini" onSave={vi.fn()} />);
+  it('renders descriptive variables as atomic editor chips', () => {
+    const { container } = render(<GuestTab data={createWedding({ greetingTemplate: 'Halo {nama}\nBuka {link}' })} slug="dani-marini" onSave={vi.fn()} />);
+
+    expect(screen.getByText('Pesan Undangan WhatsApp')).toBeInTheDocument();
+    expect(screen.getByText('Sisipkan Data Otomatis')).toBeInTheDocument();
+    expect(screen.getByText('Nama Contoh untuk Preview')).toBeInTheDocument();
+    expect(screen.getByText(/Nama tamu asli tetap diambil dari menu Tamu/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Contoh: Mas Raju')).toBeInTheDocument();
+    expect(screen.queryByText('Nama Tamu Default')).not.toBeInTheDocument();
+    const editor = screen.getByRole('textbox', { name: 'Template pesan undangan' });
+    expect(editor).toHaveTextContent('Halo Nama tamu');
+    expect(editor).toHaveTextContent('Buka Link undangan');
+
+    const nameToken = container.querySelector('[data-variable-key="nama tamu"]');
+    const linkToken = container.querySelector('[data-variable-key="link undangan"]');
+    expect(nameToken).toBeInTheDocument();
+    expect(nameToken).toHaveTextContent('Nama tamu');
+    expect(nameToken).toHaveAttribute('contenteditable', 'false');
+    expect(nameToken?.className).toContain('rounded-full');
+    expect(nameToken?.className).toContain('bg-gold/10');
+    expect(linkToken).toBeInTheDocument();
+  });
+
+  it('uses native contenteditable text rendering for caret precision', () => {
+    const { container } = render(<GuestTab data={createWedding({ greetingTemplate: 'Halo {nama tamu}' })} slug="dani-marini" onSave={vi.fn()} />);
 
     const editor = screen.getByRole('textbox', { name: 'Template pesan undangan' });
-    expect(editor.querySelector('[data-variable-key="nama tamu"]')).toBeInTheDocument();
-    expect(editor.querySelector('[data-variable-key="link undangan"]')).toBeInTheDocument();
-    expect(editor.querySelector('[data-variable-key="nama"]')).not.toBeInTheDocument();
+    expect(editor.className).toContain('text-ink');
+    expect(editor.className).not.toContain('text-transparent');
+
+    expect(container.querySelector('[data-lexical-editor="true"]')).toBe(editor);
+    expect(container.querySelector('[data-variable-key="nama tamu"]')).toHaveAttribute('contenteditable', 'false');
   });
 
   it('saves a valid template with descriptive placeholders', () => {
@@ -87,10 +112,13 @@ describe('GuestTab', () => {
 
   it('inserts dynamic ceremony variables from the variable picker', async () => {
     const onSave = vi.fn();
-    render(<GuestTab data={createWedding()} slug="dani-marini" onSave={onSave} />);
+    const { container } = render(<GuestTab data={createWedding()} slug="dani-marini" onSave={onSave} />);
 
     fireEvent.click(screen.getByText('Akad Nikah'));
     fireEvent.click(screen.getByRole('button', { name: 'Nama Akad Nikah' }));
+    await waitFor(() => {
+      expect(container.querySelector('[data-variable-key="nama acara 1"]')).toBeInTheDocument();
+    });
     fireEvent.submit(screen.getByRole('button', { name: 'Simpan & Lanjutkan' }).closest('form')!);
 
     await waitFor(() => {
@@ -99,12 +127,37 @@ describe('GuestTab', () => {
     expect(onSave.mock.calls[0][0].greetingTemplate).toContain('{nama acara 1}');
   });
 
+  it('inserts a variable once without duplicating template text', async () => {
+    const onSave = vi.fn();
+    const { container } = render(<GuestTab data={createWedding()} slug="dani-marini" onSave={onSave} />);
+
+    const editor = screen.getByRole('textbox', { name: 'Template pesan undangan' });
+    fireEvent.focus(editor);
+    fireEvent.click(screen.getByRole('button', { name: 'Nama tamu' }));
+    await waitFor(() => {
+      expect(container.querySelectorAll('[data-variable-key="nama tamu"]').length).toBe(2);
+    });
+    fireEvent.submit(screen.getByRole('button', { name: 'Simpan & Lanjutkan' }).closest('form')!);
+
+    await waitFor(() => {
+      expect(onSave).toHaveBeenCalled();
+    });
+
+    const saved = onSave.mock.calls[0][0].greetingTemplate as string;
+    expect(saved.match(/\{nama tamu\}/g)?.length).toBe(2);
+    expect(saved).not.toContain('NAMA TAMU');
+  });
+
   it('shows a preview using wedding and ceremony data', () => {
     render(<GuestTab data={createWedding()} slug="dani-marini" onSave={vi.fn()} />);
 
-    fireEvent.click(screen.getByText('Contoh Pesan dari Tab Tamu'));
+    const previewToggle = screen.getByText('Lihat Contoh Pesan');
+    const sampleNameHeading = screen.getByText('Nama Contoh untuk Preview');
+    expect(previewToggle.compareDocumentPosition(sampleNameHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 
-    expect(screen.getByText('Untuk: Mas Raju')).toBeInTheDocument();
+    fireEvent.click(previewToggle);
+
+    expect(screen.getByText('Contoh untuk: Mas Raju')).toBeInTheDocument();
     expect(screen.getByText((content) => content.includes('Daniansyah C.'))).toBeInTheDocument();
     expect(screen.getByText((content) => content.includes('Siti Nur Marini'))).toBeInTheDocument();
     expect(screen.getByText((content) => content.includes('18 September 2026'))).toBeInTheDocument();
@@ -118,7 +171,19 @@ describe('GuestTab', () => {
     fireEvent.submit(screen.getByRole('button', { name: 'Simpan & Lanjutkan' }).closest('form')!);
 
     await waitFor(() => {
-      expect(screen.getByText(/Placeholder belum utuh/i)).toBeInTheDocument();
+      expect(screen.getByText(/Ada format data otomatis yang rusak/i)).toBeInTheDocument();
+    });
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
+  it('blocks saving when the template editor content is empty', async () => {
+    const onSave = vi.fn();
+    render(<GuestTab data={createWedding({ greetingTemplate: '' })} slug="dani-marini" onSave={onSave} />);
+
+    fireEvent.submit(screen.getByRole('button', { name: 'Simpan & Lanjutkan' }).closest('form')!);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Data wajib belum dimasukkan/i)).toBeInTheDocument();
     });
     expect(onSave).not.toHaveBeenCalled();
   });

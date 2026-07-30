@@ -129,6 +129,9 @@ describe('GuestListTab', () => {
     render(<GuestListTab slug="dani-marini" wedding={wedding} />);
 
     await screen.findByText('Budi Santoso');
+    expect(screen.queryByText('Daftar Tamu')).not.toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Cari tamu' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Tambah tamu' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Tools tamu' }));
 
     expect(screen.getByRole('button', { name: /Import/i })).toBeInTheDocument();

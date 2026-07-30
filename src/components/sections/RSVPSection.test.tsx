@@ -66,6 +66,11 @@ describe('RSVPSection', () => {
       expect(screen.getAllByText('Ucapan & Doa')[0]).toBeInTheDocument();
     });
 
+    it('shows the received wishes description when wishes exist', () => {
+      const { container } = renderWithProps();
+      expect(container.textContent).toContain(`Di antara ${SEED_WISHES.length} doa yang kami terima di sini`);
+    });
+
     it('title has uppercase tracking styling', () => {
       renderWithProps();
       // Both layouts render the title; pick the first occurrence
@@ -181,6 +186,11 @@ describe('RSVPSection', () => {
       renderWithProps({ wishes: [], currentWishes: [], totalPages: 0 });
       // Both mobile and desktop layouts render the empty state text
       expect(screen.getAllByText('Ruang ini masih menunggu cerita pertama.')[0]).toBeInTheDocument();
+    });
+
+    it('does not show a zero-wish description in the header', () => {
+      const { container } = renderWithProps({ wishes: [], currentWishes: [], totalPages: 0 });
+      expect(container.textContent).not.toContain('Di antara 0 doa yang kami terima di sini');
     });
 
     it('empty state text has serif italic font', () => {

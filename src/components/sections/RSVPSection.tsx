@@ -43,10 +43,12 @@ export const RSVPSection = memo(({
         <p className="text-xs uppercase tracking-[0.4em] text-gold-contrast font-black mb-2">
           Ucapan & Doa
         </p>
-        <p className="font-serif italic text-[13px] leading-relaxed text-ink/70 max-w-[300px] mx-auto">
-          Di antara {wishes.length} doa yang kami terima di sini, setiap satunya
-          akan kami bawa sebagai bagian dari langkah kami ke depan.
-        </p>
+        {wishes.length > 0 && (
+          <p className="font-serif italic text-[13px] leading-relaxed text-ink/70 max-w-[300px] mx-auto">
+            Di antara {wishes.length} doa yang kami terima di sini, setiap satunya
+            akan kami bawa sebagai bagian dari langkah kami ke depan.
+          </p>
+        )}
       </motion.div>
 
       <motion.div
@@ -174,10 +176,12 @@ export const RSVPSection = memo(({
           <p className="text-xs uppercase tracking-[0.4em] text-gold-contrast font-black mb-3">
             Ucapan & Doa
           </p>
-          <p className="font-serif italic text-sm leading-relaxed text-ink/70 mb-6">
-            Di antara {wishes.length} doa yang kami terima di sini, setiap satunya
-            akan kami bawa sebagai bagian dari langkah kami ke depan.
-          </p>
+          {wishes.length > 0 && (
+            <p className="font-serif italic text-sm leading-relaxed text-ink/70 mb-6">
+              Di antara {wishes.length} doa yang kami terima di sini, setiap satunya
+              akan kami bawa sebagai bagian dari langkah kami ke depan.
+            </p>
+          )}
           <motion.button
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}

@@ -10,12 +10,12 @@ import {
   Suspense,
   FormEvent,
 } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { AnimatePresence } from 'motion/react';
 import { BackgroundLayers } from '@/components/ui/BackgroundLayers';
 import { SectionErrorBoundary } from '@/components/ui/SectionErrorBoundary';
 import { CinematicOpening } from '@/components/sections/CinematicOpening';
 import { InvitationProductTour } from '@/components/features/InvitationProductTour';
+import { PersonalizedGuestName } from '@/components/features/PersonalizedGuestName';
 import { HeroSection } from '@/components/sections/HeroSection';
 import { CoupleSection } from '@/components/sections/CoupleSection';
 import { useWishes } from '@/hooks/useWishes';
@@ -93,17 +93,11 @@ interface WeddingClientProps {
 }
 
 export function WeddingClient({ wedding, slug }: WeddingClientProps) {
-  const searchParams = useSearchParams();
   const isOnline = useNetworkStatus();
   const [isOpen, setIsOpen] = useState(false);
   const { wishes, isLoading: isWishesLoading } = useWishes(slug, isOpen);
-  const [guestName] = useState(() => {
-    const to = searchParams.get('to');
-    if (to) {
-      try { return decodeURIComponent(to).replace(/-/g, ' ').slice(0, 100); } catch { /* malformed URI */ }
-    }
-    return wedding.defaultGuest ?? '';
-  });
+  const fallbackGuestName = wedding.defaultGuest ?? '';
+  const [guestName, setGuestName] = useState(fallbackGuestName);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isRSVPModalOpen, setIsRSVPModalOpen] = useState(false);
   const [isToolsOpen, setIsToolsOpen] = useState(false);
@@ -302,6 +296,12 @@ export function WeddingClient({ wedding, slug }: WeddingClientProps) {
   return (
     <WeddingContext.Provider value={wedding}>
       <div className="min-h-screen bg-ivory text-ink selection:bg-gold/20 font-sans overflow-x-hidden">
+        <Suspense fallback={null}>
+          <PersonalizedGuestName
+            fallbackGuestName={fallbackGuestName}
+            onGuestNameChange={setGuestName}
+          />
+        </Suspense>
         <BackgroundLayers />
         {wedding.musicUrl && (
           <audio

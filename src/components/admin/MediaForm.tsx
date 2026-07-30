@@ -245,14 +245,14 @@ export function MediaForm({ data, onSave, isSaving, onDirty, step, totalSteps }:
         <div className="p-4 space-y-4">
           <div>
             <label htmlFor="quran-arabic" className="text-[11px] text-ink/80 font-medium block mb-1.5">Teks Asli</label>
-            <textarea id="quran-arabic" value={quranArabic} onChange={(e) => { setQuranArabic(e.target.value); onDirty?.(); }} placeholder="Ayat Arab, Alkitab, Weda, atau bahasa lain" rows={2} maxLength={500} className={`${inputClass} resize-none`} dir="auto" />
+            <textarea id="quran-arabic" value={quranArabic} onChange={(e) => { setQuranArabic(e.target.value); onDirty?.(); }} placeholder="Ayat Arab, Alkitab, Weda, atau bahasa lain" rows={4} maxLength={500} className={`${inputClass} resize-y`} dir="auto" />
             {quranArabic.length > 350 && (
               <p className={`text-[9px] text-right mt-0.5 ${quranArabic.length >= 500 ? 'text-red-500' : 'text-gold'}`}>{quranArabic.length}/500</p>
             )}
           </div>
           <div>
             <label htmlFor="quran-translation" className="text-[11px] text-ink/80 font-medium block mb-1.5">Terjemahan</label>
-            <textarea id="quran-translation" value={quranTranslation} onChange={(e) => { setQuranTranslation(e.target.value); onDirty?.(); }} placeholder="Terjemahan atau arti" rows={2} maxLength={500} className={`${inputClass} resize-none`} />
+            <textarea id="quran-translation" value={quranTranslation} onChange={(e) => { setQuranTranslation(e.target.value); onDirty?.(); }} placeholder="Terjemahan atau arti" rows={4} maxLength={500} className={`${inputClass} resize-y`} />
             {quranTranslation.length > 350 && (
               <p className={`text-[9px] text-right mt-0.5 ${quranTranslation.length >= 500 ? 'text-red-500' : 'text-gold'}`}>{quranTranslation.length}/500</p>
             )}

@@ -49,8 +49,8 @@ export const EventSection = memo(() => {
     {/* Mobile */}
     <div className="lg:hidden container mx-auto px-6 max-w-lg relative z-10 flex flex-col items-center text-center gap-[3vh]">
         <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 1.2, delay: 0.2 }} className="max-w-[300px]">
-          <p className="font-serif text-sm leading-relaxed text-gold mb-1 break-words" dir="rtl">{wedding?.quranArabic}</p>
-          <p className="font-serif italic text-xs leading-relaxed text-ink/60 mt-1 break-words">"{wedding?.quranTranslation}"</p>
+          <p className="font-serif text-sm leading-relaxed text-gold mb-1 break-words whitespace-pre-line" dir="auto">{wedding?.quranArabic}</p>
+          <p className="font-serif italic text-xs leading-relaxed text-ink/60 mt-1 break-words whitespace-pre-line">"{wedding?.quranTranslation}"</p>
           <p className="text-xs uppercase tracking-[0.3em] text-gold/60 mt-1 font-medium">{wedding?.quranReference}</p>
         </motion.div>
 
@@ -107,8 +107,8 @@ export const EventSection = memo(() => {
         {/* Left: quote + countdown */}
         <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }} className="flex-[1.2] text-left">
           <div className="max-w-md">
-            <p className="font-serif text-base leading-relaxed text-gold mb-1 break-words" dir="rtl">{wedding?.quranArabic}</p>
-            <p className="font-serif italic text-sm leading-relaxed text-ink/60 mt-2">"{wedding?.quranTranslation}"</p>
+            <p className="font-serif text-base leading-relaxed text-gold mb-1 break-words whitespace-pre-line" dir="auto">{wedding?.quranArabic}</p>
+            <p className="font-serif italic text-sm leading-relaxed text-ink/60 mt-2 whitespace-pre-line break-words">"{wedding?.quranTranslation}"</p>
             <p className="text-xs uppercase tracking-[0.3em] text-gold/60 mt-2 font-medium">{wedding?.quranReference}</p>
           </div>
 

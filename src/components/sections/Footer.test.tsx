@@ -1,8 +1,8 @@
-import { describe, it, expect, vi } from 'vitest';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 
-vi.mock('../../context/WeddingContext', () => ({
-  useWeddingContext: () => ({
+const weddingContextMock = vi.hoisted(() => {
+  const defaultWedding = {
     credits: [
       { name: 'M. Daniansyah C.', role: 'developer', description: 'Menulis setiap baris code di balik halaman ini, merangkainya satu per satu sampai akhirnya bisa bercerita tentang kami.' },
       { name: 'Siti Nur Marini', role: 'designer', description: 'Memperindah setiap bagian di balik halaman ini, menyusunnya satu per satu sampai akhirnya benar-benar terasa seperti kami.' },
@@ -18,16 +18,34 @@ vi.mock('../../context/WeddingContext', () => ({
       { label: 'WhatsApp', url: '628883816403' },
     ],
     eventDate: '2026-08-29',
-  }),
+  };
+
+  return {
+    currentWedding: defaultWedding,
+    defaultWedding,
+  };
+});
+
+vi.mock('../../context/WeddingContext', () => ({
+  useWeddingContext: () => weddingContextMock.currentWedding,
 }));
 
 import { Footer } from './Footer';
 
-function renderFooter() {
+function renderFooter(overrides: Partial<typeof weddingContextMock.defaultWedding> = {}) {
+  weddingContextMock.currentWedding = {
+    ...weddingContextMock.defaultWedding,
+    ...overrides,
+  };
+
   return render(<Footer />);
 }
 
 describe('Footer', () => {
+  beforeEach(() => {
+    weddingContextMock.currentWedding = weddingContextMock.defaultWedding;
+  });
+
   // ─── Basic Rendering ───────────────────────────────────────────────
   describe('rendering', () => {
     it('renders without crashing', () => {
@@ -170,6 +188,19 @@ describe('Footer', () => {
       const desc = screen.getByText(/Menulis setiap baris code/);
       expect(desc.className).toContain('text-xs');
       expect(desc.className).toContain('text-ink/70');
+    });
+
+    it('does not render the credit grid when credits are empty', () => {
+      const { container } = renderFooter({ credits: [] });
+      expect(container.querySelector('.grid.grid-cols-2')).not.toBeInTheDocument();
+      expect(screen.queryByText('M. Daniansyah C.')).not.toBeInTheDocument();
+      expect(screen.queryByText('Siti Nur Marini')).not.toBeInTheDocument();
+    });
+
+    it('keeps copyright and vendor badge visible when credits are empty', () => {
+      renderFooter({ credits: [] });
+      expect(screen.getByText(/Kami membangunnya bersama/)).toBeInTheDocument();
+      expect(screen.getByText('Dibuat dengan Marinikah Invitation')).toBeInTheDocument();
     });
   });
 

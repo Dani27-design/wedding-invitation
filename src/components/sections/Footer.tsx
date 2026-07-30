@@ -34,6 +34,8 @@ const getIcon = (label: string) => {
 
 export const Footer = memo(() => {
   const wedding = useWeddingContext();
+  const credits = wedding?.credits ?? [];
+  const hasCredits = credits.length > 0;
 
   const creditSocials = wedding ? [
     (wedding.groomSocialLinks || []).map(l => ({ href: l.label === 'WhatsApp' ? deriveWhatsappUrl(l.url) : safeUrl(l.url), Icon: getIcon(l.label) || Globe, label: l.label })),
@@ -49,23 +51,25 @@ export const Footer = memo(() => {
           <p className="text-sm leading-relaxed text-ink/70 font-serif italic">Sebuah Cerita dari Perjalanan yang Kami Jalani dan Bangun Bersama, Dengan Keyakinan yang Sama</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-[1vh] mb-[2vh]">
-          {wedding?.credits.map((credit, i) => {
-            const RoleIcon = ROLE_ICONS[credit.role] ?? Heart;
-            return (
-              <div key={credit.name} className="p-2 md:p-3 rounded-[1.5rem] md:rounded-[2.5rem] bg-paper/50 border border-gold/5 flex flex-col items-center justify-evenly">
-                <div className="w-8 h-8 md:w-12 md:h-12 rounded-full bg-gold/5 flex items-center justify-center mb-1 md:mb-2 text-gold/70"><RoleIcon className="w-4 h-4 md:w-5 md:h-5" /></div>
-                <h3 className="font-serif italic text-lg text-ink mb-1 break-words md:mb-2">{credit.name}</h3>
-                <p className="font-serif text-xs text-ink/70 leading-relaxed mb-1 md:mb-2 max-w-[240px]">{credit.description}</p>
-                <div className="flex gap-4 opacity-30 hover:opacity-100 transition-opacity">
-                  {creditSocials[i]?.map(({ href, Icon, label }, idx) => (
-                    <SocialLink key={idx} href={href} label={label}><Icon className="w-4 h-4" /></SocialLink>
-                  ))}
+        {hasCredits && (
+          <div className="grid grid-cols-2 gap-[1vh] mb-[2vh]">
+            {credits.map((credit, i) => {
+              const RoleIcon = ROLE_ICONS[credit.role] ?? Heart;
+              return (
+                <div key={credit.name} className="p-2 md:p-3 rounded-[1.5rem] md:rounded-[2.5rem] bg-paper/50 border border-gold/5 flex flex-col items-center justify-evenly">
+                  <div className="w-8 h-8 md:w-12 md:h-12 rounded-full bg-gold/5 flex items-center justify-center mb-1 md:mb-2 text-gold/70"><RoleIcon className="w-4 h-4 md:w-5 md:h-5" /></div>
+                  <h3 className="font-serif italic text-lg text-ink mb-1 break-words md:mb-2">{credit.name}</h3>
+                  <p className="font-serif text-xs text-ink/70 leading-relaxed mb-1 md:mb-2 max-w-[240px]">{credit.description}</p>
+                  <div className="flex gap-4 opacity-30 hover:opacity-100 transition-opacity">
+                    {creditSocials[i]?.map(({ href, Icon, label }, idx) => (
+                      <SocialLink key={idx} href={href} label={label}><Icon className="w-4 h-4" /></SocialLink>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
 
         <div>
           <div className="flex justify-center items-center mb-1"><Heart className="w-3 h-3 text-gold fill-gold" /></div>

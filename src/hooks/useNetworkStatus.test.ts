@@ -2,7 +2,9 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { act, renderHook } from '@testing-library/react';
 import { useNetworkStatus } from './useNetworkStatus';
 
-function setNavigatorOnline(value: boolean) {
+const OFFLINE_SESSION_KEY = 'marinikah-offline-detected';
+
+function setNavigatorOnline(value: boolean | undefined) {
   Object.defineProperty(navigator, 'onLine', {
     configurable: true,
     value,
@@ -17,6 +19,14 @@ describe('hooks/useNetworkStatus', () => {
   it('returns the current navigator online state', () => {
     setNavigatorOnline(true);
     const { result } = renderHook(() => useNetworkStatus());
+    expect(result.current).toBe(true);
+  });
+
+  it('defaults to online when navigator.onLine is unavailable', () => {
+    setNavigatorOnline(undefined);
+
+    const { result } = renderHook(() => useNetworkStatus());
+
     expect(result.current).toBe(true);
   });
 
@@ -44,7 +54,7 @@ describe('hooks/useNetworkStatus', () => {
     expect(result.current).toBe(true);
   });
 
-  it('keeps offline state across remounts until an online event clears it', () => {
+  it('clears stale offline state on remount when the browser is online', () => {
     setNavigatorOnline(true);
     const first = renderHook(() => useNetworkStatus());
 
@@ -58,12 +68,7 @@ describe('hooks/useNetworkStatus', () => {
     setNavigatorOnline(true);
     const second = renderHook(() => useNetworkStatus());
 
-    expect(second.result.current).toBe(false);
-
-    act(() => {
-      window.dispatchEvent(new Event('online'));
-    });
-
     expect(second.result.current).toBe(true);
+    expect(sessionStorage.getItem(OFFLINE_SESSION_KEY)).toBeNull();
   });
 });

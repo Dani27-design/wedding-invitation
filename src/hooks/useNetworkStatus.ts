@@ -6,12 +6,14 @@ const OFFLINE_SESSION_KEY = 'marinikah-offline-detected';
 
 function readOnlineStatus() {
   if (typeof navigator === 'undefined') return true;
+  if (typeof navigator.onLine !== 'boolean') return true;
+  if (navigator.onLine) return true;
   try {
     if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem(OFFLINE_SESSION_KEY) === '1') return false;
   } catch {
     /* sessionStorage may be unavailable in restricted browsing contexts. */
   }
-  return navigator.onLine;
+  return false;
 }
 
 function markOffline() {
@@ -34,13 +36,17 @@ export function useNetworkStatus() {
   const [isOnline, setIsOnline] = useState(readOnlineStatus);
 
   useEffect(() => {
-    const updateOnlineStatus = () => setIsOnline(readOnlineStatus());
+    const updateOnlineStatus = () => {
+      const nextIsOnline = readOnlineStatus();
+      if (nextIsOnline) clearOffline();
+      setIsOnline(nextIsOnline);
+    };
     const handleOffline = () => {
       markOffline();
       setIsOnline(false);
     };
     const handleOnline = () => {
-      if (navigator.onLine) clearOffline();
+      if (typeof navigator.onLine !== 'boolean' || navigator.onLine) clearOffline();
       setIsOnline(readOnlineStatus());
     };
 

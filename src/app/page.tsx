@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import NextImage from "next/image";
+import type { LucideIcon } from "lucide-react";
 import {
   Sparkles,
   Globe,
@@ -146,6 +147,21 @@ const jsonLd = {
     url: BASE_URL,
   },
 };
+
+function FeatureCard({ icon: Icon, title, className = "" }: { icon: LucideIcon; title: string; className?: string }) {
+  return (
+    <div
+      className={`flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-white/70 hover:bg-white hover:shadow-md hover:shadow-gold/5 hover:-translate-y-0.5 transition-all duration-300 text-center ${className}`}
+    >
+      <div className="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center">
+        <Icon className="w-3.5 h-3.5 text-gold" />
+      </div>
+      <span className="text-[10px] text-ink/70 leading-tight break-words">
+        {title}
+      </span>
+    </div>
+  );
+}
 
 export default function LandingPage() {
   return (
@@ -472,28 +488,61 @@ export default function LandingPage() {
           </div>
 
           <div className="space-y-8">
-            {FEATURE_GROUPS.map(({ label, items }) => (
-              <div key={label}>
-                <p className="text-xs uppercase tracking-[0.3em] text-gold font-black mb-4">
-                  {label}
-                </p>
-                <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
-                  {items.map(({ icon: Icon, title }) => (
+            {FEATURE_GROUPS.map(({ label, items }, groupIndex) => {
+              const marqueeClass = groupIndex % 2 === 0
+                ? "animate-feature-marquee-left"
+                : "animate-feature-marquee-right";
+
+              return (
+                <div key={label}>
+                  <p className="text-xs uppercase tracking-[0.3em] text-gold font-black mb-4">
+                    {label}
+                  </p>
+
+                  <div className="relative overflow-hidden sm:hidden">
                     <div
-                      key={title}
-                      className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-white/70 hover:bg-white hover:shadow-md hover:shadow-gold/5 hover:-translate-y-0.5 transition-all duration-300 text-center"
+                      className={`feature-marquee-track flex w-max ${marqueeClass}`}
+                      data-feature-marquee={label}
                     >
-                      <div className="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center">
-                        <Icon className="w-3.5 h-3.5 text-gold" />
+                      <div className="flex min-w-max gap-3 pr-3">
+                        {items.map(({ icon, title }) => (
+                          <FeatureCard
+                            key={title}
+                            icon={icon}
+                            title={title}
+                            className="w-[132px] min-h-[132px] flex-shrink-0 justify-center"
+                          />
+                        ))}
                       </div>
-                      <span className="text-[10px] text-ink/70 leading-tight break-words">
-                        {title}
-                      </span>
+                      <div
+                        className="flex min-w-max gap-3 pr-3"
+                        aria-hidden="true"
+                        data-feature-marquee-duplicate="true"
+                      >
+                        {items.map(({ icon, title }) => (
+                          <FeatureCard
+                            key={`${title}-duplicate`}
+                            icon={icon}
+                            title={title}
+                            className="w-[132px] min-h-[132px] flex-shrink-0 justify-center"
+                          />
+                        ))}
+                      </div>
                     </div>
-                  ))}
+                  </div>
+
+                  <div className="hidden sm:grid sm:grid-cols-4 lg:grid-cols-6 gap-2">
+                    {items.map(({ icon: Icon, title }) => (
+                      <FeatureCard
+                        key={title}
+                        icon={Icon}
+                        title={title}
+                      />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>

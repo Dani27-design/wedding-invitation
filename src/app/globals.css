@@ -109,6 +109,37 @@ html, body {
   animation: hero-zoom 20s ease-in-out infinite;
 }
 
+@keyframes feature-marquee-left {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@keyframes feature-marquee-right {
+  from { transform: translateX(-50%); }
+  to { transform: translateX(0); }
+}
+
+.animate-feature-marquee-left {
+  animation: feature-marquee-left 34s linear infinite;
+}
+
+.animate-feature-marquee-right {
+  animation: feature-marquee-right 28s linear infinite;
+}
+
+.feature-marquee-track:hover,
+.feature-marquee-track:focus-within {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-feature-marquee-left,
+  .animate-feature-marquee-right {
+    animation: none;
+    transform: translateX(0);
+  }
+}
+
 .bubble-glow {
   box-shadow: 0 0 12px color-mix(in srgb, var(--color-gold) 15%, transparent);
 }

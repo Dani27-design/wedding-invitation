@@ -49,6 +49,8 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
   const [filterPage, setFilterPage] = useState(0);
 
   const [showPageSizeMenu, setShowPageSizeMenu] = useState(false);
+  const [showToolsMenu, setShowToolsMenu] = useState(false);
+  const [showDeliveryMenu, setShowDeliveryMenu] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingGuest, setEditingGuest] = useState<Guest | null>(null);
   const [formData, setFormData] = useState<GuestFormData>(EMPTY_FORM);
@@ -326,6 +328,11 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
 
   const inputClass = 'w-full px-3 py-2.5 border border-gold/20 rounded-xl text-sm bg-white focus:outline-none focus:border-gold/50 transition-colors';
   const totalCount = counts.pria + counts.wanita;
+  const deliveryFilterLabels = {
+    all: 'Semua Status',
+    unsent: 'Belum Dikirim',
+    sent: 'Terkirim',
+  } as const;
 
   return (
     <div className="space-y-4">
@@ -334,35 +341,54 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
         <div className="border-l-4 border-gold px-4 py-3 bg-gold/[0.03] flex items-center justify-between gap-3">
           <h3 className="font-base text-[13px] text-ink">Daftar Tamu</h3>
           <div className="flex items-center gap-2 flex-shrink-0">
-            <button
-              onClick={() => setShowImport(true)}
-              className="w-8 h-8 flex items-center justify-center text-ink/80 hover:text-gold border border-gold/20 rounded-full transition-colors"
-              aria-label="Import tamu"
-              title="Import tamu"
-            >
-              <Upload className="w-3 h-3" />
-            </button>
-            <button
-              onClick={() => handleExport('xlsx')}
-              disabled={isExporting || totalCount === 0}
-              className="w-8 h-8 flex items-center justify-center text-ink/80 hover:text-gold border border-gold/20 rounded-full transition-colors disabled:opacity-30"
-              aria-label="Export tamu"
-              title="Export tamu"
-            >
-              <Download className="w-3 h-3" />
-            </button>
-            <button
-              onClick={handleBulkPrint}
-              disabled={totalCount === 0}
-              className="w-8 h-8 flex items-center justify-center text-ink/80 hover:text-gold border border-gold/20 rounded-full transition-colors disabled:opacity-30"
-              aria-label="Print semua QR"
-              title="Print semua QR"
-            >
-              <Printer className="w-3 h-3" />
-            </button>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowToolsMenu(!showToolsMenu)}
+                className="h-9 px-3 flex items-center gap-1.5 text-ink/80 hover:text-gold border border-gold/20 rounded-full text-[10px] uppercase font-black tracking-wider transition-colors"
+                aria-label="Tools tamu"
+                aria-expanded={showToolsMenu}
+              >
+                Tools
+                <ChevronDown className={`w-3 h-3 transition-transform ${showToolsMenu ? 'rotate-180' : ''}`} />
+              </button>
+              {showToolsMenu && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setShowToolsMenu(false)} />
+                  <div className="absolute right-0 top-full mt-2 z-20 min-w-[150px] overflow-hidden rounded-xl border border-gold/15 bg-white shadow-lg">
+                    <button
+                      type="button"
+                      onClick={() => { setShowToolsMenu(false); setShowImport(true); }}
+                      className="w-full flex items-center gap-2 px-3 py-2.5 text-left text-xs text-ink/80 hover:bg-ivory transition-colors"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      Import
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setShowToolsMenu(false); handleExport('xlsx'); }}
+                      disabled={isExporting || totalCount === 0}
+                      className="w-full flex items-center gap-2 px-3 py-2.5 text-left text-xs text-ink/80 hover:bg-ivory transition-colors disabled:opacity-30"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      Export
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setShowToolsMenu(false); handleBulkPrint(); }}
+                      disabled={totalCount === 0}
+                      className="w-full flex items-center gap-2 px-3 py-2.5 text-left text-xs text-ink/80 hover:bg-ivory transition-colors disabled:opacity-30"
+                    >
+                      <Printer className="w-3.5 h-3.5" />
+                      Print QR
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
             <button
               onClick={openAddForm}
-              className="flex items-center gap-1 px-3 py-1.5 bg-gold text-ivory rounded-full text-[10px] uppercase tracking-[0.15em] font-black shadow-sm hover:scale-105 transition-transform"
+              className="h-9 flex items-center gap-1 px-4 bg-gold text-ivory rounded-full text-[10px] uppercase tracking-[0.15em] font-black shadow-sm hover:scale-105 transition-transform"
             >
               <Plus className="w-3 h-3" />
               Tambah
@@ -370,7 +396,7 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
           </div>
         </div>
 
-        <div className="px-2 py-1 space-y-3">
+        <div className="px-3 py-3 space-y-3">
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink/80" />
@@ -389,42 +415,59 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
             )}
           </div>
 
-          {/* Filter */}
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-            {(['all', 'pria', 'wanita'] as const).map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setFilterCategory(cat)}
-                className={`px-3 py-2 rounded-full text-[10px] font-black uppercase tracking-normal sm:tracking-wider transition-colors whitespace-nowrap flex-shrink-0 ${
-                  filterCategory === cat
-                    ? 'bg-gold text-ivory'
-                    : 'text-ink/80 border border-gold/15 hover:text-ink'
-                }`}
-              >
-                {cat === 'all' ? `Semua(${totalCount})` : cat === 'pria' ? `Pria(${counts.pria})` : `Wanita(${counts.wanita})`}
-              </button>
-            ))}
-          </div>
+          {/* Filters */}
+          <div className="flex items-center gap-2">
+            <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto no-scrollbar">
+              {(['all', 'pria', 'wanita'] as const).map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setFilterCategory(cat)}
+                  className={`px-3 py-2 rounded-full text-[10px] font-black uppercase tracking-normal sm:tracking-wider transition-colors whitespace-nowrap flex-shrink-0 ${
+                    filterCategory === cat
+                      ? 'bg-gold text-ivory'
+                      : 'text-ink/80 border border-gold/15 hover:text-ink'
+                  }`}
+                >
+                  {cat === 'all' ? `Semua(${totalCount})` : cat === 'pria' ? `Pria(${counts.pria})` : `Wanita(${counts.wanita})`}
+                </button>
+              ))}
+            </div>
 
-          {/* Delivery filter */}
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-            {([
-              ['all', 'Semua Status'],
-              ['unsent', 'Belum Dikirim'],
-              ['sent', 'Terkirim'],
-            ] as const).map(([status, label]) => (
+            <div className="relative flex-shrink-0">
               <button
-                key={status}
-                onClick={() => setFilterDelivery(status)}
-                className={`px-3 py-2 rounded-full text-[10px] font-black uppercase tracking-normal sm:tracking-wider transition-colors whitespace-nowrap flex-shrink-0 ${
-                  filterDelivery === status
-                    ? 'bg-ink text-ivory'
-                    : 'text-ink/80 border border-gold/15 hover:text-ink'
-                }`}
+                type="button"
+                onClick={() => setShowDeliveryMenu(!showDeliveryMenu)}
+                className="flex h-9 items-center gap-1.5 rounded-full border border-gold/15 bg-white px-3 text-[10px] font-black uppercase tracking-normal text-ink/80 transition-colors hover:text-ink sm:tracking-wider"
+                aria-label="Filter status kirim"
+                aria-expanded={showDeliveryMenu}
               >
-                {label}
+                {filterDelivery === 'all' ? 'Status' : deliveryFilterLabels[filterDelivery]}
+                <ChevronDown className={`w-3 h-3 transition-transform ${showDeliveryMenu ? 'rotate-180' : ''}`} />
               </button>
-            ))}
+              {showDeliveryMenu && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setShowDeliveryMenu(false)} />
+                  <div className="absolute right-0 top-full z-20 mt-2 min-w-[150px] overflow-hidden rounded-xl border border-gold/15 bg-white shadow-lg">
+                    {([
+                      ['all', 'Semua Status'],
+                      ['unsent', 'Belum Dikirim'],
+                      ['sent', 'Terkirim'],
+                    ] as const).map(([status, label]) => (
+                      <button
+                        key={status}
+                        type="button"
+                        onClick={() => { setFilterDelivery(status); setShowDeliveryMenu(false); }}
+                        className={`w-full px-3 py-2.5 text-left text-xs transition-colors ${
+                          filterDelivery === status ? 'bg-ink text-ivory font-bold' : 'text-ink/80 hover:bg-ivory'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
 
           {/* Guest list */}
@@ -446,60 +489,69 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
               )}
             </div>
           ) : (
-            <div className="border border-gold/10 rounded-xl overflow-hidden divide-y divide-gold/5">
+            <div className="space-y-3">
               {visibleGuests.map((guest) => {
                 const whatsappUrl = getWhatsAppUrl(guest);
                 const isInvitationSent = Boolean(guest.invitationSentAt);
                 const isStatusUpdating = statusUpdatingGuestId === guest.id;
 
                 return (
-                  <div key={guest.id} className="px-3 py-2 bg-white/40 hover:bg-white/70 transition-colors">
-                    <div className="flex items-start gap-3">
-                      <div className="min-w-0 flex-1 py-0.5">
-                        <div className="flex items-center gap-1.5">
-                          <p className="text-sm text-ink truncate">{guest.name}</p>
-                          <span className={`text-[7px] px-1.5 py-0.5 rounded-full uppercase font-black tracking-wider flex-shrink-0 ${
+                  <div key={guest.id} className="rounded-2xl border border-gold/10 bg-white/60 p-4 shadow-sm shadow-gold/5 transition-colors hover:bg-white/80">
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <p className="text-base leading-snug text-ink break-words">{guest.name}</p>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className={`text-[8px] px-2 py-1 rounded-full uppercase font-black tracking-wider ${
                             guest.category === 'pria' ? 'bg-blue-50 text-blue-500' : 'bg-pink-50 text-pink-500'
                           }`}>
-                            {guest.category === 'pria' ? 'P' : 'W'}
+                            {guest.category === 'pria' ? 'Pria' : 'Wanita'}
+                          </span>
+                          <span className="text-[10px] text-ink/60 break-words">
+                            {guest.phone || 'Nomor HP belum diisi'}
+                          </span>
+                          <span className={`text-[8px] px-2 py-1 rounded-full uppercase font-black tracking-wider ${
+                            isInvitationSent ? 'bg-emerald-50 text-emerald-600' : 'bg-ink/5 text-ink/50'
+                          }`}>
+                            {isInvitationSent ? 'Terkirim' : 'Belum dikirim'}
                           </span>
                           {guest.attendance && (
-                            <span className="text-[7px] px-1.5 py-0.5 rounded-full uppercase font-black tracking-wider bg-green-50 text-green-500 flex-shrink-0">
+                            <span className="text-[8px] px-2 py-1 rounded-full uppercase font-black tracking-wider bg-green-50 text-green-500">
                               Hadir
                             </span>
                           )}
                         </div>
-                        {guest.phone && <p className="text-[10px] text-ink/80 mt-0.5 break-words">{guest.phone}</p>}
                       </div>
 
-                      <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                        <div className="flex items-center gap-1.5">
+                      <div className="space-y-2">
+                        <div className="grid grid-cols-2 gap-2">
                           {whatsappUrl ? (
                             <a
                               href={whatsappUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="w-8 h-8 flex items-center justify-center text-green-500 hover:bg-green-50 rounded-lg transition-colors"
+                              className="flex h-10 items-center justify-center gap-2 rounded-full bg-green-50 px-3 text-[10px] font-black uppercase tracking-wider text-green-600 transition-colors hover:bg-green-100"
                               aria-label="Kirim WhatsApp"
                               title="Kirim WhatsApp"
                             >
                               <MessageCircle className="w-3.5 h-3.5" />
+                              WhatsApp
                             </a>
                           ) : (
                             <button
                               type="button"
                               disabled
-                              className="w-8 h-8 flex items-center justify-center text-ink/20 rounded-lg cursor-not-allowed"
+                              className="flex h-10 items-center justify-center gap-2 rounded-full bg-ink/5 px-3 text-[10px] font-black uppercase tracking-wider text-ink/30 cursor-not-allowed"
                               aria-label="Nomor HP belum diisi"
                               title="Nomor HP belum diisi"
                             >
                               <MessageCircle className="w-3.5 h-3.5" />
+                              WhatsApp
                             </button>
                           )}
                           <button
                             onClick={() => handleToggleInvitationSent(guest)}
                             disabled={isStatusUpdating}
-                            className={`h-8 min-w-[62px] px-2.5 flex items-center justify-center gap-1 rounded-full text-[9px] font-black uppercase tracking-wide transition-colors disabled:opacity-50 ${
+                            className={`flex h-10 items-center justify-center gap-2 rounded-full px-3 text-[10px] font-black uppercase tracking-wider transition-colors disabled:opacity-50 ${
                               isInvitationSent
                                 ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
                                 : 'border border-gold/15 text-ink/70 hover:text-gold hover:bg-gold/5'
@@ -511,37 +563,40 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
                               <Loader2 className="w-3 h-3 animate-spin" />
                             ) : (
                               <>
-                                {isInvitationSent && <CheckCircle2 className="w-3 h-3" />}
+                                {isInvitationSent && <CheckCircle2 className="w-3.5 h-3.5" />}
                                 <span>{isInvitationSent ? 'Terkirim' : 'Tandai'}</span>
                               </>
                             )}
                           </button>
                         </div>
 
-                        <div className="flex items-center gap-0.5">
+                        <div className="grid grid-cols-3 gap-2">
                           <button
                             onClick={() => setQrGuest(guest)}
-                            className="w-7 h-7 flex items-center justify-center text-ink/80 hover:text-gold hover:bg-gold/5 rounded-lg transition-colors"
+                            className="flex h-9 items-center justify-center gap-1.5 rounded-xl border border-gold/10 text-[10px] font-bold text-ink/70 transition-colors hover:bg-gold/5 hover:text-gold"
                             aria-label="QR Code"
                             title="QR Code"
                           >
                             <QrCode className="w-3.5 h-3.5" />
+                            QR
                           </button>
                           <button
                             onClick={() => openEditForm(guest)}
-                            className="w-7 h-7 flex items-center justify-center text-ink/80 hover:text-ink hover:bg-ink/5 rounded-lg transition-colors"
+                            className="flex h-9 items-center justify-center gap-1.5 rounded-xl border border-gold/10 text-[10px] font-bold text-ink/70 transition-colors hover:bg-ink/5 hover:text-ink"
                             aria-label="Edit tamu"
                             title="Edit tamu"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
+                            Edit
                           </button>
                           <button
                             onClick={() => setDeleteTarget(guest)}
-                            className="w-7 h-7 flex items-center justify-center text-red-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            className="flex h-9 items-center justify-center gap-1.5 rounded-xl border border-red-100 text-[10px] font-bold text-red-300 transition-colors hover:bg-red-50 hover:text-red-500"
                             aria-label="Hapus tamu"
                             title="Hapus tamu"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
+                            Hapus
                           </button>
                         </div>
                       </div>

@@ -556,7 +556,7 @@ export default function AdminPage() {
         </div>
       </header>
 
-      <main role="tabpanel" id="admin-tabpanel" aria-labelledby={`tab-${currentStep}`} className="max-w-lg mx-auto px-4 py-1">
+      <main role="tabpanel" id="admin-tabpanel" aria-labelledby={`tab-${currentStep}`} className="max-w-lg mx-auto px-4 pt-1 pb-[calc(5rem+env(safe-area-inset-bottom))]">
         {renderForm()}
       </main>
 

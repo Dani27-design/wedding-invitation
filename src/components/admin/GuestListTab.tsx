@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { getGuests, getGuestPage, getGuestCounts, addGuest, updateGuest, deleteGuest, addGuestsBatch, markInvitationSent, markInvitationUnsent } from '@/lib/guests';
 import type { GuestPageCursor } from '@/lib/guests';
 import { Guest, WeddingDocument } from '@/types/firestore';
-import { Plus, Search, Trash2, Edit3, MessageCircle, Download, Upload, QrCode, Printer, ChevronLeft, ChevronRight, ChevronDown, X, CheckCircle2, Loader2 } from 'lucide-react';
+import { Plus, Search, Trash2, Edit3, MessageCircle, Download, Upload, QrCode, Printer, ChevronLeft, ChevronRight, ChevronDown, X, CheckCircle2, Loader2, MoreHorizontal } from 'lucide-react';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { GuestImportModal } from './GuestImportModal';
 import { GuestQRModal } from './GuestQRModal';
@@ -51,6 +51,7 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
   const [showPageSizeMenu, setShowPageSizeMenu] = useState(false);
   const [showToolsMenu, setShowToolsMenu] = useState(false);
   const [showDeliveryMenu, setShowDeliveryMenu] = useState(false);
+  const [openGuestMenuId, setOpenGuestMenuId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingGuest, setEditingGuest] = useState<Guest | null>(null);
   const [formData, setFormData] = useState<GuestFormData>(EMPTY_FORM);
@@ -335,17 +336,17 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
   } as const;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Header actions */}
-      <div className="bg-white rounded-2xl border border-gold/10 shadow-sm overflow-hidden">
-        <div className="border-l-4 border-gold px-4 py-3 bg-gold/[0.03] flex items-center justify-between gap-3">
+      <div className="bg-white rounded-xl border border-gold/10 shadow-sm">
+        <div className="border-l-4 border-gold px-3 py-2 bg-gold/[0.03] flex items-center justify-between gap-2">
           <h3 className="font-base text-[13px] text-ink">Daftar Tamu</h3>
           <div className="flex items-center gap-2 flex-shrink-0">
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setShowToolsMenu(!showToolsMenu)}
-                className="h-9 px-3 flex items-center gap-1.5 text-ink/80 hover:text-gold border border-gold/20 rounded-full text-[10px] uppercase font-black tracking-wider transition-colors"
+                className="h-8 px-2.5 flex items-center gap-1.5 text-ink/80 hover:text-gold border border-gold/20 rounded-full text-[10px] uppercase font-black tracking-wider transition-colors"
                 aria-label="Tools tamu"
                 aria-expanded={showToolsMenu}
               >
@@ -388,7 +389,7 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
             </div>
             <button
               onClick={openAddForm}
-              className="h-9 flex items-center gap-1 px-4 bg-gold text-ivory rounded-full text-[10px] uppercase tracking-[0.15em] font-black shadow-sm hover:scale-105 transition-transform"
+              className="h-8 flex items-center gap-1 px-3 bg-gold text-ivory rounded-full text-[10px] uppercase tracking-[0.12em] font-black shadow-sm hover:scale-105 transition-transform"
             >
               <Plus className="w-3 h-3" />
               Tambah
@@ -396,7 +397,7 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
           </div>
         </div>
 
-        <div className="px-3 py-3 space-y-3">
+        <div className="px-2.5 py-2.5 space-y-2">
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink/80" />
@@ -406,7 +407,7 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari nama / HP..."
               aria-label="Cari tamu"
-              className="w-full pl-9 pr-8 py-2 border border-gold/20 rounded-full text-xs bg-white focus:outline-none focus:border-gold/50"
+              className="w-full pl-9 pr-8 py-1.5 border border-gold/20 rounded-full text-xs bg-white focus:outline-none focus:border-gold/50"
             />
             {searchQuery && (
               <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink/80 hover:text-ink" aria-label="Hapus pencarian">
@@ -422,7 +423,7 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
                 <button
                   key={cat}
                   onClick={() => setFilterCategory(cat)}
-                  className={`px-3 py-2 rounded-full text-[10px] font-black uppercase tracking-normal sm:tracking-wider transition-colors whitespace-nowrap flex-shrink-0 ${
+                  className={`px-2.5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-normal sm:tracking-wider transition-colors whitespace-nowrap flex-shrink-0 ${
                     filterCategory === cat
                       ? 'bg-gold text-ivory'
                       : 'text-ink/80 border border-gold/15 hover:text-ink'
@@ -437,7 +438,7 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
               <button
                 type="button"
                 onClick={() => setShowDeliveryMenu(!showDeliveryMenu)}
-                className="flex h-9 items-center gap-1.5 rounded-full border border-gold/15 bg-white px-3 text-[10px] font-black uppercase tracking-normal text-ink/80 transition-colors hover:text-ink sm:tracking-wider"
+                className="flex h-8 items-center gap-1.5 rounded-full border border-gold/15 bg-white px-2.5 text-[10px] font-black uppercase tracking-normal text-ink/80 transition-colors hover:text-ink sm:tracking-wider"
                 aria-label="Filter status kirim"
                 aria-expanded={showDeliveryMenu}
               >
@@ -489,116 +490,124 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
               )}
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="rounded-xl border border-gold/10 bg-white/70">
               {visibleGuests.map((guest) => {
                 const whatsappUrl = getWhatsAppUrl(guest);
                 const isInvitationSent = Boolean(guest.invitationSentAt);
                 const isStatusUpdating = statusUpdatingGuestId === guest.id;
+                const isGuestMenuOpen = openGuestMenuId === guest.id;
 
                 return (
-                  <div key={guest.id} className="rounded-2xl border border-gold/10 bg-white/60 p-4 shadow-sm shadow-gold/5 transition-colors hover:bg-white/80">
-                    <div className="space-y-3">
-                      <div className="space-y-2">
-                        <p className="text-base leading-snug text-ink break-words">{guest.name}</p>
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          <span className={`text-[8px] px-2 py-1 rounded-full uppercase font-black tracking-wider ${
-                            guest.category === 'pria' ? 'bg-blue-50 text-blue-500' : 'bg-pink-50 text-pink-500'
-                          }`}>
-                            {guest.category === 'pria' ? 'Pria' : 'Wanita'}
+                  <div key={guest.id} className="relative flex items-start gap-2 border-b border-gold/10 px-3 py-2.5 last:border-b-0 transition-colors hover:bg-gold/[0.03]">
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <p className="text-sm leading-tight text-ink break-words">{guest.name}</p>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className={`text-[8px] px-1.5 py-0.5 rounded-full uppercase font-black tracking-wider ${
+                          guest.category === 'pria' ? 'bg-blue-50 text-blue-500' : 'bg-pink-50 text-pink-500'
+                        }`}>
+                          {guest.category === 'pria' ? 'Pria' : 'Wanita'}
+                        </span>
+                        <span className="text-[10px] leading-tight text-ink/60 break-words">
+                          {guest.phone || 'No HP kosong'}
+                        </span>
+                        <span className={`text-[8px] px-1.5 py-0.5 rounded-full uppercase font-black tracking-wider ${
+                          isInvitationSent ? 'bg-emerald-50 text-emerald-600' : 'bg-ink/5 text-ink/50'
+                        }`}>
+                          {isInvitationSent ? 'Terkirim' : 'Belum'}
+                        </span>
+                        {guest.attendance && (
+                          <span className="text-[8px] px-1.5 py-0.5 rounded-full uppercase font-black tracking-wider bg-green-50 text-green-500">
+                            Hadir
                           </span>
-                          <span className="text-[10px] text-ink/60 break-words">
-                            {guest.phone || 'Nomor HP belum diisi'}
-                          </span>
-                          <span className={`text-[8px] px-2 py-1 rounded-full uppercase font-black tracking-wider ${
-                            isInvitationSent ? 'bg-emerald-50 text-emerald-600' : 'bg-ink/5 text-ink/50'
-                          }`}>
-                            {isInvitationSent ? 'Terkirim' : 'Belum dikirim'}
-                          </span>
-                          {guest.attendance && (
-                            <span className="text-[8px] px-2 py-1 rounded-full uppercase font-black tracking-wider bg-green-50 text-green-500">
-                              Hadir
-                            </span>
-                          )}
-                        </div>
+                        )}
                       </div>
+                    </div>
 
-                      <div className="space-y-2">
-                        <div className="grid grid-cols-2 gap-2">
-                          {whatsappUrl ? (
-                            <a
-                              href={whatsappUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex h-10 items-center justify-center gap-2 rounded-full bg-green-50 px-3 text-[10px] font-black uppercase tracking-wider text-green-600 transition-colors hover:bg-green-100"
-                              aria-label="Kirim WhatsApp"
-                              title="Kirim WhatsApp"
-                            >
-                              <MessageCircle className="w-3.5 h-3.5" />
-                              WhatsApp
-                            </a>
-                          ) : (
-                            <button
-                              type="button"
-                              disabled
-                              className="flex h-10 items-center justify-center gap-2 rounded-full bg-ink/5 px-3 text-[10px] font-black uppercase tracking-wider text-ink/30 cursor-not-allowed"
-                              aria-label="Nomor HP belum diisi"
-                              title="Nomor HP belum diisi"
-                            >
-                              <MessageCircle className="w-3.5 h-3.5" />
-                              WhatsApp
-                            </button>
-                          )}
-                          <button
-                            onClick={() => handleToggleInvitationSent(guest)}
-                            disabled={isStatusUpdating}
-                            className={`flex h-10 items-center justify-center gap-2 rounded-full px-3 text-[10px] font-black uppercase tracking-wider transition-colors disabled:opacity-50 ${
-                              isInvitationSent
-                                ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
-                                : 'border border-gold/15 text-ink/70 hover:text-gold hover:bg-gold/5'
-                            }`}
-                            aria-label={isInvitationSent ? 'Batalkan tanda terkirim' : 'Tandai undangan terkirim'}
-                            title={isInvitationSent ? 'Batalkan tanda terkirim' : 'Tandai undangan terkirim'}
-                          >
-                            {isStatusUpdating ? (
-                              <Loader2 className="w-3 h-3 animate-spin" />
-                            ) : (
-                              <>
-                                {isInvitationSent && <CheckCircle2 className="w-3.5 h-3.5" />}
-                                <span>{isInvitationSent ? 'Terkirim' : 'Tandai'}</span>
-                              </>
-                            )}
-                          </button>
-                        </div>
-
-                        <div className="grid grid-cols-3 gap-2">
-                          <button
-                            onClick={() => setQrGuest(guest)}
-                            className="flex h-9 items-center justify-center gap-1.5 rounded-xl border border-gold/10 text-[10px] font-bold text-ink/70 transition-colors hover:bg-gold/5 hover:text-gold"
-                            aria-label="QR Code"
-                            title="QR Code"
-                          >
-                            <QrCode className="w-3.5 h-3.5" />
-                            QR
-                          </button>
-                          <button
-                            onClick={() => openEditForm(guest)}
-                            className="flex h-9 items-center justify-center gap-1.5 rounded-xl border border-gold/10 text-[10px] font-bold text-ink/70 transition-colors hover:bg-ink/5 hover:text-ink"
-                            aria-label="Edit tamu"
-                            title="Edit tamu"
-                          >
-                            <Edit3 className="w-3.5 h-3.5" />
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => setDeleteTarget(guest)}
-                            className="flex h-9 items-center justify-center gap-1.5 rounded-xl border border-red-100 text-[10px] font-bold text-red-300 transition-colors hover:bg-red-50 hover:text-red-500"
-                            aria-label="Hapus tamu"
-                            title="Hapus tamu"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                            Hapus
-                          </button>
-                        </div>
+                    <div className="flex flex-shrink-0 items-center gap-1 pt-0.5">
+                      {whatsappUrl ? (
+                        <a
+                          href={whatsappUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex h-8 w-8 items-center justify-center rounded-full bg-green-50 text-green-600 transition-colors hover:bg-green-100"
+                          aria-label="Kirim WhatsApp"
+                          title="Kirim WhatsApp"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                        </a>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled
+                          className="flex h-8 w-8 items-center justify-center rounded-full bg-ink/5 text-ink/25 cursor-not-allowed"
+                          aria-label="Nomor HP belum diisi"
+                          title="Nomor HP belum diisi"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleToggleInvitationSent(guest)}
+                        disabled={isStatusUpdating}
+                        className={`flex h-8 w-8 items-center justify-center rounded-full transition-colors disabled:opacity-50 ${
+                          isInvitationSent
+                            ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
+                            : 'border border-gold/15 text-ink/60 hover:text-gold hover:bg-gold/5'
+                        }`}
+                        aria-label={isInvitationSent ? 'Batalkan tanda terkirim' : 'Tandai undangan terkirim'}
+                        title={isInvitationSent ? 'Batalkan tanda terkirim' : 'Tandai undangan terkirim'}
+                      >
+                        {isStatusUpdating ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                        )}
+                      </button>
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => setOpenGuestMenuId(isGuestMenuOpen ? null : guest.id)}
+                          className="flex h-8 w-8 items-center justify-center rounded-full border border-gold/15 text-ink/70 transition-colors hover:bg-gold/5 hover:text-gold"
+                          aria-label={`Aksi tamu ${guest.name}`}
+                          aria-expanded={isGuestMenuOpen}
+                          title="Aksi tamu"
+                        >
+                          <MoreHorizontal className="w-4 h-4" />
+                        </button>
+                        {isGuestMenuOpen && (
+                          <>
+                            <div className="fixed inset-0 z-10" onClick={() => setOpenGuestMenuId(null)} />
+                            <div className="absolute right-0 top-full z-20 mt-1 min-w-[136px] overflow-hidden rounded-xl border border-gold/15 bg-white shadow-lg">
+                              <button
+                                type="button"
+                                onClick={() => { setOpenGuestMenuId(null); setQrGuest(guest); }}
+                                className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs text-ink/80 hover:bg-ivory transition-colors"
+                                aria-label="QR Code"
+                              >
+                                <QrCode className="w-3.5 h-3.5" />
+                                QR
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => { setOpenGuestMenuId(null); openEditForm(guest); }}
+                                className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs text-ink/80 hover:bg-ivory transition-colors"
+                                aria-label="Edit tamu"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                                Edit
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => { setOpenGuestMenuId(null); setDeleteTarget(guest); }}
+                                className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs text-red-400 hover:bg-red-50 transition-colors"
+                                aria-label="Hapus tamu"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                                Hapus
+                              </button>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>

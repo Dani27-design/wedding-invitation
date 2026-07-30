@@ -142,7 +142,6 @@ describe('GuestListTab', () => {
     render(<GuestListTab slug="dani-marini" wedding={wedding} />);
 
     await screen.findByText('Budi Santoso');
-    expect(screen.getByText('Tandai')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Tandai undangan terkirim' }));
 
     await waitFor(() => {
@@ -166,12 +165,13 @@ describe('GuestListTab', () => {
     });
   });
 
-  it('keeps secondary guest actions available from the row', async () => {
+  it('keeps secondary guest actions available from the guest action menu', async () => {
     mockGuestPage([createGuest()]);
 
     render(<GuestListTab slug="dani-marini" wedding={wedding} />);
 
     await screen.findByText('Budi Santoso');
+    fireEvent.click(screen.getByRole('button', { name: 'Aksi tamu Budi Santoso' }));
 
     expect(screen.getByRole('button', { name: 'QR Code' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Edit tamu' })).toBeInTheDocument();

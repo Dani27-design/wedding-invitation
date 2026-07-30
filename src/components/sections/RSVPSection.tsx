@@ -38,7 +38,7 @@ export const RSVPSection = memo(({
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
-        className="text-center mb-[3vh] w-full shrink-0"
+        className={`text-center w-full shrink-0 ${wishes.length === 0 ? "mb-4" : "mb-9"}`}
       >
         <p className="text-xs uppercase tracking-[0.4em] text-gold-contrast font-black mb-2">
           Ucapan & Doa
@@ -64,7 +64,7 @@ export const RSVPSection = memo(({
           whileHover={{ scale: 1.1, y: -2 }}
           whileTap={{ scale: 0.9 }}
           onClick={onOpenRSVP}
-          className="absolute right-0 -top-8.5 z-20 w-11 h-11 bg-gradient-to-br from-gold via-gold/80 to-gold text-white rounded-full transition-all duration-500 flex items-center justify-center shadow-[0_8px_30px_color-mix(in_srgb,var(--color-gold)_35%,transparent)] group border border-white/20"
+          className={`absolute right-4 z-20 w-11 h-11 bg-gradient-to-br from-gold via-gold/80 to-gold text-white rounded-full transition-all duration-500 flex items-center justify-center shadow-[0_8px_30px_color-mix(in_srgb,var(--color-gold)_35%,transparent)] group border border-white/20 ${wishes.length === 0 ? "-top-6" : "-top-10"}`}
           title="Kirim Doa"
           aria-label="Kirim Doa"
         >
@@ -73,7 +73,7 @@ export const RSVPSection = memo(({
 
         <div className="flex min-h-0 h-fit">
           {wishes.length === 0 ? (
-            <div className="w-full py-12 flex flex-col items-center justify-center border border-dashed border-gold/20 rounded-2xl bg-gold/5 px-6 text-center">
+            <div className="w-full py-10 flex flex-col items-center justify-center border border-dashed border-gold/20 rounded-2xl bg-gold/5 px-6 text-center">
               <Heart className="w-4 h-4 text-gold/30 mb-3 animate-pulse" />
               {isWishesLoading ? (
                 <p className="font-serif italic text-[13px] text-ink/40 leading-relaxed">

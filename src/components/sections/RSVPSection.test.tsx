@@ -71,6 +71,13 @@ describe('RSVPSection', () => {
       expect(container.textContent).toContain(`Di antara ${SEED_WISHES.length} doa yang kami terima di sini`);
     });
 
+    it('uses roomier mobile header spacing when wishes exist', () => {
+      renderWithProps();
+      const mobileHeader = screen.getAllByText('Ucapan & Doa')[0].parentElement;
+      expect(mobileHeader?.className).toContain('mb-9');
+      expect(mobileHeader?.className).not.toContain('mb-4');
+    });
+
     it('title has uppercase tracking styling', () => {
       renderWithProps();
       // Both layouts render the title; pick the first occurrence
@@ -193,6 +200,19 @@ describe('RSVPSection', () => {
       expect(container.textContent).not.toContain('Di antara 0 doa yang kami terima di sini');
     });
 
+    it('uses tighter mobile header spacing when there are no wishes', () => {
+      renderWithProps({ wishes: [], currentWishes: [], totalPages: 0 });
+      const mobileHeader = screen.getAllByText('Ucapan & Doa')[0].parentElement;
+      expect(mobileHeader?.className).toContain('mb-4');
+      expect(mobileHeader?.className).not.toContain('mb-9');
+    });
+
+    it('uses compact mobile empty state padding', () => {
+      const { container } = renderWithProps({ wishes: [], currentWishes: [], totalPages: 0 });
+      const mobileEmptyBox = container.querySelector('.lg\\:hidden .border-dashed');
+      expect(mobileEmptyBox?.className).toContain('py-10');
+    });
+
     it('empty state text has serif italic font', () => {
       renderWithProps({ wishes: [], currentWishes: [], totalPages: 0 });
       // Both layouts render the text; pick the first occurrence
@@ -301,6 +321,22 @@ describe('RSVPSection', () => {
       // Only the mobile circular FAB has the title attribute
       const fab = screen.getAllByLabelText('Kirim Doa')[0];
       expect(fab).toHaveAttribute('title', 'Kirim Doa');
+    });
+
+    it('positions the mobile FAB closer to the empty state card when there are no wishes', () => {
+      renderWithProps({ wishes: [], currentWishes: [], totalPages: 0 });
+      const fab = screen.getAllByLabelText('Kirim Doa')[0];
+      expect(fab.className).toContain('right-4');
+      expect(fab.className).toContain('-top-6');
+      expect(fab.className).not.toContain('-top-10');
+    });
+
+    it('positions the mobile FAB higher when wish cards are visible', () => {
+      renderWithProps();
+      const fab = screen.getAllByLabelText('Kirim Doa')[0];
+      expect(fab.className).toContain('right-4');
+      expect(fab.className).toContain('-top-10');
+      expect(fab.className).not.toContain('-top-6');
     });
   });
 

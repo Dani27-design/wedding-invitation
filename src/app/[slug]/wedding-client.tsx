@@ -198,7 +198,7 @@ export function WeddingClient({ wedding, slug }: WeddingClientProps) {
   }, []);
   const handleClosePhoto = useCallback(() => setSelectedPhoto(null), []);
 
-  const handleOpen = useCallback(() => {
+  const startMusicFromGesture = useCallback(() => {
     // Play audio SYNCHRONOUSLY in the user gesture call stack
     if (audioRef.current) {
       const retryPlay = (attempts: number) => {
@@ -214,9 +214,13 @@ export function WeddingClient({ wedding, slug }: WeddingClientProps) {
       };
       retryPlay(3);
     }
+  }, []);
+
+  const handleOpen = useCallback(() => {
+    startMusicFromGesture();
     window.scrollTo(0, 0);
     setIsOpen(true);
-  }, []);
+  }, [startMusicFromGesture]);
 
   const toggleMusic = useCallback(() => {
     if (audioRef.current) {
@@ -319,6 +323,7 @@ export function WeddingClient({ wedding, slug }: WeddingClientProps) {
         <InvitationProductTour
           slug={slug}
           isOpen={isOpen}
+          onStartMusic={startMusicFromGesture}
           onOpenInvitation={handleOpen}
           setIsToolsOpen={setIsToolsOpen}
         >

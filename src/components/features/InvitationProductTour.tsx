@@ -19,6 +19,7 @@ const OPENING_SELECTOR = '[data-tour="cinematic-opening"]';
 interface InvitationProductTourProps {
   slug: string;
   isOpen: boolean;
+  onStartMusic: () => void;
   onOpenInvitation: () => void;
   setIsToolsOpen?: (open: boolean) => void;
   children?: ReactNode;
@@ -37,8 +38,10 @@ function prefersReducedMotion() {
 }
 
 function createOpeningTourSteps({
+  dismissTourAndStartMusic,
   openInvitationAndEndTour,
 }: {
+  dismissTourAndStartMusic: DriverHook;
   openInvitationAndEndTour: DriverHook;
 }): DriveStep[] {
   return [
@@ -49,16 +52,18 @@ function createOpeningTourSteps({
         showButtons: ['next'],
         nextBtnText: 'Buka Undangan',
         onNextClick: openInvitationAndEndTour,
-        onCloseClick: openInvitationAndEndTour,
+        onCloseClick: dismissTourAndStartMusic,
       },
     },
   ];
 }
 
 function createOpeningDriverConfig({
+  dismissTourAndStartMusic,
   steps,
   openInvitationAndEndTour,
 }: {
+  dismissTourAndStartMusic: DriverHook;
   steps: DriveStep[];
   openInvitationAndEndTour: DriverHook;
 }): Config {
@@ -71,7 +76,7 @@ function createOpeningDriverConfig({
     allowScroll: true,
     overlayClickBehavior: (element, step, opts) => {
       if (opts.index === 0) {
-        openInvitationAndEndTour(element, step, opts);
+        dismissTourAndStartMusic(element, step, opts);
         return;
       }
     },
@@ -87,7 +92,7 @@ function createOpeningDriverConfig({
     onDoneClick: openInvitationAndEndTour,
     onCloseClick: (element, step, opts) => {
       if (opts.index === 0) {
-        openInvitationAndEndTour(element, step, opts);
+        dismissTourAndStartMusic(element, step, opts);
         return;
       }
     },
@@ -109,12 +114,14 @@ export function useOptionalTour() {
 export function TourProvider({
   slug,
   isOpen,
+  onStartMusic,
   onOpenInvitation,
   setIsToolsOpen,
   children,
 }: InvitationProductTourProps) {
   const driverRef = useRef<Driver | null>(null);
   const isOpenRef = useRef(isOpen);
+  const dismissedTourRef = useRef(false);
   const requestedOpenRef = useRef(false);
   const destroyedToursRef = useRef<WeakSet<Driver>>(new WeakSet());
   const [isTourRunning, setIsTourRunning] = useState(false);
@@ -152,11 +159,12 @@ export function TourProvider({
     if (!slug || isOpenRef.current) return undefined;
     if (!document.querySelector(OPENING_SELECTOR)) return undefined;
 
+    dismissedTourRef.current = false;
     requestedOpenRef.current = false;
     destroyedToursRef.current = new WeakSet();
 
     const openInvitationFromTour = ({ closeTools = true }: { closeTools?: boolean } = {}) => {
-      if (requestedOpenRef.current) return;
+      if (requestedOpenRef.current || dismissedTourRef.current) return;
       requestedOpenRef.current = true;
       if (closeTools) setIsToolsOpen?.(false);
       onOpenInvitation();
@@ -168,11 +176,21 @@ export function TourProvider({
       setIsTourRunning(false);
     };
 
+    const dismissTourAndStartMusic: DriverHook = (_element, _step, { driver: activeDriver }) => {
+      if (dismissedTourRef.current || requestedOpenRef.current) return;
+      dismissedTourRef.current = true;
+      onStartMusic();
+      destroyProductTours(activeDriver);
+      setIsTourRunning(false);
+    };
+
     const steps = createOpeningTourSteps({
+      dismissTourAndStartMusic,
       openInvitationAndEndTour,
     });
 
     const tour = driver(createOpeningDriverConfig({
+      dismissTourAndStartMusic,
       steps,
       openInvitationAndEndTour,
     }));
@@ -193,7 +211,7 @@ export function TourProvider({
       destroyProductTours(driverRef.current ?? tour);
       setIsTourRunning(false);
     };
-  }, [destroyProductTours, onOpenInvitation, setIsToolsOpen, slug]);
+  }, [destroyProductTours, onOpenInvitation, onStartMusic, setIsToolsOpen, slug]);
 
   useEffect(() => {
     if (!isOpen) return;

@@ -43,6 +43,7 @@ function renderTour(overrides: Partial<Parameters<typeof InvitationProductTour>[
     <InvitationProductTour
       slug="dani-marini"
       isOpen={false}
+      onStartMusic={vi.fn()}
       onOpenInvitation={vi.fn()}
       {...overrides}
     />
@@ -229,12 +230,14 @@ describe('InvitationProductTour', () => {
     expect(driverMock.driver).toHaveBeenCalledOnce();
   });
 
-  it('opens the invitation and fully removes Driver.js artifacts when the opening popover is closed', () => {
+  it('starts music and fully removes Driver.js artifacts when the opening popover is closed', () => {
     vi.useFakeTimers();
+    const onStartMusic = vi.fn();
     const onOpenInvitation = vi.fn();
     const setIsToolsOpen = vi.fn();
     addOpeningTarget();
     renderTour({
+      onStartMusic,
       onOpenInvitation,
       setIsToolsOpen,
       children: <TourStateProbe />,
@@ -249,8 +252,9 @@ describe('InvitationProductTour', () => {
       openingStep.popover.onCloseClick(undefined, openingStep, hookOptions(openingDriver, driverMock.latestOptions, 0));
     });
 
-    expect(onOpenInvitation).toHaveBeenCalledOnce();
-    expect(setIsToolsOpen).toHaveBeenCalledWith(false);
+    expect(onStartMusic).toHaveBeenCalledOnce();
+    expect(onOpenInvitation).not.toHaveBeenCalled();
+    expect(setIsToolsOpen).not.toHaveBeenCalled();
     expect(screen.getByTestId('tour-running')).toHaveTextContent('idle');
     expect(openingDriver?.destroy).toHaveBeenCalledOnce();
     expect(openingDriver?.moveNext).not.toHaveBeenCalled();
@@ -258,12 +262,14 @@ describe('InvitationProductTour', () => {
     expectDriverArtifactsRemoved(highlightedParent, highlightedElement);
   });
 
-  it('opens the invitation and destroys the opening tour when the opening overlay is clicked', () => {
+  it('starts music and destroys the opening tour without opening the invitation when the opening overlay is clicked', () => {
     vi.useFakeTimers();
+    const onStartMusic = vi.fn();
     const onOpenInvitation = vi.fn();
     const setIsToolsOpen = vi.fn();
     addOpeningTarget();
     renderTour({
+      onStartMusic,
       onOpenInvitation,
       setIsToolsOpen,
       children: <TourStateProbe />,
@@ -280,8 +286,9 @@ describe('InvitationProductTour', () => {
       );
     });
 
-    expect(onOpenInvitation).toHaveBeenCalledOnce();
-    expect(setIsToolsOpen).toHaveBeenCalledWith(false);
+    expect(onStartMusic).toHaveBeenCalledOnce();
+    expect(onOpenInvitation).not.toHaveBeenCalled();
+    expect(setIsToolsOpen).not.toHaveBeenCalled();
     expect(screen.getByTestId('tour-running')).toHaveTextContent('idle');
     expect(openingDriver?.destroy).toHaveBeenCalledOnce();
 
@@ -290,6 +297,35 @@ describe('InvitationProductTour', () => {
     });
 
     expect(driverMock.driver).toHaveBeenCalledOnce();
+  });
+
+  it('starts music only once if the opening tour dismiss action repeats', () => {
+    vi.useFakeTimers();
+    const onStartMusic = vi.fn();
+    const onOpenInvitation = vi.fn();
+    addOpeningTarget();
+    renderTour({
+      onStartMusic,
+      onOpenInvitation,
+      children: <TourStateProbe />,
+    });
+
+    const openingStep = driverMock.latestOptions?.steps[0];
+    const openingDriver = driverMock.latestInstance;
+
+    act(() => {
+      driverMock.latestOptions?.overlayClickBehavior(
+        undefined,
+        openingStep,
+        hookOptions(openingDriver, driverMock.latestOptions, 0),
+      );
+      openingStep.popover.onCloseClick(undefined, openingStep, hookOptions(openingDriver, driverMock.latestOptions, 0));
+    });
+
+    expect(onStartMusic).toHaveBeenCalledOnce();
+    expect(onOpenInvitation).not.toHaveBeenCalled();
+    expect(screen.getByTestId('tour-running')).toHaveTextContent('idle');
+    expect(openingDriver?.destroy).toHaveBeenCalledOnce();
   });
 
   it('destroys the opening tour without starting a floating tour when the invitation is opened manually', () => {
@@ -304,6 +340,7 @@ describe('InvitationProductTour', () => {
       <InvitationProductTour
         slug="dani-marini"
         isOpen
+        onStartMusic={vi.fn()}
         onOpenInvitation={onOpenInvitation}
         setIsToolsOpen={setIsToolsOpen}
       />,

@@ -118,6 +118,7 @@ describe('GuestListTab', () => {
     render(<GuestListTab slug="dani-marini" wedding={wedding} />);
 
     await screen.findByText('Budi Santoso');
+    expect(screen.getByText('Tandai')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Tandai undangan terkirim' }));
 
     await waitFor(() => {
@@ -133,12 +134,24 @@ describe('GuestListTab', () => {
 
     render(<GuestListTab slug="dani-marini" wedding={wedding} />);
 
-    await screen.findByText('Terkirim');
+    await screen.findByRole('button', { name: 'Batalkan tanda terkirim' });
     fireEvent.click(screen.getByRole('button', { name: 'Batalkan tanda terkirim' }));
 
     await waitFor(() => {
       expect(guestLibMock.markInvitationUnsent).toHaveBeenCalledWith('dani-marini', 'guest-1');
     });
+  });
+
+  it('keeps secondary guest actions available from the row', async () => {
+    mockGuestPage([createGuest()]);
+
+    render(<GuestListTab slug="dani-marini" wedding={wedding} />);
+
+    await screen.findByText('Budi Santoso');
+
+    expect(screen.getByRole('button', { name: 'QR Code' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Edit tamu' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Hapus tamu' })).toBeInTheDocument();
   });
 
   it('filters guests by unsent invitation status', async () => {
@@ -165,5 +178,41 @@ describe('GuestListTab', () => {
       expect(screen.getByText('Tamu Belum')).toBeInTheDocument();
       expect(screen.queryByText('Tamu Terkirim')).not.toBeInTheDocument();
     });
+  });
+
+  it('keeps active filters when page size changes', async () => {
+    const sentGuest = createGuest({
+      id: 'guest-sent',
+      name: 'Tamu Terkirim',
+      invitationSentAt: timestamp(),
+      invitationSentVia: 'manual',
+    });
+    const unsentGuest = createGuest({
+      id: 'guest-unsent',
+      name: 'Tamu Belum',
+      invitationSentAt: null,
+      invitationSentVia: null,
+    });
+    mockGuestPage([sentGuest, unsentGuest]);
+
+    render(<GuestListTab slug="dani-marini" wedding={wedding} />);
+
+    await screen.findByText('Tamu Terkirim');
+    fireEvent.click(screen.getByRole('button', { name: 'Belum Dikirim' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Tamu Belum')).toBeInTheDocument();
+      expect(screen.queryByText('Tamu Terkirim')).not.toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Jumlah per halaman' }));
+    fireEvent.click(screen.getByRole('button', { name: '5' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('5 / hal')).toBeInTheDocument();
+      expect(screen.getByText('Tamu Belum')).toBeInTheDocument();
+      expect(screen.queryByText('Tamu Terkirim')).not.toBeInTheDocument();
+    });
+    expect(screen.getByRole('button', { name: 'Belum Dikirim' }).className).toContain('bg-ink');
   });
 });

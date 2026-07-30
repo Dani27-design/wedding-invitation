@@ -34,6 +34,7 @@ interface GuestListTabProps {
 export function GuestListTab({ slug, wedding }: GuestListTabProps) {
   const [counts, setCounts] = useState({ pria: 0, wanita: 0 });
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const pageSizeRef = useRef(DEFAULT_PAGE_SIZE);
   const [pageGuests, setPageGuests] = useState<Guest[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const cursorsRef = useRef<GuestPageCursor[]>([null]);
@@ -62,12 +63,13 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
   const [statusUpdatingGuestId, setStatusUpdatingGuestId] = useState<string | null>(null);
 
   const isFiltering = searchQuery.trim() !== '' || filterCategory !== 'all' || filterDelivery !== 'all';
+  const wasFilteringRef = useRef(false);
 
-  const loadPage = useCallback(async (pageIdx: number) => {
+  const loadPage = useCallback(async (pageIdx: number, size = pageSizeRef.current) => {
     if (!slug) return;
     setIsLoading(true);
     try {
-      const { guests, lastDoc, hasMore } = await getGuestPage(slug, pageSize, cursorsRef.current[pageIdx]);
+      const { guests, lastDoc, hasMore } = await getGuestPage(slug, size, cursorsRef.current[pageIdx]);
       setPageGuests(guests);
       setHasNextPage(hasMore);
       setCurrentPage(pageIdx);
@@ -77,7 +79,7 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [slug, pageSize]);
+  }, [slug]);
 
   const refreshCounts = useCallback(async () => {
     if (!slug) return;
@@ -105,6 +107,14 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
         .finally(() => setIsSearchLoading(false));
     }
   }, [isFiltering, allGuests, slug]);
+
+  useEffect(() => {
+    if (wasFilteringRef.current && !isFiltering && slug) {
+      cursorsRef.current = [null];
+      loadPage(0);
+    }
+    wasFilteringRef.current = isFiltering;
+  }, [isFiltering, loadPage, slug]);
 
   useEffect(() => { setFilterPage(0); }, [searchQuery, filterCategory, filterDelivery]);
 
@@ -146,9 +156,13 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
   };
 
   const handlePageSizeChange = (newSize: number) => {
+    pageSizeRef.current = newSize;
     setPageSize(newSize);
     setFilterPage(0);
     cursorsRef.current = [null];
+    if (!isFiltering) {
+      loadPage(0, newSize);
+    }
   };
 
   const refreshAfterMutation = async () => {
@@ -317,29 +331,32 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
     <div className="space-y-4">
       {/* Header actions */}
       <div className="bg-white rounded-2xl border border-gold/10 shadow-sm overflow-hidden">
-        <div className="border-l-4 border-gold px-4 py-3 bg-gold/[0.03] flex items-center justify-between">
+        <div className="border-l-4 border-gold px-4 py-3 bg-gold/[0.03] flex items-center justify-between gap-3">
           <h3 className="font-base text-[13px] text-ink">Daftar Tamu</h3>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2 flex-shrink-0">
             <button
               onClick={() => setShowImport(true)}
-              className="w-7 h-7 flex items-center justify-center text-ink/80 hover:text-gold border border-gold/20 rounded-full transition-colors"
+              className="w-8 h-8 flex items-center justify-center text-ink/80 hover:text-gold border border-gold/20 rounded-full transition-colors"
               aria-label="Import tamu"
+              title="Import tamu"
             >
               <Upload className="w-3 h-3" />
             </button>
             <button
               onClick={() => handleExport('xlsx')}
               disabled={isExporting || totalCount === 0}
-              className="w-7 h-7 flex items-center justify-center text-ink/80 hover:text-gold border border-gold/20 rounded-full transition-colors disabled:opacity-30"
+              className="w-8 h-8 flex items-center justify-center text-ink/80 hover:text-gold border border-gold/20 rounded-full transition-colors disabled:opacity-30"
               aria-label="Export tamu"
+              title="Export tamu"
             >
               <Download className="w-3 h-3" />
             </button>
             <button
               onClick={handleBulkPrint}
               disabled={totalCount === 0}
-              className="w-7 h-7 flex items-center justify-center text-ink/80 hover:text-gold border border-gold/20 rounded-full transition-colors disabled:opacity-30"
+              className="w-8 h-8 flex items-center justify-center text-ink/80 hover:text-gold border border-gold/20 rounded-full transition-colors disabled:opacity-30"
               aria-label="Print semua QR"
+              title="Print semua QR"
             >
               <Printer className="w-3 h-3" />
             </button>
@@ -436,85 +453,98 @@ export function GuestListTab({ slug, wedding }: GuestListTabProps) {
                 const isStatusUpdating = statusUpdatingGuestId === guest.id;
 
                 return (
-                  <div key={guest.id} className="flex items-center gap-3 px-4 py-0.5 bg-white/40 hover:bg-white/70 transition-colors">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <p className="text-sm text-ink truncate">{guest.name}</p>
-                        <span className={`text-[7px] px-1.5 py-0.5 rounded-full uppercase font-black tracking-wider flex-shrink-0 ${
-                          guest.category === 'pria' ? 'bg-blue-50 text-blue-500' : 'bg-pink-50 text-pink-500'
-                        }`}>
-                          {guest.category === 'pria' ? 'P' : 'W'}
-                        </span>
-                        {guest.attendance && (
-                          <span className="text-[7px] px-1.5 py-0.5 rounded-full uppercase font-black tracking-wider bg-green-50 text-green-500 flex-shrink-0">
-                            Hadir
+                  <div key={guest.id} className="px-3 py-2 bg-white/40 hover:bg-white/70 transition-colors">
+                    <div className="flex items-start gap-3">
+                      <div className="min-w-0 flex-1 py-0.5">
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-sm text-ink truncate">{guest.name}</p>
+                          <span className={`text-[7px] px-1.5 py-0.5 rounded-full uppercase font-black tracking-wider flex-shrink-0 ${
+                            guest.category === 'pria' ? 'bg-blue-50 text-blue-500' : 'bg-pink-50 text-pink-500'
+                          }`}>
+                            {guest.category === 'pria' ? 'P' : 'W'}
                           </span>
-                        )}
-                        {isInvitationSent && (
-                          <span className="text-[7px] px-1.5 py-0.5 rounded-full uppercase font-black tracking-wider bg-emerald-50 text-emerald-600 flex-shrink-0">
-                            Terkirim
-                          </span>
-                        )}
+                          {guest.attendance && (
+                            <span className="text-[7px] px-1.5 py-0.5 rounded-full uppercase font-black tracking-wider bg-green-50 text-green-500 flex-shrink-0">
+                              Hadir
+                            </span>
+                          )}
+                        </div>
+                        {guest.phone && <p className="text-[10px] text-ink/80 mt-0.5 break-words">{guest.phone}</p>}
                       </div>
-                      {guest.phone && <p className="text-[10px] text-ink/80 mt-0.5 break-words">{guest.phone}</p>}
-                    </div>
-                    <div className="flex items-center gap-0.5 flex-shrink-0">
-                      {whatsappUrl ? (
-                        <a
-                          href={whatsappUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="w-7 h-7 flex items-center justify-center text-green-500 hover:bg-green-50 rounded-lg transition-colors"
-                          aria-label="Kirim WhatsApp"
-                          title="Kirim WhatsApp"
-                        >
-                          <MessageCircle className="w-3.5 h-3.5" />
-                        </a>
-                      ) : (
-                        <button
-                          type="button"
-                          disabled
-                          className="w-7 h-7 flex items-center justify-center text-ink/20 rounded-lg cursor-not-allowed"
-                          aria-label="Nomor HP belum diisi"
-                          title="Nomor HP belum diisi"
-                        >
-                          <MessageCircle className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                      <button
-                        onClick={() => handleToggleInvitationSent(guest)}
-                        disabled={isStatusUpdating}
-                        className={`w-7 h-7 flex items-center justify-center rounded-lg transition-colors disabled:opacity-50 ${
-                          isInvitationSent
-                            ? 'text-emerald-600 hover:bg-emerald-50'
-                            : 'text-ink/80 hover:text-gold hover:bg-gold/5'
-                        }`}
-                        aria-label={isInvitationSent ? 'Batalkan tanda terkirim' : 'Tandai undangan terkirim'}
-                        title={isInvitationSent ? 'Batalkan tanda terkirim' : 'Tandai undangan terkirim'}
-                      >
-                        {isStatusUpdating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
-                      </button>
-                      <button
-                        onClick={() => setQrGuest(guest)}
-                        className="w-7 h-7 flex items-center justify-center text-ink/80 hover:text-gold hover:bg-gold/5 rounded-lg transition-colors"
-                        aria-label="QR Code"
-                      >
-                        <QrCode className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => openEditForm(guest)}
-                        className="w-7 h-7 flex items-center justify-center text-ink/80 hover:text-ink hover:bg-ink/5 rounded-lg transition-colors"
-                        aria-label="Edit tamu"
-                      >
-                        <Edit3 className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => setDeleteTarget(guest)}
-                        className="w-7 h-7 flex items-center justify-center text-red-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                        aria-label="Hapus tamu"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+
+                      <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                        <div className="flex items-center gap-1.5">
+                          {whatsappUrl ? (
+                            <a
+                              href={whatsappUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="w-8 h-8 flex items-center justify-center text-green-500 hover:bg-green-50 rounded-lg transition-colors"
+                              aria-label="Kirim WhatsApp"
+                              title="Kirim WhatsApp"
+                            >
+                              <MessageCircle className="w-3.5 h-3.5" />
+                            </a>
+                          ) : (
+                            <button
+                              type="button"
+                              disabled
+                              className="w-8 h-8 flex items-center justify-center text-ink/20 rounded-lg cursor-not-allowed"
+                              aria-label="Nomor HP belum diisi"
+                              title="Nomor HP belum diisi"
+                            >
+                              <MessageCircle className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleToggleInvitationSent(guest)}
+                            disabled={isStatusUpdating}
+                            className={`h-8 min-w-[62px] px-2.5 flex items-center justify-center gap-1 rounded-full text-[9px] font-black uppercase tracking-wide transition-colors disabled:opacity-50 ${
+                              isInvitationSent
+                                ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
+                                : 'border border-gold/15 text-ink/70 hover:text-gold hover:bg-gold/5'
+                            }`}
+                            aria-label={isInvitationSent ? 'Batalkan tanda terkirim' : 'Tandai undangan terkirim'}
+                            title={isInvitationSent ? 'Batalkan tanda terkirim' : 'Tandai undangan terkirim'}
+                          >
+                            {isStatusUpdating ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              <>
+                                {isInvitationSent && <CheckCircle2 className="w-3 h-3" />}
+                                <span>{isInvitationSent ? 'Terkirim' : 'Tandai'}</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+
+                        <div className="flex items-center gap-0.5">
+                          <button
+                            onClick={() => setQrGuest(guest)}
+                            className="w-7 h-7 flex items-center justify-center text-ink/80 hover:text-gold hover:bg-gold/5 rounded-lg transition-colors"
+                            aria-label="QR Code"
+                            title="QR Code"
+                          >
+                            <QrCode className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => openEditForm(guest)}
+                            className="w-7 h-7 flex items-center justify-center text-ink/80 hover:text-ink hover:bg-ink/5 rounded-lg transition-colors"
+                            aria-label="Edit tamu"
+                            title="Edit tamu"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => setDeleteTarget(guest)}
+                            className="w-7 h-7 flex items-center justify-center text-red-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            aria-label="Hapus tamu"
+                            title="Hapus tamu"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 );

@@ -9,7 +9,7 @@ vi.mock('../../context/WeddingContext', () => ({
   }),
 }));
 
-import { TwibbonCreator } from './TwibbonCreator';
+import { getContainedRect, TwibbonCreator } from './TwibbonCreator';
 
 /* IntersectionObserver is mocked globally in src/test/setup.ts */
 
@@ -120,6 +120,12 @@ describe('TwibbonCreator', () => {
       expect(overlayImg).toHaveClass('inset-0');
       expect(overlayImg).toHaveClass('w-full');
       expect(overlayImg).toHaveClass('h-full');
+    });
+
+    it('overlay image preserves its aspect ratio in preview', () => {
+      render(<TwibbonCreator />);
+      const overlayImg = document.querySelector('img[src*="twibbon-overlay"]');
+      expect(overlayImg).toHaveClass('object-contain');
     });
 
     it('frame has shadow styling for depth', () => {
@@ -518,6 +524,35 @@ describe('TwibbonCreator', () => {
       render(<TwibbonCreator />);
       const clickArea = document.querySelector('.cursor-pointer');
       expect(() => fireEvent.click(clickArea!)).not.toThrow();
+    });
+  });
+
+  describe('Overlay fitting', () => {
+    it('contains a square overlay inside the portrait canvas without stretching', () => {
+      expect(getContainedRect(1000, 1000, 1080, 1920)).toEqual({
+        x: 0,
+        y: 420,
+        width: 1080,
+        height: 1080,
+      });
+    });
+
+    it('contains a wide overlay inside the portrait canvas without stretching', () => {
+      expect(getContainedRect(1920, 1080, 1080, 1920)).toEqual({
+        x: 0,
+        y: 656.25,
+        width: 1080,
+        height: 607.5,
+      });
+    });
+
+    it('keeps a matching 9:16 overlay full canvas size', () => {
+      expect(getContainedRect(1080, 1920, 1080, 1920)).toEqual({
+        x: 0,
+        y: 0,
+        width: 1080,
+        height: 1920,
+      });
     });
   });
 });

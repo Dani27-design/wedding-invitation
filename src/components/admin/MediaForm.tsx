@@ -25,11 +25,41 @@ const MEDIA_ITEMS: MediaItem[] = [
   { label: 'Musik Latar', field: 'musicUrl', accept: 'audio/*', icon: Music },
   { label: 'Foto Sampul', field: 'openingImage', accept: 'image/*', icon: ImageIcon },
   { label: 'Foto Utama', field: 'heroImage', accept: 'image/*', icon: ImageIcon },
-  { label: 'Twibbon', field: 'twibbonOverlay', accept: 'image/png', icon: Sparkles },
+  { label: 'Twibbon', field: 'twibbonOverlay', accept: 'image/png,image/jpeg', icon: Sparkles },
 ];
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const MAX_AUDIO_SIZE = 10 * 1024 * 1024;
+const TWIBBON_ASPECT_RATIO = 9 / 16;
+const TWIBBON_ASPECT_TOLERANCE = 0.02;
+const TWIBBON_RATIO_ERROR = 'Twibbon harus berasio 9:16. Rekomendasi ukuran 1080x1920.';
+
+export function isTwibbonAspectRatioValid(width: number, height: number) {
+  if (width <= 0 || height <= 0) return false;
+
+  const ratio = width / height;
+  return Math.abs(ratio - TWIBBON_ASPECT_RATIO) / TWIBBON_ASPECT_RATIO <= TWIBBON_ASPECT_TOLERANCE;
+}
+
+function loadImageDimensions(file: File): Promise<{ width: number; height: number }> {
+  const url = URL.createObjectURL(file);
+
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve({
+        width: img.naturalWidth || img.width,
+        height: img.naturalHeight || img.height,
+      });
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Failed to read image dimensions'));
+    };
+    img.src = url;
+  });
+}
 
 export function MediaForm({ data, onSave, isSaving, onDirty, step, totalSteps }: MediaFormProps) {
   const [quranArabic, setQuranArabic] = useState(data?.quranArabic ?? '');
@@ -76,11 +106,25 @@ export function MediaForm({ data, onSave, isSaving, onDirty, step, totalSteps }:
     };
   }, []);
 
-  const handleFileChange = (field: string, file: File | undefined, accept: string) => {
+  const handleFileChange = async (field: string, file: File | undefined, accept: string) => {
     if (!file) return;
     const maxSize = accept.startsWith('audio') ? MAX_AUDIO_SIZE : MAX_IMAGE_SIZE;
     const label = accept.startsWith('audio') ? '10MB' : '5MB';
     if (file.size > maxSize) { setError(`Ukuran file maksimal ${label}`); return; }
+
+    if (field === 'twibbonOverlay') {
+      try {
+        const { width, height } = await loadImageDimensions(file);
+        if (!isTwibbonAspectRatioValid(width, height)) {
+          setError(TWIBBON_RATIO_ERROR);
+          return;
+        }
+      } catch {
+        setError('Gagal membaca ukuran twibbon. Coba pilih file lain.');
+        return;
+      }
+    }
+
     setError('');
     const url = createPreviewUrl(file);
     replacePreview(field, url);
@@ -220,15 +264,20 @@ export function MediaForm({ data, onSave, isSaving, onDirty, step, totalSteps }:
                   )}
 
                   {field === 'twibbonOverlay' && (
-                    <button
-                      type="button"
-                      onClick={handleGenerateOverlay}
-                      disabled={isGenerating || !data?.groomNickname}
-                      className="mt-1.5 px-3 py-1 bg-gold/5 border border-gold/15 rounded-lg text-[9px] tracking-widest uppercase text-gold font-black hover:bg-gold/10 transition-all disabled:opacity-30 flex items-center gap-1.5"
-                    >
-                      <Sparkles className={`w-2.5 h-2.5 ${isGenerating ? 'animate-spin' : ''}`} />
-                      {isGenerating ? 'Membuat...' : 'Buat Otomatis'}
-                    </button>
+                    <>
+                      <p className="mt-1 text-[9px] leading-relaxed text-ink/50">
+                        Gunakan PNG transparan atau JPG rasio 9:16. Rekomendasi 1080x1920.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={handleGenerateOverlay}
+                        disabled={isGenerating || !data?.groomNickname}
+                        className="mt-1.5 px-3 py-1 bg-gold/5 border border-gold/15 rounded-lg text-[9px] tracking-widest uppercase text-gold font-black hover:bg-gold/10 transition-all disabled:opacity-30 flex items-center gap-1.5"
+                      >
+                        <Sparkles className={`w-2.5 h-2.5 ${isGenerating ? 'animate-spin' : ''}`} />
+                        {isGenerating ? 'Membuat...' : 'Buat Otomatis'}
+                      </button>
+                    </>
                   )}
                 </div>
               </div>

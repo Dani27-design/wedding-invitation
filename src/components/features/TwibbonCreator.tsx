@@ -18,6 +18,28 @@ const CANVAS_W = 1080;
 const CANVAS_H = 1920;
 const MAX_PREVIEW_DIM = 2000;
 
+export function getContainedRect(
+  sourceWidth: number,
+  sourceHeight: number,
+  targetWidth: number,
+  targetHeight: number,
+) {
+  if (sourceWidth <= 0 || sourceHeight <= 0 || targetWidth <= 0 || targetHeight <= 0) {
+    return { x: 0, y: 0, width: targetWidth, height: targetHeight };
+  }
+
+  const scale = Math.min(targetWidth / sourceWidth, targetHeight / sourceHeight);
+  const width = sourceWidth * scale;
+  const height = sourceHeight * scale;
+
+  return {
+    x: (targetWidth - width) / 2,
+    y: (targetHeight - height) / 2,
+    width,
+    height,
+  };
+}
+
 export function TwibbonCreator() {
   const wedding = useWeddingContext();
   const [image, setImage] = useState<string | null>(null);
@@ -222,7 +244,14 @@ export function TwibbonCreator() {
           ctx.drawImage(img, (CANVAS_W - dw) / 2, (CANVAS_H - dh) / 2, dw, dh);
           ctx.restore();
 
-          ctx.drawImage(overlayImgRef.current!, 0, 0, CANVAS_W, CANVAS_H);
+          const overlay = overlayImgRef.current!;
+          const overlayRect = getContainedRect(
+            overlay.naturalWidth || overlay.width,
+            overlay.naturalHeight || overlay.height,
+            CANVAS_W,
+            CANVAS_H,
+          );
+          ctx.drawImage(overlay, overlayRect.x, overlayRect.y, overlayRect.width, overlayRect.height);
 
           canvas.toBlob((blob) => resolve(blob), "image/png", 1.0);
         } catch (error) {
@@ -394,7 +423,7 @@ export function TwibbonCreator() {
               src={overlayUrl}
               crossOrigin="anonymous"
               onLoad={() => setIsReady(true)}
-              className="absolute inset-0 z-10 w-full h-full pointer-events-none"
+              className="absolute inset-0 z-10 w-full h-full object-contain pointer-events-none"
               alt=""
             />
           )}

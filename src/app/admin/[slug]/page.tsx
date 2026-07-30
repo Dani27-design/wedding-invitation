@@ -26,26 +26,10 @@ import { GuestTab } from '@/components/admin/GuestTab';
 import { ConfirmDeleteModal } from '@/components/admin/ConfirmDeleteModal';
 import { motion, AnimatePresence } from 'motion/react';
 import NextImage from 'next/image';
-import { CheckCircle2, AlertCircle, Loader2, X, LogOut, Users, Calendar, BookHeart, Image, UserRound, Gift, Images, Award, Palette, MessageCircle, MessageSquare, Heart, Copy, Check, Eye, Star } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Loader2, X, LogOut, Copy, Check } from 'lucide-react';
 import { GuestListTab } from '@/components/admin/GuestListTab';
 import { BASE_URL } from '@/constants/baseUrl';
-
-const TABS = [
-  { label: 'Pasangan', icon: UserRound },
-  { label: 'Acara', icon: Calendar },
-  { label: 'Media', icon: Image },
-  { label: 'Cerita', icon: BookHeart },
-  { label: 'Galeri', icon: Images },
-  { label: 'Hadiah', icon: Gift },
-  { label: 'Penutup', icon: Award },
-  { label: 'Tema', icon: Palette },
-  { label: 'Pesan', icon: MessageSquare },
-  { label: 'Preview', icon: Eye },
-  { label: 'Tamu', icon: Users },
-  { label: 'Interaksi', icon: MessageCircle },
-  { label: 'Ucapan', icon: Heart },
-  { label: 'Testimoni', icon: Star },
-] as const;
+import { ADMIN_TABS as TABS } from './adminTabs';
 
 
 interface SaveStatusModalProps {
@@ -454,7 +438,8 @@ export default function AdminPage() {
       case 6: return <CreditForm data={wedding} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} step={currentStep} totalSteps={totalEditable} />;
       case 7: return <CustomizeForm data={wedding} slug={slug ?? ''} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} step={currentStep} totalSteps={totalEditable} />;
       case 8: return <GuestTab data={wedding} slug={slug ?? ''} onSave={handleSave} isSaving={isSaving} onDirty={handleDirty} step={currentStep} totalSteps={totalEditable} />;
-      case 9: return (
+      case 9: return <GuestListTab slug={slug ?? ''} wedding={wedding} />;
+      case 10: return (
         <div className="flex flex-col items-center justify-start">
           <p className="text-xs text-ink/80 text-center mb-1">Tautan dan tombol tidak aktif dalam mode ini.</p>
           {/* Phone frame */}
@@ -477,7 +462,6 @@ export default function AdminPage() {
           </div>
         </div>
       );
-      case 10: return <GuestListTab slug={slug ?? ''} wedding={wedding} />;
       case 11: return <StoryInteractionsForm data={wedding} slug={slug ?? ''} />;
       case 12: return <WishesForm slug={slug ?? ''} />;
       case 13: return <TestimonialForm slug={slug ?? ''} />;

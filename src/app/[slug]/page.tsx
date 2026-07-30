@@ -1,27 +1,34 @@
-import { cache, Suspense } from 'react';
-import { notFound } from 'next/navigation';
-import type { Metadata } from 'next';
-import { adminDb } from '@/lib/firebase-admin';
-import { WeddingDocument } from '@/types/firestore';
-import { serializeWedding } from '@/lib/serialize-wedding';
-import { validateHex, sanitizeFontName } from '@/lib/sanitize-theme';
-import { deriveDateShort, deriveDateDisplay, deriveMetaTitle } from '@/utils/weddingDerived';
-import { THEME_DEFAULTS } from '@/constants/themeDefaults';
-import { BASE_URL } from '@/constants/baseUrl';
-import { WeddingClient } from './wedding-client';
+import { cache, Suspense } from "react";
+import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+import { adminDb } from "@/lib/firebase-admin";
+import { WeddingDocument } from "@/types/firestore";
+import { serializeWedding } from "@/lib/serialize-wedding";
+import { validateHex, sanitizeFontName } from "@/lib/sanitize-theme";
+import {
+  deriveDateShort,
+  deriveDateDisplay,
+  deriveMetaTitle,
+} from "@/utils/weddingDerived";
+import { THEME_DEFAULTS } from "@/constants/themeDefaults";
+import { BASE_URL } from "@/constants/baseUrl";
+import { WeddingClient } from "./wedding-client";
 
 export const revalidate = 300; // ISR: revalidate every 5 minutes
 
 export async function generateStaticParams() {
   try {
     const snapshot = await adminDb
-      .collection('weddings')
-      .where('status', '==', 'published')
+      .collection("weddings")
+      .where("status", "==", "published")
       .select()
       .get();
     return snapshot.docs.map((doc) => ({ slug: doc.id }));
   } catch (error) {
-    console.error('[generateStaticParams] Firestore error — no pages pre-rendered:', (error as Error).message);
+    console.error(
+      "[generateStaticParams] Firestore error — no pages pre-rendered:",
+      (error as Error).message,
+    );
     return [];
   }
 }
@@ -32,28 +39,46 @@ interface PageProps {
 
 const FIRESTORE_TIMEOUT = 10_000;
 
-const getWedding = cache(async (slug: string): Promise<WeddingDocument | null> => {
-  try {
-    const timeout = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('Firestore read timeout (10s)')), FIRESTORE_TIMEOUT)
-    );
-    const doc = await Promise.race([adminDb.doc(`weddings/${slug}`).get(), timeout]);
-    if (!doc.exists) return null;
-    return doc.data() as WeddingDocument;
-  } catch (error) {
-    console.error(`[getWedding] Firestore error for slug "${slug}":`, (error as Error).message);
-    return null;
-  }
-});
+const getWedding = cache(
+  async (slug: string): Promise<WeddingDocument | null> => {
+    try {
+      const timeout = new Promise<never>((_, reject) =>
+        setTimeout(
+          () => reject(new Error("Firestore read timeout (10s)")),
+          FIRESTORE_TIMEOUT,
+        ),
+      );
+      const doc = await Promise.race([
+        adminDb.doc(`weddings/${slug}`).get(),
+        timeout,
+      ]);
+      if (!doc.exists) return null;
+      return doc.data() as WeddingDocument;
+    } catch (error) {
+      console.error(
+        `[getWedding] Firestore error for slug "${slug}":`,
+        (error as Error).message,
+      );
+      return null;
+    }
+  },
+);
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const wedding = await getWedding(slug);
-  if (!wedding || wedding.status !== 'published') return { title: 'Undangan Tidak Ditemukan', robots: { index: false } };
+  if (!wedding || wedding.status !== "published")
+    return { title: "Undangan Tidak Ditemukan", robots: { index: false } };
 
   const dateShort = deriveDateShort(wedding.eventDate);
   const dateDisplay = deriveDateDisplay(wedding.eventDate);
-  const title = deriveMetaTitle(wedding.groomNickname, wedding.brideNickname, dateShort);
+  const title = deriveMetaTitle(
+    wedding.groomNickname,
+    wedding.brideNickname,
+    dateShort,
+  );
   const description = `Turut mengundang Anda di hari bahagia kami — ${dateDisplay}, ${wedding.eventCity}`;
 
   return {
@@ -72,28 +97,37 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       `wedding ${wedding.groomName} & ${wedding.brideName}`,
       `undangan ${wedding.groomNickname} & ${wedding.brideNickname}`,
       `undangan ${wedding.groomName} & ${wedding.brideName}`,
-      'undangan pernikahan digital',
-      'undangan pernikahan online',
-      'undangan pernikahan virtual',
-      'undangan pernikahan unik',
-      'undangan pernikahan modern',
-      'undangan pernikahan aesthetic',
-      'undangan pernikahan minimalis',
-      'undangan pernikahan elegan',
-      'undangan pernikahan kreatif',
-      'undangan pernikahan simple',
-      'undangan pernikahan custom',
-      'undangan pernikahan interaktif',
+      "undangan pernikahan digital",
+      "undangan pernikahan online",
+      "undangan pernikahan virtual",
+      "undangan pernikahan unik",
+      "undangan pernikahan modern",
+      "undangan pernikahan aesthetic",
+      "undangan pernikahan minimalis",
+      "undangan pernikahan elegan",
+      "undangan pernikahan kreatif",
+      "undangan pernikahan simple",
+      "undangan pernikahan custom",
+      "undangan pernikahan interaktif",
     ],
     openGraph: {
       title,
       description,
-      images: wedding.heroImage ? [{ url: wedding.heroImage, alt: `${wedding.groomNickname} & ${wedding.brideNickname}` }] : [],
-      type: 'website',
-      locale: 'id_ID',
+      images: wedding.heroImage
+        ? [
+            {
+              url: wedding.heroImage,
+              alt: `${wedding.groomNickname} & ${wedding.brideNickname}`,
+              width: 1200,
+              height: 630,
+            },
+          ]
+        : [],
+      type: "website",
+      locale: "id_ID",
     },
     twitter: {
-      card: 'summary_large_image',
+      card: "summary_large_image",
       title,
       description,
       images: wedding.heroImage ? [wedding.heroImage] : [],
@@ -115,7 +149,9 @@ function buildThemeCSS(wedding: WeddingDocument): string {
 
   const heading = sanitizeFontName(fonts?.heading ?? defaults.fonts.heading);
   const body = sanitizeFontName(fonts?.body ?? defaults.fonts.body);
-  const decorative = sanitizeFontName(fonts?.decorative ?? defaults.fonts.decorative);
+  const decorative = sanitizeFontName(
+    fonts?.decorative ?? defaults.fonts.decorative,
+  );
   const script = sanitizeFontName(fonts?.script ?? defaults.fonts.script);
 
   return `:root {
@@ -148,24 +184,27 @@ function buildCustomFontsUrl(wedding: WeddingDocument): string | null {
     return null;
   }
 
-  const weights = 'ital,wght@0,400;0,500;0,700;0,900;1,400';
+  const weights = "ital,wght@0,400;0,500;0,700;0,900;1,400";
   const customFonts: string[] = [];
   if (heading !== defaults.heading) customFonts.push(heading);
   if (body !== defaults.body) customFonts.push(body);
   if (decorative !== defaults.decorative) customFonts.push(decorative);
-  if (script !== defaults.script && script !== 'Dayland') customFonts.push(script);
+  if (script !== defaults.script && script !== "Dayland")
+    customFonts.push(script);
 
   const families = customFonts
     .filter(Boolean)
-    .map((f) => `family=${encodeURIComponent(f).replace(/%20/g, '+')}:${weights}`)
-    .join('&');
+    .map(
+      (f) => `family=${encodeURIComponent(f).replace(/%20/g, "+")}:${weights}`,
+    )
+    .join("&");
 
   if (!families) return null;
   return `https://fonts.googleapis.com/css2?${families}&display=swap`;
 }
 
 function buildIsoDateTime(date: string, time?: string): string {
-  if (!date) return '';
+  if (!date) return "";
   if (!time) return date;
   return `${date}T${time}:00+07:00`;
 }
@@ -176,27 +215,31 @@ function buildJsonLd(wedding: WeddingDocument, slug: string) {
   const dateDisplay = deriveDateDisplay(wedding.eventDate);
 
   return {
-    '@context': 'https://schema.org',
-    '@type': 'Event',
+    "@context": "https://schema.org",
+    "@type": "Event",
     name: `Pernikahan ${wedding.groomNickname} & ${wedding.brideNickname}`,
-    description: dateDisplay ? `Turut mengundang Anda di hari bahagia kami — ${dateDisplay}, ${wedding.eventCity}` : undefined,
+    description: dateDisplay
+      ? `Turut mengundang Anda di hari bahagia kami — ${dateDisplay}, ${wedding.eventCity}`
+      : undefined,
     startDate: buildIsoDateTime(wedding.eventDate, firstCeremony?.start),
-    ...(lastCeremony?.end && { endDate: buildIsoDateTime(wedding.eventDate, lastCeremony.end) }),
-    eventStatus: 'https://schema.org/EventScheduled',
-    eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+    ...(lastCeremony?.end && {
+      endDate: buildIsoDateTime(wedding.eventDate, lastCeremony.end),
+    }),
+    eventStatus: "https://schema.org/EventScheduled",
+    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     location: {
-      '@type': 'Place',
+      "@type": "Place",
       name: firstCeremony?.venueName || wedding.eventCity,
       address: {
-        '@type': 'PostalAddress',
-        streetAddress: firstCeremony?.venueAddress || '',
+        "@type": "PostalAddress",
+        streetAddress: firstCeremony?.venueAddress || "",
         addressLocality: wedding.eventCity,
-        addressCountry: 'ID',
+        addressCountry: "ID",
       },
     },
     ...(wedding.heroImage && { image: wedding.heroImage }),
     organizer: {
-      '@type': 'Person',
+      "@type": "Person",
       name: `${wedding.groomName} & ${wedding.brideName}`,
     },
     url: `${BASE_URL}/${slug}`,
@@ -206,7 +249,7 @@ function buildJsonLd(wedding: WeddingDocument, slug: string) {
 export default async function WeddingPage({ params }: PageProps) {
   const { slug } = await params;
   const wedding = await getWedding(slug);
-  if (!wedding || wedding.status !== 'published') return notFound();
+  if (!wedding || wedding.status !== "published") return notFound();
 
   const themeCSS = buildThemeCSS(wedding);
   const customFontsUrl = buildCustomFontsUrl(wedding);
@@ -215,17 +258,25 @@ export default async function WeddingPage({ params }: PageProps) {
 
   return (
     <>
-      <style href="wedding-theme" precedence="high">{themeCSS}</style>
+      <style href="wedding-theme" precedence="high">
+        {themeCSS}
+      </style>
       {customFontsUrl && (
         <>
           <link rel="preconnect" href="https://fonts.googleapis.com" />
-          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+          <link
+            rel="preconnect"
+            href="https://fonts.gstatic.com"
+            crossOrigin="anonymous"
+          />
           <link rel="stylesheet" href={customFontsUrl} precedence="default" />
         </>
       )}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+        }}
       />
       <Suspense fallback={null}>
         <WeddingClient wedding={serialized} slug={slug} />

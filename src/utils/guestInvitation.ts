@@ -1,7 +1,13 @@
 import type { Guest, WeddingDocument } from '@/types/firestore';
+import {
+  createGuestMessageContext,
+  getDefaultGuestMessageTemplate,
+  replaceGuestMessageVariables,
+  type GuestMessageWeddingFields,
+} from './guestMessageVariables';
 
 type GuestInvitationFields = Pick<Guest, 'name' | 'phone'>;
-type WeddingInvitationFields = Pick<WeddingDocument, 'greetingTemplate' | 'groomNickname' | 'brideNickname'>;
+type WeddingInvitationFields = GuestMessageWeddingFields;
 
 function normalizeWhatsAppPhone(raw: string) {
   const digits = raw.replace(/[^\d]/g, '');
@@ -27,11 +33,11 @@ export function buildGuestInvitationMessage({
   wedding: WeddingInvitationFields;
   invitationUrl: string;
 }) {
-  const template = wedding.greetingTemplate || 'Buka undangan: {link}';
-  return template
-    .replace(/\{nama\}/g, guest.name)
-    .replace(/\{pengantin\}/g, `${wedding.groomNickname} & ${wedding.brideNickname}`)
-    .replace(/\{link\}/g, invitationUrl);
+  const template = wedding.greetingTemplate || getDefaultGuestMessageTemplate();
+  return replaceGuestMessageVariables(
+    template,
+    createGuestMessageContext({ guest, wedding, invitationUrl }),
+  );
 }
 
 export function buildGuestWhatsAppUrl({

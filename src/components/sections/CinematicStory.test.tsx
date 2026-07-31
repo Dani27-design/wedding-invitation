@@ -23,6 +23,47 @@ const driverMock = vi.hoisted(() => {
   return mock;
 });
 
+const emblaMock = vi.hoisted(() => {
+  type EmblaHandler = () => void;
+  const mock = {
+    handlers: new Map<string, Set<EmblaHandler>>(),
+    latestOptions: undefined as unknown,
+    api: {
+      selectedIndex: 0,
+      selectedScrollSnap: vi.fn(() => mock.api.selectedIndex),
+      on: vi.fn((event: string, handler: EmblaHandler) => {
+        const handlers = mock.handlers.get(event) ?? new Set<EmblaHandler>();
+        handlers.add(handler);
+        mock.handlers.set(event, handlers);
+        return mock.api;
+      }),
+      off: vi.fn((event: string, handler: EmblaHandler) => {
+        mock.handlers.get(event)?.delete(handler);
+        return mock.api;
+      }),
+      reInit: vi.fn(),
+    },
+    useEmblaCarousel: vi.fn((options: unknown) => {
+      mock.latestOptions = options;
+      return [vi.fn(), mock.api] as const;
+    }),
+    emit: (event: string) => {
+      mock.handlers.get(event)?.forEach((handler) => handler());
+    },
+    select: (index: number) => {
+      mock.api.selectedIndex = index;
+      mock.emit('select');
+    },
+    reset: () => {
+      mock.handlers = new Map();
+      mock.latestOptions = undefined;
+      mock.api.selectedIndex = 0;
+    },
+  };
+
+  return mock;
+});
+
 const STORY_SLIDES = [
   { year: '2016 — 2017', text: 'Berawal dari chat sederhana,\nlalu kita dipertemukan di dunia nyata.\n\nCappucino cincau dan Indomaret Point—\njadi saksi awal cerita kita.', bgImage: '/images/bride_face_potrait.jpeg' },
   { year: '2018 — 2022', text: 'Kita berjalan beriringan,\nmelewati hari-hari yang mungkin terlihat biasa,\ntapi selalu terasa berbeda saat dijalani bersama.', bgImage: '/images/groom_face_potrait.jpeg' },
@@ -96,6 +137,10 @@ vi.mock('driver.js', () => ({
   driver: driverMock.driver,
 }));
 
+vi.mock('embla-carousel-react', () => ({
+  default: emblaMock.useEmblaCarousel,
+}));
+
 import { CinematicStory } from './CinematicStory';
 import {
   dispatchFloatingNavigationStart,
@@ -131,6 +176,7 @@ describe('CinematicStory', () => {
     driverMock.instances = [];
     driverMock.latestInstance = undefined;
     driverMock.latestOptions = undefined;
+    emblaMock.reset();
     intersectionObservers = [];
     vi.stubGlobal('IntersectionObserver', IntersectionObserverTestDouble);
     vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
@@ -354,6 +400,19 @@ describe('CinematicStory', () => {
       expect(screen.getAllByLabelText('Suka').length).toBeGreaterThan(1);
     });
 
+    it('moves active Driver.js targets when Embla selects another slide', () => {
+      const { container } = renderStory();
+      const likeButtons = screen.getAllByLabelText('Suka');
+      const commentButtons = screen.getAllByLabelText('Komentar');
+
+      act(() => {
+        emblaMock.select(1);
+      });
+
+      expect(container.querySelector('[data-tour="story-like-button"]')).toBe(likeButtons[1]);
+      expect(container.querySelector('[data-tour="story-comment-button"]')).toBe(commentButtons[1]);
+    });
+
     it('clicking comment button opens comment input form', () => {
       renderStory();
       const commentButtons = screen.getAllByLabelText('Komentar');
@@ -479,22 +538,38 @@ describe('CinematicStory', () => {
       expect(scrollContainer).toBeInTheDocument();
     });
 
-    it('scroll container has overflow-x-auto for smooth scrolling', () => {
+    it('initializes Embla with one-slide horizontal scrolling', () => {
       const { container } = renderStory();
-      const scrollContainer = container.querySelector('.overflow-x-auto');
-      expect(scrollContainer).toBeInTheDocument();
+      const viewport = container.querySelector('[data-tour="cinematic-story"]');
+
+      expect(viewport).toBeInTheDocument();
+      expect(emblaMock.useEmblaCarousel).toHaveBeenCalledWith(
+        expect.objectContaining({
+          axis: 'x',
+          loop: false,
+          dragFree: false,
+          slidesToScroll: 1,
+          containScroll: false,
+          skipSnaps: false,
+          duration: 25,
+        })
+      );
     });
 
-    it('scroll container has flex layout', () => {
+    it('Embla slide container has flex layout', () => {
       const { container } = renderStory();
-      const scrollContainer = container.querySelector('.overflow-x-auto');
-      expect(scrollContainer?.className).toContain('flex');
+      const viewport = container.querySelector('[data-tour="cinematic-story"]');
+      const slideContainer = viewport?.firstElementChild;
+      expect(slideContainer?.className).toContain('flex');
     });
 
-    it('each slide has snap-center for snap alignment', () => {
+    it('each slide is constrained to one full viewport page', () => {
       const { container } = renderStory();
-      const snapSlides = container.querySelectorAll('.snap-center');
-      expect(snapSlides.length).toBe(STORY_SLIDES.length);
+      const slides = container.querySelectorAll('.min-w-full');
+      expect(slides.length).toBe(STORY_SLIDES.length);
+      slides.forEach((slide) => {
+        expect(slide.className).toContain('flex-[0_0_100%]');
+      });
     });
   });
 
@@ -509,8 +584,8 @@ describe('CinematicStory', () => {
       const { container } = renderStory();
       const target = container.querySelector('[data-tour="cinematic-story"]');
       expect(target).toBeInTheDocument();
-      expect(target).toHaveClass('overflow-x-auto');
-      expect(target).toHaveClass('snap-x');
+      expect(target).toHaveClass('overflow-hidden');
+      expect(target).toHaveClass('no-scrollbar');
     });
 
     it('does not start the Driver.js tour while the story section is only partially visible', async () => {
@@ -674,23 +749,16 @@ describe('CinematicStory', () => {
       expect(driverMock.latestOptions?.steps[0]).not.toHaveProperty('element');
     });
 
-    it('does not start the story tour when the guest already swiped the story before the delay ends', async () => {
+    it('does not start the story tour when the guest already interacted with the story carousel before the delay ends', async () => {
       vi.useFakeTimers();
       const { container } = renderStory();
       const target = container.querySelector('[data-tour="cinematic-story"]');
       expect(target).toBeInTheDocument();
-      Object.defineProperty(target, 'scrollTo', {
-        configurable: true,
-        value: vi.fn(),
-      });
 
       await triggerFullStoryVisibility();
 
-      fireEvent.touchStart(target!, {
-        touches: [{ clientX: 180, clientY: 20 }],
-      });
-      fireEvent.touchMove(target!, {
-        touches: [{ clientX: 120, clientY: 24 }],
+      act(() => {
+        emblaMock.emit('scroll');
       });
 
       act(() => {
@@ -899,11 +967,11 @@ describe('CinematicStory', () => {
       expect(socialPanels.length).toBeGreaterThan(0);
     });
 
-    it('scroll container has h-full w-full', () => {
+    it('Embla viewport has h-full w-full', () => {
       const { container } = renderStory();
-      const scrollContainer = container.querySelector('.overflow-x-auto');
-      expect(scrollContainer?.className).toContain('h-full');
-      expect(scrollContainer?.className).toContain('w-full');
+      const viewport = container.querySelector('[data-tour="cinematic-story"]');
+      expect(viewport?.className).toContain('h-full');
+      expect(viewport?.className).toContain('w-full');
     });
   });
 

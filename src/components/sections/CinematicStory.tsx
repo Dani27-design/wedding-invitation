@@ -3,6 +3,7 @@ import { useState, useRef, useCallback, useEffect, memo } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
 import { driver, type Driver, type DriverHook } from 'driver.js';
+import useEmblaCarousel from 'embla-carousel-react';
 import { Heart, MessageCircle } from 'lucide-react';
 import { AmbientSocialLayer } from '../ui/AmbientSocialLayer';
 import { PetalEffect } from '../ui/PetalEffect';
@@ -30,6 +31,15 @@ const STORY_TOUR_READY_DELAY_MS = 150;
 const STORY_TOUR_TARGET_WAIT_MS = 1000;
 const STORY_LIKE_BUTTON_SELECTOR = '[data-tour="story-like-button"]';
 const STORY_COMMENT_BUTTON_SELECTOR = '[data-tour="story-comment-button"]';
+const STORY_CAROUSEL_OPTIONS = {
+  axis: 'x',
+  loop: false,
+  dragFree: false,
+  slidesToScroll: 1,
+  containScroll: false,
+  skipSnaps: false,
+  duration: 25,
+} as const;
 
 function isStorySectionMostlyVisible(el: HTMLElement | null) {
   if (!el) return false;
@@ -96,10 +106,8 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
   const [expandedSlides, setExpandedSlides] = useState<Set<number>>(new Set());
   const [isVisible, setIsVisible] = useState(false);
   const [isStoryTourReady, setIsStoryTourReady] = useState(false);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [emblaRef, emblaApi] = useEmblaCarousel(STORY_CAROUSEL_OPTIONS);
   const sectionRef = useRef<HTMLElement>(null);
-  const scrollRafRef = useRef(false);
-  const scrollLockRef = useRef(false);
   const videoRefs = useRef<Map<number, HTMLVideoElement>>(new Map());
   const textRefs = useRef<Map<number, HTMLParagraphElement>>(new Map());
   const storyTourRef = useRef<Driver | null>(null);
@@ -125,6 +133,44 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
 
   const { likes, incrementLike } = useStoryLikes(weddingSlug, isVisible);
   const { comments, addComment } = useStoryComments(weddingSlug, activeSlide, isVisible);
+
+  useEffect(() => {
+    if (!emblaApi) return undefined;
+
+    const syncActiveSlide = () => {
+      setActiveSlide(emblaApi.selectedScrollSnap());
+    };
+
+    syncActiveSlide();
+    emblaApi.on('select', syncActiveSlide);
+    emblaApi.on('reInit', syncActiveSlide);
+
+    return () => {
+      emblaApi.off('select', syncActiveSlide);
+      emblaApi.off('reInit', syncActiveSlide);
+    };
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return undefined;
+
+    const markStorySwipeInteraction = () => {
+      if (!hasStartedStoryTourRef.current) {
+        hasInteractedWithStorySwipeRef.current = true;
+      }
+    };
+
+    emblaApi.on('scroll', markStorySwipeInteraction);
+
+    return () => {
+      emblaApi.off('scroll', markStorySwipeInteraction);
+    };
+  }, [emblaApi]);
+
+  useEffect(() => {
+    setActiveSlide((current) => Math.min(current, Math.max(0, slides.length - 1)));
+    emblaApi?.reInit();
+  }, [emblaApi, slides.length, storySignature]);
 
   const showInteractionError = useCallback((message: string) => {
     if (interactionErrorTimerRef.current) clearTimeout(interactionErrorTimerRef.current);
@@ -373,34 +419,6 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
 
   if (slides.length === 0) return null;
 
-  const goToSlide = (index: number) => {
-    const el = scrollContainerRef.current;
-    if (!el) return;
-    const target = Math.max(0, Math.min(index, slides.length - 1));
-    // Lock scroll handler to prevent activeSlide flicker during animation
-    scrollLockRef.current = true;
-    setActiveSlide(target);
-    el.scrollTo({ left: target * el.clientWidth, behavior: 'smooth' });
-    setTimeout(() => { scrollLockRef.current = false; }, 500);
-  };
-
-  const handleStoryScroll = useCallback(() => {
-    // Skip if programmatic scroll is in progress
-    if (scrollLockRef.current) return;
-    if (scrollRafRef.current) return;
-    scrollRafRef.current = true;
-    requestAnimationFrame(() => {
-      const el = scrollContainerRef.current;
-      if (el && el.clientWidth) {
-        if (!hasStartedStoryTourRef.current && Math.abs(el.scrollLeft) > 1) {
-          hasInteractedWithStorySwipeRef.current = true;
-        }
-        setActiveSlide(Math.round(el.scrollLeft / el.clientWidth));
-      }
-      scrollRafRef.current = false;
-    });
-  }, []);
-
   const handleLike = (idx: number) => {
     if (!isOnline) {
       showInteractionError('Koneksi internet diperlukan untuk menyukai cerita.');
@@ -409,57 +427,6 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
     setHeartTrigger(Date.now());
     incrementLike(idx);
   };
-
-  // Limit swipe to one slide at a time
-  useEffect(() => {
-    const el = scrollContainerRef.current;
-    if (!el) return;
-    const THRESHOLD = 30;
-    let startX = 0;
-    let startY = 0;
-    let decided = false;
-    let isHorizontal = false;
-    let triggered = false;
-
-    const onTouchStart = (e: globalThis.TouchEvent) => {
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
-      decided = false;
-      isHorizontal = false;
-      triggered = false;
-    };
-
-    const onTouchMove = (e: globalThis.TouchEvent) => {
-      const dx = e.touches[0].clientX - startX;
-      const dy = e.touches[0].clientY - startY;
-
-      // Decide direction once per gesture
-      if (!decided && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
-        decided = true;
-        isHorizontal = Math.abs(dx) > Math.abs(dy);
-      }
-
-      // Only intercept horizontal swipes — let vertical scroll through
-      if (isHorizontal) {
-        e.preventDefault();
-        if (!hasStartedStoryTourRef.current) {
-          hasInteractedWithStorySwipeRef.current = true;
-        }
-        if (!triggered && Math.abs(dx) > THRESHOLD) {
-          triggered = true;
-          goToSlide(activeSlide + (dx < 0 ? 1 : -1));
-        }
-      }
-    };
-
-    el.addEventListener('touchstart', onTouchStart, { passive: true });
-    el.addEventListener('touchmove', onTouchMove, { passive: false });
-
-    return () => {
-      el.removeEventListener('touchstart', onTouchStart);
-      el.removeEventListener('touchmove', onTouchMove);
-    };
-  }, [activeSlide, slides.length]);
 
   const handleAddComment = () => {
     if (!commentInput?.text.trim() || !commentInput?.name.trim()) return;
@@ -475,14 +442,15 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
 
   return (
     <section ref={sectionRef} id="story-section" className="relative h-screen-safe w-full bg-ink overflow-hidden scroll-snap-container">
-      <div ref={scrollContainerRef} data-tour="cinematic-story" onScroll={handleStoryScroll} className="h-full w-full flex overflow-x-auto snap-x snap-mandatory no-scrollbar">
-        {slides.map((slide, idx) => {
-          const isActive = idx === activeSlide;
-          const isNear = Math.abs(idx - activeSlide) <= 1;
-          const canExpand = overflowingSlides.has(idx);
+      <div ref={emblaRef} data-tour="cinematic-story" className="h-full w-full overflow-hidden no-scrollbar">
+        <div className="h-full w-full flex">
+          {slides.map((slide, idx) => {
+            const isActive = idx === activeSlide;
+            const isNear = Math.abs(idx - activeSlide) <= 1;
+            const canExpand = overflowingSlides.has(idx);
 
-          return (
-          <div key={idx} className="relative h-full w-full min-w-full snap-center flex items-center justify-center overflow-hidden">
+            return (
+          <div key={idx} className="relative h-full w-full min-w-full flex-[0_0_100%] flex items-center justify-center overflow-hidden">
             {/* Background media */}
             <div className="absolute inset-0 bg-ink">
               {/* Layer 1: Subtle ambient glow behind main media */}
@@ -629,9 +597,10 @@ export const CinematicStory = memo(({ weddingSlug }: CinematicStoryProps) => {
               </div>
             </div>
 
-          </div>
-          );
-        })}
+            </div>
+            );
+          })}
+        </div>
       </div>
       {interactionError && (
         <div role="alert" className="absolute bottom-24 left-1/2 z-[80] w-[calc(100vw-2rem)] max-w-xs -translate-x-1/2 rounded-full border border-white/10 bg-black/70 px-4 py-2 text-center text-[10px] font-sans font-bold uppercase tracking-[0.14em] text-ivory shadow-xl">
